@@ -194,9 +194,9 @@ void DigestCalcResponse(IN HASHHEX HA1,         /* H(A1) */
 
 
 int
-osip_create_authorization_header(osip_message_t *previous_answer,
-				 char *rquri, char *username, char *passwd,
-				 osip_authorization_t **auth)
+__eXosip_create_authorization_header(osip_message_t *previous_answer,
+				     char *rquri, char *username, char *passwd,
+				     osip_authorization_t **auth)
 {
   osip_authorization_t *aut;
   osip_www_authenticate_t *wa=NULL;
@@ -293,11 +293,10 @@ osip_create_authorization_header(osip_message_t *previous_answer,
   return 0;
 }
 
-
 int
-osip_create_proxy_authorization_header(osip_message_t *previous_answer,
-				       char *rquri,char *username,char *passwd,
-				       osip_proxy_authorization_t **auth)
+__eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
+					 char *rquri,char *username,char *passwd,
+					 osip_proxy_authorization_t **auth)
 {
   osip_proxy_authorization_t *aut;
   osip_proxy_authenticate_t *wa;

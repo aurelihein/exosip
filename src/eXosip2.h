@@ -204,6 +204,20 @@ struct jauthinfo_t {
   jauthinfo_t *next;
 };
 
+int
+eXosip_add_authentication_info(char *username, char *userid,
+			       char *passwd, char *ha1,
+			       char *realm);
+int
+__eXosip_create_authorization_header(osip_message_t *previous_answer,
+				     char *rquri, char *username, char *passwd,
+				     osip_authorization_t **auth);
+int
+__eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
+					   char *rquri,char *username,
+					   char *passwd,
+					   osip_proxy_authorization_t **auth);
+
 
 eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t *jc,
 					      eXosip_dialog_t *jd);

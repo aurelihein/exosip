@@ -224,7 +224,11 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
   if (local_body!=NULL)
     {
       size= (char *)osip_malloc(7*sizeof(char));
+#ifdef __APPLE_CC__
       sprintf(size,"%li",strlen(local_body));
+#else
+      sprintf(size,"%i",strlen(local_body));
+#endif
       osip_message_set_content_length(orig_request, size);
       osip_free(size);
   
@@ -389,7 +393,11 @@ eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
     osip_message_free(response);
     return -1;
   }
+#ifdef __APPLE_CC__
   snprintf(size, 9,"%li",strlen(body));
+#else
+  snprintf(size, 9,"%i",strlen(body));
+#endif
   i = osip_message_set_content_length(response, size);
   if (i!=0) {
     osip_free(body);
@@ -609,7 +617,11 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
     goto g2atii_error_1;
   }
   size = (char *) osip_malloc(6*sizeof(char));
+#ifdef __APPLE_CC__
   sprintf(size,"%li",strlen(body));
+#else
+  sprintf(size,"%i",strlen(body));
+#endif
   i = osip_message_set_content_length(response, size);
   osip_free(size);
   if (i!=0) goto g2atii_error_1;

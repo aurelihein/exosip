@@ -467,7 +467,11 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	return NULL;
       }
       size = (char *) osip_malloc(6*sizeof(char));
+#ifdef __APPLE_CC__
       sprintf(size,"%li",strlen(local_body));
+#else
+      sprintf(size,"%i",strlen(local_body));
+#endif
       osip_free(local_body);
       osip_message_set_content_length(answer, size);
       osip_free(size);

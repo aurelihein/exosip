@@ -676,7 +676,11 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
       if (body!=NULL)
 	{
 	  size= (char *)osip_malloc(7*sizeof(char));
+#ifdef __APPLE_CC__
 	  sprintf(size,"%li",strlen(body));
+#else
+	  sprintf(size,"%i",strlen(body));
+#endif
 	  osip_message_set_content_length(invite, size);
 	  osip_free(size);
 	  
@@ -933,7 +937,11 @@ int eXosip_on_hold_call  (int jid)
   if (body!=NULL)
     {
       size= (char *)osip_malloc(7*sizeof(char));
+#ifdef __APPLE_CC__
       sprintf(size,"%li",strlen(body));
+#else
+      sprintf(size,"%i",strlen(body));
+#endif
       osip_message_set_content_length(invite, size);
       osip_free(size);
       
@@ -1028,7 +1036,11 @@ int eXosip_off_hold_call (int jid)
   if (body!=NULL)
     {
       size= (char *)osip_malloc(7*sizeof(char));
+#ifdef __APPLE_CC__
       sprintf(size,"%li",strlen(body));
+#else
+      sprintf(size,"%i",strlen(body));
+#endif
       osip_message_set_content_length(invite, size);
       osip_free(size);
       
@@ -1334,10 +1346,10 @@ eXosip_add_authentication_information(osip_message_t *req,
       i = osip_uri_to_str (req->req_uri, &uri);
       if (i!=0) return -1;
       
-      i = osip_create_authorization_header(last_response, uri,
-					   authinfo->username,
-					   authinfo->passwd,
-					   &aut);
+      i = __eXosip_create_authorization_header(last_response, uri,
+					       authinfo->username,
+					       authinfo->passwd,
+					       &aut);
       osip_free(uri);
       if (i!=0) return -1;
 
@@ -1361,10 +1373,10 @@ eXosip_add_authentication_information(osip_message_t *req,
       i = osip_uri_to_str (req->req_uri, &uri);
       if (i!=0) return -1;
       
-      i = osip_create_proxy_authorization_header(last_response, uri,
-						 authinfo->username,
-						 authinfo->passwd,
-						 &proxy_aut);
+      i = __eXosip_create_proxy_authorization_header(last_response, uri,
+						     authinfo->username,
+						     authinfo->passwd,
+						     &proxy_aut);
       osip_free(uri);
       if (i!=0) return -1;
 
