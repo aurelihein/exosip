@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.19 2003-04-13 23:19:05 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.20 2003-04-17 21:48:02 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -737,6 +737,53 @@ nctab_get_values(nctab_t (*nctab)[],
   return c;
 }
 
+static char log_buf1[200] = { '\0' };
+static struct osip_mutex *log_mutex = NULL;
+
+void josua_printf_show()
+{
+  char buf1[200];
+  int x, y;
+  getmaxyx(stdscr,y,x);
+
+  attrset(COLOR_PAIR(4));
+  if (log_buf1!='\0')
+    {
+      int xpos;
+      osip_mutex_lock(log_mutex);
+      snprintf(buf1,199, "%80.80s", " ");
+      mvaddnstr(y-1,0,buf1,x-1);
+      xpos = (x - strlen(log_buf1))/2;
+      if (xpos<0)
+	xpos = 0;
+      attrset(COLOR_PAIR(5));
+      mvaddnstr(y-1,xpos,log_buf1,x-1);
+      osip_mutex_unlock(log_mutex);
+    }
+}
+
+void josua_printf(char *chfr, ...)
+{
+  va_list ap;  
+  char buf1[200];
+  
+  VA_START (ap, chfr);
+  vsnprintf(buf1,199, chfr, ap);
+
+  if (log_mutex==NULL)
+    {
+      log_mutex = osip_mutex_init();
+    }
+
+  osip_mutex_lock(log_mutex);
+  // snprintf(log_buf1,199, "%80.80s\n", buf1);
+  snprintf(log_buf1,199, "[%s]", buf1);
+  osip_mutex_unlock(log_mutex);
+
+  va_end (ap);
+
+}
+
 static int cur_pos = 0;
 static int last_cur_pos = 13;
 
@@ -1179,6 +1226,7 @@ void print_menu(int menu)
   print_calls();
   print_subscribes();
   print_notifies();
+  josua_printf_show();
 }
 
 
@@ -1513,6 +1561,7 @@ void __josua_menu() {
 	print_calls();
 	print_notifies();
 	print_subscribes();
+	josua_printf_show();
 	refresh();
 	halfdelay(1);
 	c= getch();
@@ -1604,22 +1653,6 @@ usage:\n\
     exit (code);
 }
 
-void josua_printf(char *chfr, ...)
-{
-  va_list ap;  
-  int x, y;
-  char buf1[200];
-  char buf2[200];
-  getmaxyx(stdscr,y,x);
-  
-  VA_START (ap, chfr);
-  vsnprintf(buf1,199, chfr, ap);
-  snprintf(buf2,199, "%-80.80s\n", buf1);
-
-  mvaddnstr(y-1,0,buf2,x-1);
-  va_end (ap);
-
-}
 
 int main(int argc, const char *const *argv) {
 
@@ -1788,6 +1821,7 @@ int main(int argc, const char *const *argv) {
 	}
     }
 
+  josua_printf("Welcome To Josua");
 
   print_menu(0);
   __josua_menu();

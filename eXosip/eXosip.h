@@ -231,6 +231,32 @@ struct jsubscriber_t {
   jsubscriber_t   *parent;
 };
 
+typedef enum eXosip_msg_callback {
+  EXOSIP_CALL_NEW = 0,         /* announce a new call                 */
+  EXOSIP_CALL_PROCEEDING,      /* announce processing by a remote app */
+  EXOSIP_CALL_RINGING,         /* announce ringback                   */
+  EXOSIP_CALL_ANSWERED,        /* announce start of call              */
+  EXOSIP_CALL_STARTAUDIO,      /* audio must be established           */
+  EXOSIP_CALL_HOLD,            /* audio must be stopped               */
+  EXOSIP_CALL_OFFHOLD,         /* audio must be restarted             */
+  EXOSIP_CALL_DISCONNECTED,    /* announce end of call              */
+
+  /* Presence and Instant Messaging */
+  EXOSIP_IN_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.  */
+  EXOSIP_IN_SUBSCRIPTION_REFRESH,      /* subscription need to be refreshed.*/
+  EXOSIP_IN_SUBSCRIPTION_DISCONNECTED, /* announce end of subscription.     */
+
+  EXOSIP_OUT_SUBSCRIPTION_NEW,          /* announce new outgoing SUBSCRIBE.*/
+  EXOSIP_OUT_SUBSCRIPTION_REFRESHED,    /* announce new NOTIFY.            */
+  EXOSIP_OUT_SUBSCRIPTION_DISCONNECTED, /* announce end of subscription.   */
+
+  EXOSIP_REGISTRATION_NEW,              /* announce new registration. */
+  EXOSIP_REGISTRATION_REFRESHED,        /* registration has been refreshed. */
+  EXOSIP_REGISTRATION_TERMINATED,       /* UA is not registred any more. */
+
+  EXOSIP_EMPTY
+} eXosip_msg_callback_t;
+
 typedef struct eXosip_t eXosip_t;
 
 struct eXosip_t {
@@ -251,10 +277,11 @@ struct eXosip_t {
   void               *j_thread;
 
   jsubscriber_t      *j_subscribers;
-
-  /* configuration informations */
   jfriend_t          *j_friends;
   jidentity_t        *j_identitys;
+
+  
+
 };
 
 typedef struct jinfo_t jinfo_t;
