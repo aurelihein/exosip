@@ -704,6 +704,10 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
     }
   else if (0==strcmp("NOTIFY", method_name))
     {
+#ifdef SUPPORT_MSN
+#else
+      osip_message_set_header(request, "Event", "presence");
+#endif
     }
   else if (0==strcmp("INFO", method_name))
     {

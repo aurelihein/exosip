@@ -928,6 +928,13 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 #endif
   int i;
 
+  if (jd==NULL)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 500);
+      return ;
+    }
+
   /* if subscription-state has a reason state set to terminated,
      we close the dialog */
 #ifndef SUPPORT_MSN
@@ -942,7 +949,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
     }
 #endif
 
-  i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
+    i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
     {
       osip_list_add(eXosip.j_transactions, transaction, 0);
@@ -1174,6 +1181,58 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   return;
 }
 
+int
+eXosip_match_notify_for_subscribe(eXosip_subscribe_t *js, osip_message_t *notify)
+{
+  osip_transaction_t *out_sub;
+  
+  if (js==NULL)
+    return -1;
+  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+			"Trying to match notify with subscribe\n"));
+  
+  out_sub = eXosip_find_last_out_subscribe(js, NULL);
+  if (out_sub==NULL || out_sub->orig_request==NULL)
+    return -1;      
+  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+			"subscribe transaction found\n"));
+  
+  /* some checks to avoid crashing on bad requests */
+  if (notify == NULL || notify->cseq == NULL
+      || notify->cseq->method == NULL || notify->to == NULL)
+    return -1;
+  
+  if (0 != osip_call_id_match (out_sub->callid, notify->call_id))
+    return -1;
+  
+  {
+    /* The From tag of outgoing request must match
+       the To tag of incoming notify:
+    */
+    osip_generic_param_t *tag_from;
+    osip_generic_param_t *tag_to;
+    
+    osip_from_param_get_byname (out_sub->from, "tag", &tag_from);
+    osip_from_param_get_byname (notify->to, "tag", &tag_to);
+    if (tag_to == NULL || tag_to->gvalue==NULL)
+      {
+	OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
+			      "Uncompliant user agent: no tag in from of outgoing request\n"));
+	return -1;
+      }
+    if (tag_from == NULL || tag_to->gvalue==NULL)
+      {
+	OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
+			      "Uncompliant user agent: no tag in to of incoming request\n"));
+	return -1;
+      }
+    
+    if (0 != strcmp (tag_from->gvalue, tag_to->gvalue))
+      return -1;
+  }
+  
+  return 0;
+}
 
 void eXosip_process_newrequest (osip_event_t *evt)
 {
@@ -1444,6 +1503,29 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	 By now, I prefer to discard the message until an answer for
 	 the subscribe is received, then I'll be able to answer
 	 the NOTIFY retransmission. */
+
+      /* let's try to check if the NOTIFY is related to an existing
+	 subscribe */
+      js = NULL;
+      /* first, look for a Dialog in the map of element */
+      for (js = eXosip.j_subscribes; js!= NULL ; js=js->next)
+	{
+	  if (eXosip_match_notify_for_subscribe(js, evt->sip)==0)
+	    {
+	      i = eXosip_dialog_init_as_uac(&jd, evt->sip);
+	      if (i!=0)
+		{
+		  fprintf(stderr, "eXosip: cannot establish a dialog\n");
+		  return;
+		}
+	      ADD_ELEMENT(js->s_dialogs, jd);
+	      eXosip_update();
+
+	      eXosip_process_notify_within_dialog(js, jd, transaction, evt);
+	      return;
+	    }
+	}
+      
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer(NULL, transaction, evt, 481);
       return;

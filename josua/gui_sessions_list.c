@@ -155,14 +155,14 @@ int window_sessions_list_run_command(int c)
       ca = jcall_find_call(cursor_sessions_list);
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
-      eXosip_answer_call(ca->did, 200);
+      eXosip_answer_call(ca->did, 200, 0);
       eXosip_unlock();
       break;
     case 'r':
       ca = jcall_find_call(cursor_sessions_list);
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_answer_call(ca->did, 480);
+      i = eXosip_answer_call(ca->did, 480, 0);
       if (i==0)
 	jcall_remove(ca);
       eXosip_unlock();
@@ -172,7 +172,7 @@ int window_sessions_list_run_command(int c)
       ca = jcall_find_call(cursor_sessions_list);
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_answer_call(ca->did, 603);
+      i = eXosip_answer_call(ca->did, 603, 0);
       if (i==0)
 	jcall_remove(ca);
       eXosip_unlock();
@@ -182,7 +182,7 @@ int window_sessions_list_run_command(int c)
       ca = jcall_find_call(cursor_sessions_list);
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_answer_call(ca->did, 486);
+      i = eXosip_answer_call(ca->did, 486, 0);
       if (i==0)
 	jcall_remove(ca);
       eXosip_unlock();

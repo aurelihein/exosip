@@ -61,6 +61,10 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
     {
       response->reason_phrase = osip_strdup("Subcription Does Not Exist");
     }
+  else if (MSG_IS_SUBSCRIBE(request) && status==202)
+    {
+      response->reason_phrase = osip_strdup("Accepted subscription");
+    }
   else
     {
       response->reason_phrase = osip_strdup(osip_message_get_reason(status));
@@ -133,6 +137,7 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   osip_message_set_allow(response, "SUBSCRIBE");
   osip_message_set_allow(response, "NOTIFY");
   osip_message_set_allow(response, "MESSAGE");
+  osip_message_set_allow(response, "INFO");
 
   *dest = response;
   return 0;
@@ -166,6 +171,77 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 }
 
 char *
+generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd, 
+			 osip_message_t *orig_request, char *local_sdp_port)
+{
+  sdp_message_t *local_sdp = NULL;
+  char *local_body = NULL;
+  char *size;
+  int i;
+  
+  jc->c_ack_sdp = 1;
+  if(osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &local_sdp, local_sdp_port, NULL) != 0)
+    return NULL;
+  
+  if (local_sdp!=NULL)
+    {
+      int pos=0;
+      while (!sdp_message_endof_media (local_sdp, pos))
+	{
+	  int k = 0;
+	  char *tmp = sdp_message_m_media_get (local_sdp, pos);
+	  if (0 == strncmp (tmp, "audio", 5))
+	    {
+	      char *payload = NULL;
+	      do {
+		payload = sdp_message_m_payload_get (local_sdp, pos, k);
+		if (payload == NULL)
+		  {
+		  }
+		else if (0==strcmp("110",payload))
+		  {
+		    sdp_message_a_attribute_add (local_sdp,
+						 pos,
+						 osip_strdup ("AS"),
+						 osip_strdup ("110 20"));
+		  }
+		else if (0==strcmp("111",payload))
+		  {
+		    sdp_message_a_attribute_add (local_sdp,
+						 pos,
+						 osip_strdup ("AS"),
+						 osip_strdup ("111 20"));
+		  }
+		k++;
+	      } while (payload != NULL);
+	    }
+	  pos++;
+	}
+    }
+  
+  i = sdp_message_to_str(local_sdp, &local_body);
+  
+  if (local_body!=NULL)
+    {
+      size= (char *)osip_malloc(7*sizeof(char));
+      sprintf(size,"%i",strlen(local_body));
+      osip_message_set_content_length(orig_request, size);
+      osip_free(size);
+  
+      osip_message_set_body(orig_request, local_body);
+      osip_message_set_content_type(orig_request, "application/sdp");
+    }
+  else
+    osip_message_set_content_length(orig_request, "0");
+  
+  osip_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);  
+  
+  printf("200 OK w/ SDP (RESPONSE TO INVITE w/ NO SDP)=\n%s\n", local_body);
+  
+  return local_body;
+}
+
+char *
 generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
 {
   sdp_message_t *remote_sdp;
@@ -176,10 +252,12 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
     return NULL;
 
   local_body = NULL;
-  if (MSG_IS_INVITE(request)||MSG_IS_OPTIONS(request))
+  if (MSG_IS_INVITE(request)||MSG_IS_OPTIONS(request)||MSG_IS_RESPONSE_FOR(request, "INVITE"))
     {
       osip_body_t *body;
       body = (osip_body_t *)osip_list_get(request->bodies,0);
+      if(body == NULL)
+	return NULL;
       
       /* remote_sdp = (sdp_message_t *) osip_malloc(sizeof(sdp_message_t)); */
       i = sdp_message_init(&remote_sdp);
@@ -441,13 +519,13 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 }
 
 int
-eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
+eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char *local_sdp_port)
 {
   osip_event_t *evt_answer;
   osip_message_t *response;
   int i;
   char *size;
-  char *body;
+  char *body = NULL;
   osip_transaction_t *tr;
   tr = eXosip_find_last_inc_invite(jc, jd);
 
@@ -472,11 +550,22 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       return -1;
     }
 
-  body = generating_sdp_answer(tr->orig_request, jc->c_ctx);
-  if (body==NULL)
+  /* WE SHOULD LOOK FOR A SDP PACKET!! */
+  if(NULL != osip_list_get(tr->orig_request->bodies,0))
     {
-      code = 488;
+      body = generating_sdp_answer(tr->orig_request, jc->c_ctx);
+      if (body==NULL)
+	code = 488; /* bad sdp */
     }
+  else
+    {
+      if(local_sdp_port==NULL)
+	code = 488; /* session description in the request is not acceptable. */
+      else 
+	/* body is NULL (contains no SDP), generate a response to INVITE w/ no SDP */
+	body = generating_no_sdp_answer(jc, jd, tr->orig_request, local_sdp_port);
+    }
+  
   if (jd==NULL)
     i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
   else

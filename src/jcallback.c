@@ -24,7 +24,6 @@
 
 #include <stdlib.h>
 
-
 #ifdef WIN32
 #include <windowsx.h>
 #include <winsock2.h>
@@ -47,6 +46,9 @@
 #include <eXosip/eXosip.h>
 #include "eXosip2.h"
 #include <eXosip/eXosip_cfg.h>
+
+/* from jresponse.c */
+extern char * generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context);
 
 extern eXosip_t eXosip;
 
@@ -973,6 +975,39 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
       jd->d_STATE = JD_ESTABLISHED;
       return ;
     }
+
+    if(jc->c_ack_sdp) /* need to build sdp answer */
+      {
+	char *body;
+	char *size;
+	
+	body = generating_sdp_answer(tr->last_response, jc->c_ctx);
+	if (body==NULL)
+	  {
+	    return;
+	  }
+
+	i = osip_message_set_body(ack, body);
+	if (i!=0)
+	  {
+	    return;
+	  }
+	
+	size = (char *) osip_malloc(6*sizeof(char));
+	sprintf(size,"%i",strlen(body));
+	osip_free(body);  
+	i = osip_message_set_content_length(ack, size);
+	osip_free(size);
+	if (i!=0)
+	  {
+	    return;
+	  }
+	i = osip_message_set_header(ack, "content-type", "application/sdp");
+	if (i!=0)
+	  {
+	    return;
+	  }
+      }
 
     osip_message_get_route(ack, 0, &route);
     if (route!=NULL)

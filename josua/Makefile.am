@@ -9,11 +9,16 @@ else
 MORE_CFLAGS = -Wall @CFLAGS@ @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ @EXOSIP_FLAGS@
 endif
 
+if UCL_SUPPORT
+AM_CFLAGS = $(MORE_CFLAGS) -DUCL_SUPPORT
+else
+if ORTP_SUPPORT
+AM_CFLAGS = $(MORE_CFLAGS) -DORTP_SUPPORT
+else
 if MEDIASTREAMER_SUPPORT
 AM_CFLAGS = $(MORE_CFLAGS) -DMEDIASTREAMER_SUPPORT
 endif
-if ORTP_SUPPORT
-AM_CFLAGS = $(MORE_CFLAGS) -DORTP_SUPPORT
+endif
 endif
 
 josua_SOURCES = \
@@ -32,7 +37,8 @@ gui_address_book_browse.h   gui_new_identity.h       jcalls.h               \
 gui_address_book_newentry.h gui_online.h             jconfig.h              \
 gui_icon.h                  gui_registrations_list.h jinsubscriptions.h     \
 gui_insubscriptions_list.h  gui_sessions_list.h      jsubscriptions.h       \
-gui_loglines.h              gui_setup.h              ppl_getopt.h
+gui_loglines.h              gui_setup.h              ppl_getopt.h           \
+sound-ucl.c
 
 if GLIB_SUPPORT
 josua_LDFLAGS = -O -Wall -leXosip -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@  `pkg-config --libs glib-2.0`
@@ -40,6 +46,11 @@ else
 josua_LDFLAGS = -O  -Wall -leXosip -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ 
 endif
 
+if UCL_SUPPORT
+MORE_MYADD = -luclmmbase
+
+MORE_INCLUDES = -I/ucl
+else
 if ORTP_SUPPORT
 MORE_MYADD = -lortp -lm
 
@@ -51,8 +62,9 @@ MORE_MYADD = -lortp -lm -lmediastreamer -lmsspeex
 MORE_INCLUDES = -I$(includedir)/mediastreamer -I$(includedir)/ortp
 endif
 endif
+endif
 
-josua_LDADD = $(top_builddir)/src/libeXosip.la -losip2 $(MORE_MYADD)
+josua_LDADD = $(top_builddir)/src/libeXosip.la -losip2 -lrt $(MORE_MYADD)
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(includedir) $(MORE_INCLUDES)
 

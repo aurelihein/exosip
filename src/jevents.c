@@ -24,6 +24,7 @@
 
 #include "eXosip2.h"
 #include <eXosip/eXosip.h>
+#include <osip2/osip_condv.h>
 
 eXosip_t eXosip;
 
@@ -700,13 +701,39 @@ eXosip_event_get_subscribeinfo(eXosip_event_t *je)
 int
 eXosip_event_add(eXosip_event_t *je)
 {
-  return osip_fifo_add(eXosip.j_events, (void *) je);
+  int i = osip_fifo_add(eXosip.j_events, (void *) je);
+  osip_cond_signal((struct osip_cond *)eXosip.j_cond);
+  return i;
 }
 
 eXosip_event_t *
 eXosip_event_wait(int tv_s, int tv_ms)
 {
+  int i;
   eXosip_event_t *je;
+  struct timespec deadline;
+  struct timespec interval;
+  long tot_ms = (tv_s*1000) + tv_ms;
+  
+  interval.tv_sec = tot_ms / 1000;
+  interval.tv_nsec = (tot_ms % 1000) * 1000000L;
+  
+  osip_clock_gettime(OSIP_CLOCK_REALTIME, &deadline);
+  
+  if ((deadline.tv_nsec += interval.tv_nsec) >= 1000000000L)
+    {
+      deadline.tv_nsec -= 1000000000L;
+      deadline.tv_sec += 1;
+    }
+  else 
+    deadline.tv_nsec += interval.tv_nsec;
+  
+  deadline.tv_sec += interval.tv_sec;
+  
+  i = osip_cond_timedwait ((struct osip_cond *)eXosip.j_cond,
+			   (struct osip_mutex *)eXosip.j_mutexlock,
+			   &deadline);
+  
   je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
   return je;
 }

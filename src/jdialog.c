@@ -87,7 +87,6 @@ int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, osip_message_t *_200Ok)
   return 0;
 }
 
-
 int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, osip_message_t *_200Ok)
 {
   int i;
@@ -97,7 +96,14 @@ int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, osip_message_t *_200Ok)
   jd->d_id  = -1; /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
 
-  i = osip_dialog_init_as_uac(&(jd->d_dialog), _200Ok);
+  if (MSG_IS_REQUEST(_200Ok))
+    {
+      i = osip_dialog_init_as_uac_with_remote_request(&(jd->d_dialog), _200Ok, -1);
+    }
+  else
+    { /* normal usage with response */
+      i = osip_dialog_init_as_uac(&(jd->d_dialog), _200Ok);
+    }
   if (i!=0)
     {
       osip_free(jd);

@@ -27,6 +27,7 @@
 #include <eXosip/eXosip_cfg.h>
 
 #include <osip2/osip_mt.h>
+#include <osip2/osip_condv.h>
 
 #if defined WIN32
 #include <winsock.h>
@@ -273,6 +274,8 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_transactions = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
   osip_list_init(eXosip.j_transactions);
   eXosip.j_reg = NULL;
+
+  eXosip.j_cond      = (struct osip_cond*)osip_cond_init();
 
   eXosip.j_mutexlock = (struct osip_mutex*)osip_mutex_init();
 
@@ -568,64 +571,67 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
   char *body;
   char *size;
   
-  osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, local_sdp_port, NULL);
-
-  /*
-    if speex codec is supported, add bandwith attribute:
-    b=AS:110 20
-    b=AS:111 20
-  */
-  if (sdp!=NULL)
+  if (local_sdp_port!=NULL)
     {
-      int pos=0;
-      while (!sdp_message_endof_media (sdp, pos))
-	{
-	  int k = 0;
-	  char *tmp = sdp_message_m_media_get (sdp, pos);
-	  if (0 == strncmp (tmp, "audio", 5))
-	    {
-	      char *payload = NULL;
-	      do {
-		payload = sdp_message_m_payload_get (sdp, pos, k);
-		if (payload == NULL)
-		  {
-		  }
-		else if (0==strcmp("110",payload))
-		  {
-		    sdp_message_a_attribute_add (sdp,
-						 pos,
-						 osip_strdup ("AS"),
-						 osip_strdup ("110 20"));
-		  }
-		else if (0==strcmp("111",payload))
-		  {
-		    sdp_message_a_attribute_add (sdp,
-						 pos,
-						 osip_strdup ("AS"),
-						 osip_strdup ("111 20"));
-		  }
-		k++;
-	      } while (payload != NULL);
-	    }
-	  pos++;
-	}
-    }
-
-  i = sdp_message_to_str(sdp, &body);
-  if (body!=NULL)
-    {
-      size= (char *)osip_malloc(7*sizeof(char));
-      sprintf(size,"%i",strlen(body));
-      osip_message_set_content_length(invite, size);
-      osip_free(size);
+      osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, local_sdp_port, NULL);
       
-      osip_message_set_body(invite, body);
-      osip_free(body);
-      osip_message_set_content_type(invite, "application/sdp");
+      /*
+	if speex codec is supported, add bandwith attribute:
+	b=AS:110 20
+	b=AS:111 20
+      */
+      if (sdp!=NULL)
+	{
+	  int pos=0;
+	  while (!sdp_message_endof_media (sdp, pos))
+	    {
+	      int k = 0;
+	      char *tmp = sdp_message_m_media_get (sdp, pos);
+	      if (0 == strncmp (tmp, "audio", 5))
+		{
+		  char *payload = NULL;
+		  do {
+		    payload = sdp_message_m_payload_get (sdp, pos, k);
+		    if (payload == NULL)
+		      {
+		      }
+		    else if (0==strcmp("110",payload))
+		      {
+			sdp_message_a_attribute_add (sdp,
+						     pos,
+						     osip_strdup ("AS"),
+						     osip_strdup ("110 20"));
+		      }
+		    else if (0==strcmp("111",payload))
+		      {
+			sdp_message_a_attribute_add (sdp,
+						     pos,
+						     osip_strdup ("AS"),
+						     osip_strdup ("111 20"));
+		      }
+		    k++;
+		  } while (payload != NULL);
+		}
+	      pos++;
+	    }
+	}
+
+      i = sdp_message_to_str(sdp, &body);
+      if (body!=NULL)
+	{
+	  size= (char *)osip_malloc(7*sizeof(char));
+	  sprintf(size,"%i",strlen(body));
+	  osip_message_set_content_length(invite, size);
+	  osip_free(size);
+	  
+	  osip_message_set_body(invite, body);
+	  osip_free(body);
+	  osip_message_set_content_type(invite, "application/sdp");
+	}
+      else
+	osip_message_set_content_length(invite, "0");
     }
-  else
-    osip_message_set_content_length(invite, "0");
-  
+
   eXosip_call_init(&jc);
   i = osip_message_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
@@ -635,7 +641,13 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
   else
     osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
 
-  osip_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
+  if (local_sdp_port!=NULL)
+    {
+      osip_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
+      jc->c_ack_sdp = 0;
+    }
+  else
+    jc->c_ack_sdp = 1;
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -661,7 +673,7 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
   return 0;
 }
 
-int eXosip_answer_call   (int jid, int status)
+int eXosip_answer_call   (int jid, int status, char *local_sdp_port)
 {
   int i = -1;
   eXosip_dialog_t *jd = NULL;
@@ -681,7 +693,13 @@ int eXosip_answer_call   (int jid, int status)
     }
   else if (status>199 && status<300)
     {
-      i = eXosip_answer_invite_2xx(jc, jd, status);
+      /* if (sdp_context_reference==NULL) */
+	osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
+	/*
+	  else
+	  osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
+	*/
+      i = eXosip_answer_invite_2xx(jc, jd, status, local_sdp_port);
     }
   else if (status>300 && status<699)
     {
@@ -1123,7 +1141,7 @@ int eXosip_terminate_call(int cid, int jid)
 	  if (tr!=NULL && tr->last_response!=NULL &&
 	      MSG_IS_STATUS_1XX(tr->last_response))
 	    { /* answer with 603 */
-	      i = eXosip_answer_call(jid, 603);
+	      i = eXosip_answer_call(jid, 603, 0);
 	      return i;
 	    }
 	}

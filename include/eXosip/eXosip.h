@@ -185,7 +185,7 @@ int   eXosip_initiate_call    (osip_message_t *invite, void *reference,
  * @param jid          dialog id of call.
  * @param status       Status code to use.
  */
-int   eXosip_answer_call   (int jid, int status);
+int   eXosip_answer_call   (int jid, int status, char *local_sdp_port);
 
 /**
  * Put a call on hold.

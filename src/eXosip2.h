@@ -135,6 +135,7 @@ struct eXosip_call_t {
 
   int                      c_id;
   char                     c_subject[100];
+  int                      c_ack_sdp; /* flag for alternative SDP offer-response model */
   eXosip_dialog_t         *c_dialogs;
   osip_transaction_t      *c_inc_tr;
   osip_transaction_t      *c_out_tr;
@@ -222,6 +223,7 @@ struct eXosip_t {
 
   eXosip_reg_t       *j_reg;
 
+  void               *j_cond;
   void               *j_mutexlock;
   osip_t             *j_osip;
   int                 j_socket;
@@ -296,7 +298,7 @@ int eXosip_call_find(int cid, eXosip_call_t **jc);
 int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, osip_message_t *_200Ok);
 
 int eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
-int eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+int eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char *local_sdp_port);
 int eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_options_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);

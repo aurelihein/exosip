@@ -30,7 +30,7 @@
 #endif
 #endif
 
-#ifdef ORTP_SUPPORT
+#if defined(ORTP_SUPPORT) || defined(UCL_SUPPORT)
 
 void mulaw_dec(char *mulaw_data /* contains 160 char */,
 	       char *s16_data    /* contains 320 char */ );
@@ -43,7 +43,16 @@ void alaw_enc(char *s16_data   /* contains 320 char */,
 	      char *alaw_data  /* contains 160 char */,
 	      int pcm_size);
 	      
+#endif
 
+#if defined(UCL_SUPPORT)
+#include <uclmmbase/uclconf.h>
+#include <uclmmbase/config_unix.h>
+#include <uclmmbase/config_win32.h>
+#include <uclmmbase/rtp.h>
+#endif
+
+#if defined(ORTP_SUPPORT)
 #undef PACKAGE
 #undef VERSION
 #include <ortp.h>
@@ -94,6 +103,10 @@ struct jcall {
   int enable_audio; /* 0 started, -1 stopped */
   struct osip_thread *audio_thread;
   struct osip_thread *out_audio_thread;
+#elif defined(UCL_SUPPORT)
+  struct rtp *rtp_session;
+  int enable_audio; /* 0 started, -1 stopped */
+  struct osip_thread *audio_thread;
 #endif
 
 #define NOT_USED      0

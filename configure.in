@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.14 $)dnl
+AC_REVISION($Revision: 1.15 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip/eXosip.h)
 
@@ -68,6 +68,10 @@ AC_ARG_ENABLE(ortp,
 [  --enable-ortp           compile for ortp only (no).],
 enable_ortp=$enableval,enable_ortp="no")
 
+AC_ARG_ENABLE(ucl,
+[  --enable-ucl            compile for ucl only (no).],
+enable_ucl=$enableval,enable_ucl="no")
+
 AC_ARG_ENABLE(debug,
 [  --disable-debug         turn off debugging.],
 disable_debug=$enableval,disable_debug="yes")
@@ -130,8 +134,19 @@ dnl    EXOSIP_LIB="-lpthread"
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
 fi
 
+if test "x$enable_ucl" = "xyes"; then
+  enable_glib="no"
+  enable_ms="no"
+  enable_ortp="no"
+fi
+
+if test "x$enable_ortp" = "xyes"; then
+  enable_ms="no"
+fi
+
 AM_CONDITIONAL(COMPILE_JOSUA, test "x$enable_josua" = "xyes")
 AM_CONDITIONAL(ORTP_SUPPORT, test "x$enable_ortp" = "xyes")
+AM_CONDITIONAL(UCL_SUPPORT, test "x$enable_ucl" = "xyes")
 AM_CONDITIONAL(MEDIASTREAMER_SUPPORT, test "x$enable_ms" = "xyes")
 AM_CONDITIONAL(GLIB_SUPPORT, test "x$enable_glib" = "xyes")
 
