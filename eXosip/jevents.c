@@ -191,6 +191,34 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 	      0==strcmp(med->m_media, "audio"))
 	    {
 	      sdp_connection_t *conn;
+	      int pos_attr;
+	      char *payload = (char *) osip_list_get (med->m_payloads, 0);
+	      if (payload!=NULL)
+		{
+		  je->payload = osip_atoi(payload);
+		  /* copy payload name! */
+		  for (pos_attr=0;
+		       !osip_list_eol(med->a_attributes, pos_attr);
+		       pos_attr++)
+		    {
+		      sdp_attribute_t *attr;
+		      attr = (sdp_attribute_t *)osip_list_get(med->a_attributes, pos_attr);
+		      if (0==osip_strncasecmp(attr->a_att_field, "rtpmap", 6))
+			{
+			  if ((je->payload<10 && 
+			       0==osip_strncasecmp(attr->a_att_value, payload, 1))
+			      ||(je->payload>9 && je->payload<100 && 
+				 0==osip_strncasecmp(attr->a_att_value, payload, 2))
+			      ||(je->payload>100 && je->payload<128 &&
+				 0==osip_strncasecmp(attr->a_att_value, payload, 3)))
+			    {
+			      osip_strncpy(je->payload_name, attr->a_att_value, 49);
+			    }
+			}
+		    }
+		}
+	      else je->payload = 0; /* or -1 ?? */
+
 	      je->remote_sdp_audio_port = osip_atoi(med->m_port);
 	      conn = (sdp_connection_t*) osip_list_get(med->c_connections, 0);
 	      if (conn!=NULL && conn->c_addr!=NULL)

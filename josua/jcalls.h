@@ -21,7 +21,14 @@
 #ifndef __JCALLS_H__
 #define __JCALLS_H__
 
+#ifdef ORTP_SUPPORT
+#undef PACKAGE
+#undef VERSION
+#include <ortp.h>
+#endif
+
 #include <eXosip/eXosip.h>
+
 
 struct jcall {
   int cid;
@@ -38,6 +45,15 @@ struct jcall {
 
   char remote_sdp_audio_ip[50];
   int  remote_sdp_audio_port;
+  int  payload;
+  char payload_name[50];
+  
+#ifdef ORTP_SUPPORT
+  RtpSession *rtp_session;
+  int enable_audio; /* 0 started, -1 stopped */
+  struct osip_thread *audio_thread;
+  struct osip_thread *out_audio_thread;
+#endif
 
 #define NOT_USED      0
   int state;

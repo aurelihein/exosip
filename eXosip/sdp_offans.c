@@ -31,8 +31,8 @@ int eXosip_sdp_accept_audio_codec(osip_negotiation_ctx_t *context,
 			      char *port, char *number_of_port,
 			      int audio_qty, char *payload)
 {    
-  if (0==strncmp(payload,"0",1)||0==strncmp(payload,"8",1)
-      ||0==strncmp(payload,"3",1))
+  if (0==strncmp(payload,"0",1)||0==strncmp(payload,"8",1))
+    /*      ||0==strncmp(payload,"3",1)) */
     return 0;
   return -1;
 }
@@ -87,23 +87,25 @@ int eXosip_sdp_negotiation_init()
   /* ALL CODEC MUST SHARE THE SAME "C=" line and proto as the media 
      will appear on the same "m" line... */
   osip_negotiation_add_support_for_audio_codec(sn, osip_strdup("0"),
-					 NULL,
-					 osip_strdup("RTP/AVP"),
-					 NULL, NULL, NULL,
-					 NULL,NULL,
-					 osip_strdup("0 PCMU/8000"));
-  osip_negotiation_add_support_for_audio_codec(sn, osip_strdup("3"),
-					 NULL,
-					 osip_strdup("RTP/AVP"),
-					 NULL, NULL, NULL,
-					 NULL,NULL,
-					 osip_strdup("3 GSM/8000"));
+					       NULL,
+					       osip_strdup("RTP/AVP"),
+					       NULL, NULL, NULL,
+					       NULL,NULL,
+					       osip_strdup("0 PCMU/8000"));
+  /*
+    osip_negotiation_add_support_for_audio_codec(sn, osip_strdup("3"),
+    NULL,
+    osip_strdup("RTP/AVP"),
+    NULL, NULL, NULL,
+    NULL,NULL,
+    osip_strdup("3 GSM/8000"));
+  */
   osip_negotiation_add_support_for_audio_codec(sn, osip_strdup("8"),
-					 NULL,
-					 osip_strdup("RTP/AVP"),
-					 NULL, NULL, NULL,
-					 NULL,NULL,
-					 osip_strdup("8 PCMA/8000"));
+					       NULL,
+					       osip_strdup("RTP/AVP"),
+					       NULL, NULL, NULL,
+					       NULL,NULL,
+					       osip_strdup("8 PCMA/8000"));
   
   osip_negotiation_set_fcn_accept_audio_codec(sn, &eXosip_sdp_accept_audio_codec);
   osip_negotiation_set_fcn_accept_video_codec(sn, &eXosip_sdp_accept_video_codec);

@@ -333,6 +333,8 @@ typedef struct eXosip_event {
 
   char                remote_sdp_audio_ip[50];
   int                 remote_sdp_audio_port;
+  int                 payload;
+  char                payload_name[50];
 
   int                 online_status;
   int                 ss_status;
