@@ -275,6 +275,7 @@ typedef enum eXosip_event_type_t {
 
   /* for both UAS & UAC events */
   EXOSIP_CALL_STARTAUDIO,      /* audio must be established           */
+  EXOSIP_CALL_RELEASED,        /* call context is cleared.            */
 
   /* Presence and Instant Messaging */
   EXOSIP_IN_SUBSCRIPTION_NEW,           /* announce new incoming SUBSCRIBE.  */

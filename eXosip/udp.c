@@ -1554,6 +1554,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 3xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1562,6 +1570,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 4xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1570,6 +1586,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 5xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1578,6 +1602,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 6xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1589,6 +1621,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed with no answer\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1597,6 +1637,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1605,6 +1653,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 4xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1613,6 +1669,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 5xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1621,6 +1685,14 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 6xx\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, jd);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	      return 0;
 	    }
@@ -1674,6 +1746,14 @@ void eXosip_release_terminated_calls ( void )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				    "eXosip: remove a call\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, NULL);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
 	      eXosip_call_free(jc);
 	    }
 	}

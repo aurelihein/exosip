@@ -215,12 +215,6 @@ eXosip_guess_ip_for_via (char *alocalip)
 
 #include <stdio.h>
 
-#ifndef SIOCGIFCOUNT
-#define SIOCGIFCOUNT 0x8935
-#endif
-
-char all_interface[16];
-
 /* This is a portable way to find the default gateway.
  * The ip of the default interface is returned.
  */

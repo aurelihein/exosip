@@ -60,7 +60,8 @@ eXosip_event_init_for_call(int type,
       || type==EXOSIP_CALL_HOLD
       || type==EXOSIP_CALL_OFFHOLD
       || type==EXOSIP_CALL_CLOSED
-      || type==EXOSIP_CALL_STARTAUDIO)
+      || type==EXOSIP_CALL_STARTAUDIO
+      || type==EXOSIP_CALL_RELEASED)
     {
       if (jd!=NULL&&jd->d_dialog!=NULL)
 	{
@@ -306,6 +307,10 @@ if (type==EXOSIP_CALL_NOANSWER)
   else if (type==EXOSIP_CALL_CLOSED)
     {
       sprintf((*je)->textinfo, "Bye Received!");
+    }
+  else if (type==EXOSIP_CALL_RELEASED)
+    {
+      sprintf((*je)->textinfo, "Call Context is released!");
     }
   else
     {

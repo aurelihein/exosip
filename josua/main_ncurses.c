@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.40 2003-06-12 15:11:58 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.41 2003-06-16 10:24:58 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -53,9 +53,12 @@ josua_event_get()
       counter++;
       if (je->type==EXOSIP_CALL_NEW)
 	{
-	  snprintf(buf, 99, "<- INVITE from: %s", je->remote_uri);
+	  snprintf(buf, 99, "<- (%i %i) INVITE from: %s",
+		   je->cid, je->did,
+		   je->remote_uri);
 	  josua_printf(buf);
 
+#if 0
 	  if (je->remote_sdp_audio_ip[0]!='\0')
 	    {
 	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
@@ -63,16 +66,18 @@ josua_event_get()
 		       je->remote_sdp_audio_port);
 	      josua_printf(buf);
 	    }
-
+#endif
 	  jcall_new(je);
 	}
       else if (je->type==EXOSIP_CALL_ANSWERED)
 	{
-	  snprintf(buf, 99, "<- %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
 		   je->remote_uri);
 	  josua_printf(buf);
+#if 0
 	  if (je->remote_sdp_audio_ip[0]!='\0')
 	    {
 	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
@@ -80,16 +85,19 @@ josua_event_get()
 		       je->remote_sdp_audio_port);
 	      josua_printf(buf);
 	    }
+#endif
 	  jcall_answered(je);
 	}
       else if (je->type==EXOSIP_CALL_PROCEEDING)
 	{
-	  snprintf(buf, 99, "<- %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
 		   je->remote_uri);
 	  josua_printf(buf);
 
+#if 0
 	  if (je->remote_sdp_audio_ip[0]!='\0')
 	    {
 	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
@@ -97,15 +105,18 @@ josua_event_get()
 		       je->remote_sdp_audio_port);
 	      josua_printf(buf);
 	    }
+#endif
 	  jcall_proceeding(je);
 	}
       else if (je->type==EXOSIP_CALL_RINGING)
 	{
-	  snprintf(buf, 99, "<- %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
 		   je->remote_uri);
 	  josua_printf(buf);
+#if 0
 	  if (je->remote_sdp_audio_ip[0]!='\0')
 	    {
 	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
@@ -113,11 +124,13 @@ josua_event_get()
 		       je->remote_sdp_audio_port);
 	      josua_printf(buf);
 	    }
+#endif
 	  jcall_ringing(je);
 	}
       else if (je->type==EXOSIP_CALL_REDIRECTED)
 	{
-	  snprintf(buf, 99, "<- %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+		   je->cid, je->did,
 		   je->status_code,
 		   je->reason_phrase,
 		   je->remote_uri);
@@ -126,7 +139,8 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_REQUESTFAILURE)
 	{
-	  snprintf(buf, 99, "<- %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+		   je->cid, je->did,
 		   je->status_code,
 		   je->reason_phrase,
 		   je->remote_uri);
@@ -135,7 +149,8 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_SERVERFAILURE)
 	{
-	  snprintf(buf, 99, "<- %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
 		   je->remote_uri);
@@ -144,7 +159,8 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_GLOBALFAILURE)
 	{
-	  snprintf(buf, 99, "<- %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+		   je->cid, je->did,
 		   je->status_code,
 		   je->reason_phrase,
 		   je->remote_uri);
@@ -153,26 +169,29 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_CLOSED)
 	{
-	  snprintf(buf, 99, "<- BYE from: %s",
-		   je->remote_uri);
+	  snprintf(buf, 99, "<- (%i %i) BYE from: %s",
+		   je->cid, je->did, je->remote_uri);
 	  josua_printf(buf);
 	  jcall_closed(je);
 	}
       else if (je->type==EXOSIP_CALL_HOLD)
 	{
-	  snprintf(buf, 99, "<- INVITE (On Hold) from: %s", je->remote_uri);
+	  snprintf(buf, 99, "<- (%i %i) INVITE (On Hold) from: %s",
+		   je->cid, je->did, je->remote_uri);
 	  josua_printf(buf);
 	  jcall_onhold(je);
 	}
       else if (je->type==EXOSIP_CALL_OFFHOLD)
 	{
-	  snprintf(buf, 99, "<- INVITE (Off Hold) from: %s", je->remote_uri);
+	  snprintf(buf, 99, "<- (%i %i) INVITE (Off Hold) from: %s",
+		   je->cid, je->did, je->remote_uri);
 	  josua_printf(buf);
 	  jcall_offhold(je);
 	}
       else if (je->textinfo[0]!='\0')
 	{
-	  josua_printf(je->textinfo);
+	  snprintf(buf, 99, "(%i %i) %s", je->cid, je->did, je->textinfo);
+	  josua_printf(buf);
 	}
 	
       eXosip_event_free(je);
