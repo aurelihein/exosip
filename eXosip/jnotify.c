@@ -88,13 +88,26 @@ eXosip_find_last_out_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd )
 }
 
 int
-eXosip_notify_init(eXosip_notify_t **jn)
+eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
 {
+  osip_contact_t *co;
+  char *uri;
+  int i;
   *jn = (eXosip_notify_t *)osip_malloc(sizeof(eXosip_notify_t));
   if (*jn == NULL) return -1;
   memset(*jn, 0, sizeof(eXosip_notify_t));
 
-  
+  co = (osip_contact_t *) osip_list_get(inc_subscribe->contacts, 0);
+  if (co==NULL || co->url==NULL)
+    return -1;
+  i = osip_uri_to_str(co->url, &uri);
+  if (i!=0)
+    {
+      osip_free(*jn);
+      *jn=NULL;
+      return -1;
+    }
+  osip_strncpy((*jn)->n_uri, uri, 254);
   return 0;
 }
 

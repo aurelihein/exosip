@@ -127,6 +127,7 @@ typedef struct eXosip_notify_t eXosip_notify_t;
 struct eXosip_notify_t {
 
   int                 n_id;
+  char                n_uri[255];
   int                 n_online_status;
   int                 n_ss_status;
   int                 n_ss_reason;
@@ -349,7 +350,7 @@ int  eXosip_subscribe_need_refresh(eXosip_subscribe_t *js, int now);
 void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
 				     eXosip_dialog_t *jd, const char *expires);
 
-int  eXosip_notify_init(eXosip_notify_t **jn);
+int  eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe);
 void eXosip_notify_free(eXosip_notify_t *jn);
 int  _eXosip_notify_set_refresh_interval(eXosip_notify_t *jn,
 					 osip_message_t *inc_subscribe);

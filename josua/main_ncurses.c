@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.18 2003-04-13 15:47:18 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.19 2003-04-13 23:19:05 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -850,64 +850,49 @@ void print_subscribes()
     {
       for (jd = js->s_dialogs; jd!=NULL; jd = jd->next)
 	{
-	  char *tmp;
 	  if (jd->d_dialog!=NULL)
 	    {
 	      if (jd->d_dialog->state==DIALOG_EARLY)
 		{
-		  //osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"(S%i D%i) %30.30s  %10.10s\n",
-			  js->s_id, jd->d_id, js->s_uri, "** pending **");
-		  //osip_free(tmp);
+		  sprintf(buf,"(S%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			  js->s_id, jd->d_id, js->s_uri, " ", "pending", " ");
 		}
 	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
 		{
-		  //osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"(S%i D%i) %30.30s  %15.15s\n",
-			  js->s_id, jd->d_id, js->s_uri, "** established **");
-		  //sprintf(buf,"S%i D%i: Established Subscribe To: %s.\n",
-		  //  js->s_id, jd->d_id,
-		  //  tmp);
-		  //osip_free(tmp);
+		  if (js->s_online_status==EXOSIP_NOTIFY_UNKNOWN)
+		    {
+		      sprintf(buf,"(S%i D%i) %20.30s %10.10s ** %s %50.50s\n",
+			      js->s_id, jd->d_id, js->s_uri, " ", "UNKNOWN", " ");
+		    }
+		  else if (js->s_online_status==EXOSIP_NOTIFY_PENDING)
+		    {
+		      sprintf(buf,"(S%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			      js->s_id, jd->d_id, js->s_uri, " ", "PENDING", " ");
+		    }
+		  else if (js->s_online_status==EXOSIP_NOTIFY_ONLINE)
+		    {
+		      sprintf(buf,"(S%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			      js->s_id, jd->d_id, js->s_uri, " ", "ONLINE", " ");
+		    }
+		  else if (js->s_online_status==EXOSIP_NOTIFY_AWAY)
+		    {
+		      sprintf(buf,"(S%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			      js->s_id, jd->d_id, js->s_uri, " ", "AWAY", " ");
+		    }
 		}
 	    }
 	  else 
 	    {
-	      sprintf(buf,"(S%i D%i) %30.30s  %15.15s\n",
-		      js->s_id, jd->d_id, " ", "** terminated **");
-	      //sprintf(buf,"S%i D%i: Connection closed.\n",
-	      //      js->s_id, jd->d_id);
+	      sprintf(buf,"(S%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+		      js->s_id, jd->d_id, js->s_uri, " ", "terminated", " ");
 	    }
 	  mvaddnstr(cur_pos,0,buf,x-1);
 	  cur_pos++;
 	}
       if (js->s_dialogs==NULL)
 	{
-	  /*
-	    osip_transaction_t *tr = js->s_out_tr;
-	    char *tmp = NULL;
-	    if (tr==NULL)
-	    {
-	    tr = js->s_inc_tr;
-	    if (tr==NULL) // Bug
-	    {
-	    eXosip_unlock();
-	    return;
-	    }
-	    if (tr->orig_request!=NULL)
-	    osip_from_to_str(tr->orig_request->from, &tmp);
-	    }
-	    if (tr->orig_request==NULL) // info not yet available
-	    {}
-	    else osip_to_to_str(tr->orig_request->to, &tmp);
-	    if (tmp!=NULL)
-	    sprintf(buf,"S%i D-1: with: %s.\n", js->s_id, tmp);
-	    else
-	    sprintf(buf,"S%i D-1: Waiting for status.\n", js->s_id);
-	  */
-	  sprintf(buf,"(S%i D*) %30.30s  %15.15s\n",
-		  js->s_id, js->s_uri, "** unknwon state **");
-	  //osip_free(tmp);
+	  sprintf(buf,"(S%i D-1) %30.30s %10.10s ** %s %50.50s\n",
+		  js->s_id, js->s_uri, " ", "unknown state", " ");
 	  mvaddnstr(cur_pos,0,buf,x-1);
 	  cur_pos++;
 	}
@@ -943,16 +928,12 @@ void print_notifies()
     {
       for (jd = jn->n_dialogs; jd!=NULL; jd = jd->next)
 	{
-	  char *tmp;
 	  if (jd->d_dialog!=NULL)
 	    {
 	      if (jd->d_dialog->state==DIALOG_EARLY)
 		{
-		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"N%i D%i: Pending Subscribe To: %s\n",
-			  jn->n_id, jd->d_id,
-			  tmp);
-		  osip_free(tmp);
+		  sprintf(buf,"(N%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			  jn->n_id, jd->d_id, jn->n_uri, " ", "pending", " ");
 		}
 	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
 		{
@@ -960,77 +941,43 @@ void print_notifies()
 		      && jn->n_ss_status == EXOSIP_SUBCRSTATE_UNKNOWN)
 		    {
 		      eXosip_notify(jd->d_id, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_AWAY);
-		      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		      sprintf(buf,"N%i D%i: %7.7s %s.\n",
-			      jn->n_id, jd->d_id,
-			      "unknown",
-			      tmp);
-		      osip_free(tmp);
+		      sprintf(buf,"(N%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			      jn->n_id, jd->d_id, jn->n_uri, " ", "unknown", " ");
 		    }
 		  else if (jd->d_id!=-1
 			   && jn->n_ss_status == EXOSIP_SUBCRSTATE_PENDING)
 		    {
 		      eXosip_notify(jd->d_id, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
-		      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		      sprintf(buf,"N%i D%i: %7.7s %s.\n",
-			      jn->n_id, jd->d_id,
-			      "pending",
-			      tmp);
-		      osip_free(tmp);
+		      sprintf(buf,"(N%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			      jn->n_id, jd->d_id, jn->n_uri, " ", "pending", " ");
 		    }
 		  else if (jd->d_id!=-1
 			   && jn->n_ss_status == EXOSIP_SUBCRSTATE_ACTIVE)
 		    {
-		      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		      sprintf(buf,"N%i D%i: %7.7s %s.\n",
-			      jn->n_id, jd->d_id,
-			      "active",
-			      tmp);
-		      osip_free(tmp);
+		      sprintf(buf,"(N%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			      jn->n_id, jd->d_id, jn->n_uri, " ", "active", " ");
 		    }
 		  else if (jd->d_id!=-1
 			   && jn->n_ss_status == EXOSIP_SUBCRSTATE_TERMINATED)
 		    {
-		      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		      sprintf(buf,"N%i D%i: %7.7s %s.\n",
-			      jn->n_id, jd->d_id,
-			      "terminated",
-			      tmp);
-		      osip_free(tmp);
+		      sprintf(buf,"(N%i D%i) %30.30s %10.10s ** %s %50.50s\n",
+			      jn->n_id, jd->d_id, jn->n_uri, " ",
+			      "terminated", " ");
 		    }
 		}
 	    }
 	  else 
 	    {
-	      sprintf(buf,"N%i D%i: Connection closed.\n",
-		      jn->n_id, jd->d_id);
+	      sprintf(buf,"(N%i D%i) Connection closed. %50.50s\n",
+		      jn->n_id, jd->d_id, " ");
 	    }
 	  mvaddnstr(cur_pos,0,buf,x-1);
 	  cur_pos++;
 	}
       if (jn->n_dialogs==NULL)
 	{
-	  osip_transaction_t *tr = jn->n_out_tr;
-	  char *tmp = NULL;
-	  if (tr==NULL)
-	    {
-	      tr = jn->n_inc_tr;
-	      if (tr==NULL) /* Bug ?? */
-		{
-		  eXosip_unlock();
-		  return;
-		}
-	      if (tr->orig_request!=NULL)
-		osip_from_to_str(tr->orig_request->from, &tmp);
-	    }
-	  if (tr->orig_request==NULL) /* info not yet available */
-	    {}
-	  else osip_to_to_str(tr->orig_request->to, &tmp);
-	  if (tmp!=NULL)
-	    sprintf(buf,"N%i D-1: with: %s.\n", jn->n_id, tmp);
-	  else
-	    sprintf(buf,"N%i D-1: Waiting for status.\n", jn->n_id);
-	  osip_free(tmp);
+	  sprintf(buf,"(N%i D-1) %30.30s %10.10s ** %s %50.50s\n",
+		  jn->n_id, jn->n_uri, " ", "no info", " ");
 	  mvaddnstr(cur_pos,0,buf,x-1);
 	  cur_pos++;
 	}

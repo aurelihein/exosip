@@ -577,7 +577,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   int code;
   int i;
 
-  eXosip_notify_init(&jn);
+  eXosip_notify_init(&jn, evt->sip);
   _eXosip_notify_set_refresh_interval(jn, evt->sip);
 
   i = _eXosip_build_response_default(&answer, NULL, 101, evt->sip);
