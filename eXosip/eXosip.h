@@ -251,9 +251,11 @@ void eXosip_set_mode(int mode);
 typedef enum eXosip_event_type_t {
 
   /* Registration Info */
-  EXOSIP_REGISTRATION_NEW,              /* announce new registration. */
+  EXOSIP_REGISTRATION_NEW,              /* announce new registration.       */
+  EXOSIP_REGISTRATION_SUCCESS,          /* user is successfully registred.  */
+  EXOSIP_REGISTRATION_FAILURE,          /* user is not registred.           */
   EXOSIP_REGISTRATION_REFRESHED,        /* registration has been refreshed. */
-  EXOSIP_REGISTRATION_TERMINATED,       /* UA is not registred any more. */
+  EXOSIP_REGISTRATION_TERMINATED,       /* UA is not registred any more.    */
 
   /* for UAC events */
   EXOSIP_CALL_NOANSWER,        /* announce no answer within the timeout */

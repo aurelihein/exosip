@@ -32,7 +32,7 @@ extern eXosip_t eXosip;
 
 
 #ifndef EXOSIP_ADDIDENTITYS_SH
-#define EXOSIP_ADDIDENTITYS_SH "./eXosip_addidentity.sh"
+#define EXOSIP_ADDIDENTITYS_SH "eXosip_addidentity.sh"
 #endif
 
 void identitys_add(char *identity, char *registrar,

@@ -925,6 +925,24 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   eXosip_notify_t    *jn;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv2xx (id=%i)\r\n", tr->transactionid));
+
+  if (MSG_IS_RESPONSE_FOR(sip, "REGISTER"))
+    {
+      eXosip_event_t *je;
+      if (eXosip.j_reg==NULL) return;
+      je = eXosip_event_init_for_reg(EXOSIP_REGISTRATION_SUCCESS, eXosip.j_reg);
+      if (je!=NULL)
+	{
+	  eXosip_event_add_status(je, sip);
+	}
+      
+      if (eXosip.j_call_callbacks[EXOSIP_REGISTRATION_SUCCESS]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_REGISTRATION_SUCCESS](EXOSIP_REGISTRATION_SUCCESS, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
+
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;
@@ -998,12 +1016,37 @@ void eXosip_delete_early_dialog(eXosip_dialog_t *jd)
     }    
 }
 
+void
+rcvregister_failure(int type, osip_transaction_t *tr,osip_message_t *sip)
+{
+  eXosip_event_t *je;
+  if (eXosip.j_reg==NULL) return;
+  je = eXosip_event_init_for_reg(EXOSIP_REGISTRATION_FAILURE, eXosip.j_reg);
+  if (je!=NULL)
+    {
+      eXosip_event_add_status(je, sip);
+    }
+  
+  if (eXosip.j_call_callbacks[EXOSIP_REGISTRATION_FAILURE]!=NULL)
+    eXosip.j_call_callbacks[EXOSIP_REGISTRATION_FAILURE](EXOSIP_REGISTRATION_FAILURE, je);
+  else if (eXosip.j_runtime_mode==EVENT_MODE)
+    eXosip_event_add(je);
+  return;
+}
+
 void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv3xx (id=%i)\r\n", tr->transactionid));
+
+  if (MSG_IS_RESPONSE_FOR(sip, "REGISTER"))
+    {
+      rcvregister_failure(type, tr, sip);
+      return;
+    }
+
   if (jinfo==NULL) return;
   jd = jinfo->jd;
   jc = jinfo->jc;
@@ -1037,6 +1080,13 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   eXosip_call_t *jc;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv4xx (id=%i)\r\n", tr->transactionid));
+
+  if (MSG_IS_RESPONSE_FOR(sip, "REGISTER"))
+    {
+      rcvregister_failure(type, tr, sip);
+      return;
+    }
+
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;
@@ -1073,6 +1123,13 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   eXosip_call_t *jc;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv5xx (id=%i)\r\n", tr->transactionid));
+
+  if (MSG_IS_RESPONSE_FOR(sip, "REGISTER"))
+    {
+      rcvregister_failure(type, tr, sip);
+      return;
+    }
+
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;
@@ -1106,6 +1163,13 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   eXosip_call_t *jc;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv6xx (id=%i)\r\n", tr->transactionid));
+
+  if (MSG_IS_RESPONSE_FOR(sip, "REGISTER"))
+    {
+      rcvregister_failure(type, tr, sip);
+      return;
+    }
+
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;

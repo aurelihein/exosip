@@ -886,7 +886,7 @@ int eXosip_terminate_call(int cid, int jid)
   return 0;
 }
 
-void eXosip_register      (int rid)
+int eXosip_register      (int rid)
 {
   osip_transaction_t *transaction;
   osip_event_t *sipevent;
@@ -898,16 +898,16 @@ void eXosip_register      (int rid)
   jr = eXosip.j_reg;
   if (jr==NULL)
     {
-      fprintf(stderr, "eXosip: no registration info saved!\n");
-      return ;
+      /* fprintf(stderr, "eXosip: no registration info saved!\n"); */
+      return -1;
     }
   reg = NULL;
   if (jr->r_last_tr!=NULL)
     {
       if (jr->r_last_tr->state!=NICT_TERMINATED)
 	{
-	  fprintf(stderr, "eXosip: a registration is already pending!\n");
-	  return ;
+	  /* fprintf(stderr, "eXosip: a registration is already pending!\n"); */
+	  return -1;
 	}
       else
 	{
@@ -947,8 +947,8 @@ void eXosip_register      (int rid)
       i = generating_register(&reg, jr->r_aor, jr->r_registrar, jr->r_contact);
       if (i!=0) 
 	{
-	  fprintf(stderr, "eXosip: cannot register (cannot build REGISTER)! ");
-	  return;
+	  /* fprintf(stderr, "eXosip: cannot register (cannot build REGISTER)! "); */
+	  return -2;
 	}
     }
 
@@ -961,7 +961,7 @@ void eXosip_register      (int rid)
       /* TODO: release the j_call.. */
 
       osip_message_free(reg);
-      return ;
+      return -2;
     }
 
   jr->r_last_tr = transaction;
@@ -972,11 +972,11 @@ void eXosip_register      (int rid)
   osip_message_force_update(reg);
   
   osip_transaction_add_event(transaction, sipevent);
-
+  return 0;
 }
 
 
-void
+int
 eXosip_register_init(char *from, char *proxy, char *contact)
 {
   eXosip_reg_t *jr;
@@ -986,9 +986,10 @@ eXosip_register_init(char *from, char *proxy, char *contact)
   if (i!=0) 
     {
       fprintf(stderr, "eXosip: cannot register! ");
-      return ;
+      return i;
     }
   eXosip.j_reg = jr;
+  return 0;
 }
 
 

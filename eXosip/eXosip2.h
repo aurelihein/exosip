@@ -68,8 +68,8 @@ int   eXosip_terminate_call(int cid, int jid);
 
 void  eXosip_message    (char *to, char *from, char *route, char *buff);
 
-void  eXosip_register      (int rid);
-void  eXosip_register_init (char *from, char *proxy, char *contact);
+int   eXosip_register      (int rid);
+int   eXosip_register_init (char *from, char *proxy, char *contact);
 
 /* This is to manage outgoing subscription */
 void  eXosip_subscribe(char *to, char *from, char *route);

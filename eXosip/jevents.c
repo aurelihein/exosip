@@ -240,6 +240,9 @@ eXosip_event_init_for_reg(int type,
   eXosip_event_init(&je, type);
   if (je==NULL) return NULL;
   je->jr = jr;
+  je->rid = jr->r_id;
+  snprintf(je->remote_uri, 255, "%s", jr->r_aor);  
+  snprintf(je->req_uri, 255,    "%s", jr->r_registrar);
   return je;
 }
 
@@ -252,7 +255,7 @@ eXosip_event_init(eXosip_event_t **je, int type)
   memset(*je, 0, sizeof(eXosip_event_t));
   (*je)->type = type;
 
-if (type==EXOSIP_CALL_NOANSWER)
+  if (type==EXOSIP_CALL_NOANSWER)
     {
       sprintf((*je)->textinfo, "No answer for this Call!");
     }
@@ -311,6 +314,14 @@ if (type==EXOSIP_CALL_NOANSWER)
   else if (type==EXOSIP_CALL_RELEASED)
     {
       sprintf((*je)->textinfo, "Call Context is released!");
+    }
+  else if (type==EXOSIP_REGISTRATION_SUCCESS)
+    {
+      sprintf((*je)->textinfo, "User is successfully registred!");
+    }
+  else if (type==EXOSIP_REGISTRATION_FAILURE)
+    {
+      sprintf((*je)->textinfo, "Registration failed!");
     }
   else
     {
