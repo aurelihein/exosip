@@ -927,7 +927,63 @@ int jcall_info(eXosip_event_t *je)
   osip_strncpy(ca->remote_uri, je->remote_uri, 255);
   osip_strncpy(ca->subject,    je->subject, 255);
  
-  if (ca->remote_sdp_audio_ip[0]=='0')
+  if (ca->remote_sdp_audio_ip[0]=='\0')
+    {
+      osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
+      ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
+    }
+ 
+  if (je->reason_phrase[0]!='\0')
+    {
+      osip_strncpy(ca->reason_phrase, je->reason_phrase, 49);
+      ca->status_code = je->status_code;
+    }
+  ca->state = je->type;
+  return 0;
+}
+
+int jcall_options(eXosip_event_t *je)
+{
+  jcall_t *ca;
+  int k;
+ 
+  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+    {
+      if (jcalls[k].state != NOT_USED
+ 	  && jcalls[k].cid==je->cid
+ 	  && jcalls[k].did==je->did)
+ 	break;
+    }
+  if (k==MAX_NUMBER_OF_CALLS)
+    {
+      for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+ 	{
+ 	  if (jcalls[k].state == NOT_USED)
+ 	    break;
+ 	}
+      if (k==MAX_NUMBER_OF_CALLS)
+ 	return -1;
+      ca = &(jcalls[k]);
+      memset(&(jcalls[k]), 0, sizeof(jcall_t));
+       
+      ca->cid = je->cid;
+      ca->did = je->did;
+       
+      if (ca->cid<1 && ca->did<1)
+ 	{
+ 	  exit(0);
+ 	  return -1; /* not enough information for this event?? */
+ 	}
+    }
+ 
+  ca = &(jcalls[k]);
+  osip_strncpy(ca->textinfo,   je->textinfo, 255);
+  osip_strncpy(ca->req_uri,    je->req_uri, 255);
+  osip_strncpy(ca->local_uri,  je->local_uri, 255);
+  osip_strncpy(ca->remote_uri, je->remote_uri, 255);
+  osip_strncpy(ca->subject,    je->subject, 255);
+ 
+  if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
