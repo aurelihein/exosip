@@ -149,7 +149,7 @@ void eXosip_quit()
 		      "Release a terminated transaction\n"));
 	  osip_list_remove(eXosip.j_transactions, 0);
 	  __eXosip_delete_jinfo(tr);
-	  osip_transaction_free2(tr);
+	  osip_transaction_free(tr);
 	}
       else
 	{
@@ -787,7 +787,7 @@ void eXosip_register      (int rid)
 	  reg = jr->r_last_tr->orig_request;
 	  jr->r_last_tr->orig_request = NULL;
 	  __eXosip_delete_jinfo(jr->r_last_tr);
-	  osip_transaction_free2(jr->r_last_tr);
+	  osip_transaction_free(jr->r_last_tr);
 	  jr->r_last_tr = NULL;
 
 	  /* modify the REGISTER request */

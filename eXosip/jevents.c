@@ -47,11 +47,20 @@ eXosip_event_init_for_call(int type,
 
   /* fill in usefull info */
   if (type==EXOSIP_CALL_NEW
+      || type==EXOSIP_CALL_NOANSWER
       || type==EXOSIP_CALL_PROCEEDING
       || type==EXOSIP_CALL_RINGING
       || type==EXOSIP_CALL_ANSWERED
-      || type==EXOSIP_CALL_PROCEEDING
-      || type==EXOSIP_CALL_DISCONNECTED)
+      || type==EXOSIP_CALL_REDIRECTED
+      || type==EXOSIP_CALL_REQUESTFAILURE
+      || type==EXOSIP_CALL_SERVERFAILURE
+      || type==EXOSIP_CALL_GLOBALFAILURE
+      || type==EXOSIP_CALL_CANCELLED
+      || type==EXOSIP_CALL_TIMEOUT
+      || type==EXOSIP_CALL_HOLD
+      || type==EXOSIP_CALL_OFFHOLD
+      || type==EXOSIP_CALL_CLOSED
+      || type==EXOSIP_CALL_STARTAUDIO)
     {
       if (jd->d_dialog!=NULL)
 	{
@@ -242,9 +251,9 @@ eXosip_event_init(eXosip_event_t **je, int type)
   memset(*je, 0, sizeof(eXosip_event_t));
   (*je)->type = type;
 
-  if (type==EXOSIP_CALL_NEW)
+if (type==EXOSIP_CALL_NOANSWER)
     {
-      sprintf((*je)->textinfo, "New call received!");
+      sprintf((*je)->textinfo, "No answer for this Call!");
     }
   else if (type==EXOSIP_CALL_PROCEEDING)
     {
@@ -258,9 +267,45 @@ eXosip_event_init(eXosip_event_t **je, int type)
     {
       sprintf((*je)->textinfo, "Remote phone has answered!");
     }
-  else if (type==EXOSIP_CALL_DISCONNECTED)
+  else if (type==EXOSIP_CALL_REDIRECTED)
     {
-      sprintf((*je)->textinfo, "Call is over!");
+      sprintf((*je)->textinfo, "Call is redirected!");
+    }
+  else if (type==EXOSIP_CALL_REQUESTFAILURE)
+    {
+      sprintf((*je)->textinfo, "4xx received for Call!");
+    }
+  else if (type==EXOSIP_CALL_SERVERFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for Call!");
+    }
+  else if (type==EXOSIP_CALL_GLOBALFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for Call!");
+    }
+  else if (type==EXOSIP_CALL_NEW)
+    {
+      sprintf((*je)->textinfo, "New call received!");
+    }
+  else if (type==EXOSIP_CALL_CANCELLED)
+    {
+      sprintf((*je)->textinfo, "Call has been cancelled!");
+    }
+  else if (type==EXOSIP_CALL_TIMEOUT)
+    {
+      sprintf((*je)->textinfo, "Timeout. Gived up!");
+    }
+  else if (type==EXOSIP_CALL_HOLD)
+    {
+      sprintf((*je)->textinfo, "Call is on Hold!");
+    }
+  else if (type==EXOSIP_CALL_OFFHOLD)
+    {
+      sprintf((*je)->textinfo, "Call is off Hold!");
+    }
+  else if (type==EXOSIP_CALL_CLOSED)
+    {
+      sprintf((*je)->textinfo, "Bye Received!");
     }
   else
     {

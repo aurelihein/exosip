@@ -897,11 +897,11 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_REDIRECTED, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_REDIRECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_REDIRECTED](EXOSIP_CALL_REDIRECTED, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
@@ -932,11 +932,11 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_REQUESTFAILURE, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_REQUESTFAILURE]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_REQUESTFAILURE](EXOSIP_CALL_REQUESTFAILURE, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
@@ -964,11 +964,11 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_SERVERFAILURE, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_SERVERFAILURE]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_SERVERFAILURE](EXOSIP_CALL_SERVERFAILURE, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
@@ -996,11 +996,11 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_GLOBALFAILURE, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_GLOBALFAILURE]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_GLOBALFAILURE](EXOSIP_CALL_GLOBALFAILURE, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
@@ -1063,11 +1063,11 @@ void cb_snd3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_CLOSED, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED](EXOSIP_CALL_CLOSED, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
@@ -1094,11 +1094,11 @@ void cb_snd4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_CLOSED, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED](EXOSIP_CALL_CLOSED, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
@@ -1126,11 +1126,11 @@ void cb_snd5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_CLOSED, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED](EXOSIP_CALL_CLOSED, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
@@ -1158,11 +1158,11 @@ void cb_snd6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_CLOSED, jc, jd);
     if (je!=NULL)
       eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED](EXOSIP_CALL_CLOSED, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.33 2003-06-02 16:47:09 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.34 2003-06-02 23:59:13 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -782,11 +782,10 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_RINGING)
 	{
-	  sprintf(buf, "Remote Party is Ringing with: %s", je->remote_uri);
+	  sprintf(buf, "Remote Party is Ringing with: %s %i",
+		  je->remote_uri,
+		  je->status_code);
 	  josua_printf(buf);
-	  if (je->reason_phrase[0]!='\0')
-	    josua_printf(je->reason_phrase);
-
 	  if (je->remote_sdp_audio_ip[0]!='\0')
 	    {
 	      sprintf(buf, "-D-Remote sdp info: %s:%i",
@@ -796,21 +795,40 @@ josua_event_get()
 	    }
 	  jcall_ringing(je);
 	}
-      else if (je->type==EXOSIP_CALL_DISCONNECTED)
+      else if (je->type==EXOSIP_CALL_REDIRECTED)
 	{
-	  sprintf(buf, "Call closed by: %s", je->remote_uri);
+	  sprintf(buf, "Call closed by: %s (%i)", je->remote_uri,
+		  je->status_code);
 	  josua_printf(buf);
-	  if (je->reason_phrase[0]!='\0')
-	    josua_printf(je->reason_phrase);
-
-	  if (je->remote_sdp_audio_ip[0]!='\0')
-	    {
-	      sprintf(buf, "-E-Remote sdp info: %s:%i",
-		      je->remote_sdp_audio_ip,
-		      je->remote_sdp_audio_port);
-	      josua_printf(buf);
-	    }
-	  jcall_disconnected(je);
+	  jcall_redirected(je);
+	}
+      else if (je->type==EXOSIP_CALL_REQUESTFAILURE)
+	{
+	  sprintf(buf, "Call closed by: %s (%i)", je->remote_uri,
+		  je->status_code);
+	  josua_printf(buf);
+	  jcall_requestfailure(je);
+	}
+      else if (je->type==EXOSIP_CALL_SERVERFAILURE)
+	{
+	  sprintf(buf, "Call closed by: %s (%i)", je->remote_uri,
+		  je->status_code);
+	  josua_printf(buf);
+	  jcall_serverfailure(je);
+	}
+      else if (je->type==EXOSIP_CALL_GLOBALFAILURE)
+	{
+	  sprintf(buf, "Call closed by: %s (%i)", je->remote_uri,
+		  je->status_code);
+	  josua_printf(buf);
+	  jcall_globalfailure(je);
+	}
+      else if (je->type==EXOSIP_CALL_CLOSED)
+	{
+	  sprintf(buf, "Call closed by: %s (%i)", je->remote_uri,
+		  je->status_code);
+	  josua_printf(buf);
+	  jcall_closed(je);
 	}
       else if (je->type==EXOSIP_CALL_HOLD)
 	{
@@ -1750,6 +1768,7 @@ int print_call_list(int pos)
 {
   int k;
   int pos2 = 0;
+
   for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
     {
       if (jcalls[k].state==NOT_USED)
@@ -1978,6 +1997,7 @@ int __josua_manage_choose_call_in_list() {
   int x,y;
   char buf[200];
   int k;
+  int max2;
 
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
   refresh();
@@ -2023,6 +2043,26 @@ int __josua_manage_choose_call_in_list() {
 
     do
       {
+	/* clean up borad of calls */
+	max2=1;
+	for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+	  {
+	    if (jcalls[k].state==NOT_USED)
+	      {
+	      }
+	    else max2++;
+	  }
+	
+	if (max==1) /* no more calls: exiting */
+	  return 0;
+	if (max!=max2)
+	  {
+	    attrset(A_NORMAL);
+	    sprintf(buf,"%80.80s"," ");
+	    mvaddnstr(max2,0, buf,x-1);
+	    max=max2;
+	  }
+
 	eXosip_update();
 	if (print_call_list(cursor)!=0)
 	  return -1;
@@ -2088,6 +2128,7 @@ int __josua_manage_choose_call_in_list() {
 	  beep();
       else {
 	eXosip_answer_call(jcalls[k].did, 603);
+	jcall_remove(&(jcalls[k]));
       }
 
     } else if (c=='r') {
@@ -2111,7 +2152,13 @@ int __josua_manage_choose_call_in_list() {
 	mvwgetnstr(stdscr, y-6, 6, tmp, 9);
 	code = osip_atoi(tmp);
 	if (code>100 && code<699)
-	  eXosip_answer_call(jcalls[k].did, code);
+	  {
+	    eXosip_answer_call(jcalls[k].did, code);
+	    if (code>299)
+	      {
+		jcall_remove(&(jcalls[k]));
+	      }
+	  }
       }
 
     } else if (c=='a') {
@@ -2145,6 +2192,7 @@ int __josua_manage_choose_call_in_list() {
 	beep();
       else {
 	eXosip_terminate_call(jcalls[k].cid, jcalls[k].did);
+	jcall_remove(&(jcalls[k]));
       }
     } else if (c=='h') {
       int pos = cursor;

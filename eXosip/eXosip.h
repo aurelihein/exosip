@@ -255,14 +255,26 @@ typedef enum eXosip_event_type_t {
   EXOSIP_REGISTRATION_REFRESHED,        /* registration has been refreshed. */
   EXOSIP_REGISTRATION_TERMINATED,       /* UA is not registred any more. */
 
-  EXOSIP_CALL_NEW,             /* announce a new call                 */
-  EXOSIP_CALL_PROCEEDING,      /* announce processing by a remote app */
-  EXOSIP_CALL_RINGING,         /* announce ringback                   */
-  EXOSIP_CALL_ANSWERED,        /* announce start of call              */
+  /* for UAC events */
+  EXOSIP_CALL_NOANSWER,        /* announce no answer within the timeout */
+  EXOSIP_CALL_PROCEEDING,      /* announce processing by a remote app   */
+  EXOSIP_CALL_RINGING,         /* announce ringback                     */
+  EXOSIP_CALL_ANSWERED,        /* announce start of call                */
+  EXOSIP_CALL_REDIRECTED,      /* announce a redirection                */
+  EXOSIP_CALL_REQUESTFAILURE,  /* announce a request failure            */
+  EXOSIP_CALL_SERVERFAILURE,   /* announce a server failure             */
+  EXOSIP_CALL_GLOBALFAILURE,   /* announce a global failure             */
+
+  /* for UAS events */
+  EXOSIP_CALL_NEW,             /* announce a new call                   */
+  EXOSIP_CALL_CANCELLED,       /* announce that call has been cancelled */
+  EXOSIP_CALL_TIMEOUT,         /* announce that call has failed         */
+  EXOSIP_CALL_HOLD,            /* audio must be stopped                 */
+  EXOSIP_CALL_OFFHOLD,         /* audio must be restarted               */
+  EXOSIP_CALL_CLOSED,          /* a BYE was received for this call      */
+
+  /* for both UAS & UAC events */
   EXOSIP_CALL_STARTAUDIO,      /* audio must be established           */
-  EXOSIP_CALL_HOLD,            /* audio must be stopped               */
-  EXOSIP_CALL_OFFHOLD,         /* audio must be restarted             */
-  EXOSIP_CALL_DISCONNECTED,    /* announce end of call                */
 
   /* Presence and Instant Messaging */
   EXOSIP_IN_SUBSCRIPTION_NEW,           /* announce new incoming SUBSCRIBE.  */
@@ -438,6 +450,7 @@ int complete_answer_that_establish_a_dialog(osip_message_t *response, osip_messa
 int _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 				       osip_dialog_t *dialog, char *transport);
 
+int eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *jc);
 osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t *jn, eXosip_dialog_t *jd);

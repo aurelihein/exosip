@@ -105,9 +105,9 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
   {
     eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_CLOSED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED](EXOSIP_CALL_CLOSED, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);    
   }
@@ -1105,7 +1105,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 		 two different BYE for one call! */
 	      eXosip_send_default_answer(jd, transaction, evt, 500);
 	    }
-	  /* osip_transaction_free2(old_trn); */
+	  /* osip_transaction_free(old_trn); */
 	  eXosip_process_bye(jc, jd, transaction, evt);
 	}
       else if (MSG_IS_ACK(evt->sip))
@@ -1384,7 +1384,8 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
 	{
 	  /* remove the transaction from oSIP: */
 	  osip_remove_transaction(eXosip.j_osip, tr);
-	  tr->state=NIST_TERMINATED;
+	  eXosip_remove_transaction_from_call(tr, jc);
+	  osip_transaction_free(tr);
 	}
       else
 	return 0;
@@ -1397,7 +1398,8 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
 	{
 	  /* remove the transaction from oSIP: */
 	  osip_remove_transaction(eXosip.j_osip, tr);
-	  tr->state=NICT_TERMINATED;
+	  eXosip_remove_transaction_from_call(tr, jc);
+	  osip_transaction_free(tr);
 	}
       else
 	return 0;
@@ -1409,8 +1411,9 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_transaction(eXosip.j_osip, tr);
-	  tr->state=IST_TERMINATED;
+	  /* osip_remove_transaction(eXosip.j_osip, tr);
+	     eXosip_remove_transaction_from_call(tr, jc);
+	     osip_transaction_free(tr); */
 	}
       else
 	return 0;
@@ -1422,8 +1425,9 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_transaction(eXosip.j_osip, tr);
-	  tr->state=ICT_TERMINATED;
+	  /* osip_remove_transaction(eXosip.j_osip, tr);
+	     eXosip_remove_transaction_from_call(tr, jc);
+	     osip_transaction_free(tr); */
 	}
       else
 	return 0;
@@ -1436,7 +1440,8 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
 	{
 	  /* remove the transaction from oSIP: */
 	  osip_remove_transaction(eXosip.j_osip, tr);
-	  tr->state=NIST_TERMINATED;
+	  eXosip_remove_transaction_from_call(tr, jc);
+	  osip_transaction_free(tr);
 	}
       else
 	return 0;
@@ -1449,7 +1454,8 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
 	{
 	  /* remove the transaction from oSIP: */
 	  osip_remove_transaction(eXosip.j_osip, tr);
-	  tr->state=NICT_TERMINATED;
+	  eXosip_remove_transaction_from_call(tr, jc);
+	  osip_transaction_free(tr);
 	}
       else
 	return 0;
@@ -1470,8 +1476,8 @@ int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
       && tr->last_response!=NULL
       && MSG_IS_STATUS_2XX(tr->last_response))
     {
-      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-			    "eXosip: remove a dialog\n"));
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+			    "eXosip: eXosip_release_finished_calls remove a dialog\n"));
       REMOVE_ELEMENT(jc->c_dialogs, jd);
       eXosip_dialog_free(jd);
       return 0;
@@ -1481,27 +1487,110 @@ int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 
 int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
+  int now = time(NULL);
   osip_transaction_t *tr;
   tr = eXosip_find_last_inc_invite(jc, jd);
   if (tr==NULL)
     tr = eXosip_find_last_out_invite(jc, jd);
 
-  if (tr!=NULL &&
-      ( tr->state==IST_TERMINATED || tr->state==ICT_TERMINATED )
-      && (jd==NULL || jd->d_dialog == NULL ))
+  if (tr==NULL)
     {
       if (jd!=NULL)
 	{
-	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-				"eXosip: remove a dialog\n"));
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				"eXosip: eXosip_release_aborted_calls remove an empty dialog\n"));
 	  REMOVE_ELEMENT(jc->c_dialogs, jd);
 	  eXosip_dialog_free(jd);
+	  return 0;
 	}
-      
-      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-		  "Release a non established call.\n"));
-      return 0;
+      return -1;
     }
+
+  if (tr!=NULL
+      && tr->state!=IST_TERMINATED
+      && tr->state!=ICT_TERMINATED
+      && tr->birth_time+180<now) /* Wait a max of 2 minutes */
+    {
+      if (jd!=NULL)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				"eXosip: eXosip_release_aborted_calls remove a dialog for an unfinished transaction\n"));
+	  REMOVE_ELEMENT(jc->c_dialogs, jd);
+	  {
+	    eXosip_event_t *je;
+	    je = eXosip_event_init_for_call(EXOSIP_CALL_NOANSWER, jc, jd);
+	    if (eXosip.j_call_callbacks[EXOSIP_CALL_NOANSWER]!=NULL)
+	      eXosip.j_call_callbacks[EXOSIP_CALL_NOANSWER](EXOSIP_CALL_NOANSWER, je);
+	    else if (eXosip.j_runtime_mode==EVENT_MODE)
+	      eXosip_event_add(je);
+	  }
+	  eXosip_dialog_free(jd);
+	  return 0;
+	}
+    }
+
+  if (tr!=NULL
+      && (tr->state==IST_TERMINATED
+	  || tr->state==ICT_TERMINATED))
+    {
+      if (tr==jc->c_inc_tr)
+	{
+	  if (jc->c_inc_tr->last_response==NULL)
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls transaction with no answer\n"));
+	    }
+	  else if (MSG_IS_STATUS_3XX(jc->c_inc_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls answered with a 3xx\n"));
+	    }
+	  else if (MSG_IS_STATUS_4XX(jc->c_inc_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls answered with a 4xx\n"));
+	    }
+	  else if (MSG_IS_STATUS_5XX(jc->c_inc_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls answered with a 5xx\n"));
+	    }
+	  else if (MSG_IS_STATUS_6XX(jc->c_inc_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls answered with a 6xx\n"));
+	    }
+	}
+      else if (tr==jc->c_out_tr)
+	{
+	  if (jc->c_out_tr->last_response==NULL)
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls completed with no answer\n"));
+	    }
+	  else if (MSG_IS_STATUS_3XX(jc->c_out_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
+	    }
+	  else if (MSG_IS_STATUS_4XX(jc->c_out_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls completed answered with 4xx\n"));
+	    }
+	  else if (MSG_IS_STATUS_5XX(jc->c_out_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls completed answered with 5xx\n"));
+	    }
+	  else if (MSG_IS_STATUS_6XX(jc->c_out_tr->last_response))
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+				    "eXosip: eXosip_release_aborted_calls completed answered with 6xx\n"));
+	    }
+	}
+    }
+
   return -1;
 }
 
@@ -1510,7 +1599,7 @@ void eXosip_release_terminated_calls ( void )
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
-
+  int now = time(NULL);
   int pos;
 
   for (jc = eXosip.j_calls ; jc != NULL; jc=jc->next)
@@ -1561,7 +1650,13 @@ void eXosip_release_terminated_calls ( void )
 		      "Release a terminated transaction\n"));
 	  osip_list_remove(eXosip.j_transactions, pos);
 	  __eXosip_delete_jinfo(tr);
-	  osip_transaction_free2(tr);
+	  osip_transaction_free(tr);
+	}
+      else if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
+	{
+	  osip_list_remove(eXosip.j_transactions, pos);
+	  __eXosip_delete_jinfo(tr);
+	  osip_transaction_free(tr);
 	}
       else
 	pos++;
