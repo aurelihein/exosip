@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.36 2003-06-04 23:40:59 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.37 2003-06-05 12:11:58 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -121,7 +121,7 @@ static const menu_t josua_menu[]= {
   { "subscriber",  "u",	"S[u]bscriber",     MENU_DEFAULT,
     " Manage the subscribers.",  &__josua_manage_subscribers },
   { "quit",	"q",	"[Q]uit",      MENU_DEFAULT,
-    "Quit jack' Open Sip User Agent.",  &__josua_quit    },
+    " Quit jack' Open Sip User Agent.",  &__josua_quit    },
   { 0 }
 };
 
@@ -157,26 +157,26 @@ typedef struct nctab_t {
 
 nctab_t nctab_newcall[] = {
   { { '\0' },
-    "Call informations  %-80.80s\n" , -9 , 0,
+    "Call informations  %-80.80s\n" , -10 , 0,
     { '\0' } , 0, 0  , JOSUA_NONEDITABLE },
   { "from",
-    "  From         : %-80.80s\n" , -8 , 0,
-    { '\0' } , -8, 18, JOSUA_NONEDITABLE },
+    "  From         : %-80.80s\n" , -9 , 0,
+    { '\0' } , -9, 18, JOSUA_NONEDITABLE },
   { "to",
-    "  To           : %-80.80s\n" , -7 , 0,
-    { '\0' } , -7, 18, JOSUA_EDITABLE  },
+    "  To           : %-80.80s\n" , -8 , 0,
+    { '\0' } , -8, 18, JOSUA_EDITABLE  },
   { "subject",
-    "  Subject      : %-80.80s\n" , -6 , 0,
-    { '\0' } , -6, 18, JOSUA_EDITABLE  },
+    "  Subject      : %-80.80s\n" , -7 , 0,
+    { '\0' } , -7, 18, JOSUA_EDITABLE  },
   { "route",
-    "  Route        : %-80.80s\n" , -5 , 0,
-    { '\0' } , -5, 18, JOSUA_EDITABLE  },
+    "  Route        : %-80.80s\n" , -6 , 0,
+    { '\0' } , -6, 18, JOSUA_EDITABLE  },
   { "payload",
-    "  Audio payload: [0 4 8]%-80.80s\n" , -4 , 0,
-    { '\0' } , -4, 18, JOSUA_EDITABLE  },
+    "  Audio payload: [0 4 8]%-80.80s\n" , -5 , 0,
+    { '\0' } , -5, 18, JOSUA_EDITABLE  },
   { "infos",
-    "  Other Info   : %-80.80s\n" , -3 , 0,
-    { '\0' } , -3, 18, JOSUA_EDITABLE  }
+    "  Other Info   : %-80.80s\n" , -4 , 0,
+    { '\0' } , -4, 18, JOSUA_EDITABLE  }
 };
 
 #define TABSIZE_NEWMESSAGE      5
@@ -203,23 +203,23 @@ nctab_t nctab_newmessage[] = {
 
 nctab_t nctab_josuasetup[] = {
   { { '\0' },
-    "Jousa's Config %-80.80s\n" , -8 , 0,
+    "Jousa's Config %-80.80s\n" , -9 , 0,
     { '\0' } , 0, 0  , JOSUA_NONEDITABLE },
   { "identity",
-    "  sip Identity : %-80.80s\n" , -7 , 0,
-    { '\0' } , -7, 18, JOSUA_EDITABLE },
+    "  sip Identity : %-80.80s\n" , -8 , 0,
+    { '\0' } , -8, 18, JOSUA_EDITABLE },
   { "registrar",
-    "  Registrar    : %-80.80s\n" , -6 , 0,
-    { '\0' } , -6, 18, JOSUA_EDITABLE  },
+    "  Registrar    : %-80.80s\n" , -7 , 0,
+    { '\0' } , -7, 18, JOSUA_EDITABLE  },
   { "realm",
-    "  Realm        : %-80.80s\n" , -5 , 0,
-    { '\0' } , -5, 18, JOSUA_EDITABLE  },
+    "  Realm        : %-80.80s\n" , -6 , 0,
+    { '\0' } , -6, 18, JOSUA_EDITABLE  },
   { "userid",
-    "  User id      : %-80.80s\n" , -4 , 0,
-    { '\0' } , -4, 18, JOSUA_EDITABLE  },
+    "  User id      : %-80.80s\n" , -5 , 0,
+    { '\0' } , -5, 18, JOSUA_EDITABLE  },
   { "passwd",
-    "  Password     : %-80.80s\n" , -3 , 0,
-    { '\0' } , -3, 18, JOSUA_EDITABLE  }
+    "  Password     : %-80.80s\n" , -4 , 0,
+    { '\0' } , -4, 18, JOSUA_EDITABLE  }
 };
 
 #define TABSIZE_TRANSFERCALL    4
@@ -1183,119 +1183,6 @@ void print_identity(int i, jidentity_t *fr, int so)
   attrset(A_NORMAL);
 }
 
-#if 0
-void print_call(int i, eXosip_call_t *jc, int so)
-{
-  eXosip_dialog_t *jd;
-  int y,x;
-  char buf[256];
-  char buf2[256];
-  int pos = i;
-  for (;jc!=NULL && (pos!=0); jc=jc->next)
-    pos--;
-  if (jc==NULL)
-    {
-      return ;
-    }
-  if (jc!=NULL)
-    {
-      jd = jc->c_dialogs;
-      if (jd!=NULL)
-	{
-	  char *tmp;
-	  if (jd->d_dialog!=NULL)
-	    {
-	      osip_transaction_t *tr;
-	      tr = eXosip_find_last_invite(jc, jd);
-	      if (tr!=NULL && jd->d_dialog->type==CALLEE
-		  && jd->d_dialog->state==DIALOG_EARLY
-		  && tr->last_response!=NULL)
-		{
-		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  snprintf(buf, 255 ,"%i %s: // From: %s",
-			   tr->last_response->status_code,
-			   tr->last_response->reason_phrase,
-			   tmp);
-		  osip_free(tmp);
-		}
-	      else if (tr!=NULL && jd->d_dialog->type==CALLER
-		  && jd->d_dialog->state==DIALOG_EARLY
-		  && tr->last_response!=NULL)
-		{
-		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  snprintf(buf, 255, "%i %s // To: %s",
-			  tr->last_response->status_code,
-			  tr->last_response->reason_phrase,
-			  tmp);
-		  osip_free(tmp);
-		}
-	      else if (tr!=NULL && tr->last_response!=NULL)
-		{
-		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  if (jd->d_dialog->type==CALLEE)
-		    snprintf(buf, 255,"%i %s // From: %s",
-			    tr->last_response->status_code,
-			    tr->last_response->reason_phrase,
-			    tmp);
-		  else
-		    snprintf(buf, 255, "%i %s // To: %s",
-			    tr->last_response->status_code,
-			    tr->last_response->reason_phrase,
-			    tmp);
-		  osip_free(tmp);
-		}
-	      else
-		{
-		  sprintf(buf,"C%i D%i: Waiting for info.",
-			  jc->c_id, jd->d_id);
-		  if (tr==NULL)
-		    sprintf(buf,"buf is NULL");
-		  if (jd==NULL)
-		    sprintf(buf,"jd est NULL");
-		  else if (jd->d_dialog==NULL)
-		    sprintf(buf,"jd->dialog est NULL");
-		  else if (jd->d_dialog->type==CALLER)
-		    sprintf(buf,"type est CALLER");
-		  else if (jd->d_dialog->type==CALLEE)
-		    sprintf(buf,"type est CALLEE");
-		  else if (tr!=NULL && tr->last_response==NULL)
-		    sprintf(buf,"last response is not received");
-		}
-		
-	    }
-	  else 
-	    {
-	      sprintf(buf,"C%i D%i: Connection closed.",
-		      jc->c_id, jd->d_id);
-	    }
-	}
-      else
-	sprintf(buf,"C%i D-1: Waiting for info.",
-		jc->c_id);
-
-      sprintf(buf2,"%c%c %d // %-80.80s ",
-	      so ? '-' : ' ',
-	      so ? '>' : ' ', i,
-	      buf);
-      getmaxyx(stdscr,y,x);
-      
-      attrset(COLOR_PAIR(6));
-      if (so)
-	attrset(so ? A_REVERSE : A_NORMAL);
-      mvaddnstr(i+1,0, buf2,x-1);
-      attrset(A_NORMAL);
-
-      if (jd!=NULL)
-	jd = jc->c_dialogs->next;
-      for (; jd!=NULL; jd = jd->next)
-	{
-	  /* automaticly terminated those 2nd calls ! */
-	  eXosip_terminate_call(jc->c_id, jd->d_id);
-	}
-    }  
-}
-
-#else
 
 void print_call(int i, int pos, int so)
 {
@@ -1334,8 +1221,6 @@ void print_call(int i, int pos, int so)
   mvaddnstr(i+1,0, buf2,x-1);
   attrset(A_NORMAL);
 }
-
-#endif
 
 void print_subscriber(int i, jsubscriber_t *js, int so)
 {
@@ -1733,37 +1618,6 @@ int __josua_choose_subscriber_in_list() {
   }  
 }
 
-#if 0
-int print_call_list(int pos)
-{
-  eXosip_call_t *jc;
-  int i;
-  eXosip_lock();
-  if (eXosip.j_calls!=NULL)
-    {
-      if (pos==0)
-	print_call(0, eXosip.j_calls, 1);
-      else
-	print_call(0, eXosip.j_calls, 0);
-      i=1;
-      for (jc = eXosip.j_calls->next; jc!=NULL; jc=jc->next, i++)
-	{
-	  if (pos==i)
-	    print_call(i, eXosip.j_calls, 1);
-	  else
-	    print_call(i, eXosip.j_calls, 0);
-	}
-    }
-  else {
-    eXosip_unlock();
-    return -1;
-  }
-  eXosip_unlock();
-  return 0;
-}
-
-#else
-
 int print_call_list(int pos)
 {
   int k;
@@ -1783,210 +1637,6 @@ int print_call_list(int pos)
     }
   return 0;
 }
-
-#endif
-
-#if 0
-
-int __josua_manage_choose_call_in_list() {
-#define C(x) ((x)-'a'+1)
-  eXosip_call_t *jc;
-  int c, i;
-  int cursor=0;
-  int max;
-  int x,y;
-  char buf[200];
-
-  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
-  refresh();
-  clear();
-
-  getmaxyx(stdscr,y,x);
-  attrset(A_NORMAL);
-  attrset(COLOR_PAIR(1));
-  sprintf(buf,"  Back to menu    Put on/off hold   Cancel/Terminate%80.80s"," ");
-  mvaddnstr(y-5,0, buf,x-1);
-  sprintf(buf,"  Answer a call   Reject            Decline%80.80s", " ");
-  mvaddnstr(y-4,0, buf,x-1);
-
-  /* print letters for the menu. */
-  attrset(A_STANDOUT);
-  attrset(COLOR_PAIR(3));
-  /*  attrset(A_REVERSE); */
-  mvaddnstr(y-5,0, "<",x-1);
-  mvaddnstr(y-4,0, "a",x-1);
-
-  mvaddnstr(y-5,16, "h",1);
-  mvaddnstr(y-4,16, "r",1);
-
-  mvaddnstr(y-5,34, "t",1);
-  mvaddnstr(y-4,34, "d",1);
-
-  if (print_call_list(0)!=0)
-    return -1;
-
-  cursor = 0;
-
-  i=0;
-  for (jc = eXosip.j_calls; jc!=NULL; jc=jc->next, i++)
-    {
-    }
-
-  max = i;
-  for (;;) {
-
-    do
-      {
-	eXosip_update();
-	if (print_call_list(cursor)!=0)
-	  return -1;
-	josua_event_get();
-	josua_printf_show();
-	refresh();
-	halfdelay(1);
-	c = getch();
-      }
-    while (c == ERR && (errno == EINTR || errno == EAGAIN));
-    
-    if (c==ERR)  {
-      if(errno != 0)
-	{
-	  fprintf(stderr, "failed to getch in main menu\n");
-	  exit(1);
-	}
-      else {
-      }
-    }
-    
-    if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
-      eXosip_lock();
-      print_call(cursor, jcalls, 0);
-      cursor++; cursor %= max;
-      print_call(cursor, eXosip.j_calls, 1);
-      eXosip_unlock();
-    } else if (c==C('p') || c==KEY_UP || c==C('h') ||
-               c==KEY_BACKSPACE || c==KEY_DC || c=='k') {
-      eXosip_lock();
-      print_call(cursor, eXosip.j_calls, 0);
-      cursor+= max-1; cursor %= max;
-      print_call(cursor, eXosip.j_calls, 1);
-      eXosip_unlock();
-    } else if (c=='\n' || c=='\r' || c==KEY_ENTER) {
-      clear(); refresh();
-      return cursor;
-    } else if (isdigit(c)) {
-      char buf[2]; buf[0]=c; buf[1]=0; c=atoi(buf);
-      if (c < max) {
-	eXosip_lock();
-	print_call(cursor, eXosip.j_calls, 0);
-	cursor=c;
-	print_call(cursor, eXosip.j_calls, 1);
-	eXosip_unlock();
-      } else {
-        beep();
-      }
-    } else if (c=='<' || c=='q') {
-      return -1;
-    } else if (c=='d') {
-      int did = cursor;
-      eXosip_call_t *jc = eXosip.j_calls;
-      eXosip_lock();
-      for (;jc!=NULL && (did!=0); jc=jc->next)
-	did--;
-      if (jc==NULL || jc->c_dialogs==NULL)
-	{
-	  eXosip_unlock();
-	}
-      else
-	{
-	  did = jc->c_dialogs->d_id;
-	  eXosip_unlock();
-	  eXosip_answer_call(did, 603);
-	}
-
-    } else if (c=='r') {
-      char tmp[10];
-      int code;
-      int did = cursor;
-      eXosip_call_t *jc = eXosip.j_calls;
-      eXosip_lock();
-      for (;jc!=NULL && (did!=0); jc=jc->next)
-	did--;
-      if (jc==NULL || jc->c_dialogs==NULL)
-	{
-	  eXosip_unlock();
-	}
-      else
-	{
-	  did = jc->c_dialogs->d_id;
-	  eXosip_unlock();
-
-	  /* ask for a specific code */
-	  sprintf(buf,"code: %80.80s", " ");
-	  mvaddnstr(y-6,0, buf,x-1);
-	  mvwgetnstr(stdscr, y-6, 6, tmp, 9);
-	  code = osip_atoi(tmp);
-	  if (code>100 && code<699)
-	    eXosip_answer_call(did, code);
-	}
-
-    } else if (c=='a') {
-      int did = cursor;
-      eXosip_call_t *jc = eXosip.j_calls;
-      eXosip_lock();
-      for (;jc!=NULL && (did!=0); jc=jc->next)
-	did--;
-      if (jc==NULL || jc->c_dialogs==NULL)
-	{
-	  eXosip_unlock();
-	}
-      else
-	{
-	  did = jc->c_dialogs->d_id;
-	  eXosip_unlock();
-	  eXosip_answer_call(did, 200);
-	}
-    } else if (c=='t') {
-      int did = cursor;
-      eXosip_call_t *jc = eXosip.j_calls;
-      eXosip_lock();
-      for (;jc!=NULL && (did!=0); jc=jc->next)
-	did--;
-      if (jc==NULL || jc->c_dialogs==NULL)
-	{
-	  eXosip_unlock();
-	}
-      else
-	{
-	  int cid = jc->c_id;
-	  did = jc->c_dialogs->d_id;
-	  eXosip_unlock();
-	  eXosip_terminate_call(cid, did);
-	}
-    } else if (c=='h') {
-      /* Put on/off Hold */
-      int did = cursor;
-      eXosip_call_t *jc = eXosip.j_calls;
-      eXosip_lock();
-      for (;jc!=NULL && (did!=0); jc=jc->next)
-	did--;
-      if (jc==NULL || jc->c_dialogs==NULL)
-	{
-	  eXosip_unlock();
-	}
-      else
-	{
-	  did = jc->c_dialogs->d_id;
-	  eXosip_unlock();
-	  eXosip_on_hold_call(did);
-	}
-    } else {
-      beep();
-    }
-  }  
-}
-
-#else
 
 
 int __josua_manage_choose_call_in_list() {
@@ -2225,7 +1875,6 @@ int __josua_manage_choose_call_in_list() {
     }
   }  
 }
-#endif
 
 /*
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
