@@ -32,6 +32,12 @@
 #include <ws2tcpip.h>
 #define snprintf _snprintf
 #define close(s) closesocket(s)
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #endif
 
 #include <stdio.h>
@@ -342,6 +348,7 @@ struct __eXosip_sockaddr {
 };
 int eXosip_get_addrinfo (struct addrinfo **addrinfo,
 				char *hostname, int service);
+int isrfc1918(char *ipaddr);
 void eXosip_get_localip_from_via(osip_message_t *,char**localip);
 int  generating_initial_subscribe(osip_message_t **message, char *to,
 				 char *from, char *route);
