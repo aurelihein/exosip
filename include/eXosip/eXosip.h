@@ -307,6 +307,14 @@ int   eXosip_answer_call_with_body   (int jid, int status,const char *body_type,
 
 
 /**
+ * Set a new application context for an existing call
+ *
+ * @param jc        Pointer to the call to modify
+ * @param reference New application context.
+ */
+int  eXosip_set_call_reference(int jid, void *reference);
+
+/**
  * Put a call on hold.
  * 
  * @param jid          dialog id of call.

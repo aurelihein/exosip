@@ -1208,6 +1208,23 @@ int eXosip_answer_options   (int cid, int jid, int status)
   return 0;
 }
 
+int eXosip_set_call_reference(int jid, void *reference)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jc==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return -1;
+    }
+    jc->external_reference = reference;
+    return 0;
+}
+
 int eXosip_on_hold_call  (int jid)
 {
   eXosip_dialog_t *jd = NULL;
