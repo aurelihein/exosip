@@ -24,7 +24,7 @@
 #include <eXosip/eXosip.h>
 
 struct jinsubscription {
-  int sid;
+  int nid;
   int did;
 
   char reason_phrase[50];

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.45 2003-06-23 16:11:33 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.46 2003-06-23 16:28:38 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -391,15 +391,21 @@ josua_event_get()
 	  josua_printf(buf);
 	  jsubscription_globalfailure(je);
 	}
+      else if (je->type==EXOSIP_SUBSCRIPTION_NOTIFY)
+	{
+	  snprintf(buf, 99, "<- (%i %i) NOTIFY from: %s",
+		   je->sid, je->did,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
       else if (je->type==EXOSIP_IN_SUBSCRIPTION_NEW)
 	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
-		   je->sid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
+	  snprintf(buf, 99, "<- (%i %i) SUBSCRIBE from: %s",
+		   je->nid, je->did,
 		   je->remote_uri);
 	  josua_printf(buf);
 	  eXosip_notify(je->did, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_AWAY);
+	  jinsubscription_new(je);
 	}
       else if (je->textinfo[0]!='\0')
 	{

@@ -20,6 +20,7 @@
 
 #include "jsubscriptions.h"
 #include "gui_subscriptions_list.h"
+#include "gui_insubscriptions_list.h"
 
 gui_t gui_window_subscriptions_list = {
   GUI_OFF,
@@ -91,6 +92,24 @@ int window_subscriptions_list_print()
   return 0;
 }
 
+void __show_insubscriptions_list()
+{
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_insubscriptions_list;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_insubscriptions_list;
+    }
+
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_insubscriptions_list_print();
+}
+
 void window_subscriptions_list_draw_commands()
 {
   int x,y;
@@ -100,6 +119,7 @@ void window_subscriptions_list_draw_commands()
     "c",  "Close" ,
     "a",  "Accept",
     "r",  "Reject",
+    "t",  "ViewSubscribers",
     NULL
   };
   getmaxyx(stdscr,y,x);
@@ -128,7 +148,7 @@ int window_subscriptions_list_run_command(int c)
   i = jsubscription_get_number_of_pending_subscriptions();
   if (i<max) max=i;
 
-  if (max==0)
+  if (max==0 && c!='t')
     {
       beep();
       return -1;
@@ -145,6 +165,10 @@ int window_subscriptions_list_run_command(int c)
       cursor_subscriptions_list %= max;
       break;
 	
+    case 't':
+      __show_insubscriptions_list();
+      break;
+
 #if 0
     case 'a':
       ca = jsubscription_find_subscription(cursor_subscriptions_list);

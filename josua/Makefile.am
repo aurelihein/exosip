@@ -18,6 +18,7 @@ ppl_getopt.h    gui_sessions_list.h \
 gui_registrations_list.c gui_registrations_list.h \
 gui_new_identity.c gui_new_identity.h \
 gui_subscriptions_list.c gui_subscriptions_list.h \
+gui_insubscriptions_list.c gui_insubscriptions_list.h \
 jsubscriptions.c jsubscriptions.h \
 jinsubscriptions.c jinsubscriptions.h
 

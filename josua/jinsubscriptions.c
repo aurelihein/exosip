@@ -87,7 +87,7 @@ int jinsubscription_new(eXosip_event_t *je)
   ca = &(jinsubscriptions[k]);
   memset(&(jinsubscriptions[k]), 0, sizeof(jinsubscription_t));
 
-  ca->sid = je->sid;
+  ca->nid = je->nid;
   ca->did = je->did;
 
   if (ca->did<1 && ca->did<1)
@@ -131,7 +131,7 @@ int jinsubscription_proceeding(eXosip_event_t *je)
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
-	  && jinsubscriptions[k].sid==je->sid
+	  && jinsubscriptions[k].nid==je->nid
 	  && jinsubscriptions[k].did==je->did)
 	break;
     }
@@ -148,7 +148,7 @@ int jinsubscription_proceeding(eXosip_event_t *je)
       ca = &(jinsubscriptions[k]);
       memset(&(jinsubscriptions[k]), 0, sizeof(jinsubscription_t));
       
-      ca->sid = je->sid;
+      ca->nid = je->nid;
       ca->did = je->did;
       
       if (ca->did<1 && ca->did<1)
@@ -187,7 +187,7 @@ int jinsubscription_answered(eXosip_event_t *je)
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
-	  && jinsubscriptions[k].sid==je->sid
+	  && jinsubscriptions[k].nid==je->nid
 	  && jinsubscriptions[k].did==je->did)
 	break;
     }
@@ -203,7 +203,7 @@ int jinsubscription_answered(eXosip_event_t *je)
       ca = &(jinsubscriptions[k]);
       memset(&(jinsubscriptions[k]), 0, sizeof(jinsubscription_t));
       
-      ca->sid = je->sid;
+      ca->nid = je->nid;
       ca->did = je->did;
       
       if (ca->did<1 && ca->did<1)
@@ -242,7 +242,7 @@ int jinsubscription_redirected(eXosip_event_t *je)
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
-	  && jinsubscriptions[k].sid==je->sid
+	  && jinsubscriptions[k].nid==je->nid
 	  && jinsubscriptions[k].did==je->did)
 	break;
     }
@@ -267,7 +267,7 @@ int jinsubscription_requestfailure(eXosip_event_t *je)
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
-	  && jinsubscriptions[k].sid==je->sid
+	  && jinsubscriptions[k].nid==je->nid
 	  && jinsubscriptions[k].did==je->did)
 	break;
     }
@@ -292,7 +292,7 @@ int jinsubscription_serverfailure(eXosip_event_t *je)
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
-	  && jinsubscriptions[k].sid==je->sid
+	  && jinsubscriptions[k].nid==je->nid
 	  && jinsubscriptions[k].did==je->did)
 	break;
     }
@@ -317,7 +317,7 @@ int jinsubscription_globalfailure(eXosip_event_t *je)
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
-	  && jinsubscriptions[k].sid==je->sid
+	  && jinsubscriptions[k].nid==je->nid
 	  && jinsubscriptions[k].did==je->did)
 	break;
     }
@@ -342,7 +342,7 @@ int jinsubscription_closed(eXosip_event_t *je)
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
-	  && jinsubscriptions[k].sid==je->sid)
+	  && jinsubscriptions[k].nid==je->nid)
 	break;
     }
   if (k==MAX_NUMBER_OF_INSUBSCRIPTIONS)
