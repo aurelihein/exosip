@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.14 2003-04-02 18:06:20 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.15 2003-04-04 20:36:40 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -69,6 +69,7 @@ void __josua_off_hold_call();
 void __josua_terminate_call();
 void __josua_transfer_call();
 void __josua_set_up();
+void __josua_manage_subscribers();
 void __josua_quit();
 
 void __josua_register();
@@ -89,7 +90,7 @@ void __josua_register();
 /********************************/
 /***** Main Menu definition *****/
 
-#define NBELEMENT_IN_MENU 11
+#define NBELEMENT_IN_MENU 12
 
 static const menu_t josua_menu[]= {
   { "message",	"m",	" [M]ini-message", MENU_MG,
@@ -112,6 +113,8 @@ static const menu_t josua_menu[]= {
     " Register your location.",	        &__josua_register  },
   { "set",	"s",	" [S]etup",     MENU_SETUP,
     " Configure user agents and identities.",    &__josua_set_up  },
+  { "subscriber",  "u",	"S[u]bscriber",     MENU_DEFAULT,
+    " Manage the subscribers.",  &__josua_manage_subscribers },
   { "quit",	"q",	"[Q]uit",      MENU_DEFAULT,
     "Quit jack' Open Sip User Agent.",  &__josua_quit    },
   { 0 }
@@ -730,7 +733,7 @@ void print_calls()
    and is used to print notifies and subscribes
    on the correct lines.
   */
-  cur_pos = 12;
+  cur_pos = 13;
 
   attrset(COLOR_PAIR(4));
   eXosip_update();
@@ -1049,6 +1052,33 @@ void print_identity(int i, jidentity_t *fr, int so)
   attrset(A_NORMAL);
 }
 
+void print_subscriber(int i, jsubscriber_t *js, int so)
+{
+  int y,x;
+  char buf[250];
+  int pos = i;
+  for (;js!=NULL && (pos!=0); js=js->next)
+    pos--;
+  if (js==NULL)
+    {
+      return ;
+    }
+  sprintf(buf,"%c%c %d. %-6.6s %-15.15s %-80.80s ",
+          so ? '-' : ' ',
+          so ? '>' : ' ', i,
+	  js->s_allow,
+          js->s_nick,
+          js->s_uri);
+  
+  getmaxyx(stdscr,y,x);
+
+  attrset(COLOR_PAIR(6));
+  if (so)
+    attrset(so ? A_REVERSE : A_NORMAL);
+  mvaddnstr(i+1,0, buf,x-1);
+  attrset(A_NORMAL);
+}
+
 void print_menu(int menu)
 {
   int y,x;
@@ -1060,7 +1090,7 @@ void print_menu(int menu)
   refresh();
   clear();
 
-  sprintf(buf,"All right reserved. Copyright 2002 Aymeric Moizard. %-50.50s"," ");
+  sprintf(buf,"powered by eXosip/osip2. %-50.50s"," ");
   getmaxyx(stdscr,y,x);
   attrset(A_NORMAL);
   attrset(COLOR_PAIR(1));
@@ -1271,6 +1301,131 @@ int __josua_choose_identity_in_list() {
   }  
 }
 
+int __josua_choose_subscriber_in_list() {
+#define C(x) ((x)-'a'+1)
+  int c, i;
+  int cursor=0;
+  jsubscriber_t *js;
+  int max;
+
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+  refresh();
+  clear();
+
+  eXosip_lock();
+  if (eXosip.j_subscribers!=NULL)
+    {
+      i=1;
+      print_subscriber(0, eXosip.j_subscribers, 1);
+      for (js = eXosip.j_subscribers->next; js!=NULL; js=js->next, i++)
+	print_subscriber(i, eXosip.j_subscribers, 0);
+    }
+  else {
+    eXosip_unlock();
+    return -1;
+  }
+  eXosip_unlock();
+
+  cursor = 0;
+  max = i;
+  for (;;) {
+    refresh();
+    do
+      c= getch();
+    while (c == ERR && errno == EINTR);
+    if (c==ERR)  {
+      if(errno != 0)
+	fprintf(stderr, "failed to getch in main menu\n");
+      else {
+	/*
+	  clearok(stdscr,TRUE);
+	  clear();
+	  print_menu(0);
+	  dme(cursor,1); */
+      }
+    }
+    
+    if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
+      print_subscriber(cursor, eXosip.j_subscribers, 0);
+      cursor++; cursor %= max;
+      print_subscriber(cursor, eXosip.j_subscribers, 1);
+    } else if (c==C('p') || c==KEY_UP || c==C('h') ||
+               c==KEY_BACKSPACE || c==KEY_DC || c=='k') {
+      print_subscriber(cursor, eXosip.j_subscribers, 0);
+      cursor+= max-1; cursor %= max;
+      print_subscriber(cursor, eXosip.j_subscribers, 1);
+
+    } else if (c=='\n' || c=='\r' || c==KEY_ENTER) {
+      clear(); refresh();
+      return cursor;
+    } else if (isdigit(c)) {
+      char buf[2]; buf[0]=c; buf[1]=0; c=atoi(buf);
+      if (c < max) {
+	print_subscriber(cursor, eXosip.j_subscribers, 0);
+	cursor=c;
+	print_subscriber(cursor, eXosip.j_subscribers, 1);
+      } else {
+        beep();
+      }
+    } else if (c=='a') {
+      /* Allow */
+      int pos = cursor;
+      eXosip_lock();
+
+      for (js = eXosip.j_subscribers;js!=NULL && (pos!=0); js=js->next)
+	pos--;
+      if (js==NULL)
+	{
+	  eXosip_unlock();
+	  return -1; /* BUG? */
+	}
+      subscribers_add(js->s_nick, js->s_uri, 0);
+
+      clear();
+      if (eXosip.j_subscribers!=NULL)
+	{
+	  i=1;
+	  print_subscriber(0, eXosip.j_subscribers, 1);
+	  for (js = eXosip.j_subscribers->next; js!=NULL; js=js->next, i++)
+	    print_subscriber(i, eXosip.j_subscribers, 0);
+	}
+      else {
+	eXosip_unlock();
+	return -1;
+      }
+      eXosip_unlock();
+    } else if (c=='r') {
+      /* Reject */
+      int pos = cursor;
+      eXosip_lock();
+      for (js = eXosip.j_subscribers;js!=NULL && (pos!=0); js=js->next)
+	pos--;
+      if (js==NULL)
+	{
+	  eXosip_unlock();
+	  return -1; /* BUG? */
+	}
+      subscribers_add(js->s_nick, js->s_uri, 1);
+      clear();
+      if (eXosip.j_subscribers!=NULL)
+	{
+	  i=1;
+	  print_subscriber(0, eXosip.j_subscribers, 1);
+	  for (js = eXosip.j_subscribers->next; js!=NULL; js=js->next, i++)
+	    print_subscriber(i, eXosip.j_subscribers, 0);
+	}
+      else
+	{
+	  eXosip_unlock();	
+	  return -1;
+	}
+      eXosip_unlock();	
+    } else {
+      beep();
+    }
+  }  
+}
+
 /*
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
 */
@@ -1395,6 +1550,23 @@ usage:\n\
 \t [-S]                       Send a subscription\n\
 \t [-T <delay>]               close calls after 60s as a default timeout.\n");
     exit (code);
+}
+
+void josua_printf(char *chfr, ...)
+{
+  va_list ap;  
+  int x, y;
+  char buf1[200];
+  char buf2[200];
+  getmaxyx(stdscr,y,x);
+  
+  VA_START (ap, chfr);
+  vsnprintf(buf1,199, chfr, ap);
+  snprintf(buf2,199, "%-80.80s\n", buf1);
+
+  mvaddnstr(y-1,0,buf2,x-1);
+  va_end (ap);
+
 }
 
 int main(int argc, const char *const *argv) {
@@ -1534,9 +1706,6 @@ int main(int argc, const char *const *argv) {
       fclose(log_file);
       exit(0);
     }
-
-  jfriend_load();
-  jidentity_load();
 
   if (cfg.to[0]!='\0')
     { /* start a command line call, if needed */
@@ -1897,6 +2066,11 @@ void __josua_set_up() {
 				TABSIZE_JOSUASETUP,
 				"password"));
 
+}
+
+void __josua_manage_subscribers()
+{
+  __josua_choose_subscriber_in_list();
 }
 
 void __josua_quit() {

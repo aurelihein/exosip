@@ -73,7 +73,7 @@ if !(test "$realm"); then
   fi
   if test "$userid"; then
     if test "$pwd"; then
-    echo ""
+    ole=""
     else
       exit
     fi
@@ -82,5 +82,5 @@ if !(test "$realm"); then
   fi
 fi
 
-echo  $num "ENTRY:" $identity"|"$registrar"|"$realm"|"$userid"|"$pwd >> $afile
+#echo  $num "ENTRY:" $identity"|"$registrar"|"$realm"|"$userid"|"$pwd >> $afile
 

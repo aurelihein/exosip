@@ -35,15 +35,22 @@ int   eXosip_lock();
 int   eXosip_unlock();
 
 int   jfriend_load();
-char *jfriend_get_home(int fid);
 void  jfriend_unload();
+void  friends_add(char *nickname, char *home,
+		  char *work, char *email, char *e164);
+char *jfriend_get_home(int fid);
 
-void  identitys_add(char *identity, char *registrar, char *realm,
-		   char *userid, char *password);
+int   jsubscriber_load();
+void  jsubscriber_unload();
+void  subscribers_add(char *nickname, char *uri, int black_list);
+char *jsubscriber_get_uri(int fid);
+
 int   jidentity_load();
+void  jidentity_unload();
+void  identitys_add(char *identity, char *registrar, char *realm,
+		    char *userid, char *password);
 char *jidentity_get_identity(int fid);
 char *jidentity_get_registrar(int fid);
-void  jidentity_unload();
 
 int   eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 			       char *route, char *subject);

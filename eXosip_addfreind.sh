@@ -53,7 +53,7 @@ declare num;
 num=`grep "ENTRY:" $afile | wc -l`
 
 
-echo "Jmsip'user is adding a contact "
+#echo "Jmsip'user is adding a contact "
 # file
 if !(test "$nickname"); then
   exit

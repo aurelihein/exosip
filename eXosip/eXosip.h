@@ -211,6 +211,18 @@ struct jidentity_t {
   jidentity_t   *parent;
 };
 
+typedef struct jsubscriber_t jsubscriber_t;
+
+struct jsubscriber_t {
+  int            s_id;
+  char          *s_nick;
+  char          *s_uri;
+  char          *s_allow;
+
+  jsubscriber_t   *next;
+  jsubscriber_t   *parent;
+};
+
 typedef struct eXosip_t eXosip_t;
 
 struct eXosip_t {
@@ -218,7 +230,7 @@ struct eXosip_t {
   FILE               *j_input;
   FILE               *j_output;
   eXosip_call_t      *j_calls;        /* my calls        */
-  eXosip_subscribe_t *j_subscribes;   /* my freinds      */
+  eXosip_subscribe_t *j_subscribes;   /* my friends      */
   eXosip_notify_t    *j_notifies;     /* my susbscribers */
   osip_list_t        *j_transactions;
 
@@ -229,6 +241,8 @@ struct eXosip_t {
   int                 j_socket;
   int                 j_stop_ua;
   void               *j_thread;
+
+  jsubscriber_t      *j_subscribers;
 
   /* configuration informations */
   jfriend_t          *j_friends;
@@ -245,8 +259,6 @@ struct jinfo_t {
 };
 
 
-void friends_add(char *nickname, char *home,
-		 char *work, char *email, char *e164);
 
 char *eXosip_guess_ip_for_via ();
 

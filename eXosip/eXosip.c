@@ -76,7 +76,6 @@ eXosip_kill_transaction (osip_list_t * transactions)
 
       __eXosip_delete_jinfo(transaction);
       osip_transaction_free (transaction);
-      osip_free (transaction);
     }
 }
 
@@ -125,6 +124,7 @@ void eXosip_quit()
   /* should be moved to method with an argument */
   jfriend_unload();
   jidentity_unload();
+  jsubscriber_unload();
 
   /*    
   for (jid = eXosip.j_identitys; jid!=NULL; jid = eXosip.j_identitys)
@@ -291,6 +291,9 @@ int eXosip_init(FILE *input, FILE *output, int port)
       return -1;
     }
 
+  jfriend_load();
+  jidentity_load();
+  jsubscriber_load();
   return 0;
 }
 
