@@ -375,47 +375,130 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
   if (jn->n_online_status==EXOSIP_NOTIFY_ONLINE)
     {
       sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<presence xmlns=\"urn:ietf:params:xml:ns:pidf\" entity=\"%s\">\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          entity=\"%s\">\n\
 <tuple id=\"sg89ae\">\n\
 <status>\n\
 <basic>open</basic>\n\
 </status>\n\
 <contact priority=\"0.8\">%s</contact>\n\
+<note>online</note\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info, jn->n_contact_info);
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_BUSY)
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>busy</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>busy</note\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info, jn->n_contact_info);
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_BERIGHTBACK)
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>in-transit</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>be right back</note\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info, jn->n_contact_info);
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_AWAY)
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>away</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>away</note\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info, jn->n_contact_info);
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_ONTHEPHONE)
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>on-the-phone</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>on the phone</note\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info, jn->n_contact_info);
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_OUTTOLUNCH)
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>meal</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>out to lunch</note\n\
 </tuple>\n\
 </presence>",
 	      jn->n_contact_info, jn->n_contact_info);
     }
   else
     {
+      /* */
       sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
 xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
-xmlns:et=\"urn:ietf:params:xml:ns:pidf:rpid-tuple\"\n\
-xmlns:ci=\"urn:ietf:params:xml:ns:pidf:cipid\"\n\
-entity=\"%s\">\n%s%s",
+entity=\"%s\">\n%s",
 	      jn->n_contact_info,
 "<tuple id=\"sg89ae\">\n\
 <status>\n\
 <basic>closed</basic>\n\
+<es:activities>\n\
+  <es:activity>permanent-absence</e:activity>\n\
+</es:activities>\n\
 </status>\n\
 </tuple>\n\
-\n"
-,
-"<tuple id=\"c8dqui\">\n\
-<status>\n\
-<basic>open</basic>\n\
-</status>\n\
-<et:class>assistant</et:class>\n\
-<ci:homepage>http://partysip.org/</ci:homepage>\n\
-<ci:icon>http://partysip.org/</ci:icon>\n\
-<ci:card>http://partysip.org/</ci:card>\n\
-<et:relationship>assistant</et:relationship>\n\
-<et:contact-type>presentity</et:contact-type>\n\
-<contact>sip:secretary@partysip.org</contact>\n\
-<note>My secretary</note>\n\
-</tuple>\n\
-\
-</presence>");
+\n</presence>\n");
     }
   osip_message_set_body(notify, buf, strlen(buf));
   osip_message_set_content_type(notify, "application/pidf+xml");

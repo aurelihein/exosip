@@ -1,4 +1,5 @@
 eXosip (0.9.0)
+	* improve presence support (busy, away, onthephone...).
 	* new eXosip_automatic_refresh() to refresh SUBSCRIBE and REGISTER.
 	* Fix dialog establishement when receiving NOTIFYs.
 	* This ChangeLog has not been updated seriously... Many changes

@@ -1388,13 +1388,33 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	  char *tmp = body->body;
 	  while (tmp[0]!='\0')
 	    {
-	      if (tmp[0]=='o' && 0==strncmp(tmp, "open", 4))
+	      if (tmp[0]=='o' && 0==osip_strncasecmp(tmp, "open", 4))
 		{
 		  js->s_online_status = EXOSIP_NOTIFY_ONLINE;
 		  /* search for the contact entry */
 		  while (tmp[0]!='\0')
 		    {
-		      if (tmp[0]=='c' && 0==strncmp(tmp, "contact", 7))
+		      if (tmp[0]=='a' && 0==osip_strncasecmp(tmp, "away", 4))
+			js->s_online_status = EXOSIP_NOTIFY_AWAY;
+		      else if (tmp[0]=='m' && 0==osip_strncasecmp(tmp, "meal", 4))
+			js->s_online_status = EXOSIP_NOTIFY_OUTTOLUNCH;
+		      else if (tmp[0]=='i' && 0==osip_strncasecmp(tmp, "in-transit", 10))
+			js->s_online_status = EXOSIP_NOTIFY_BERIGHTBACK;
+		      else if (tmp[0]=='b' && 0==osip_strncasecmp(tmp, "busy", 4))
+			js->s_online_status = EXOSIP_NOTIFY_BUSY;
+		      else if (tmp[0]=='o' && 0==osip_strncasecmp(tmp, "on-the-phone", 12))
+			js->s_online_status = EXOSIP_NOTIFY_ONTHEPHONE;
+
+		      if (tmp[0]=='/' && 0==osip_strncasecmp(tmp, "/status", 7))
+			break;
+		      if (js->s_online_status!=EXOSIP_NOTIFY_ONLINE)
+			break;
+		      tmp++;
+		    }
+
+		  while (tmp[0]!='\0')
+		    {
+		      if (tmp[0]=='c' && 0==osip_strncasecmp(tmp, "contact", 7))
 			{
 			  /* ... */
 			}
@@ -1402,7 +1422,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 		    }
 		  break;
 		}
-	      else if (tmp[0]=='c' && 0==strncmp(tmp, "closed", 6))
+	      else if (tmp[0]=='c' && 0==osip_strncasecmp(tmp, "closed", 6))
 		{
 		  js->s_online_status = EXOSIP_NOTIFY_CLOSED;
 		  break;
