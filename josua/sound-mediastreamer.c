@@ -35,7 +35,7 @@ int os_sound_init()
   return 0;
 }
 
-int os_sound_start(jcall_t *ca)
+int os_sound_start(jcall_t *ca, int port)
 {
   /* creates the couple of encoder/decoder */
   PayloadType *pt;
@@ -55,7 +55,7 @@ int os_sound_start(jcall_t *ca)
     }
 
   ca->audio=audio_stream_start(&av_profile,
-			       10500,
+			       port,
 			       ca->remote_sdp_audio_ip,
 			       ca->remote_sdp_audio_port,
 			       ca->payload,

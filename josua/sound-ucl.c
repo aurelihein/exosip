@@ -240,7 +240,7 @@ int os_sound_init()
   return 0;
 }
 
-int os_sound_start(jcall_t *ca)
+int os_sound_start(jcall_t *ca, int port)
 {
   int p,cond;
   int bits = 16;
@@ -345,7 +345,7 @@ int os_sound_start(jcall_t *ca)
 #endif
 
   ca->rtp_session = rtp_init(ca->remote_sdp_audio_ip,
-			     10500,
+			     port,
 			     ca->remote_sdp_audio_port,
 			     16,
 			     64000,

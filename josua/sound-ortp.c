@@ -30,6 +30,20 @@ extern char _localip[30];
 #include <sys/soundcard.h>
 #include <sys/ioctl.h>
 
+#include <sys/time.h>
+
+# define TIMEVAL_TO_TIMESPEC(tv, ts) {                                   \
+        (ts)->tv_sec = (tv)->tv_sec;                                    \
+        (ts)->tv_nsec = (tv)->tv_usec * 1000;                           \
+}
+# define TIMESPEC_TO_TIMEVAL(tv, ts) {                                   \
+        (tv)->tv_sec = (ts)->tv_sec;                                    \
+        (tv)->tv_usec = (ts)->tv_nsec / 1000;                           \
+
+
+#define AUDIO_DEVICE "/dev/dsp"
+
+
 #define AUDIO_DEVICE "/dev/dsp"
 
 int fd = -1;
@@ -87,39 +101,115 @@ void *os_sound_start_thread(void *_ca)
 }
 
 #else
+#define MINIMIZE_COPYING 1
+#define BLOCKING_MODE 1
+
+void 
+dbgbpt1()
+{
+}
+void 
+dbgbpt2()
+{
+}
+
+static void
+tvsub(register struct timeval *out, register struct timeval *in)
+{
+	out->tv_usec -= in->tv_usec;
+
+	while(out->tv_usec < 0) {
+		--out->tv_sec;
+		out->tv_usec += 1000000;
+	}
+
+	out->tv_sec -= in->tv_sec;
+}
+
 
 void
 *os_sound_start_thread(void *_ca)
 {
   jcall_t *ca = (jcall_t*)_ca;
-  char data_in[160];
+  char data_in[512];
 #ifdef USE_PCM
-  char data_in_dec[320];
+  char data_in_dec[1024];
 #endif
-  int have_more;
+  int have_more = 0;
   int timestamp = 0;
   int i;
+  mblk_t *mp;
+  struct timeval pkt_in_time, pkt_out_time, sleeptime;
+  struct timespec sleepns;
+
+  printf("rtp reading thread started\n");
   while (ca->enable_audio != -1)
     {
-      memset(data_in, 0, 160);
-      i = rtp_session_recv_with_ts(ca->rtp_session, data_in, 160, timestamp, &have_more);
-      if (i>0) {
+#if !MINIMIZE_COPYING
+      do
+	{
+	  memset(data_in, 0, 160);
+	  i = rtp_session_recv_with_ts(ca->rtp_session, data_in, 160, timestamp, &have_more);
+	  if (i>0) {
 
 #ifdef USE_PCM
-	if (ca->payload==8) /* A-Law */
-	  alaw_dec(data_in, data_in_dec, 160);
-	if (ca->payload==0) /* Mu-Law */
-	  mulaw_dec(data_in, data_in_dec, 160);
+	    if (ca->payload==8) /* A-Law */
+	      alaw_dec(data_in, data_in_dec, 160);
+	    if (ca->payload==0) /* Mu-Law */
+	      mulaw_dec(data_in, data_in_dec, 160);
 
-	write(fd, data_in_dec, i*2);
+	    write(fd, data_in_dec, i*2);
 #else
-	write(fd, data_in, i);
+	    write(fd, data_in, i);
 #endif
-      }
+	  }
+	} while(have_more);
+#else /* MINIMIZE_COPYING */
+
+
+      if ( (mp=rtp_session_recvm_with_ts(ca->rtp_session,timestamp))!=NULL) 
+	{
+	  int 	len=mp->b_cont->b_wptr-mp->b_cont->b_rptr;
+	  
+	  gettimeofday(&pkt_in_time, 0);
+	  if (ca->enable_audio != -1)
+	    {
+#ifdef USE_PCM
+	      if (ca->payload==8) /* A-Law */
+		alaw_dec(mp->b_cont->b_rptr, data_in_dec, len);
+	    
+	      if (ca->payload==0) /* Mu-Law */
+		mulaw_dec(mp->b_cont->b_rptr, data_in_dec, len);
+
+	      write(fd, data_in_dec, len*2);
+#else
+	      write(fd, mp->b_cont->b_rptr, len);
+#endif
+	    }
+	  if (ca->enable_audio == -1)
+	    dbgbpt1();
+	  freemsg(mp);
+	  gettimeofday(&pkt_out_time, 0);
+	  /* compute the time we spent processing the packet */
+	  tvsub(&pkt_out_time, &pkt_in_time);
+	}
+#endif
+
+      sleeptime.tv_usec = 10000; sleeptime.tv_sec = 0;
+      tvsub(&sleeptime, &pkt_out_time);
+      TIMEVAL_TO_TIMESPEC(&sleeptime, &sleepns);
+#if !BLOCKING_MODE
+      if (ca->enable_audio != -1)
+	nanosleep(&sleepns, 0);
+#endif
       timestamp += 160;
     }
+
+  printf("rtp reading thread stopping\n");
+  dbgbpt2();
   return NULL;
 }
+
 
 #endif
 
@@ -167,17 +257,20 @@ void
 *os_sound_start_out_thread(void *_ca)
 {
   jcall_t *ca = (jcall_t*)_ca;
-  char data_out[10000];
+  char data_out[1000];
 #ifdef USE_PCM
-  char data_out_enc[10000];
+  char data_out_enc[1000];
 #endif
   int timestamp = 0;
   int i;
+  int min_size = 160;
+
+  printf("rtp writing thread started\n");
   while (ca->enable_audio != -1)
     {
 #ifdef USE_PCM
-      memset(data_out, 0, min_size);
-      i=read(fd, data_out, min_size);
+      memset(data_out, 0, min_size*2);
+      i=read(fd, data_out, min_size*2);
 #else
       memset(data_out, 0, min_size);
       i=read(fd, data_out, min_size);
@@ -199,6 +292,7 @@ void
 #endif
         }
     }
+  printf("rtp writing thread stopped\n");
   return NULL;
 }
 #endif
@@ -216,13 +310,16 @@ int os_sound_init()
   return 0;
 }
 
-int os_sound_start(jcall_t *ca)
+int os_sound_start(jcall_t *ca, int port)
 {
   int p,cond;
   int bits = 16;
   int stereo = 0; /* 0 is mono */
   int rate = 8000;
   int blocksize = 512;
+
+  if (port == 0)
+    return -1;
 
   fd=open(AUDIO_DEVICE, O_RDWR|O_NONBLOCK);
   if (fd<0) return -EWOULDBLOCK;
@@ -326,7 +423,7 @@ int os_sound_start(jcall_t *ca)
   
   rtp_session_set_profile(ca->rtp_session, &av_profile);
   rtp_session_set_jitter_compensation(ca->rtp_session, 60);
-  rtp_session_set_local_addr(ca->rtp_session, _localip, 10500);
+  rtp_session_set_local_addr(ca->rtp_session, _localip, port);
   rtp_session_set_remote_addr(ca->rtp_session,
 			      ca->remote_sdp_audio_ip,
 			      ca->remote_sdp_audio_port);

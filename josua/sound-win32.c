@@ -33,10 +33,23 @@ extern char _localip[30];
 
 WAVEFORMATEX		wfx;
 
+#define MAX_IN_BUFFERS 32
+#define USED_IN_BUFFERS 6
+#define MAX_OUT_BUFFERS 32
+#define USED_OUT_BUFFERS 32
+
+
 unsigned int		waveoutDeviceID = WAVE_MAPPER;
-WAVEHDR				waveHdrOut[30];
+WAVEHDR				waveHdrOut[MAX_OUT_BUFFERS];
 HWAVEOUT			hWaveOut;
-char				dataBufferOut[30][3200];
+char				dataBufferOut[MAX_OUT_BUFFERS][3200];
+
+unsigned int		waveinDeviceID = WAVE_MAPPER;
+HWAVEIN				hWaveIn;
+WAVEHDR				waveHdrIn[MAX_IN_BUFFERS];
+char				dataBufferIn[MAX_IN_BUFFERS][3200];
+
+jcall_t *current_call = NULL;
 
 static void CALLBACK SpeakerCallback(HWAVEOUT _hWaveOut, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
 {
@@ -59,51 +72,39 @@ static void CALLBACK SpeakerCallback(HWAVEOUT _hWaveOut, UINT uMsg, DWORD dwInst
 }
 
 
-unsigned int		waveinDeviceID = WAVE_MAPPER;
-HWAVEIN				hWaveIn;
-WAVEHDR				waveHdrIn[30];
-char				dataBufferIn[30][3200];
-
-jcall_t *current_call = NULL;
-
 static void CALLBACK WaveInCallback(HWAVEIN hWaveIn, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
 {
 	WAVEHDR *wHdr;
   	MMRESULT mr = NOERROR;
 	switch(uMsg) {
 	case WIM_OPEN:
-		fprintf(stderr, "WaveInCallback : WIM_OPEN\n");
+/*	!	fprintf(stderr, "WaveInCallback : WIM_OPEN\n"); */
 		break;
 	case WIM_CLOSE:
-		fprintf(stderr, "WaveInCallback : WIM_CLOSE\n");
+/*	!	fprintf(stderr, "WaveInCallback : WIM_CLOSE\n"); */
 		break;
 	case WIM_DATA:
 		wHdr = (WAVEHDR *)dwParam1;
-		fprintf(stderr, "WaveInCallback : WIM_DATA\n");
-		if (current_call==NULL)
-		{
-			mr = waveInAddBuffer(hWaveIn, &(waveHdrIn[wHdr->dwUser]), sizeof(waveHdrIn[wHdr->dwUser]));
-			if (mr != MMSYSERR_NOERROR)
-			{
-				fprintf(stderr, "__call_free: waveInAddBuffer: 0x%i\n", mr);
-				/* exit(-1); */
-			}
+/* !	fprintf(stderr, "WaveInCallback : WIM_DATA\n"); */
+		if (current_call ==NULL)
 			return;
-		}
 		/* fprintf(stderr, received DATA from MIC: %s\n", wHdr->lpData); */
-		fprintf(stderr, "wHdr->dwBytesRecorded: %i\n", wHdr->dwBytesRecorded);
-		fprintf(stderr, "wHdr->dwUser         : %i\n", wHdr->dwUser);
+/* !		fprintf(stderr, "wHdr->dwBytesRecorded: %i\n", wHdr->dwBytesRecorded); */
+/* !		fprintf(stderr, "wHdr->dwUser         : %i\n", wHdr->dwUser); */
 		mr = waveInAddBuffer(hWaveIn, &(waveHdrIn[wHdr->dwUser]), sizeof(waveHdrIn[wHdr->dwUser]));
 		if (mr != MMSYSERR_NOERROR)
 		{
-			fprintf(stderr, "__call_free: waveInAddBuffer: 0x%i\n", mr);
+/* !			fprintf(stderr, "__call_free: waveInAddBuffer: 0x%i\n", mr); */
 			/* exit(-1); */
 		}
 		else
 		{
 			static int timestamp = 0;
+			if (current_call)
+			{
 			rtp_session_send_with_ts(current_call->rtp_session, wHdr->lpData, wHdr->dwBytesRecorded,timestamp);
 			timestamp+=wHdr->dwBytesRecorded;
+			}
 		}
 		break;
 	default:
@@ -138,7 +139,7 @@ BOOL CALLBACK acmDriverEnumCallback( HACMDRIVERID hadid, DWORD dwInstance, DWORD
 	      if( fmtDetails.dwFormatTag == WAVE_FORMAT_MSG723 )
 		  {
 			  g_g723Drivers = /* 1 */ 0;
-			  fprintf(stderr, "Find Codec  %s\n" ,details.szLongName );
+/*	!		  fprintf(stderr, "Find Codec  %s\n" ,details.szLongName ); */
 #if 0
 			  fprintf(stderr, "G723 cFormatTags %i\n" ,details.cFormatTags );
 			  fprintf(stderr, "G723 cFilterTags %i\n" ,details.cFilterTags);
@@ -148,13 +149,13 @@ BOOL CALLBACK acmDriverEnumCallback( HACMDRIVERID hadid, DWORD dwInstance, DWORD
 	      else if( fmtDetails.dwFormatTag == WAVE_FORMAT_GSM610 )
 		  {
 			  g_gsmDrivers = 1;
-			  fprintf(stderr, "Find Codec  %s\n" ,details.szLongName );
+/* !			  fprintf(stderr, "Find Codec  %s\n" ,details.szLongName ); */
 			  return -1;
 		  }
 	  }
 	  else
 	  {
-		  fprintf(stderr, "Unsupported codec: %s\n" ,details.szLongName );
+/* !		  fprintf(stderr, "Unsupported codec: %s\n" ,details.szLongName ); */
 	  }
 	}
 	mmr = acmDriverClose( driver, 0 );
@@ -176,7 +177,9 @@ os_sound_init()
 
 
   if(g_g723Drivers == 0)
-    fprintf(stderr, "No G723 decoders found!\n" );
+  {
+  }
+/* !    fprintf(stderr, "No G723 decoders found!\n" ); */
   else
   {
 #if 0
@@ -190,7 +193,9 @@ os_sound_init()
   }
 
   if(g_gsmDrivers == 0)
-    fprintf(stderr, "No GSM decoders found!\n" );
+  {
+ /* !   fprintf(stderr, "No GSM decoders found!\n" ); */
+  }
   else
   {
 	  eXosip_sdp_negotiation_add_codec(osip_strdup("3"),
@@ -219,18 +224,18 @@ os_sound_init()
 }
 
 #if 0
-	for (i=0; i<6 /* number of frame */; i++) 
+	for (i=0; i<USED_IN_BUFFERS /* number of frame */; i++) 
 	{
 		result = waveOutUnprepareHeader(hWaveOut, &(waveHdrIn[i]), sizeof(waveHdrIn[i]));
 		if (result != MMSYSERR_NOERROR) 
 		{
-			fprintf(stderr, "__call_free: waveOutUnprepareHeader: 0x%i\n", result);
+			fprintf(stderr, "__call_free: waveOutUnprepareHeader: 0x%i\n", result); 
 		}
 	}
 	result = waveOutClose(hWaveOut);
 	if (result != MMSYSERR_NOERROR) 
 	{
-		fprintf(stderr, "__call_free: waveOutClose: 0x%i\n", result);
+	fprintf(stderr, "__call_free: waveOutClose: 0x%i\n", result); 
 	}
 #endif
 
@@ -311,14 +316,14 @@ int open_sndcard(int format)
 		mr = waveOutOpen(&hWaveOut, waveoutDeviceID, &wfx, (DWORD)0/* SpeakerCallback */, 0/* arg */, CALLBACK_NULL /* CALLBACK_FUNCTION */);
 	if (mr != NOERROR)
 	{
-		fprintf(stderr, "__call_free: waveOutOpen: 0x%i\n", mr);
+/* !		fprintf(stderr, "__call_free: waveOutOpen: 0x%i\n", mr); */
 		exit(-1);
 		return -1;
 	}
 	else
 	{
 		int i;
-		for (i=0; i<6; i++)
+		for (i=0; i<USED_OUT_BUFFERS; i++)
 		{
 			memset(&(waveHdrOut[i]), 0, sizeof(waveHdrOut[i]));
 			waveHdrOut[i].lpData = dataBufferOut[i];
@@ -332,7 +337,7 @@ int open_sndcard(int format)
 			mr = waveOutPrepareHeader(hWaveOut, &(waveHdrOut[i]), sizeof(waveHdrOut[i]));
 			if (mr != MMSYSERR_NOERROR)
 			{
-				fprintf(stderr, "__call_free: waveOutPrepareHeader: 0x%i\n", mr);
+/* !				fprintf(stderr, "__call_free: waveOutPrepareHeader: 0x%i\n", mr); */
 				exit(-1);
 			}
 			else
@@ -347,13 +352,13 @@ int open_sndcard(int format)
 		mr = waveInOpen(&hWaveIn, waveinDeviceID, &wfx, (DWORD)WaveInCallback, 0, CALLBACK_FUNCTION);
 	if (mr != MMSYSERR_NOERROR)
 	{
-		fprintf(stderr, "__call_free: waveInOpen: 0x%i\n", mr);
+/* !		fprintf(stderr, "__call_free: waveInOpen: 0x%i\n", mr); */
 		exit(-1);
 		return -1;
 	}
 	else {
 		int i;
-		for (i=0; i<6; i++) {
+		for (i=0; i<MAX_IN_BUFFERS; i++) {
 			waveHdrIn[i].lpData = dataBufferIn[i];
 			waveHdrIn[i].dwBufferLength = 320;  /* frameSize */
 			waveHdrIn[i].dwFlags = 0;
@@ -364,13 +369,13 @@ int open_sndcard(int format)
 				mr = waveInAddBuffer(hWaveIn, &(waveHdrIn[i]), sizeof(waveHdrIn[i]));
 				if (mr == MMSYSERR_NOERROR)
 				{
-					fprintf(stderr, "__call_free: waveInAddBuffer: 0x%i\n", mr);
+/* !					fprintf(stderr, "__call_free: waveInAddBuffer: 0x%i\n", mr); */
 					/* return -1; */
 				}
 			}
 			else
 			{
-				fprintf(stderr, "__call_free: waveInPrepareHeader: 0x%i\n", mr);
+/* !				fprintf(stderr, "__call_free: waveInPrepareHeader: 0x%i\n", mr); */
 				exit(-1);
 				return -1;
 			}
@@ -378,7 +383,7 @@ int open_sndcard(int format)
 		mr = waveInStart(hWaveIn);
 		if (mr != MMSYSERR_NOERROR)
 		{
-			fprintf(stderr, "__call_free: waveInStart: 0x%i\n", mr);
+/* !			fprintf(stderr, "__call_free: waveInStart: 0x%i\n", mr); */
 			exit(-1);
 			return -1;
 		}
@@ -401,6 +406,8 @@ void
   while (ca->enable_audio != -1)
     {
 	  int length;
+	  static int sound_played = 0;
+	  static int cpt = 0;
       memset(data_in, 0, 3000);
 	  if (ca->payload==3)
 		  length = 260; /* 280 ?? */
@@ -413,31 +420,46 @@ void
 
 		memset(waveHdrOut[pos_whdr].lpData, 0, length);
 		memcpy(waveHdrOut[pos_whdr].lpData, data_in, i);
+		waveHdrOut[pos_whdr].dwBufferLength = i;
 		mr = waveOutWrite(hWaveOut, &waveHdrOut[pos_whdr], sizeof(waveHdrOut[pos_whdr]));
-
+	
 		pos_whdr++;
-		if (pos_whdr==6) pos_whdr=0; /* loop over the prepared blocks */
-
-		if (mr != MMSYSERR_NOERROR)
-		{
-			if (mr==MMSYSERR_INVALHANDLE)
-				fprintf(stderr, "__call_free: waveOutWrite: 0x%i MMSYSERR_INVALHANDLE\n", mr);
-			else if (mr==MMSYSERR_NODRIVER)
-				fprintf(stderr, "__call_free: waveOutWrite: 0x%i MMSYSERR_NODRIVER\n", mr);
-			else if (mr==MMSYSERR_NOMEM)
-				fprintf(stderr, "__call_free: waveOutWrite: 0x%i MMSYSERR_NOMEM\n", mr);
-			else if (mr==WAVERR_UNPREPARED)
-				fprintf(stderr, "__call_free: waveOutWrite: 0x%i WAVERR_UNPREPARED\n", mr);
-			else fprintf(stderr, "__call_free: waveOutWrite: 0x%i\n", mr);
+		if (pos_whdr==USED_OUT_BUFFERS) 
+		{		
+				pos_whdr=0; /* loop over the prepared blocks */
 		}
-      }
+		if (mr != MMSYSERR_NOERROR)
+			switch (mr)
+			{
+			case MMSYSERR_INVALHANDLE :
+				fprintf(stderr, "__call_free: waveOutWrite: 0x%i MMSYSERR_INVALHANDLE\n", mr);
+				break;
+			case MMSYSERR_NODRIVER :
+				fprintf(stderr, "__call_free: waveOutWrite: 0x%i MMSYSERR_NODRIVER\n", mr);
+				break;
+			case MMSYSERR_NOMEM :
+				fprintf(stderr, "__call_free: waveOutWrite: 0x%i MMSYSERR_NOMEM\n", mr);
+				break;
+			case WAVERR_UNPREPARED :
+				fprintf(stderr, "__call_free: waveOutWrite: 0x%i WAVERR_UNPREPARED\n", mr);
+				break;
+			case WAVERR_STILLPLAYING :
+				fprintf(stderr, "__call_free: waveOutWrite: 0x%i WAVERR_STILLPLAYING\n", mr);
+			default :
+				fprintf(stderr, "__call_free: waveOutWrite: 0x%i\n", mr);
+			}
+		else
+			++sound_played;
+		fprintf(stderr, "sound played = %i\n", sound_played);
+		fprintf(stderr, "cpt = %i\n", ++cpt);
+	  }
       timestamp += length;
     }
   current_call = NULL;
   return NULL;
 }
 
-int os_sound_start(jcall_t *ca)
+int os_sound_start(jcall_t *ca, int port)
 {
   int format = WAVE_FORMAT_MULAW;
   if (ca->payload==0)
@@ -461,7 +483,7 @@ int os_sound_start(jcall_t *ca)
   
   rtp_session_set_profile(ca->rtp_session, &av_profile);
   rtp_session_set_jitter_compensation(ca->rtp_session, 60);
-  rtp_session_set_local_addr(ca->rtp_session, _localip, 10500);
+  rtp_session_set_local_addr(ca->rtp_session, _localip, port);
   rtp_session_set_remote_addr(ca->rtp_session,
 			      ca->remote_sdp_audio_ip,
 			      ca->remote_sdp_audio_port);

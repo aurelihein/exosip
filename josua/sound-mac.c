@@ -138,7 +138,7 @@ rtp_event_handler(struct rtp *session, rtp_event *e)
 #define MULAW_MS	20
 
 void
-*os_sound_start_thread(void *_ca)
+*os_sound_start_thread(void *_ca, int port)
 {
   int i;
   jcall_t *ca = (jcall_t*)_ca;
@@ -243,7 +243,7 @@ int os_sound_init()
   return 0;
 }
 
-int os_sound_start(jcall_t *ca)
+int os_sound_start(jcall_t *ca, int port)
 {
 #if 0 
   int p,cond;
@@ -351,7 +351,7 @@ int os_sound_start(jcall_t *ca)
 #endif
 
   ca->rtp_session = rtp_init(ca->remote_sdp_audio_ip,
-			     10500,
+			     port,
 			     ca->remote_sdp_audio_port,
 			     16,
 			     64000,

@@ -143,6 +143,7 @@ jcall_t *jcall_get_call(int num);
 int jcall_get_callpos(jcall_t *ca);
 
 int jcall_new(eXosip_event_t *je);
+int jcall_ack(eXosip_event_t *je);
 int jcall_answered(eXosip_event_t *je);
 int jcall_proceeding(eXosip_event_t *je);
 int jcall_ringing(eXosip_event_t *je);

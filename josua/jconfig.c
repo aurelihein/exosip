@@ -18,7 +18,12 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#ifdef WIN32
+#define snprintf _snprintf
+#else
 #include "config.h"
+#endif
+
 #include <osipparser2/osip_port.h>
 #include "jconfig.h"
 #include <eXosip/eXosip.h>
@@ -54,8 +59,8 @@ josua_config_create(char *identity,
   jc = (josua_config_t*) osip_malloc(sizeof(josua_config_t));
   jc->id = id;
   snprintf(jc->identity, 100, identity);
-  snprintf(jc->proxy, 100, identity);
-  snprintf(jc->registrar, 100, identity);
+  snprintf(jc->proxy, 100, proxy);
+  snprintf(jc->registrar, 100, registrar);
   jc->realms = NULL;
   jc->next   = NULL;
   jc->parent = NULL;
@@ -73,7 +78,7 @@ josua_config_addrealm(char *realm,
 {
   josua_realm_t *jr;
 
-  jr = (josua_realm_t*) osip_malloc(sizeof(josua_config_t));
+  jr = (josua_realm_t*) osip_malloc(sizeof(josua_realm_t));
   snprintf(jr->realm, 100, realm);
   snprintf(jr->username, 100, username);
   snprintf(jr->password, 100, password);

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.57 2004-12-28 17:28:39 aymeric Exp $"; */
+/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.58 2004-12-28 23:35:11 aymeric Exp $"; */
 
 #ifdef NCURSES_SUPPORT
 
@@ -67,6 +67,24 @@ josua_event_get()
 	    }
 #endif
 	  jcall_new(je);
+	}
+      else if (je->type==EXOSIP_CALL_ACK)
+	{
+	  snprintf(buf, 99, "<- (%i %i) ACK from: %s",
+		   je->cid, je->did,
+		   je->remote_uri);
+	  josua_printf(buf);
+
+#if 0
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
+		       je->remote_sdp_audio_ip,
+		       je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+#endif
+	  jcall_ack(je);
 	}
       else if (je->type==EXOSIP_CALL_ANSWERED)
 	{
