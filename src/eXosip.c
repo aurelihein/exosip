@@ -2071,7 +2071,7 @@ int eXosip_notify_accept_subscribe(int nid, int code,
 				   int subscription_status,
 				   int online_status)
 {
-  int i;
+  int i = 0;
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
   if (nid>0)
@@ -2090,6 +2090,7 @@ int eXosip_notify_accept_subscribe(int nid, int code,
   else if (code>199 && code<300)
     {
       eXosip_notify_answer_subscribe_2xx(jn, jd, code);
+      i = eXosip_notify(nid, subscription_status, online_status);
     }
   else if (code>300 && code<699)
     {
@@ -2101,6 +2102,5 @@ int eXosip_notify_accept_subscribe(int nid, int code,
       return -1;
     }
 
-  i = eXosip_notify(nid, subscription_status, online_status);
   return i;
 }
