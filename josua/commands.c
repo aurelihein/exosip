@@ -21,10 +21,32 @@
 #include "commands.h"
 #include "eXosip/eXosip_cfg.h"
 
+int _check_url(char *url)
+{
+  int i;
+  osip_from_t *to;
+  i = osip_from_init(&to);
+  if (i!=0) return -1;
+  i = osip_from_parse(to, url);
+  if (i!=0) return -1;
+  return 0;
+}
+
 int _josua_start_call(char *from, char *to, char *subject, char *route)
 {
   osip_message_t *invite;
   int i;
+
+  if (0!=_check_url(from))
+    return -1;
+  if (0!=_check_url(to))
+    return -1;
+
+#if 0
+  if (0!=check_sipurl(route))
+    return -1;
+#endif
+
   i = eXosip_build_initial_invite(&invite,
 				  to,
 				  from,

@@ -961,10 +961,52 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
     }
   else
     {
-      osip_dialog_update_route_set_as_uac(jd->d_dialog, sip);
-      osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
-    }
+      /* Here is a special case:
+	 We have initiated a dialog and we have received informationnal
+	 answers from 2 or more remote SIP UA. Those answer can be
+	 differentiated with the "To" header's tag.
 
+	 We have used the first informationnal answer to create a
+	 dialog, but we now want to be sure the 200ok received is
+	 for the dialog this dialog.
+	 
+	 We have to check the To tag and if it does not match, we
+	 just have to modify the existing dialog and replace it. */
+      osip_generic_param_t *tag;
+      int i;
+      i = osip_to_get_tag (sip->to, &tag);
+      i=1; /* default is the same dialog */
+      if (jd->d_dialog->remote_tag==NULL && tag==NULL)
+	{  } /* non compliant remote UA -> assume it is the same dialog */
+      else if (jd->d_dialog->remote_tag!=NULL && tag==NULL)
+	{ i=0; } /* different dialog! */
+      else if (jd->d_dialog->remote_tag==NULL && tag!=NULL)
+	{ i=0; } /* different dialog! */
+      else if (jd->d_dialog->remote_tag!=NULL && tag!=NULL && tag->gvalue!=NULL
+	       && 0!=strcmp(jd->d_dialog->remote_tag, tag->gvalue))
+	{ i=0; } /* different dialog! */
+      
+      if (i==1) /* just update the dialog */
+	{
+	  osip_dialog_update_route_set_as_uac(jd->d_dialog, sip);
+	  osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
+	}
+      else
+	{
+	  /* the best thing is to update the repace the current dialog
+	     information... Much easier than creating a useless dialog! */
+	  osip_dialog_free(jd->d_dialog);
+	  i = osip_dialog_init_as_uac(&(jd->d_dialog), sip);
+	  if (i!=0)
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"Cannot replace the dialog.\r\n"));
+	    }
+	  else
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_WARNING,NULL,"The dialog has been replaced with the new one fro 200ok.\r\n"));
+	    }
+	}
+    }
 
   jd->d_STATE = JD_ESTABLISHED;
 
@@ -1007,7 +1049,7 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 	  {
 	    return;
 	  }
-	i = osip_message_set_header(ack, "content-type", "application/sdp");
+	i = osip_message_set_content_type(ack, "application/sdp");
 	if (i!=0)
 	  {
 	    return;

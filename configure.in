@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.18 $)dnl
+AC_REVISION($Revision: 1.19 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip/eXosip.h)
 
@@ -98,11 +98,6 @@ AC_ARG_ENABLE(pthread,
 [  --enable-pthread        enable support for POSIX threads. (autodetect)],
 enable_pthread=$enableval,enable_pthread="no")
 
-dnl support for GNU Portable Threads
-AC_ARG_ENABLE(pth,
-[  --enable-pth            enable support for GNU portable thread.],
-enable_pth=$enableval,enable_pth="no")
-
 dnl support for semaphore.h (linux/sun...)
 AC_ARG_ENABLE(semaphore,
 [  --enable-semaphore      enable support for semaphore (semaphore.h)],
@@ -117,19 +112,19 @@ AC_ARG_ENABLE(ncurses,
 [  --disable-ncurses       turn off ncurses support.],
 disable_ncurses=$enableval,disable_ncurses="yes")
 
+AC_ARG_ENABLE(ntimer,
+[  --enable-ntimer         enable new timer facility. (default yes)],
+enable_ntimer=$enableval,enable_ntimer="yes")
+
 JOSUA_FLAGS="-DOSIP_AT_OSIP_DOT_ORG"
 
 dnl compile with mt support
 if test "x$enable_mt" = "xyes"; then
-  if test "x$enable_pth" = "xyes"; then
-    EXOSIP_FLAGS="-DHAVE_PTH_PTHREAD_H `pthread-config --cflags`"
-    EXOSIP_LIB="`pthread-config --ldflags` `pthread-config --libs`"
-  elif test "x$enable_pthread" = "xyes"; then
-    EXOSIP_FLAGS="-DHAVE_PTHREAD_H"
+  if test "x$enable_pthread" = "xyes"; then
+    EXOSIP_FLAGS="-DHAVE_PTHREAD"
     EXOSIP_LIB="-lpthread"
   else
     ACX_PTHREAD()
-dnl    EXOSIP_LIB="-lpthread"
   fi
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
 fi
@@ -183,6 +178,10 @@ fi
 if test "x$enable_mpatrol" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DENABLE_MPATROL"
   EXOSIP_LIB="$EXOSIP_LIB -lmpatrolmt -lelf"
+fi
+
+if test "x$enable_ntimer" = "xyes"; then
+  EXOSIP_FLAGS="$EXOSIP_FLAGS -DNEW_TIMER"
 fi
 
 dnl Checks for libraries.
@@ -243,18 +242,6 @@ AC_CHECK_HEADERS(sys/select.h)
 AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(fcntl.h)
 AC_CHECK_HEADERS(sys/soundcard.h)
-
-if test "x$enable_mt" = "xyes"; then
-  if test "x$enable_pth" = "xyes"; then
-    echo
-  elif test "x$enable_pthread" = "xyes"; then
-    echo
-  else
-    echo
-dnl    AC_CHECK_HEADERS(pthread.h)
-dnl    AC_CHECK_HEADERS(pth/pthread.h)
-  fi
-fi
 
 AC_OUTPUT(
  Makefile

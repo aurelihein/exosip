@@ -466,7 +466,7 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
       osip_free(local_body);
       osip_message_set_content_length(answer, size);
       osip_free(size);
-      i = osip_message_set_header(answer, "content-type", "application/sdp");
+      i = osip_message_set_content_type(answer, "application/sdp");
       if (i!=0) {
 	osip_list_add(eXosip.j_transactions, transaction, 0);
 	eXosip_send_default_answer(jd, transaction, evt, 500);
