@@ -587,6 +587,7 @@ eXosip_automatic_refresh()
 #endif
   eXosip_subscribe_t *js;
   eXosip_dialog_t    *jd;
+  eXosip_reg_t       *jr;
   int now;
   
   now = time(NULL);
@@ -651,6 +652,23 @@ eXosip_automatic_refresh()
 	}
     }
 #endif
+
+    for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
+      {
+	if (jr->r_id >=1 || jr->r_last_tr!=NULL)
+	  {
+	    if (now-jr->r_last_tr->birth_time>300)
+	      {
+		/* automatic refresh */
+		eXosip_register(jr->r_id, jr->r_reg_period);
+	      }
+	    else if (now-jr->r_last_tr->birth_time>jr->r_reg_period-60)
+	      {
+		/* automatic refresh */
+		eXosip_register(jr->r_id, jr->r_reg_period);
+	      }
+	  }
+      }
 }
 
 void
