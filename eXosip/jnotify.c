@@ -26,6 +26,8 @@
 #include <eXosip.h>
 
 extern eXosip_t eXosip;
+extern char    *localip;
+extern char    *localport;
 
 int eXosip_notify_find(int sid, eXosip_notify_t **jn)
 {
@@ -93,13 +95,19 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
   osip_contact_t *co;
   char *uri;
   int i;
+
+  if (inc_subscribe==NULL
+      ||inc_subscribe->to==NULL
+      ||inc_subscribe->to->url==NULL)
+    return -1;
+  co = (osip_contact_t *) osip_list_get(inc_subscribe->contacts, 0);
+  if (co==NULL || co->url==NULL)
+    return -1;
+
   *jn = (eXosip_notify_t *)osip_malloc(sizeof(eXosip_notify_t));
   if (*jn == NULL) return -1;
   memset(*jn, 0, sizeof(eXosip_notify_t));
 
-  co = (osip_contact_t *) osip_list_get(inc_subscribe->contacts, 0);
-  if (co==NULL || co->url==NULL)
-    return -1;
   i = osip_uri_to_str(co->url, &uri);
   if (i!=0)
     {
@@ -108,6 +116,25 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
       return -1;
     }
   osip_strncpy((*jn)->n_uri, uri, 254);
+
+  if (inc_subscribe->to->url->username!=NULL)
+    {
+      if (localport==NULL)
+	sprintf((*jn)->n_contact_info, "sip:%s@%s",
+		inc_subscribe->to->url->username, localip);
+      else
+	sprintf((*jn)->n_contact_info, "sip:%s@%s:%s",
+		inc_subscribe->to->url->username,
+		localip, localport);
+    }
+  else
+    {
+      if (localport==NULL)
+	sprintf((*jn)->n_contact_info, "sip:%s", localip);
+      else
+	sprintf((*jn)->n_contact_info, "sip:%s:%s", localip, localport);
+    }
+
   return 0;
 }
 
@@ -140,6 +167,12 @@ eXosip_notify_free(eXosip_notify_t *jn)
   osip_free(jn);
 }
 
+int
+_eXosip_notify_set_contact_info(eXosip_notify_t *jn, char *uri)
+{
+  osip_strncpy(jn->n_contact_info, uri, 254);
+  return 0;
+}
 
 int
 _eXosip_notify_set_refresh_interval(eXosip_notify_t *jn,
@@ -185,26 +218,70 @@ int
 _eXosip_notify_add_body(eXosip_notify_t *jn, osip_message_t *notify)
 {
   char buf[1000];
-  char *tmp;
 
-  if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_ACTIVE)
+  if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_ACTIVE
+      || jn->n_contact_info=='\0') /* mandatory! */
     return 0; /* don't need a body? */
 
 #ifdef SUPPORT_MSN
 
+  if (jn->n_online_status!=EXOSIP_NOTIFY_ONLINE)
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info, jn->n_contact_info);
+    }
+  else
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>closed</basic>\n\
+</status>\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info);
+    }
+  osip_parser_set_body(notify, buf);
+  osip_parser_set_content_type(request, "application/pidf+xml");
 #else
-  /*
-    sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\
-    <presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\"\
-    entity=\"pres:someone@example.com\">\
-    <tuple id=\"sg89ae\">\
-    <status>\
-    <basic>open</basic>\
-    </status>\
-    <contact priority="0.8">tel:09012345678</contact>\
-    </tuple>\
-    </presence>");
-  */
+
+  if (jn->n_online_status!=EXOSIP_NOTIFY_ONLINE)
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info, jn->n_contact_info);
+    }
+  else
+    {
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>closed</basic>\n\
+</status>\n\
+</tuple>\n\
+</presence>",
+	      jn->n_contact_info);
+    }
+  osip_parser_set_body(notify, buf);
+  osip_parser_set_content_type(notify, "application/cpim-pidf+xml");
+
 #endif
 
   return 0;
