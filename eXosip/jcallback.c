@@ -24,12 +24,12 @@
 
 #include <stdlib.h>
 
-#include <eXosip/eXosip.h>
-#include <eXosip/eXosip2.h>
-
 
 #ifdef WIN32
-#include <winsock.h>
+#include <windowsx.h>
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+//#include <Iphlpapi.h>
 #else 
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -45,6 +45,8 @@
 #include <netdb.h>
 #endif
 
+#include <eXosip/eXosip.h>
+#include <eXosip/eXosip2.h>
 
 extern eXosip_t eXosip;
 
@@ -82,7 +84,11 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
       _addrinfo->ai_socktype = SOCK_DGRAM;
       _addrinfo->ai_protocol = IPPROTO_UDP;
       _addrinfo->ai_addrlen = sizeof(struct sockaddr_in);
+#ifdef WIN32
+      _addrinfo->ai_addr = (struct sockaddr*) ((_addrinfo) + sizeof (struct addrinfo));
+#else
       _addrinfo->ai_addr = (void *) (_addrinfo) + sizeof (struct addrinfo);
+#endif
 
       memset(_addrinfo->ai_addr, 0, sizeof(struct sockaddr_in));
       ((struct sockaddr_in*)_addrinfo->ai_addr)->sin_family = AF_INET;
@@ -142,8 +148,8 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
   static int num = 0;
 #if 0
   struct sockaddr_in addr;
-  unsigned long int one_inet_addr;
 #endif
+  unsigned long int one_inet_addr;
   struct addrinfo *addrinfo;
   struct __eXosip_sockaddr addr;
   char *message;
@@ -166,7 +172,14 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
       return -1;
     }
   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-  freeaddrinfo (addrinfo);
+  if ((int)(one_inet_addr = inet_addr(host)) == -1)
+    {
+	  freeaddrinfo (addrinfo);
+    }
+  else
+  { /* fake instance of addrinfo (allocated by me)! */
+      osip_free(addrinfo);
+  }
 
 #if 0
   if ((int)(one_inet_addr = inet_addr(host)) == -1)
