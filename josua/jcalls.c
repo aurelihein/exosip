@@ -219,7 +219,7 @@ int jcall_new(eXosip_event_t *je)
   ca->cid = je->cid;
   ca->did = je->did;
 
-  if (ca->did<1 && ca->did<1)
+  if (ca->cid<1 && ca->did<1)
     {
       exit(0);
       return -1; /* not enough information for this event?? */
@@ -324,7 +324,7 @@ int jcall_proceeding(eXosip_event_t *je)
       ca->cid = je->cid;
       ca->did = je->did;
       
-      if (ca->did<1 && ca->did<1)
+      if (ca->cid<1 && ca->did<1)
 	{
 	  exit(0);
 	  return -1; /* not enough information for this event?? */
@@ -389,7 +389,7 @@ int jcall_ringing(eXosip_event_t *je)
       ca->cid = je->cid;
       ca->did = je->did;
       
-      if (ca->did<1 && ca->did<1)
+      if (ca->cid<1 && ca->did<1)
 	{
 	  exit(0);
 	  return -1; /* not enough information for this event?? */
@@ -453,7 +453,7 @@ int jcall_answered(eXosip_event_t *je)
       ca->cid = je->cid;
       ca->did = je->did;
       
-      if (ca->did<1 && ca->did<1)
+      if (ca->cid<1 && ca->did<1)
 	{
 	  exit(0);
 	  return -1; /* not enough information for this event?? */
