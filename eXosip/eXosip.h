@@ -364,6 +364,8 @@ char *eXosip_guess_ip_for_via ();
 
 int    eXosip_sdp_negotiation_init();
 sdp_message_t *eXosip_get_local_sdp_info(osip_transaction_t *invite_tr);
+int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn);
+
 int    eXosip_set_callbacks(osip_t *osip);
 char  *osip_to_tag_new_random();
 unsigned int via_branch_new_random();
