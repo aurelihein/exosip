@@ -79,3 +79,4 @@ EXPORTS
 	eXosip2_answer @80
 	eXosip_add_authentication_info @81
 	eXosip_retry_call @82
+	eXosip_set_user_agent @83
