@@ -727,7 +727,7 @@ int eXosip_info_call(int jid, char *content_type, char *body)
   return 0;
 }
 
-int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, const char*body){
+int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, const char*body, void *reference){
 	eXosip_call_t *jc;
   osip_header_t *subject;
   osip_transaction_t *transaction;
@@ -747,7 +747,8 @@ int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, 
 
   eXosip_call_init(&jc);
   i = osip_message_get_subject(invite, 0, &subject);
-  snprintf(jc->c_subject, 99, "%s", subject->hvalue);
+  if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
+    snprintf(jc->c_subject, 99, "%s", subject->hvalue);
 
   jc->c_ack_sdp = 0;
 
@@ -770,11 +771,12 @@ int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, 
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
 
+  jc->external_reference = reference;
   ADD_ELEMENT(eXosip.j_calls, jc);
 
   eXosip_update(); /* fixed? */
   __eXosip_wakeup();
-  return 0;
+  return jc->c_id;
 }
 
 extern osip_list_t *supported_codec;
