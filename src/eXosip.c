@@ -953,7 +953,7 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 
   eXosip_update(); /* fixed? */
   __eXosip_wakeup();
-  return 0;
+  return jc->c_id;
 }
 
 
@@ -1672,6 +1672,7 @@ static int eXosip_create_cancel_transaction(eXosip_call_t *jc,
 int eXosip_terminate_call(int cid, int jid)
 {
   int i;
+  osip_transaction_t *tr;
   osip_message_t *request;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
@@ -1695,18 +1696,9 @@ int eXosip_terminate_call(int cid, int jid)
     {
       return -1;
     }
-  if (jd==NULL || jd->d_dialog==NULL)
-    {
-      OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-         "eXosip: No established dialog!"));
-      return -1;
-    }
-  if (jd!=NULL && jd->d_dialog!=NULL)
-    {
-      osip_transaction_t *tr;
-      tr=eXosip_find_last_out_invite(jc, jd);
-      if (tr!=NULL && tr->last_response!=NULL && MSG_IS_STATUS_1XX(tr->last_response))
+
+  tr=eXosip_find_last_out_invite(jc, jd);
+  if (tr!=NULL && tr->last_response!=NULL && MSG_IS_STATUS_1XX(tr->last_response))
 	{
 	  i = generating_cancel(&request, tr->orig_request);
 	  if (i!=0)
@@ -1726,7 +1718,16 @@ int eXosip_terminate_call(int cid, int jid)
 	    }
 	  return 0;
 	}
-      if (tr==NULL)
+
+  if (jd==NULL || jd->d_dialog==NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: No established dialog!"));
+      return -1;
+    }
+
+  if (tr==NULL)
 	{
 	  /*this may not be enough if it's a re-INVITE! */
 	  tr = eXosip_find_last_inc_invite(jc, jd);
@@ -1737,7 +1738,8 @@ int eXosip_terminate_call(int cid, int jid)
 	      return i;
 	    }
 	}
-    }
+
+
   i = generating_bye(&request, jd->d_dialog);
   if (i!=0)
     {
