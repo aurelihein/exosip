@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.23 2003-04-23 00:45:46 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.24 2003-04-23 17:49:42 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -1736,11 +1736,39 @@ int __josua_choose_subscriber_in_list() {
   }  
 }
 
+int print_call_list(int pos)
+{
+  eXosip_call_t *jc;
+  int i;
+  eXosip_lock();
+  if (eXosip.j_calls!=NULL)
+    {
+      if (pos==0)
+	print_call(0, eXosip.j_calls, 1);
+      else
+	print_call(0, eXosip.j_calls, 0);
+      i=1;
+      for (jc = eXosip.j_calls->next; jc!=NULL; jc=jc->next, i++)
+	{
+	  if (pos==i)
+	    print_call(i, eXosip.j_calls, 1);
+	  else
+	    print_call(i, eXosip.j_calls, 0);
+	}
+    }
+  else {
+    eXosip_unlock();
+    return -1;
+  }
+  eXosip_unlock();
+  return 0;
+}
+
 int __josua_manage_choose_call_in_list() {
 #define C(x) ((x)-'a'+1)
+  eXosip_call_t *jc;
   int c, i;
   int cursor=0;
-  eXosip_call_t *jc;
   int max;
   int x,y;
   char buf[200];
@@ -1752,9 +1780,9 @@ int __josua_manage_choose_call_in_list() {
   getmaxyx(stdscr,y,x);
   attrset(A_NORMAL);
   attrset(COLOR_PAIR(1));
-  sprintf(buf,"  Back to menu    Cancel/Terminate%80.80s"," ");
+  sprintf(buf,"  Back to menu    Put on/off hold   Cancel/Terminate%80.80s"," ");
   mvaddnstr(y-5,0, buf,x-1);
-  sprintf(buf,"  Put on/off hold%80.80s", " ");
+  sprintf(buf,"  Answer a call   Reject            Decline%80.80s", " ");
   mvaddnstr(y-4,0, buf,x-1);
 
   /* print letters for the menu. */
@@ -1762,45 +1790,47 @@ int __josua_manage_choose_call_in_list() {
   attrset(COLOR_PAIR(3));
   /*  attrset(A_REVERSE); */
   mvaddnstr(y-5,0, "<",x-1);
-  mvaddnstr(y-4,0, "h",x-1);
+  mvaddnstr(y-4,0, "a",x-1);
 
-  mvaddnstr(y-5,12, "t",1);
+  mvaddnstr(y-5,16, "h",1);
+  mvaddnstr(y-4,16, "r",1);
 
-  eXosip_lock();
-  if (eXosip.j_calls!=NULL)
-    {
-      i=1;
-      print_call(0, eXosip.j_calls, 1);
-      for (jc = eXosip.j_calls->next; jc!=NULL; jc=jc->next, i++)
-	print_call(i, eXosip.j_calls, 0);
-    }
-  else {
-    eXosip_unlock();
+  mvaddnstr(y-5,34, "t",1);
+  mvaddnstr(y-4,34, "d",1);
+
+  if (print_call_list(0)!=0)
     return -1;
-  }
-  eXosip_unlock();
 
   cursor = 0;
+
+  i=0;
+  for (jc = eXosip.j_calls; jc!=NULL; jc=jc->next, i++)
+    {
+    }
+
   max = i;
   for (;;) {
-    {
-      eXosip_update();
-      josua_event_get();
-      josua_printf_show();
-      refresh();
-    }
+
     do
-      c= getch();
-    while (c == ERR && errno == EINTR);
+      {
+	eXosip_update();
+	if (print_call_list(cursor)!=0)
+	  return -1;
+	josua_event_get();
+	josua_printf_show();
+	refresh();
+	halfdelay(1);
+	c = getch();
+      }
+    while (c == ERR && (errno == EINTR || errno == EAGAIN));
+    
     if (c==ERR)  {
       if(errno != 0)
-	fprintf(stderr, "failed to getch in main menu\n");
+	{
+	  fprintf(stderr, "failed to getch in main menu\n");
+	  exit(1);
+	}
       else {
-	/*
-	  clearok(stdscr,TRUE);
-	  clear();
-	  print_menu(0);
-	  dme(cursor,1); */
       }
     }
     
@@ -1833,13 +1863,26 @@ int __josua_manage_choose_call_in_list() {
       }
     } else if (c=='<' || c=='q') {
       return -1;
+    } else if (c=='d') {
+      eXosip_answer_call(cursor+1, 603);
+    } else if (c=='r') {
+      char tmp[10];
+      int code;
+      /* ask for a specific code */
+      sprintf(buf,"code: %80.80s", " ");
+      mvaddnstr(y-6,0, buf,x-1);
+      mvwgetnstr(stdscr, y-6, 6, tmp, 9);
+      code = osip_atoi(tmp);
+      if (code>100 && code<699)
+	eXosip_answer_call(cursor+1, code);
+
     } else if (c=='a') {
-      eXosip_answer_call(cursor, 200);
+      eXosip_answer_call(cursor+1, 200);
     } else if (c=='t') {
-      eXosip_terminate_call(cursor, 1);
+      eXosip_terminate_call(cursor+1, 1);
     } else if (c=='h') {
       /* Put on/off Hold */
-      eXosip_on_hold_call(c);
+      eXosip_on_hold_call(cursor+1);
     } else {
       beep();
     }
@@ -1873,15 +1916,10 @@ void __josua_menu() {
       if(errno != 0)
 	{
 	  fprintf(stderr, "failed to getch in main menu\n");
-	  perror("hello");
+	  //perror("hello");
 	  exit(1);
 	}
       else {
-	/*
-	  clearok(stdscr,TRUE);
-	  clear();
-	  print_menu(0);
-	  dme(cursor,1); */
       }
     }
     else if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
