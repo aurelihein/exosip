@@ -72,3 +72,4 @@ EXPORTS
 	eXosip_options_call @68
 	eXosip_info_call @70
 	eXosip_sdp_negotiation_ctx_set_mycontext @71
+	eXosip_get_localip @72

@@ -75,6 +75,13 @@ int   eXosip_init(FILE *input, FILE *output, int port);
 void  eXosip_quit();
 
 /**
+ * Find the current localip (interface with default route).
+ * 
+ * @param ip    a string containing the local IP address.
+ */
+void eXosip_get_localip(char *ip);
+
+/**
  * Remove an audio payload.
  * 
  */
