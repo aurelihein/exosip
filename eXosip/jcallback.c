@@ -146,12 +146,13 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 		       int port, int out_socket)
 {
   static int num = 0;
-#if 0
-  struct sockaddr_in addr;
-#endif
   unsigned long int one_inet_addr;
+#ifdef WIN32
+  struct sockaddr_in addr;
+#else
   struct addrinfo *addrinfo;
   struct __eXosip_sockaddr addr;
+#endif
   char *message;
   int i;
 
@@ -166,6 +167,7 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 	port = 5060;
     }
 
+#ifndef WIN32
   i = eXosip_get_addrinfo(&addrinfo, host, port);
   if (i!=0)
     {
@@ -181,7 +183,8 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
       osip_free(addrinfo);
   }
 
-#if 0
+#else
+  /* the above code seems broken on WIN32?? */
   if ((int)(one_inet_addr = inet_addr(host)) == -1)
     {
       return -1;
@@ -193,7 +196,6 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
       addr.sin_family      = AF_INET;
     }
 #endif
-
 
 
   i = osip_message_to_str(sip, &message);
