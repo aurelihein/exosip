@@ -696,12 +696,13 @@ int eXosip_answer_call   (int jid, int status, char *local_sdp_port)
     }
   else if (status>199 && status<300)
     {
-      /* if (sdp_context_reference==NULL) */
+#if 0 /* this seems to be useless?? */
+      if (jc->c_ctx!=NULL)
 	osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
-	/*
 	  else
-	  osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
-	*/
+    osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
+#endif
+
       i = eXosip_answer_invite_2xx(jc, jd, status, local_sdp_port);
     }
   else if (status>300 && status<699)
