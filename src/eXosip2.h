@@ -224,7 +224,6 @@ struct eXosip_t {
   eXosip_reg_t       *j_reg;
 
   void               *j_cond;
-  void               *j_condmutex;
   void               *j_mutexlock;
 
   osip_t             *j_osip;

@@ -755,6 +755,10 @@ eXosip_event_wait(int tv_s, int tv_ms)
   struct timespec interval;
   long tot_ms = (tv_s*1000) + tv_ms;
   
+  static struct osip_mutex *mlock = NULL;
+
+  if (mlock==NULL) mlock = osip_mutex_init();
+
   interval.tv_sec = tot_ms / 1000;
   interval.tv_nsec = (tot_ms % 1000) * 1000000L;
   
@@ -771,7 +775,7 @@ eXosip_event_wait(int tv_s, int tv_ms)
   deadline.tv_sec += interval.tv_sec;
   
   i = osip_cond_timedwait ((struct osip_cond *)eXosip.j_cond,
-			   (struct osip_mutex *)eXosip.j_condmutex,
+			   (struct osip_mutex *)mlock,
 			   &deadline);
   
 #endif

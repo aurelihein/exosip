@@ -132,7 +132,6 @@ void eXosip_quit()
     }
   
   osip_mutex_destroy((struct osip_mutex*)eXosip.j_mutexlock);
-  osip_mutex_destroy((struct osip_mutex*)eXosip.j_condmutex);
   osip_cond_destroy((struct osip_cond*)eXosip.j_cond);
 
   osip_negotiation_free(eXosip.osip_negotiation);  
@@ -278,7 +277,6 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_reg = NULL;
 
   eXosip.j_cond      = (struct osip_cond*)osip_cond_init();
-  eXosip.j_condmutex = (struct osip_mutex*)osip_mutex_init();
 
   eXosip.j_mutexlock = (struct osip_mutex*)osip_mutex_init();
 
@@ -590,7 +588,7 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 	    {
 	      int k = 0;
 	      char *tmp = sdp_message_m_media_get (sdp, pos);
-	      if (0 == strncmp (tmp, "audio", 5))
+	      if (0 == osip_strncasecmp (tmp, "audio", 5))
 		{
 		  char *payload = NULL;
 		  do {
@@ -701,8 +699,8 @@ int eXosip_answer_call   (int jid, int status, char *local_sdp_port)
 #if 0 /* this seems to be useless?? */
       if (jc->c_ctx!=NULL)
 	osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
-	  else
-    osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
+      else
+	osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
 #endif
 
       i = eXosip_answer_invite_2xx(jc, jd, status, local_sdp_port);
