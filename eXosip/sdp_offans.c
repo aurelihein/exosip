@@ -54,7 +54,7 @@ int eXosip_sdp_accept_other_codec(osip_negotiation_ctx_t *context,
 
 char *eXosip_sdp_get_audio_port(osip_negotiation_ctx_t *context, int pos_media)
 {
-  return osip_strdup("34954");
+  return osip_strdup("10500");
 }
 
 int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn)

@@ -313,9 +313,10 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
     }
 }
 
-void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
-				  osip_transaction_t *transaction,
-				  osip_event_t *evt, sdp_message_t *remote_sdp)
+osip_event_t *
+eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
+			osip_transaction_t *transaction,
+			osip_event_t *evt, sdp_message_t *remote_sdp)
 {
   sdp_message_t *local_sdp;
   osip_message_t *answer;
@@ -344,7 +345,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       {
 	osip_list_add(eXosip.j_transactions, transaction, 0);
 	eXosip_send_default_answer(jd, transaction, evt, i);
-	return;
+	return NULL;
       }
     local_sdp = osip_negotiation_ctx_get_local_sdp(jc->c_ctx);
   }
@@ -359,7 +360,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	{
 	  osip_list_add(eXosip.j_transactions, transaction, 0);
 	  eXosip_send_default_answer(jd, transaction, evt, 500);
-	  return;
+	  return NULL;
 	}
     }
 
@@ -368,7 +369,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
     {
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer(jd, transaction, evt, 500);
-      return ;
+      return NULL;
     }
 
   if (local_sdp!=NULL)
@@ -383,7 +384,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	osip_list_add(eXosip.j_transactions, transaction, 0);
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	osip_message_free(answer);
-	return ;
+	return NULL;
       } 
       i = osip_message_set_body(answer, local_body);
       if (i!=0) {
@@ -391,7 +392,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	osip_free(local_body);
 	osip_message_free(answer);
-	return;
+	return NULL;
       }
       size = (char *) osip_malloc(6*sizeof(char));
       sprintf(size,"%i",strlen(local_body));
@@ -403,7 +404,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	osip_list_add(eXosip.j_transactions, transaction, 0);
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	osip_message_free(answer);
-	return;
+	return NULL;
       }	
 
     }
@@ -413,11 +414,23 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
   sipevent->transactionid =  transaction->transactionid;
 
   osip_list_add(jd->d_inc_trs, transaction, 0);
+  return sipevent;
+}
 
+
+void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
+				   osip_transaction_t *transaction,
+				   osip_event_t *evt, sdp_message_t *sdp)
+{
+  osip_event_t *sipevent;
+  sipevent = eXosip_process_reinvite(jc, jd, transaction, evt, sdp);
+  if (sipevent==NULL)
+    return; /* ERROR */
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_HOLD, jc, jd);
-    eXosip_event_add_status(je, answer);
+    eXosip_event_add_status(je, sipevent->sip);
+    eXosip_event_add_sdp_info(je, evt->sip);
     if (eXosip.j_call_callbacks[EXOSIP_CALL_HOLD]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_HOLD](EXOSIP_CALL_HOLD, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
@@ -427,11 +440,24 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 }
 
 void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
-				  osip_transaction_t *transaction,
-				  osip_event_t *evt, sdp_message_t *sdp)
+				    osip_transaction_t *transaction,
+				    osip_event_t *evt, sdp_message_t *sdp)
 {
-  eXosip_process_invite_on_hold(jc, jd, transaction, evt, sdp);
-
+  osip_event_t *sipevent;
+  sipevent = eXosip_process_reinvite(jc, jd, transaction, evt, sdp);
+  if (sipevent==NULL)
+    return; /* ERROR */
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_OFFHOLD, jc, jd);
+    eXosip_event_add_status(je, sipevent->sip);
+    eXosip_event_add_sdp_info(je, evt->sip);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD](EXOSIP_CALL_OFFHOLD, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);    
+  }
+  osip_transaction_add_event(transaction, sipevent);
 }
 
 void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *evt)

@@ -809,6 +809,14 @@ int jcall_onhold(eXosip_event_t *je)
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
     }
 
+#ifdef MEDIASTREAMER_SUPPORT
+      if (ca->enable_audio>0)
+	{
+	  audio_stream_stop(ca->audio);
+	  ca->enable_audio = -1;
+	}
+#endif
+
   if (je->reason_phrase[0]!='\0')
     {
       osip_strncpy(ca->reason_phrase, je->reason_phrase, 49);
@@ -842,11 +850,24 @@ int jcall_offhold(eXosip_event_t *je)
   ca = &(jcalls[k]);
   osip_strncpy(ca->textinfo,   je->textinfo, 255);
 
-  if (ca->remote_sdp_audio_ip[0]=='\0')
+  if (je->remote_sdp_audio_ip[0]!='\0')
     {
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
+
+#ifdef MEDIASTREAMER_SUPPORT
+      ms_init();
+      ms_speex_codec_init();
+      ca->audio=audio_stream_start(&av_profile,
+				   10500,
+				   ca->remote_sdp_audio_ip,
+				   ca->remote_sdp_audio_port,
+				   ca->payload,
+				   250);
+      ca->enable_audio=1; /* audio is started */
+#endif
     }
+
 
   if (je->reason_phrase[0]!='\0')
     {
