@@ -1,3 +1,8 @@
+eXosip (0.7.5)
+	* improve configure.in file
+	* allow fancy reason phrase in SIP answer.
+	* allow to NAT traversal (firewall IP in SDP packet).
+	
 eXosip (0.7.3)
 	* warning fix.
 	* support for multiple registrations.
