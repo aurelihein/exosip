@@ -1725,7 +1725,7 @@ eXosip_add_authentication_information(osip_message_t *req,
       if (i!=0) return -1;
       
       i = __eXosip_create_authorization_header(last_response, uri,
-					       authinfo->username,
+					       authinfo->userid,
 					       authinfo->passwd,
 					       &aut);
       osip_free(uri);
@@ -1752,7 +1752,7 @@ eXosip_add_authentication_information(osip_message_t *req,
       if (i!=0) return -1;
       
       i = __eXosip_create_proxy_authorization_header(last_response, uri,
-						     authinfo->username,
+						     authinfo->userid,
 						     authinfo->passwd,
 						     &proxy_aut);
       osip_free(uri);
