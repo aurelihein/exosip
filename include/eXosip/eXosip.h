@@ -446,7 +446,7 @@ typedef struct eXosip_event {
   int                 remote_sdp_audio_port;
   int                 payload;
   char                payload_name[50];
-
+  char                sdp_body[1000]; /* The whole SDP body */
   int                 online_status;
   int                 ss_status;
   int                 ss_reason;

@@ -205,7 +205,10 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
       pos++;
       sdp_message_init(&sdp);
       i = sdp_message_parse(sdp,oldbody->body);
-      if (i==0) break;
+      if (i==0){
+	osip_strncpy(je->sdp_body, oldbody->body, 999);
+	break;
+      }
       sdp_message_free(sdp);
       sdp = NULL;
     }
