@@ -1,8 +1,6 @@
 /*
  * miniua -  minimalistic sip user agent
- *
- * Copyright (C) 2002,2003   Aymeric Moizard <jack@atosc.org>
- * Copyright (C) 2004        Vadim Lebedev <vadim@mbdsys.com>
+ * Copyright (C) 2002,2003,2004,2005   Aymeric Moizard <jack@atosc.org>
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -17,6 +15,10 @@
  * You should have received a copy of the GNU General Public
  * License along with dpkg; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/*
+ * Initial author: Vadim Lebedev <vadim@mbdsys.com>
  */
 
 /**
