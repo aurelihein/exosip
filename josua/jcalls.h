@@ -46,6 +46,8 @@ struct jcall {
 
 typedef struct jcall jcall_t;
 
+extern jcall_t jcalls[];
+
 #ifndef MAX_NUMBER_OF_CALLS
 #define MAX_NUMBER_OF_CALLS 10
 #endif

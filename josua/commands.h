@@ -44,6 +44,8 @@ typedef struct _main_config_t {
   int   timeout;        /* -T <delay> connection is closed after 60s */
 } main_config_t;
 
+extern main_config_t cfg;
+
 int _josua_start_call(char *from, char *to, char *subject, char *route);
 
 

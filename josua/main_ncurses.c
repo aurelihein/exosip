@@ -18,13 +18,11 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.41 2003-06-16 10:24:58 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.42 2003-06-17 13:16:19 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
 #include "gui.h"
-
-extern jcall_t jcalls[];
 
 extern eXosip_t eXosip;
 

@@ -49,18 +49,48 @@
 #include "ppl_getopt.h"
 
 
-int gui_start();
-int josua_event_get();
-void josua_printf(char *chfr, ...);
+typedef struct gui {
+#define GUI_DISABLED -1
+#define GUI_ON        0
+#define GUI_OFF       1
+  int on_off;
+  int x0;
+  int x1;
+  int y0;
+  int y1;
+  int (*gui_clear)();
+  int (*gui_print)();
+  int (*gui_run_command)(int);
+  int (*gui_key_pressed)();
+  void (*gui_draw_commands)();
 
-void __show_new_call();
-void __show_new_message();
-void __josua_manage_call();
-void __josua_set_up();
-void __josua_manage_subscribers();
-void __josua_quit();
+  int xcursor;
+  int ycursor;
+  int len;
+} gui_t;
 
-void __josua_register();
 
+
+#define TOPGUI      0
+#define ICONGUI     1
+#define MENUGUI     2
+#define LOGLINESGUI 3
+#define EXTRAGUI    4
+extern gui_t *gui_windows[10];
+extern gui_t *active_gui;
+
+int   gui_start();
+int   josua_event_get();
+void  josua_printf(char *chfr, ...);
+
+/* usefull method */
+int   josua_gui_clear();
+int   josua_gui_print();
+int   josua_gui_run_command(int c);
+int   josua_clear_box_and_commands(gui_t *box);
+int   josua_print_command(char **commands, int ypos, int xpos);
+
+void curseson();
+void cursesoff();
 
 #endif
