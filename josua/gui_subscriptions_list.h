@@ -18,15 +18,16 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __GUI_REGISTRATIONS_LIST_H__
-#define __GUI_REGISTRATIONS_LIST_H__
+
+#ifndef __GUI_SUBSCRIPTIONS_LIST_H__
+#define __GUI_SUBSCRIPTIONS_LIST_H__
 
 #include "gui.h"
 
-int window_registrations_list_print();
-int window_registrations_list_run_command(int c);
-void window_registrations_list_draw_commands();
+int window_subscriptions_list_print();
+int window_subscriptions_list_run_command(int c);
+void window_subscriptions_list_draw_commands();
 
-extern gui_t gui_window_registrations_list;
+extern gui_t gui_window_subscriptions_list;
 
 #endif

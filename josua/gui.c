@@ -97,7 +97,6 @@ void curseson() {
     initscr();
     start_color();
 
-
     if (has_colors() && start_color()==OK && COLOR_PAIRS >= 9) {
       int i;
       use_color = 0;
@@ -108,7 +107,6 @@ void curseson() {
     }
     else
       use_color = 1;
-
 
     cup= tigetstr("cup");
     smso= tigetstr("smso");

@@ -44,6 +44,7 @@
 #include <eXosip/eXosip.h>
 #include <eXosip/eXosip2.h>
 #include "jcalls.h"
+#include "jsubscriptions.h"
 #include "commands.h"
 
 #include "ppl_getopt.h"

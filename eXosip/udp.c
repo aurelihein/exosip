@@ -798,6 +798,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
 
   osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
 
+  eXosip_update();
 }
 
 void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,

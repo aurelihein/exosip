@@ -1169,7 +1169,7 @@ eXosip_register_init(char *from, char *proxy, char *contact)
 }
 
 
-void eXosip_subscribe    (char *to, char *from, char *route)
+int eXosip_subscribe    (char *to, char *from, char *route)
 {
   eXosip_subscribe_t *js;
   osip_message_t *subscribe;
@@ -1181,14 +1181,14 @@ void eXosip_subscribe    (char *to, char *from, char *route)
   if (i!=0) 
     {
       fprintf(stderr, "eXosip: cannot subscribe (cannot build SUBSCRIBE)! ");
-      return;
+      return -1;
     }
 
   i = eXosip_subscribe_init(&js, to);
   if (i!=0)
     {
       fprintf(stderr, "eXosip: cannot subscribe.");
-      return;
+      return -1;
     }
   
   i = osip_transaction_init(&transaction,
@@ -1198,7 +1198,7 @@ void eXosip_subscribe    (char *to, char *from, char *route)
   if (i!=0)
     {
       osip_message_free(subscribe);
-      return ;
+      return -1;
     }
 
   _eXosip_subscribe_set_refresh_interval(js, subscribe);
@@ -1211,6 +1211,7 @@ void eXosip_subscribe    (char *to, char *from, char *route)
   osip_transaction_add_event(transaction, sipevent);
 
   ADD_ELEMENT(eXosip.j_subscribes, js);
+  return 0;
 }
 
 

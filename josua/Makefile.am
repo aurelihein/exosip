@@ -15,7 +15,11 @@ commands.h      gui_loglines.h     gui_topline.h     \
 gui.h           gui_menu.h         jcalls.h          \
 gui_icon.h      gui_new_call.h     jconfig.h         \
 ppl_getopt.h    gui_sessions_list.h \
-gui_registrations_list.c gui_registrations_list.h
+gui_registrations_list.c gui_registrations_list.h \
+gui_new_identity.c gui_new_identity.h \
+gui_subscriptions_list.c gui_subscriptions_list.h \
+jsubscriptions.c jsubscriptions.h \
+jinsubscriptions.c jinsubscriptions.h
 
 
 josua_LDFLAGS = -O  -Wall

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.44 2003-06-19 16:01:47 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.45 2003-06-23 16:11:33 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -322,9 +322,88 @@ josua_event_get()
 		   je->remote_uri);
 	  josua_printf(buf);
 	}
+      else if (je->type==EXOSIP_SUBSCRIPTION_ANSWERED)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
+		   je->sid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+
+	  snprintf(buf, 99, "<- (%i %i) online=%i [status: %i reason:%i]",
+		   je->sid, je->did, 
+		   je->online_status,
+		   je->ss_status,
+		   je->ss_reason);
+	  josua_printf(buf);
+
+	  jsubscription_answered(je);
+	}
+      else if (je->type==EXOSIP_SUBSCRIPTION_PROCEEDING)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
+		   je->sid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+
+	  jsubscription_proceeding(je);
+	}
+      else if (je->type==EXOSIP_SUBSCRIPTION_REDIRECTED)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
+		   je->sid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	  jsubscription_redirected(je);
+	}
+      else if (je->type==EXOSIP_SUBSCRIPTION_REQUESTFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
+		   je->sid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	  jsubscription_requestfailure(je);
+	}
+      else if (je->type==EXOSIP_SUBSCRIPTION_SERVERFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
+		   je->sid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	  jsubscription_serverfailure(je);
+	}
+      else if (je->type==EXOSIP_SUBSCRIPTION_GLOBALFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
+		   je->sid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	  jsubscription_globalfailure(je);
+	}
+      else if (je->type==EXOSIP_IN_SUBSCRIPTION_NEW)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
+		   je->sid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	  eXosip_notify(je->did, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_AWAY);
+	}
       else if (je->textinfo[0]!='\0')
 	{
-	  snprintf(buf, 99, "(%i %i) %s", je->cid, je->did, je->textinfo);
+	  snprintf(buf, 99, "(%i %i %i %i) %s", je->cid, je->sid, je->nid, je->did, je->textinfo);
 	  josua_printf(buf);
 	}
 

@@ -57,6 +57,15 @@ int _josua_start_options(char *from, char *to, char *route)
   return i;
 }
 
+int _josua_start_subscribe(char *from, char *to, char *route)
+{
+  int i;
+  eXosip_lock();
+  i = eXosip_subscribe(to, cfg.identity, route);
+  eXosip_unlock();  
+  return i;
+}
+
 int _josua_add_contact(char *sipurl, char *telurl, char *email, char *phone)
 {
   int i;

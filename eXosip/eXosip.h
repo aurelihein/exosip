@@ -293,11 +293,9 @@ typedef enum eXosip_event_type_t {
   EXOSIP_OPTIONS_NEW,             /* announce a new options method         */
 
   /* Presence and Instant Messaging */
-  EXOSIP_IN_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.  */
-  EXOSIP_IN_SUBSCRIPTION_UPDATE,       /* announce incoming SUBSCRIBE.      */
-  EXOSIP_IN_SUBSCRIPTION_CLOSED,       /* announce end of subscription.     */
-
-  EXOSIP_SUBSCRIPTION_NEW,             /* announce new outgoing SUBSCRIBE.*/
+  EXOSIP_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.  */
+  EXOSIP_SUBSCRIPTION_UPDATE,       /* announce incoming SUBSCRIBE.      */
+  EXOSIP_SUBSCRIPTION_CLOSED,       /* announce end of subscription.     */
 
   EXOSIP_SUBSCRIPTION_NOANSWER,        /* announce no answer              */
   EXOSIP_SUBSCRIPTION_PROCEEDING,      /* announce a 1xx                  */
@@ -309,6 +307,9 @@ typedef enum eXosip_event_type_t {
   EXOSIP_SUBSCRIPTION_NOTIFY,
 
   EXOSIP_SUBSCRIPTION_RELEASED,        /* call context is cleared.        */
+
+  EXOSIP_IN_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.*/
+  EXOSIP_IN_SUBSCRIPTION_RELEASED,     /* announce end of subscription.   */
 
   EXOSIP_CALLBACK_COUNT
 } eXosip_event_type_t;
@@ -327,6 +328,10 @@ typedef struct eXosip_event {
 
   char                remote_sdp_audio_ip[50];
   int                 remote_sdp_audio_port;
+
+  int                 online_status;
+  int                 ss_status;
+  int                 ss_reason;
 
   /* For a high level usage of the eXosip stack? (API is enough?) */
   int did;
@@ -348,6 +353,8 @@ eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t *jc,
 					      eXosip_dialog_t *jd);
 int eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message);
 int eXosip_event_add_status(eXosip_event_t *je, osip_message_t *response);
+int eXosip_event_add_online_status(eXosip_event_t *je,
+				   eXosip_subscribe_t *js);
 eXosip_event_t *eXosip_event_init_for_subscribe(int type,
 						   eXosip_subscribe_t *js,
 						   eXosip_dialog_t *jd);

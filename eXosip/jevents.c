@@ -206,6 +206,18 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
   return -1;
 }
 
+int
+eXosip_event_add_online_status(eXosip_event_t *je,
+			       eXosip_subscribe_t *js)
+{
+  if (je==NULL) return -1;
+  if (js==NULL) return -1;
+  je->ss_status = js->s_ss_status;
+  je->online_status = js->s_online_status;
+  je->ss_reason = js->s_ss_reason;
+  return 0;
+}
+
 eXosip_event_t *
 eXosip_event_init_for_subscribe(int type,
 				eXosip_subscribe_t *js,
@@ -247,7 +259,8 @@ eXosip_event_init_for_subscribe(int type,
     }
 
   /* fill in usefull info */
-  if (type==EXOSIP_SUBSCRIPTION_NOANSWER
+  if (type==EXOSIP_SUBSCRIPTION_NEW
+      || type==EXOSIP_SUBSCRIPTION_NOANSWER
       || type==EXOSIP_SUBSCRIPTION_PROCEEDING
       || type==EXOSIP_SUBSCRIPTION_ANSWERED
       || type==EXOSIP_SUBSCRIPTION_REDIRECTED
@@ -320,8 +333,8 @@ eXosip_event_init_for_notify(int type,
   /*je->external_reference = jc->external_reference; */
 
   /* fill in usefull info */
-  if (type==EXOSIP_SUBSCRIPTION_NEW
-      || type==EXOSIP_SUBSCRIPTION_RELEASED)
+  if (type==EXOSIP_IN_SUBSCRIPTION_NEW
+      || type==EXOSIP_IN_SUBSCRIPTION_RELEASED)
     {
       if (jd!=NULL&&jd->d_dialog!=NULL)
 	{
@@ -528,6 +541,14 @@ eXosip_event_init(eXosip_event_t **je, int type)
   else if (type==EXOSIP_SUBSCRIPTION_RELEASED)
     {
       sprintf((*je)->textinfo, "Subscription has terminate!");
+    }
+  else if (type==EXOSIP_IN_SUBSCRIPTION_NEW)
+    {
+      sprintf((*je)->textinfo, "New incoming SUBSCRIBE!");
+    }
+  else if (type==EXOSIP_IN_SUBSCRIPTION_RELEASED)
+    {
+      sprintf((*je)->textinfo, "Incoming Subscription has terminate!");
     }
   else
     {

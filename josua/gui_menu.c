@@ -23,6 +23,7 @@
 #include "gui_address_book_browse.h"
 #include "gui_sessions_list.h"
 #include "gui_registrations_list.h"
+#include "gui_subscriptions_list.h"
 
 gui_t gui_window_menu = {
   GUI_OFF,
@@ -233,7 +234,20 @@ __show_sessions_list()
 
 void __show_subscriptions_list()
 {
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_subscriptions_list;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_subscriptions_list;
+    }
 
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_subscriptions_list_print();
 }
 
 void __show_registrations_list()
@@ -256,7 +270,6 @@ void __show_registrations_list()
 
 void __show_setup()
 {
-
 }
 
 void __josua_quit() {

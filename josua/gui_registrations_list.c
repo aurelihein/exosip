@@ -19,7 +19,7 @@
  */
 
 #include "gui_registrations_list.h"
-#include "gui_address_book_newentry.h"
+#include "gui_new_identity.h"
 
 extern eXosip_t eXosip;
 
@@ -119,6 +119,24 @@ int window_registrations_list_print()
   return 0;
 }
 
+void __show_new_entry()
+{
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_new_identity;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_new_identity;
+    }
+
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_new_identity_print();
+}
+
 int window_registrations_list_run_command(int c)
 {
   jidentity_t *id;
@@ -181,13 +199,14 @@ int window_registrations_list_run_command(int c)
 	+cursor_registrations_start;
       break;
     case 'u':
-      /* start registration */
+      /* start UN-registration */
       break;
     case 'd':
       /* delete entry */
       break;
     case 'a':
       /* add new entry */
+      __show_new_entry();
       break;
     default:
       beep();
@@ -198,3 +217,4 @@ int window_registrations_list_run_command(int c)
     window_registrations_list_print();
   return 0;
 }
+
