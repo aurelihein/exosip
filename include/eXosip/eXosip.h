@@ -320,7 +320,7 @@ int  eXosip_set_call_reference(int jid, void *reference);
  * @param jid          dialog id of call.
  */
 int   eXosip_on_hold_call  (int jid);
-int   eXosip_off_hold_call (int jid);
+int   eXosip_off_hold_call (int jid, char *rtp_ip, int port);
 
 /**
  * Tranfer a call.
@@ -534,6 +534,10 @@ typedef enum eXosip_event_type_t {
   /* for UAS events */
   EXOSIP_OPTIONS_NEW,             /* announce a new options method         */
   EXOSIP_INFO_NEW,               /* new info request received           */
+
+  EXOSIP_MESSAGE_NEW,            /* announce new incoming MESSAGE. */
+  EXOSIP_MESSAGE_SUCCESS,        /* announce a 200ok to a previous sent */
+  EXOSIP_MESSAGE_FAILURE,        /* announce a failure. */
 
   /* Presence and Instant Messaging */
   EXOSIP_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.  */
