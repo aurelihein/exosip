@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.35 2003-06-04 22:25:57 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.36 2003-06-04 23:40:59 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -2709,11 +2709,11 @@ void __josua_set_up() {
 
 
   if (nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "realm") !='\0'
-      || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "password") !='\0'
+      || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "passwd") !='\0'
       || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "userid") !='\0')
     {
       if (nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "realm") =='\0'
-	  || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "password")=='\0'
+	  || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "passwd")=='\0'
 	  || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "userid") =='\0')
 	{
 	  fprintf(stderr, "josua: incomplete user informations.\n");
