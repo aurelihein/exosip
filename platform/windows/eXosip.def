@@ -74,3 +74,4 @@ EXPORTS
 	eXosip_get_localip @72
 	eXosip_sdp_negotiation_add_codec @73
 	eXosip_sdp_negotiation_remove_audio_payloads @74
+	eXosip_set_firewallip @75
