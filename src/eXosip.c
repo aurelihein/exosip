@@ -1491,7 +1491,7 @@ eXosip_find_authentication_info(const char *username, const char *realm)
 		   "INFO: authinfo: %s %s\n", realm, authinfo->realm));
       if (0==strcmp(authinfo->username, username))
 	{
-	  if (authinfo->realm == NULL)
+	  if (authinfo->realm == NULL || authinfo->realm[0] == '\0')
 	    {
 	      fallback = authinfo;
 	    }
@@ -1513,7 +1513,6 @@ eXosip_add_authentication_info(const char *username, const char *userid,
 
   if (username==NULL || username[0]=='\0') return -1;
   if (userid==NULL || userid[0]=='\0')     return -1;
-  if (realm==NULL || realm[0]=='\0')       return -1;
 
   if ( passwd!=NULL && passwd[0]!='\0')    {}
   else if (ha1!=NULL && ha1[0]!='\0')      {}
@@ -1530,7 +1529,8 @@ eXosip_add_authentication_info(const char *username, const char *userid,
     snprintf(authinfos->passwd,   50, "%s", passwd);
   else if (ha1!=NULL && ha1[0]!='\0')
     snprintf(authinfos->ha1,      50, "%s", ha1);
-  snprintf(authinfos->realm,    50, "%s", realm);
+  if(realm!=NULL && realm[0]!='\0')
+    snprintf(authinfos->realm,    50, "%s", realm);
 
   ADD_ELEMENT(eXosip.authinfos, authinfos);
   return 0;
@@ -1567,7 +1567,7 @@ eXosip_add_authentication_information(osip_message_t *req,
       if (authinfo==NULL) return -1;
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-		   "authinfo: %s %s\n", authinfo->username, authinfo->realm));
+		   "authinfo: %s\n", authinfo->username));
       i = osip_uri_to_str (req->req_uri, &uri);
       if (i!=0) return -1;
       
@@ -1594,7 +1594,7 @@ eXosip_add_authentication_information(osip_message_t *req,
       if (authinfo==NULL) return -1;
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-		   "authinfo: %s %s\n", authinfo->username, authinfo->realm));
+		   "authinfo: %s\n", authinfo->username));
       i = osip_uri_to_str (req->req_uri, &uri);
       if (i!=0) return -1;
       
@@ -1684,6 +1684,27 @@ int eXosip_register      (int rid, int registration_period)
 	    int length   = strlen(reg->cseq->number);
 	    char *tmp    = (char *)osip_malloc(90*sizeof(char));
 	    osip_via_t *via   = (osip_via_t *) osip_list_get (reg->vias, 0);
+
+	    osip_authorization_t *aut;
+	    osip_proxy_authorization_t *proxy_aut;
+	      (osip_proxy_authorization_t*)osip_list_get(reg->proxy_authorizations, 0);
+	    
+	    aut = (osip_authorization_t *)osip_list_get(reg->authorizations, 0);
+	    while (aut!=NULL)
+	      {
+		osip_list_remove(reg->authorizations, 0);
+		osip_authorization_free(aut);
+		aut = (osip_authorization_t *)osip_list_get(reg->authorizations, 0);
+	      }
+
+	    proxy_aut = (osip_proxy_authorization_t*)osip_list_get(reg->proxy_authorizations, 0);
+	    while (proxy_aut!=NULL)
+	      {
+		osip_list_remove(reg->proxy_authorizations, 0);
+		osip_proxy_authorization_free(proxy_aut);
+		proxy_aut = (osip_proxy_authorization_t*)osip_list_get(reg->proxy_authorizations, 0);
+	      }
+
 	    osip_list_remove(reg->vias, 0);
 	    osip_via_free(via);
 #ifdef SM

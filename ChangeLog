@@ -1,4 +1,5 @@
 eXosip (0.7.5)
+	* patch for authentication
 	* improve configure.in file
 	* allow fancy reason phrase in SIP answer.
 	* allow to NAT traversal (firewall IP in SDP packet).
