@@ -86,3 +86,20 @@ void eXosip_reg_free(eXosip_reg_t *jreg)
 
   osip_free(jreg);
 }
+
+int _eXosip_reg_find(eXosip_reg_t **reg, osip_transaction_t *tr)
+{
+  eXosip_reg_t  *jreg;
+  *reg = NULL;
+  if (tr==NULL) return -1;
+
+  for (jreg = eXosip.j_reg; jreg!=NULL; jreg = jreg->next)
+    {
+      if (jreg->r_last_tr==tr)
+	{
+	  *reg = jreg;
+	  return 0;
+	}
+    }
+  return -1;
+}
