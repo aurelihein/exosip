@@ -39,7 +39,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #endif
+
 
 extern eXosip_t eXosip;
 
@@ -47,12 +52,100 @@ extern eXosip_t eXosip;
 static pid_t pid = 0;
 #endif
 
+struct __eXosip_sockaddr {
+  u_char ss_len;
+  u_char ss_family;
+  u_char padding[128 - 2];
+};
+
+int
+eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
+{
+  unsigned long int one_inet_addr;
+  struct addrinfo hints;
+  int error;
+  char portbuf[10];
+  if (service!=0)
+    snprintf(portbuf, sizeof(portbuf), "%d", service);
+
+  memset (&hints, 0, sizeof (hints));
+  if ((int) (one_inet_addr = inet_addr (hostname)) == -1)
+    hints.ai_flags = AI_CANONNAME;
+  else
+    {
+      struct addrinfo *_addrinfo;
+      _addrinfo = (struct addrinfo *)osip_malloc(sizeof(struct addrinfo)
+					     + sizeof (struct sockaddr_in)
+					     + 0); /* no cannonname */
+      _addrinfo->ai_flags = AI_NUMERICHOST;
+      _addrinfo->ai_family = AF_INET;
+      _addrinfo->ai_socktype = SOCK_DGRAM;
+      _addrinfo->ai_protocol = IPPROTO_UDP;
+      _addrinfo->ai_addrlen = sizeof(struct sockaddr_in);
+      _addrinfo->ai_addr = (void *) (_addrinfo) + sizeof (struct addrinfo);
+
+      memset(_addrinfo->ai_addr, 0, sizeof(struct sockaddr_in));
+      ((struct sockaddr_in*)_addrinfo->ai_addr)->sin_family = AF_INET;
+      ((struct sockaddr_in*)_addrinfo->ai_addr)->sin_addr.s_addr = one_inet_addr;
+      if (service==0)
+	((struct sockaddr_in*)_addrinfo->ai_addr)->sin_port   = htons (5060);
+      else
+	((struct sockaddr_in*)_addrinfo->ai_addr)->sin_port   = htons (service);
+      _addrinfo->ai_canonname = NULL;
+      _addrinfo->ai_next = NULL;
+
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "No DNS resolution needed for %s:%i\n", hostname, service));
+      *addrinfo = _addrinfo;
+      return 0;
+    }
+#ifdef IPV6_SUPPORT
+  hints.ai_family = PF_UNSPEC; /* ipv6 support */
+#else
+  hints.ai_family = PF_INET;   /* ipv4 only support */
+#endif
+  hints.ai_socktype = SOCK_DGRAM;
+  hints.ai_protocol = IPPROTO_UDP;
+  if (service==0)
+    {
+      error = getaddrinfo (hostname, "sip", &hints, addrinfo);
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "SRV resolution with udp-sip-%s\n", hostname));
+    }
+  else
+    {
+      error = getaddrinfo (hostname, portbuf, &hints, addrinfo);
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "DNS resolution with %s:%i\n", hostname, service));
+    }
+  if (error || *addrinfo == NULL)
+    { 
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "getaddrinfo failure. %s:%i\n", hostname, service));
+     return -1;
+    }
+  /*
+    fprintf (stdout, "The canonnical name is: %s\n", (*addrinfo)->ai_canonname);
+    fprintf (stdout, "The ai_addrlen is: %i\n", (*addrinfo)->ai_addrlen);
+  */
+
+  return 0;
+}
+
 int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 		       int port, int out_socket)
 {
   static int num = 0;
+#if 0
   struct sockaddr_in addr;
-  unsigned long int  one_inet_addr;
+  unsigned long int one_inet_addr;
+#endif
+  struct addrinfo *addrinfo;
+  struct __eXosip_sockaddr addr;
   char *message;
   int i;
 
@@ -67,18 +160,27 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 	port = 5060;
     }
 
+  i = eXosip_get_addrinfo(&addrinfo, host, port);
+  if (i!=0)
+    {
+      return -1;
+    }
+  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+  freeaddrinfo (addrinfo);
+
+#if 0
   if ((int)(one_inet_addr = inet_addr(host)) == -1)
     {
-      /* TODO: have to resolv, but it should not be done here! */
       return -1;
     }
   else
     { 
       addr.sin_addr.s_addr = one_inet_addr;
+      addr.sin_port        = htons((short)port);
+      addr.sin_family      = AF_INET;
     }
+#endif
 
-  addr.sin_port        = htons((short)port);
-  addr.sin_family      = AF_INET;
 
 
   i = osip_message_to_str(sip, &message);
