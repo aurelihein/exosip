@@ -47,7 +47,7 @@ josua_LDFLAGS = -O  -Wall  @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@
 endif
 
 if UCL_SUPPORT
-MORE_MYADD = -luclmmbase
+MORE_MYADD = /usr/local/lib/libuclmmbase.a
 
 MORE_INCLUDES = -I/ucl
 else

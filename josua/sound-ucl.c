@@ -43,18 +43,18 @@ sdes_print(struct rtp *session, uint32_t ssrc, rtcp_sdes_type stype) {
   
   if (stype > n) {
     /* Theoretically impossible */
-    printf("boo! invalud sdes field %d\n", stype);
+    fprintf(stderr, "boo! invalud sdes field %d\n", stype);
     return;
   }
   
-  printf("SSRC 0x%08x reported SDES type %s - ", ssrc, 
+  fprintf(stderr, "SSRC 0x%08x reported SDES type %s - ", ssrc, 
 	 sdes_type_names[stype]);
   
   if (stype == RTCP_SDES_PRIV) {
     /* Requires extra-handling, not important for example */
-    printf("don't know how to display.\n");
+    fprintf(stderr, "don't know how to display.\n");
   } else {
-    printf("%s\n", rtp_get_sdes(session, ssrc, stype));
+    fprintf(stderr, "%s\n", rtp_get_sdes(session, ssrc, stype));
   }
 }
 
@@ -64,7 +64,7 @@ packet_print(struct rtp *session, rtp_packet *p)
 #ifdef USE_PCM
   char data_in_dec[1280];
 #endif
-  printf("Received data (payload %d timestamp %06d size %d) ", p->pt, p->ts, p->data_len);
+  fprintf(stderr, "Received data (payload %d timestamp %06d size %d) ", p->pt, p->ts, p->data_len);
   
 #ifdef USE_PCM
   if (p->pt==8) /* A-Law */
@@ -84,9 +84,9 @@ packet_print(struct rtp *session, rtp_packet *p)
     out packets if sending to a multicast group. */
   /*
     if (p->ssrc == rtp_my_ssrc(session)) {
-    printf("that I just sent.\n");
+    fprintf(stderr, "that I just sent.\n");
     } else {
-    printf("from SSRC 0x%08x\n", p->ssrc); 
+    fprintf(stderr, "from SSRC 0x%08x\n", p->ssrc); 
     } 
   */
 }
@@ -110,10 +110,10 @@ rtp_event_handler(struct rtp *session, rtp_event *e)
   case RX_BYE:
     break;
   case SOURCE_CREATED:
-    printf("New source created, SSRC = 0x%08x\n", e->ssrc);
+    fprintf(stderr, "New source created, SSRC = 0x%08x\n", e->ssrc);
     break;
   case SOURCE_DELETED:
-    printf("Source deleted, SSRC = 0x%08x\n", e->ssrc);
+    fprintf(stderr, "Source deleted, SSRC = 0x%08x\n", e->ssrc);
     break;
   case RX_SR:
   case RX_RR:
@@ -129,6 +129,7 @@ rtp_event_handler(struct rtp *session, rtp_event *e)
 
 #define MULAW_BYTES	160
 #define MULAW_PAYLOAD	0
+#define ALAW_PAYLOAD	8
 #define MULAW_MS	20
 
 #if 0
@@ -144,8 +145,8 @@ void
   char           data_out[MULAW_BYTES*2];
 #endif
   
-  printf("Sending and listening to ");
-  printf("%s port %d (local SSRC = 0x%08x)\n", 
+  fprintf(stderr, "Sending and listening to ");
+  fprintf(stderr, "%s port %d (local SSRC = 0x%08x)\n", 
 	 rtp_get_addr(ca->rtp_session), 
 	 rtp_get_rx_port(ca->rtp_session),
 	 rtp_my_ssrc(ca->rtp_session));
@@ -184,10 +185,10 @@ void
       i=read(fd, mulaw_buffer, MULAW_BYTES); /* ?? */
 #endif
 
-      printf("reading %i stream from sound card\n", i);
+      fprintf(stderr, "reading %i stream from sound card\n", i);
       if (i>0)
         {
-	  rtp_send_data(ca->rtp_session, rtp_ts, MULAW_PAYLOAD, 
+	  rtp_send_data(ca->rtp_session, rtp_ts, ca->payload, 
 			0, 0, 0,
 			(char*)mulaw_buffer, MULAW_BYTES,
 			0, 0, 0);
@@ -239,8 +240,8 @@ void
   char           data_out[MULAW_BYTES*2*8];
 #endif
   
-  printf("Sending and listening to ");
-  printf("%s port %d (local SSRC = 0x%08x)\n", 
+  fprintf(stderr, "Sending and listening to ");
+  fprintf(stderr, "%s port %d (local SSRC = 0x%08x)\n", 
 	 rtp_get_addr(ca->rtp_session), 
 	 rtp_get_rx_port(ca->rtp_session),
 	 rtp_my_ssrc(ca->rtp_session));
@@ -283,10 +284,10 @@ void
 #endif
 	}
 
-      printf("reading %i stream from sound card\n", i);
+      fprintf(stderr, "reading %i stream from sound card\n", i);
       if (mulaw_buffer_pos > MULAW_BYTES )
         {
-	  rtp_send_data(ca->rtp_session, rtp_ts, MULAW_PAYLOAD, 
+	  rtp_send_data(ca->rtp_session, rtp_ts, ca->payload, 
 			0, 0, 0,
 			(char*)mulaw_buffer, MULAW_BYTES,
 			0, 0, 0);
@@ -375,7 +376,7 @@ int os_sound_start(jcall_t *ca)
       while(cond)
 	{
 	  int i=ioctl(fd, SNDCTL_DSP_SUBDIVIDE, &p);
-	  /* printf("SUB_DIVIDE said error=%i,errno=%i\n",i,errno); */
+	  /* fprintf(stderr, "SUB_DIVIDE said error=%i,errno=%i\n",i,errno); */
 	  if ((i==0) || (p==1)) cond=0;
 	  else p=p/2;
 	}
@@ -383,14 +384,14 @@ int os_sound_start(jcall_t *ca)
   ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &min_size);
   if (min_size>blocksize)
     {
-      printf("dsp block size set to %i.",min_size);
+      fprintf(stderr, "dsp block size set to %i.",min_size);
       exit(0);
     }else{
       /* no need to access the card with less latency than needed*/
       min_size=blocksize;
     }
 
-  printf("blocksize = %i\n", min_size);
+  fprintf(stderr, "blocksize = %i\n", min_size);
   
 #ifdef SPEEX_SUPPORT
   {
