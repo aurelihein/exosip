@@ -73,6 +73,9 @@ void eXosip_send_default_answer(eXosip_dialog_t *jd,
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction,evt_answer);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   
 }
 
@@ -101,6 +104,9 @@ void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
   osip_list_add(jd->d_inc_trs, transaction , 0);
 
   osip_transaction_add_event(transaction,evt_answer);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
 }
 
 void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
@@ -130,6 +136,9 @@ void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
   osip_list_add(jd->d_inc_trs, transaction , 0);
   
   osip_transaction_add_event(transaction,evt_answer);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
 }
  
 
@@ -173,6 +182,9 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
   }
 
   osip_transaction_add_event(transaction,evt_answer);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
 }
 
 void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_event_t *evt)
@@ -278,6 +290,9 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
       
       osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
       return;
     }
 
@@ -309,6 +324,9 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
       else
 	osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
       return ;
     }
 
@@ -328,6 +346,9 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  transaction->transactionid;
       osip_transaction_add_event(transaction,evt_answer);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
       
       if (jd!=NULL)
 	osip_list_add(jd->d_inc_trs, transaction , 0);
@@ -353,6 +374,9 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  tr->transactionid;
       osip_transaction_add_event(tr,evt_answer);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
     }
 }
 
@@ -480,6 +504,9 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       eXosip_event_add(je);    
   }
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 }
 
 void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
@@ -501,6 +528,9 @@ void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       eXosip_event_add(je);    
   }
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 }
 
 void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *evt)
@@ -570,6 +600,9 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid = transaction->transactionid;
   osip_transaction_add_event(transaction, evt_answer);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 180, evt->sip);
 
@@ -626,6 +659,9 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
 
   jc->c_inc_tr = transaction;
   osip_transaction_add_event(transaction, evt_answer);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 
 }
 
@@ -824,6 +860,9 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   osip_transaction_add_event(transaction, evt_answer);
 
   ADD_ELEMENT(eXosip.j_notifies, jn);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 
   /* There should be a list of already accepted freinds for which we
      have already accepted the subscription. */
@@ -868,6 +907,9 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
 
   eXosip_update();
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 }
 
 void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
@@ -908,6 +950,9 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 
   /* if subscribe request contains expires="0", close the subscription */
   {
@@ -1001,6 +1046,9 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
 
       return ;
     }
@@ -1162,6 +1210,9 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
       return;
     }
   else
@@ -1190,6 +1241,9 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       eXosip_event_add(je);
   }
 
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
   return;
 }
 
@@ -1315,6 +1369,9 @@ void eXosip_process_newrequest (osip_event_t *evt)
       /* add the REQUEST & the 100 Trying */
       osip_transaction_add_event(transaction, evt);
       osip_transaction_add_event(transaction, evt_answer);
+#ifdef NEW_TIMER
+      __eXosip_wakeup();
+#endif
     }
 
   if (MSG_IS_CANCEL(evt->sip))
@@ -1644,14 +1701,31 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
   while (max_message_nb!=0 && eXosip.j_stop_ua==0)
     {
       int i;
+      int max;
+#ifdef NEW_TIMER
+      int wakeup_socket = jpipe_get_read_descr(eXosip.j_socketctl);
+#endif
       FD_ZERO(&osip_fdset);
       FD_SET(eXosip.j_socket, &osip_fdset);
-      
+      max = eXosip.j_socket;
+#ifdef NEW_TIMER
+      FD_SET(wakeup_socket, &osip_fdset);
+      if (wakeup_socket>eXosip.j_socket)
+	max = wakeup_socket;
+#endif
       if ((sec_max==-1)||(usec_max==-1))
-	i = select(eXosip.j_socket+1, &osip_fdset, NULL, NULL, NULL);
+	i = select(max+1, &osip_fdset, NULL, NULL, NULL);
       else
-	i = select(eXosip.j_socket+1, &osip_fdset, NULL, NULL, &tv);
+	i = select(max+1, &osip_fdset, NULL, NULL, &tv);
       
+#ifdef NEW_TIMER
+      if (FD_ISSET (wakeup_socket, &osip_fdset))
+	{
+	  char *buf[500];
+	  jpipe_read (eXosip.j_socketctl, buf, 499);
+	}
+#endif
+
       if (0==i || eXosip.j_stop_ua!=0)
 	{
 	}
@@ -1660,7 +1734,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	  osip_free(buf);
 	  return -2; /* error */
 	}
-      else
+      else if (FD_ISSET (eXosip.j_socket, &osip_fdset))
 	{
 	  struct sockaddr_in sa;
 #ifdef __linux

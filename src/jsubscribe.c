@@ -222,5 +222,8 @@ int eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
   osip_transaction_add_event(transaction, sipevent);
 
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }

@@ -47,8 +47,17 @@ extern char *register_callid_number;
 
 void eXosip_get_localip(char *ip)
 {
-	eXosip_guess_ip_for_via(ip);
+  eXosip_guess_ip_for_via(ip);
 }
+
+#ifdef NEW_TIMER
+
+void __eXosip_wakeup()
+{
+  jpipe_write(eXosip.j_socketctl, "w", 1);
+}
+
+#endif
 
 int
 eXosip_lock()
@@ -113,10 +122,17 @@ void eXosip_quit()
   int i;
 
   eXosip.j_stop_ua = 1; /* ask to quit the application */
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   i = osip_thread_join((struct osip_thread*)eXosip.j_thread);
   if (i!=0)
     fprintf(stderr, "eXosip: can't terminate thread!");
   osip_free((struct osip_thread*)eXosip.j_thread);
+
+#ifdef NEW_TIMER
+  jpipe_close(eXosip.j_socketctl);
+#endif
 
   osip_free(localip);
   osip_free(localport);
@@ -203,8 +219,32 @@ void eXosip_quit()
 
 int eXosip_execute ( void )
 {
+#ifdef NEW_TIMER
+  struct timeval lower_tv;
+#endif
   int i;
-  i = eXosip_read_message(1, 0, 500000);
+
+#ifdef NEW_TIMER
+  osip_timers_gettimeout(eXosip.j_osip, &lower_tv);
+  if (lower_tv.tv_sec>15)
+    {
+      lower_tv.tv_sec = 15;
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+		   "eXosip: Reseting timer to 15s before waking up!\n"));
+    }
+  else
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+		   "eXosip: timer sec:%i usec:%i!\n",
+		   lower_tv.tv_sec, lower_tv.tv_usec));
+    }
+  i = eXosip_read_message(1, lower_tv.tv_sec, lower_tv.tv_usec);
+#else
+  i = eXosip_read_message(1, 0, 100000);
+#endif
+
   if (i==-2)
     {
       return -2;
@@ -323,8 +363,14 @@ int eXosip_init(FILE *input, FILE *output, int port)
    }
 #endif
 
+  /* open a TCP socket to wake up the application when needed. */
+#ifdef NEW_TIMER
+  eXosip.j_socketctl = jpipe();
+  if (eXosip.j_socketctl==NULL)
+    return -1;
+#endif
+   
   /* open the UDP listener */
-          
   eXosip.j_socket = (int)socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (eXosip.j_socket==-1)
     return -1;
@@ -492,6 +538,9 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
 }
 
 int eXosip_info_call(int jid, char *content_type, char *body)
@@ -553,7 +602,9 @@ int eXosip_info_call(int jid, char *content_type, char *body)
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
-
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -675,6 +726,9 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
   ADD_ELEMENT(eXosip.j_calls, jc);
 
   eXosip_update(); /* fixed? */
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -775,6 +829,9 @@ int eXosip_options_call  (int jid)
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -912,6 +969,9 @@ int eXosip_on_hold_call  (int jid)
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -1004,6 +1064,9 @@ int eXosip_off_hold_call (int jid)
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -1034,6 +1097,9 @@ int eXosip_create_transaction(eXosip_call_t *jc,
   
   osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(tr, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -1093,6 +1159,9 @@ int eXosip_create_cancel_transaction(eXosip_call_t *jc,
   sipevent->transactionid =  tr->transactionid;
   
   osip_transaction_add_event(tr, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -1277,6 +1346,9 @@ int eXosip_register      (int rid, int registration_period)
   osip_message_force_update(reg);
   
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -1340,6 +1412,9 @@ int eXosip_subscribe    (char *to, char *from, char *route)
   osip_transaction_add_event(transaction, sipevent);
 
   ADD_ELEMENT(eXosip.j_subscribes, js);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 
@@ -1495,6 +1570,9 @@ int eXosip_notify_send_notify(eXosip_notify_t *jn,
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, NULL, jn));
   osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
   return 0;
 }
 

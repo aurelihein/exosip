@@ -41,6 +41,10 @@
 #include <eXosip/eXosip_cfg.h>
 #include <eXosip/eXosip.h>
 
+#ifdef NEW_TIMER
+#include "jpipe.h"
+#endif
+
 #ifndef JD_EMPTY
 
 #define JD_EMPTY          0
@@ -66,6 +70,9 @@ extern "C"
 #endif
 
 void  eXosip_update();
+#ifdef NEW_TIMER
+void  __eXosip_wakeup();
+#endif
 
 typedef struct eXosip_dialog_t eXosip_dialog_t;
 
@@ -231,6 +238,9 @@ struct eXosip_t {
   int                 j_socket;
   int                 j_stop_ua;
   void               *j_thread;
+#ifdef NEW_TIMER
+  jpipe_t            *j_socketctl;
+#endif
 
   jsubscriber_t      *j_subscribers;
   jfriend_t          *j_friends;
