@@ -33,12 +33,15 @@ eXosip_event_init_for_call(int type,
 			   eXosip_call_t *jc,
 			   eXosip_dialog_t *jd)
 {
-  sdp_message_t *sdp;
   eXosip_event_t *je;
   eXosip_event_init(&je, type);
   if (je==NULL) return NULL;
   je->jc = jc;
   je->jd = jd;
+
+  je->cid = jc->c_id;
+  if (jd!=NULL)
+    je->did = jd->d_id;
 
   /* fill in usefull info */
   if (type==EXOSIP_CALL_NEW
@@ -85,45 +88,110 @@ eXosip_event_init_for_call(int type,
 		  osip_free(tmp);
 		}
 	    }
-
-	  /* search for remote_sdp_audio_port & remote_sdp_audio_ip
-	     in the last SIP message */
-	  tr = eXosip_find_last_invite(jc, jd);
-	  if (tr!=NULL)
+	  if (tr!=NULL && tr->last_response!=NULL)
 	    {
-	      sdp = eXosip_get_remote_sdp_info(tr);
-	      if (sdp!=NULL)
-		{
-		  int j=0;
-		  if (sdp->c_connection !=NULL
-		      && sdp->c_connection->c_addr !=NULL )
-			{
-			  snprintf(je->remote_sdp_audio_ip, 49, "%s",
-				   sdp->c_connection->c_addr);
-			}
-		  for (j=0; !osip_list_eol(sdp->m_medias, j); j++)
-		    {
-		      sdp_media_t *med = (sdp_media_t*) osip_list_eol(sdp->m_medias, j);
-		      if (med->m_media!=NULL &&
-			  0==strcmp(med->m_media, "audio"))
-			{
-			  sdp_connection_t *conn;
-			  je->remote_sdp_audio_port = osip_atoi(med->m_port);
-			  conn = (sdp_connection_t*) osip_list_get(med->c_connections, 0);
-			  if (conn!=NULL && conn->c_addr!=NULL)
-			    {
-			      snprintf(je->remote_sdp_audio_ip, 49, "%s",
-				       sdp->c_connection->c_addr);
-			    }
-			  break;
-			}
-		    }
-		}
+	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      je->status_code = tr->last_response->status_code;
 	    }
 	}
     }
   
   return je;
+}
+
+int
+eXosip_event_add_status(eXosip_event_t *je, osip_message_t *response)
+{
+  if (response!=NULL && response->reason_phrase!=NULL)
+    {
+      snprintf(je->reason_phrase, 49, response->reason_phrase);
+      je->status_code = response->status_code;
+    }
+  else
+    exit(0);
+  return 0;
+}
+
+int
+eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
+{
+  osip_content_type_t *ctt;
+  osip_mime_version_t *mv;
+  sdp_message_t *sdp;
+  osip_body_t *oldbody;
+  int pos;
+  /* search for remote_sdp_audio_port & remote_sdp_audio_ip
+     in the last SIP message */
+
+  if (message==NULL) return -1;
+
+  /* get content-type info */
+  ctt = osip_message_get_content_type(message);
+  mv  = osip_message_get_mime_version(message);
+  if (mv==NULL && ctt==NULL)
+    return 0; /* previous message was not correct or empty */
+  if (mv!=NULL)
+    {
+      /* look for the SDP body */
+      /* ... */
+    }
+  else if (ctt!=NULL)
+    {
+      if (ctt->type==NULL || ctt->subtype==NULL)
+	/* it can be application/sdp or mime... */
+	return -1;
+      if (strcmp(ctt->type, "application")!=0 ||
+	  strcmp(ctt->subtype, "sdp")!=0 )
+	{ return -1; }
+    }
+  
+  pos=0;
+  sdp = NULL;
+  while (!osip_list_eol(message->bodies, pos))
+    {
+      int i;
+      oldbody = (osip_body_t *)osip_list_get(message->bodies, pos);
+      pos++;
+      sdp_message_init(&sdp);
+      i = sdp_message_parse(sdp,oldbody->body);
+      if (i==0) break;
+      sdp_message_free(sdp);
+      sdp = NULL;
+    }
+
+  if (sdp!=NULL)
+    {
+      int j=0;
+      if (sdp->c_connection !=NULL
+	  && sdp->c_connection->c_addr !=NULL )
+	{
+	  snprintf(je->remote_sdp_audio_ip, 49, "%s",
+		   sdp->c_connection->c_addr);
+	}
+      for (j=0; !osip_list_eol(sdp->m_medias, j); j++)
+	{
+	  sdp_media_t *med = (sdp_media_t*) osip_list_get(sdp->m_medias, j);
+	  if (med==NULL)
+	    {
+	      snprintf(je->remote_sdp_audio_ip, 49, "Y a probleme!");
+	    }
+	  if (med->m_media!=NULL &&
+	      0==strcmp(med->m_media, "audio"))
+	    {
+	      sdp_connection_t *conn;
+	      je->remote_sdp_audio_port = osip_atoi(med->m_port);
+	      conn = (sdp_connection_t*) osip_list_get(med->c_connections, 0);
+	      if (conn!=NULL && conn->c_addr!=NULL)
+		{
+		  snprintf(je->remote_sdp_audio_ip, 49, "%s",
+			   conn->c_addr);
+		}
+	      break;
+	      return 0;
+	    }
+	}
+    }
+  return -1;
 }
 
 eXosip_event_t *

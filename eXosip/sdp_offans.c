@@ -121,7 +121,7 @@ eXosip_get_local_sdp_info(osip_transaction_t *invite_tr)
   osip_mime_version_t *mv;
   osip_message_t *message;
   sdp_message_t *sdp;
-  char  *oldbody;
+  osip_body_t *oldbody;
   int pos;
 
   if (invite_tr->ctx_type == IST)
@@ -153,13 +153,13 @@ eXosip_get_local_sdp_info(osip_transaction_t *invite_tr)
     }
   
   pos=0;
-  while (!osip_list_eol(invite_tr->last_response->bodies, pos))
+  while (!osip_list_eol(message->bodies, pos))
     {
       int i;
-      oldbody = osip_list_get(invite_tr->last_response->bodies, pos);
+      oldbody = (osip_body_t *) osip_list_get(message->bodies, pos);
       pos++;
       sdp_message_init(&sdp);
-      i = sdp_message_parse(sdp,oldbody);
+      i = sdp_message_parse(sdp,oldbody->body);
       if (i==0) return sdp;
       sdp_message_free(sdp);
       sdp = NULL;
@@ -174,7 +174,7 @@ eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr)
   osip_mime_version_t *mv;
   osip_message_t *message;
   sdp_message_t *sdp;
-  char  *oldbody;
+  osip_body_t *oldbody;
   int pos;
 
   if (invite_tr->ctx_type == IST)
@@ -206,13 +206,13 @@ eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr)
     }
   
   pos=0;
-  while (!osip_list_eol(invite_tr->last_response->bodies, pos))
+  while (!osip_list_eol(message->bodies, pos))
     {
       int i;
-      oldbody = osip_list_get(invite_tr->last_response->bodies, pos);
+      oldbody = (osip_body_t *) osip_list_get(message->bodies, pos);
       pos++;
       sdp_message_init(&sdp);
-      i = sdp_message_parse(sdp,oldbody);
+      i = sdp_message_parse(sdp,oldbody->body);
       if (i==0) return sdp;
       sdp_message_free(sdp);
       sdp = NULL;

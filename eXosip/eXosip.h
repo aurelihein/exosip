@@ -277,6 +277,9 @@ typedef enum eXosip_event_type_t {
 typedef struct eXosip_event {
   eXosip_event_type_t type;
 
+  char                reason_phrase[50];
+  int                 status_code;
+
   char                textinfo[256];
   char                req_uri[256];
   char                local_uri[256];
@@ -287,11 +290,11 @@ typedef struct eXosip_event {
   int                 remote_sdp_audio_port;
 
   /* For a high level usage of the eXosip stack? (API is enough?) */
-  /* int did;
-     int cid;
-     int rid;
-     int sid;
-     int nid; */
+  int did;
+  int cid;
+  int rid;
+  int sid;
+  int nid;
 
   /* For a low level usage of the eXosip stack */
   eXosip_dialog_t     *jd;
@@ -304,6 +307,8 @@ typedef struct eXosip_event {
 
 eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t *jc,
 					      eXosip_dialog_t *jd);
+int eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message);
+int eXosip_event_add_status(eXosip_event_t *je, osip_message_t *response);
 eXosip_event_t *eXosip_event_init_for_subscribe(int type,
 						   eXosip_subscribe_t *js,
 						   eXosip_dialog_t *jd);

@@ -23,6 +23,7 @@
 #endif
 
 #include <eXosip/eXosip.h>
+#include <eXosip/eXosip2.h>
 
 #ifndef WIN32
 #include <sys/types.h>
@@ -82,7 +83,11 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
   int i;
 
   osip_list_add(jd->d_inc_trs, transaction , 0);
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+  osip_transaction_set_your_instance(transaction,
+				     __eXosip_new_jinfo(jc,
+							NULL /*jd */,
+							NULL,
+							NULL));
 
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
@@ -93,7 +98,6 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
     
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
-  osip_transaction_add_event(transaction,evt_answer);
 
   /* Release the eXosip_dialog */
   osip_dialog_free(jd->d_dialog);
@@ -107,6 +111,8 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);    
   }
+
+  osip_transaction_add_event(transaction,evt_answer);
 }
 
 int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
@@ -359,16 +365,17 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
-  osip_transaction_add_event(transaction, sipevent);
 
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_HOLD, jc, jd);
+    eXosip_event_add_status(je, answer);
     if (eXosip.j_call_callbacks[EXOSIP_CALL_HOLD]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_HOLD](EXOSIP_CALL_HOLD, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);    
   }
+  osip_transaction_add_event(transaction, sipevent);
 }
 
 void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
@@ -376,15 +383,6 @@ void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 				  osip_event_t *evt, sdp_message_t *sdp)
 {
   eXosip_process_invite_on_hold(jc, jd, transaction, evt, sdp);
-
-  {
-    eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_OFFHOLD, jc, jd);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD](EXOSIP_CALL_OFFHOLD, je);
-    else if (eXosip.j_runtime_mode==EVENT_MODE)
-      eXosip_event_add(je);    
-  }
 
 }
 
@@ -463,7 +461,8 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
 
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid = transaction->transactionid;
-  osip_transaction_add_event(transaction, evt_answer);
+
+  eXosip_update();
 
   {
     eXosip_event_t *je;
@@ -481,13 +480,17 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
 	    snprintf(je->req_uri, 255, "%s", tmp);
 	    osip_free(tmp);
 	  }
-	
+	eXosip_event_add_sdp_info(je, evt->sip);
+	eXosip_event_add_status(je, answer);
       }
     if (eXosip.j_call_callbacks[EXOSIP_CALL_NEW]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_NEW](EXOSIP_CALL_NEW, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);    
   }
+
+  osip_transaction_add_event(transaction, evt_answer);
+
 }
 
 void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.30 2003-05-30 08:55:22 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.31 2003-06-02 11:23:37 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -41,6 +41,9 @@ static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.30 2003-05-30 08:5
 #include "config.h"
 #include <eXosip/eXosip.h>
 #include <eXosip/eXosip2.h>
+#include "jcalls.h"
+
+extern jcall_t jcalls[];
 
 #include <osip2/osip_mt.h>
 
@@ -84,11 +87,6 @@ typedef struct menu_t {
 void __josua_message();
 void __josua_manage_call();
 void __josua_start_call();
-void __josua_answer_call();
-void __josua_on_hold_call();
-void __josua_off_hold_call();
-void __josua_terminate_call();
-void __josua_transfer_call();
 void __josua_set_up();
 void __josua_manage_subscribers();
 void __josua_quit();
@@ -97,45 +95,28 @@ void __josua_register();
 
 /* some external methods */
 
-#define MENU_DEFAULT 0
-#define MENU_MG      1
-#define MENU_IN      2
-#define MENU_MC      3
-#define MENU_TR      4
-#define MENU_RG      5
-#define MENU_SETUP   6
-#define MENU_AN      7
-#define MENU_TC      8
-#define MENU_HLD     9
-#define MENU_OHLD    10
+#define MENU_DEFAULT    0
+#define MENU_MESSAGE    1
+#define MENU_INVITE     2
+#define MENU_MANAGECALL 3
+#define MENU_REGISTER   5
+#define MENU_SETUP      6
 
 /********************************/
 /***** Main Menu definition *****/
 
-#define NBELEMENT_IN_MENU 12
+#define NBELEMENT_IN_MENU 7
 
 static const menu_t josua_menu[]= {
-  { "message",	"m",	" [M]ini-message", MENU_MG,
+  { "message",	"m",	"[M]ini-message", MENU_MESSAGE,
     " Exchange Mini-message.", &__josua_message },
-  { "call",	"c",    " [C]all Management", MENU_MC,
+  { "call",	"c",    "[C]all Management", MENU_MANAGECALL,
     " Cancel, Answer and Disconnect calls.", &__josua_manage_call },
-  { "invite",	"i",	" [I]nvite", MENU_IN,
+  { "invite",	"i",	"[I]nvite", MENU_INVITE,
     " Make a call.",                     &__josua_start_call },
-  /*  { "answer",	"a",	" [A]nswer", MENU_AN,
-      " Answer a call.",                     &__josua_answer_call }, */
-  { "bye",	"b",	" [B]ye",    MENU_TC,
-    " Disconnect active branch.",	&__josua_terminate_call },
-  { "cancel",	"a",	" c[A]ncel", MENU_TC,
-    " Cancel early dialog.",	        &__josua_terminate_call },
-  { "hold",	"h",	" [H]old",   MENU_HLD,
-    " Put remote party on hold.",	&__josua_on_hold_call },
-  { "Off hold",	"o",	" [O]ff Hold",   MENU_OHLD,
-    " Put remote party on hold.",	&__josua_off_hold_call },
-  { "transfer","t",	" [T]ransfer", MENU_TR,
-    " Make a call transfer.",   	        &__josua_transfer_call  },
-  { "register","r",	" [R]egister",  MENU_RG,
+  { "register","r",	"[R]egister",  MENU_REGISTER,
     " Register your location.",	        &__josua_register  },
-  { "set",	"s",	" [S]etup",     MENU_SETUP,
+  { "set",	"s",	"[S]etup",     MENU_SETUP,
     " Configure user agents and identities.",    &__josua_set_up  },
   { "subscriber",  "u",	"S[u]bscriber",     MENU_DEFAULT,
     " Manage the subscribers.",  &__josua_manage_subscribers },
@@ -218,20 +199,6 @@ nctab_t nctab_newmessage[] = {
     { '\0' } , -5, 18, JOSUA_EDITABLE  }
 };
 
-#define TABSIZE_ANSWERCALL      3
-
-nctab_t nctab_answercall[] = {
-  { { '\0' },
-    "Answer Code  %-80.80s\n" , -9 , 0,
-    { '\0' } , 0, 0  , JOSUA_NONEDITABLE },
-  { "id",
-    "  Id for Call  : %-80.80s\n" , -8 , 0,
-    { '\0' } , -8, 18, JOSUA_EDITABLE },
-  { "code",
-    "  Reply Code   : %-80.80s\n" , -7 , 0,
-    { '\0' } , -7, 18, JOSUA_EDITABLE }
-};
-
 #define TABSIZE_JOSUASETUP      6
 
 nctab_t nctab_josuasetup[] = {
@@ -272,39 +239,6 @@ nctab_t nctab_transfercall[] = {
     { '\0' } , -5, 18, JOSUA_EDITABLE }
 };
 
-#define TABSIZE_TERMINATECALL   2
-
-nctab_t nctab_terminatecall[] = {
-  { { '\0' },
-    "Terminate a call  %-80.80s\n" , -4 , 0,
-    { '\0' } , 0, 0  , JOSUA_NONEDITABLE },
-  { "id",
-    "  Id for Call  : %-80.80s\n" , -3 , 0,
-    { '\0' } , -3, 18, JOSUA_EDITABLE }
-};
-
-#define TABSIZE_ONHOLDCALL      2
-
-nctab_t nctab_onholdcall[] = {
-  { { '\0' },
-    "Put on hold a call  %-80.80s\n" , -4 , 0,
-    { '\0' } , 0, 0  , JOSUA_NONEDITABLE },
-  { "id",
-    "  Id for Call  : %-80.80s\n" , -3 , 0,
-    { '\0' } , -3, 18, JOSUA_EDITABLE }
-};
-
-#define TABSIZE_OFFHOLDCALL     2
-
-nctab_t nctab_offholdcall[] = {
-  { { '\0' },
-    "Put off hold a call  %-80.80s\n" , -4 , 0,
-    { '\0' } , 0, 0  , JOSUA_NONEDITABLE },
-  { "id",
-    "  Id for Call  : %-80.80s\n" , -3 , 0,
-    { '\0' } , -3, 18, JOSUA_EDITABLE }
-};
-
 static int icon = 0;
 
 #ifndef JD_EMPTY
@@ -328,8 +262,6 @@ static int icon = 0;
 
 static const char *icons[]= {
 #define JD_EMPTY          0
-    "            " ,
-    "            " ,
     " WELCOME    " ,
     "   TO       " ,
     "      JOSUA " ,
@@ -337,13 +269,8 @@ static const char *icons[]= {
     "  ________  " ,
     " / ______ \\ " ,
     " |_\\    /_/ " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_INITIALIZED    1
-    "            " ,
-    "            " ,
     "     __     " ,
     "    /  \\    " ,
     "       /    " ,
@@ -351,13 +278,8 @@ static const char *icons[]= {
     "  ____O____ " ,
     " / ______ \\ " ,
     " |_\\     /_/" ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_TRYING         2
-    "            " ,
-    "            " ,
     "     __     " ,
     "    /  \\    " ,
     "       /    " ,
@@ -365,14 +287,8 @@ static const char *icons[]= {
     "  ____O____ " ,
     " / ______ \\ " ,
     " |_\\     /_/" ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_QUEUED         3
-    "            " ,
-    "            " ,
-    "            " ,
     "            " ,
     "  QUEUED    " ,
     "            " ,
@@ -380,13 +296,8 @@ static const char *icons[]= {
     " / ______ \\ " ,
     " |_\\    /_/ " ,
     "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_RINGING        4
-    "            " ,
-    "            " ,
-    "            " ,
     "            " ,
     "    DRING   " ,
     "DRING       " ,
@@ -394,12 +305,8 @@ static const char *icons[]= {
     " / ______ \\ " ,
     " |_\\    /_/ " ,
     "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_ESTABLISHED    5
-    "            " ,
-    "            " ,
     "       __   " ,
     "      /  /  " ,
     "     /--/BLA" ,
@@ -407,13 +314,8 @@ static const char *icons[]= {
     "   //       " ,
     "  / /_      " ,
     "  |__/      " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_REDIRECTED     6
-    "            " ,
-    "            " ,
     " REDIRECTED " ,
     "<---- /  /  " ,
     "     /--/   " ,
@@ -421,13 +323,8 @@ static const char *icons[]= {
     "   //       " ,
     "  / /_      " ,
     "  |__/      " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_AUTH_REQUIRED  7
-    "            " ,
-    "            " ,
     "       ___  " ,
     "      /  /  " ,
     "     /--/   " ,
@@ -435,13 +332,8 @@ static const char *icons[]= {
     "  CREDENTIAL" ,
     "  / /_      " ,
     "  |__/      " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_CLIENTERROR    8
-    "            " ,
-    "            " ,
     "       ___  " ,
     "      /  /  " ,
     "     /--/   " ,
@@ -449,13 +341,8 @@ static const char *icons[]= {
     "   / /ERROR " ,
     "  / /_      " ,
     "  |__/      " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_SERVERERROR    9
-    "            " ,
-    "            " ,
     "       ___  " ,
     "      /  /  " ,
     "     /--/   " ,
@@ -463,13 +350,8 @@ static const char *icons[]= {
     "   / /ERROR " ,
     "  / /_      " ,
     "  |__/      " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_GLOBALFAILURE  10
-    "            " ,
-    "            " ,
     "       ___  " ,
     "      /  /  " ,
     "     /--/   " ,
@@ -477,13 +359,8 @@ static const char *icons[]= {
     "   /FAILURE " ,
     "  / /_      " ,
     "  |__/      " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
 #define JD_TERMINATED     11
-    "            " ,
-    "            " ,
     "            " ,
     " CLOSED     " ,
     "            " ,
@@ -491,9 +368,6 @@ static const char *icons[]= {
     "  _________ " ,
     " / ______  \\" ,
     " |_\\    /_/ " ,
-    "            " ,
-    "            " ,
-    "            " ,
 
     /*
       #define MUTED  5
@@ -597,7 +471,7 @@ void dme(int i, int so) {
   char buf[120];
   const menu_t *me= &josua_menu[i];
   sprintf(buf,"  %s   %c%c %d. %-11.11s %-80.80s ",
-	  icons[icon*11+i],
+	  icons[icon*NBELEMENT_IN_MENU+i],
           so ? '-' : ' ',
           so ? '>' : ' ', i,
           me->option,
@@ -860,36 +734,95 @@ josua_event_get()
 	{
 	  sprintf(buf, "New Call from: %s", je->remote_uri);
 	  josua_printf(buf);
+
+	  if (je->reason_phrase[0]!='\0')
+	    josua_printf(je->reason_phrase);
+
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      sprintf(buf, "-A-Remote sdp info: %s:%i",
+		      je->remote_sdp_audio_ip,
+		      je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+
+	  jcall_new(je);
 	}
       else if (je->type==EXOSIP_CALL_ANSWERED)
 	{
 	  sprintf(buf, "Call Established with: %s", je->remote_uri);
 	  josua_printf(buf);
+	  if (je->reason_phrase[0]!='\0')
+	    josua_printf(je->reason_phrase);
+
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      sprintf(buf, "-B-Remote sdp info: %s:%i",
+		      je->remote_sdp_audio_ip,
+		      je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+	  jcall_answered(je);
 	}
       else if (je->type==EXOSIP_CALL_PROCEEDING)
 	{
 	  sprintf(buf, "Call pending with: %s", je->remote_uri);
 	  josua_printf(buf);
+	  if (je->reason_phrase[0]!='\0')
+	    josua_printf(je->reason_phrase);
+
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      sprintf(buf, "-C-Remote sdp info: %s:%i",
+		      je->remote_sdp_audio_ip,
+		      je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+	  jcall_proceeding(je);
 	}
       else if (je->type==EXOSIP_CALL_RINGING)
 	{
 	  sprintf(buf, "Remote Party is Ringing with: %s", je->remote_uri);
 	  josua_printf(buf);
+	  if (je->reason_phrase[0]!='\0')
+	    josua_printf(je->reason_phrase);
+
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      sprintf(buf, "-D-Remote sdp info: %s:%i",
+		      je->remote_sdp_audio_ip,
+		      je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+	  jcall_ringing(je);
 	}
       else if (je->type==EXOSIP_CALL_DISCONNECTED)
 	{
 	  sprintf(buf, "Call closed by: %s", je->remote_uri);
 	  josua_printf(buf);
+	  if (je->reason_phrase[0]!='\0')
+	    josua_printf(je->reason_phrase);
+
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      sprintf(buf, "-E-Remote sdp info: %s:%i",
+		      je->remote_sdp_audio_ip,
+		      je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+	  jcall_disconnected(je);
 	}
       else if (je->type==EXOSIP_CALL_HOLD)
 	{
 	  sprintf(buf, "Call On Hold: %s", je->remote_uri);
 	  josua_printf(buf);
+	  jcall_onhold(je);
 	}
       else if (je->type==EXOSIP_CALL_OFFHOLD)
 	{
 	  sprintf(buf, "Call Off Hold: %s", je->remote_uri);
 	  josua_printf(buf);
+	  jcall_offhold(je);
 	}
       else if (je->textinfo[0]!='\0')
 	{
@@ -901,7 +834,7 @@ josua_event_get()
 }
 
 static int cur_pos = 0;
-static int last_cur_pos = 13;
+static int last_cur_pos = 9;
 
 void print_calls()
 {
@@ -917,7 +850,7 @@ void print_calls()
    and is used to print notifies and subscribes
    on the correct lines.
   */
-  cur_pos = 13;
+  cur_pos = 9;
 
   attrset(COLOR_PAIR(4));
   eXosip_update();
@@ -1232,6 +1165,7 @@ void print_identity(int i, jidentity_t *fr, int so)
   attrset(A_NORMAL);
 }
 
+#if 0
 void print_call(int i, eXosip_call_t *jc, int so)
 {
   eXosip_dialog_t *jd;
@@ -1343,6 +1277,48 @@ void print_call(int i, eXosip_call_t *jc, int so)
     }  
 }
 
+#else
+
+void print_call(int i, int pos, int so)
+{
+  int y,x;
+  char buf[256];
+  char buf2[256];
+  int k, pos2 = pos;
+
+  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+    {
+      if (jcalls[k].state==NOT_USED)
+	{
+	}
+      else pos2--;
+      if (pos2==-1) break;
+    }
+
+  if (jcalls[k].state==NOT_USED || pos2!=-1)
+    return ;
+  
+  snprintf(buf, 255 ,"%i %s: // With: %s",
+	   jcalls[k].status_code,
+	   jcalls[k].reason_phrase,
+	   jcalls[k].remote_uri);
+  
+  
+  sprintf(buf2,"%c%c %d // %-80.80s ",
+	  so ? '-' : ' ',
+	  so ? '>' : ' ', i,
+	  buf);
+  getmaxyx(stdscr,y,x);
+  
+  attrset(COLOR_PAIR(6));
+  if (so)
+    attrset(so ? A_REVERSE : A_NORMAL);
+  mvaddnstr(i+1,0, buf2,x-1);
+  attrset(A_NORMAL);
+}
+
+#endif
+
 void print_subscriber(int i, jsubscriber_t *js, int so)
 {
   int y,x;
@@ -1395,60 +1371,26 @@ void print_menu(int menu)
 
   if (menu==MENU_DEFAULT)
     {}
-  else if (menu==MENU_IN)
+  else if (menu==MENU_INVITE)
     {
       nctab_print(&nctab_newcall,
 		  TABSIZE_NEWCALL, 
 		  COLORPAIR_NEWCALL);
     }
-  else if (menu==MENU_TR)
+  else if (menu==MENU_REGISTER)
     {
-      nctab_print(&nctab_transfercall,
-		  TABSIZE_TRANSFERCALL, 
-		  COLORPAIR_TRANSFERCALL);
-      /* print_transfer_menu(); */
-    }
-  else if (menu==MENU_RG)
-    {
-      /* print_register_menu(); */
     }
   else if (menu==MENU_SETUP)
     {
       nctab_print(&nctab_josuasetup,
 		  TABSIZE_JOSUASETUP, 
 		  COLORPAIR_JOSUASETUP);
-      /* print_set_up_menu(); */
     }
-  else if (menu==MENU_MG)
+  else if (menu==MENU_MESSAGE)
     {
       nctab_print(&nctab_newmessage,
 		  TABSIZE_NEWMESSAGE, 
 		  COLORPAIR_NEWCALL);
-    }
-  else if (menu==MENU_AN)
-    {
-      nctab_print(&nctab_answercall,
-		  TABSIZE_ANSWERCALL, 
-		  COLORPAIR_ANSWERCALL);
-      /* print_answer_menu(); */
-    }
-  else if (menu==MENU_TC)
-    {
-      nctab_print(&nctab_terminatecall,
-		  TABSIZE_TERMINATECALL, 
-		  COLORPAIR_TERMINATECALL);
-    }
-  else if (menu==MENU_HLD)
-    {
-      nctab_print(&nctab_onholdcall,
-		  TABSIZE_ONHOLDCALL, 
-		  COLORPAIR_ONHOLDCALL);
-    }
-  else if (menu==MENU_OHLD)
-    {
-      nctab_print(&nctab_offholdcall,
-		  TABSIZE_OFFHOLDCALL, 
-		  COLORPAIR_OFFHOLDCALL);
     }
   print_calls();
   print_subscribes();
@@ -1773,6 +1715,7 @@ int __josua_choose_subscriber_in_list() {
   }  
 }
 
+#if 0
 int print_call_list(int pos)
 {
   eXosip_call_t *jc;
@@ -1800,6 +1743,31 @@ int print_call_list(int pos)
   eXosip_unlock();
   return 0;
 }
+
+#else
+
+int print_call_list(int pos)
+{
+  int k;
+  int pos2 = 0;
+  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+    {
+      if (jcalls[k].state==NOT_USED)
+	{ }
+      else {
+	if (pos==pos2)
+	  print_call(pos2, pos2, 1);
+	else
+	  print_call(pos2, pos2, 0);
+	pos2++;
+      }
+    }
+  return 0;
+}
+
+#endif
+
+#if 0
 
 int __josua_manage_choose_call_in_list() {
 #define C(x) ((x)-'a'+1)
@@ -1873,7 +1841,7 @@ int __josua_manage_choose_call_in_list() {
     
     if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
       eXosip_lock();
-      print_call(cursor, eXosip.j_calls, 0);
+      print_call(cursor, jcalls, 0);
       cursor++; cursor %= max;
       print_call(cursor, eXosip.j_calls, 1);
       eXosip_unlock();
@@ -1998,6 +1966,208 @@ int __josua_manage_choose_call_in_list() {
     }
   }  
 }
+
+#else
+
+
+int __josua_manage_choose_call_in_list() {
+#define C(x) ((x)-'a'+1)
+  int c, i;
+  int cursor=0;
+  int max;
+  int x,y;
+  char buf[200];
+  int k;
+
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+  refresh();
+  clear();
+
+  getmaxyx(stdscr,y,x);
+  attrset(A_NORMAL);
+  attrset(COLOR_PAIR(1));
+  sprintf(buf,"  Back to menu    Put on/off hold   Cancel/Terminate%80.80s"," ");
+  mvaddnstr(y-5,0, buf,x-1);
+  sprintf(buf,"  Answer a call   Reject            Decline%80.80s", " ");
+  mvaddnstr(y-4,0, buf,x-1);
+
+  /* print letters for the menu. */
+  attrset(A_STANDOUT);
+  attrset(COLOR_PAIR(3));
+  /*  attrset(A_REVERSE); */
+  mvaddnstr(y-5,0, "<",x-1);
+  mvaddnstr(y-4,0, "a",x-1);
+
+  mvaddnstr(y-5,16, "h",1);
+  mvaddnstr(y-4,16, "r",1);
+
+  mvaddnstr(y-5,34, "t",1);
+  mvaddnstr(y-4,34, "d",1);
+
+  if (print_call_list(0)!=0)
+    return -1;
+
+  cursor = 0;
+
+  i=0;
+  max = 1;
+  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+    {
+      if (jcalls[k].state==NOT_USED)
+	{
+	}
+      else max++;
+    }
+
+  for (;;) {
+
+    do
+      {
+	eXosip_update();
+	if (print_call_list(cursor)!=0)
+	  return -1;
+	josua_event_get();
+	josua_printf_show();
+	refresh();
+	halfdelay(1);
+	c = getch();
+      }
+    while (c == ERR && (errno == EINTR || errno == EAGAIN));
+    
+    if (c==ERR)  {
+      if(errno != 0)
+	{
+	  fprintf(stderr, "failed to getch in main menu\n");
+	  exit(1);
+	}
+      else {
+      }
+    }
+    
+    if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
+      eXosip_lock();
+      print_call(cursor, cursor, 0);
+      cursor++; cursor %= max;
+      print_call(cursor, cursor, 1);
+      eXosip_unlock();
+    } else if (c==C('p') || c==KEY_UP || c==C('h') ||
+               c==KEY_BACKSPACE || c==KEY_DC || c=='k') {
+      eXosip_lock();
+      print_call(cursor, cursor, 0);
+      cursor+= max-1; cursor %= max;
+      print_call(cursor, cursor, 1);
+      eXosip_unlock();
+    } else if (c=='\n' || c=='\r' || c==KEY_ENTER) {
+      clear(); refresh();
+      return cursor;
+    } else if (isdigit(c)) {
+      char buf[2]; buf[0]=c; buf[1]=0; c=atoi(buf);
+      if (c < max) {
+	eXosip_lock();
+	print_call(cursor, cursor, 0);
+	cursor=c;
+	print_call(cursor, cursor, 1);
+	eXosip_unlock();
+      } else {
+        beep();
+      }
+    } else if (c=='<' || c=='q') {
+      return -1;
+    } else if (c=='d') {
+      int pos = cursor;
+      for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+	{
+	  if (jcalls[k].state==NOT_USED)
+	    {
+	    }
+	  else pos--;
+	  if (pos==-1) break;
+	}
+      
+      if (jcalls[k].state==NOT_USED || pos!=-1)
+	  beep();
+      else {
+	eXosip_answer_call(jcalls[k].did, 603);
+      }
+
+    } else if (c=='r') {
+      char tmp[10];
+      int code;
+      int pos = cursor;
+      for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+	{
+	  if (jcalls[k].state==NOT_USED)
+	    {
+	    }
+	  else pos--;
+	  if (pos==-1) break;
+	}
+      if (jcalls[k].state==NOT_USED || pos!=-1)
+	beep();
+      else {
+	/* ask for a specific code */
+	sprintf(buf,"code: %80.80s", " ");
+	mvaddnstr(y-6,0, buf,x-1);
+	mvwgetnstr(stdscr, y-6, 6, tmp, 9);
+	code = osip_atoi(tmp);
+	if (code>100 && code<699)
+	  eXosip_answer_call(jcalls[k].did, code);
+      }
+
+    } else if (c=='a') {
+      int pos = cursor;
+      for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+	{
+	  if (jcalls[k].state==NOT_USED)
+	    {
+	    }
+	  else pos--;
+	  if (pos==-1) break;
+	}
+      
+      if (jcalls[k].state==NOT_USED || pos!=-1)
+	beep();
+      else {
+	eXosip_answer_call(jcalls[k].did, 200);
+      }
+    } else if (c=='t') {
+      int pos = cursor;
+      for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+	{
+	  if (jcalls[k].state==NOT_USED)
+	    {
+	    }
+	  else pos--;
+	  if (pos==-1) break;
+	}
+      
+      if (jcalls[k].state==NOT_USED || pos!=-1)
+	beep();
+      else {
+	eXosip_terminate_call(jcalls[k].cid, jcalls[k].did);
+      }
+    } else if (c=='h') {
+      int pos = cursor;
+      for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+	{
+	  if (jcalls[k].state==NOT_USED)
+	    {
+	    }
+	  else pos--;
+	  if (pos==-1) break;
+	}
+      
+      if (jcalls[k].state==NOT_USED || pos!=-1)
+	beep();
+      else {
+	eXosip_on_hold_call(jcalls[k].did);
+      }
+    } else {
+      beep();
+    }
+  }  
+}
+#endif
 
 /*
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
@@ -2371,7 +2541,7 @@ void __josua_start_call() {
       eXosip_unlock();
     }
   
-  print_menu(MENU_IN); dme(1,1);
+  print_menu(MENU_INVITE); dme(1,1);
 
   getmaxyx(stdscr,y,x);
 
@@ -2414,135 +2584,11 @@ void __josua_start_call() {
   /* make a call */
 }
 
-void __josua_answer_call() {
-
-  int c;
-  int cid;
-
-  c = nctab_get_values(&nctab_answercall,
-		      TABSIZE_ANSWERCALL,
-		      COLORPAIR_ANSWERCALL);
-
-  if (c!='y') return;
-
-  c = osip_atoi(nctab_findvalue(&nctab_answercall,
-			    TABSIZE_ANSWERCALL,
-			    "code"));
-  cid = osip_atoi(nctab_findvalue(&nctab_answercall,
-			      TABSIZE_ANSWERCALL,
-			      "id"));
-  if (cid==-1) return;
-  if (c==-1) return;
- 
-  eXosip_lock();
-  eXosip_answer_call(cid , c);
-  eXosip_unlock();
-  
-}
-
-void __josua_on_hold_call() {
-  int c;
-
-  c = nctab_get_values(&nctab_onholdcall,
-		      TABSIZE_ONHOLDCALL,
-		      COLORPAIR_ONHOLDCALL);
-
-  if (c!='y') return;
-
-  c = osip_atoi(nctab_findvalue(&nctab_onholdcall,
-			    TABSIZE_ONHOLDCALL,
-			    "id"));
-  if (c==-1) return;
-
-  eXosip_lock();
-  eXosip_on_hold_call(c); /* number of the call in the list? */
-  eXosip_unlock();
-}
-
-void __josua_off_hold_call() {
-  int c;
-
-  c = nctab_get_values(&nctab_offholdcall,
-		      TABSIZE_OFFHOLDCALL,
-		      COLORPAIR_OFFHOLDCALL);
-
-  if (c!='y') return;
-
-  c = osip_atoi(nctab_findvalue(&nctab_offholdcall,
-			    TABSIZE_OFFHOLDCALL,
-			    "id"));
-  if (c==-1) return;
-
-  eXosip_lock();
-  eXosip_off_hold_call(c); /* number of the call in the list? */
-  eXosip_unlock();
-}
-
-void __josua_terminate_call() {
-
-  int c;
-
-  c = nctab_get_values(&nctab_terminatecall,
-		  TABSIZE_TERMINATECALL,
-		  COLORPAIR_TERMINATECALL);
-
-  if (c!='y') return;
-
-  c = osip_atoi(nctab_findvalue(&nctab_terminatecall,
-			    TABSIZE_TERMINATECALL,
-			    "id"));
-  if (c==-1) return;
-
-
-  {
-    /* find the dailgo id to close */
-    eXosip_call_t *jc = eXosip.j_calls;
-    eXosip_lock();
-    for (;jc!=NULL && (jc->c_id!=c); jc=jc->next)
-      {}
-
-    if (jc==NULL || jc->c_dialogs==NULL)
-      {
-	eXosip_unlock();
-      }
-    else
-      {
-	int did = jc->c_dialogs->d_id;
-	eXosip_unlock();
-
-	eXosip_lock();
-	eXosip_terminate_call(c, did);
-	eXosip_unlock();
-
-      }
-  }
-
-}
-
-void __josua_transfer_call() {
-
-  int cid;
-  int c;
-
-  c = nctab_get_values(&nctab_transfercall,
-		      TABSIZE_TRANSFERCALL, 
-		      COLORPAIR_TRANSFERCALL);
-  
-  if (c!='y') return;
-
-  cid = osip_atoi(nctab_findvalue(&nctab_transfercall,
-			      TABSIZE_TRANSFERCALL,
-			      "id"));
-
-  if (cid==-1) return;
-
-  eXosip_lock();
-  eXosip_transfer_call(cid, nctab_findvalue(&nctab_transfercall,
-					    TABSIZE_TRANSFERCALL,
-					    "refer-to"));
-  eXosip_unlock();
-  
-}
+#if 0
+eXosip_transfer_call(cid, nctab_findvalue(&nctab_transfercall,
+					  TABSIZE_TRANSFERCALL,
+					  "refer-to"));
+#endif
 
 void __josua_register() {
   char *tmp;
