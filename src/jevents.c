@@ -810,7 +810,11 @@ eXosip_event_wait(int tv_s, int tv_ms)
 	  struct timeval tv;
 	  int max, i;
       FD_ZERO(&fdset);
+#if defined (WIN32) || defined (_WIN32_WCE)
+      FD_SET((unsigned int)jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+#else
       FD_SET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+#endif
       max = jpipe_get_read_descr(eXosip.j_socketctl_event);
 	  tv.tv_sec = tv_s;
 	  tv.tv_usec = tv_ms*1000;

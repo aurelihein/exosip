@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2002, 2003  Aymeric MOIZARD  - jack@atosc.org
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -101,14 +101,14 @@ static void eXosip_send_default_answer(eXosip_dialog_t *jd,
   osip_event_t *evt_answer;
   osip_message_t *answer;
   int i;
-  
+
   /* osip_list_add(eXosip.j_transactions, transaction, 0); */
   osip_transaction_set_your_instance(transaction, NULL);
-  
+
   /* THIS METHOD DOES NOT ACCEPT STATUS CODE BETWEEN 101 and 299 */
   if (status>100 && status<299 && MSG_IS_INVITE(evt->sip))
     return ;
-  
+
   if (jd!=NULL)
     i = _eXosip_build_response_default(&answer, jd->d_dialog, status, evt->sip);
   else
@@ -126,19 +126,19 @@ static void eXosip_send_default_answer(eXosip_dialog_t *jd,
       if (_reason!=NULL)
 	osip_free(_reason);
       _reason = osip_strdup(reason_phrase);
-      osip_message_set_reason_phrase(answer, _reason);      
+      osip_message_set_reason_phrase(answer, _reason);
     }
 
   osip_message_set_content_length(answer, "0");
-  
+
   if (status==500)
     osip_message_set_retry_after(answer, "10");
-  
+
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction,evt_answer);
   __eXosip_wakeup();
-  
+
 }
 
 static void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
@@ -159,7 +159,7 @@ static void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
       osip_list_add(eXosip.j_transactions, transaction, 0);
       return ;
     }
-    
+
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
 
@@ -175,13 +175,13 @@ static void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
   osip_event_t *evt_answer;
   osip_message_t *answer;
   int i;
-  
+
   osip_transaction_set_your_instance(transaction,
  				     __eXosip_new_jinfo(jc,
  							jd,
  							NULL,
  							NULL));
-  /* for now, send default response of 200ok.  eventually, application should 
+  /* for now, send default response of 200ok.  eventually, application should
       be deciding how to answer INFO messages */
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
@@ -189,16 +189,16 @@ static void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
       osip_list_add(eXosip.j_transactions, transaction, 0);
        return ;
     }
-  
+
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
-  
+
   osip_list_add(jd->d_inc_trs, transaction , 0);
-  
+
   osip_transaction_add_event(transaction,evt_answer);
   __eXosip_wakeup();
 }
- 
+
 
 static void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			       osip_transaction_t *transaction, osip_event_t *evt)
@@ -220,7 +220,7 @@ static void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
       return ;
     }
   osip_message_set_content_length(answer, "0");
-    
+
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
 
@@ -236,7 +236,7 @@ static void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
     if (eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_CLOSED](EXOSIP_CALL_CLOSED, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
-      eXosip_event_add(je);    
+      eXosip_event_add(je);
   }
 
   osip_transaction_add_event(transaction,evt_answer);
@@ -249,8 +249,8 @@ static void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_even
   je = eXosip_event_init_for_call(EXOSIP_CALL_ACK, jc, jd);
   if (je==NULL) return;
 
-  /* MBW - for SDP in ACK used in alternate SDP offer-response model */         
-  eXosip_event_add_sdp_info(je, evt->sip);                                      
+  /* MBW - for SDP in ACK used in alternate SDP offer-response model */
+  eXosip_event_add_sdp_info(je, evt->sip);
 
   if (eXosip.j_call_callbacks[EXOSIP_CALL_ACK]!=NULL)
     eXosip.j_call_callbacks[EXOSIP_CALL_ACK](EXOSIP_CALL_ACK, je);
@@ -300,7 +300,7 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
   osip_event_t *evt_answer;
   osip_message_t *answer;
   int i;
-  
+
   eXosip_call_t *jc;
   eXosip_dialog_t *jd;
 
@@ -312,7 +312,7 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
       if (jc->c_inc_tr!=NULL)
 	{
 	  i = cancel_match_invite(jc->c_inc_tr, evt->sip);
-	  if (i==0) { 
+	  if (i==0) {
 	    tr = jc->c_inc_tr;
 	    break;
 	  }
@@ -339,7 +339,9 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
       i = _eXosip_build_response_default(&answer, NULL, 481, evt->sip);
       if (i!=0)
 	{
-	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
+     OSIP_TRACE (osip_trace
+		 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "eXosip: cannot cancel transaction.\n"));
 	  osip_list_add(eXosip.j_transactions, tr, 0);
 	  osip_transaction_set_your_instance(tr, NULL);
 	  return ;
@@ -348,7 +350,7 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  transaction->transactionid;
       osip_transaction_add_event(transaction,evt_answer);
-      
+
       osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
 	  __eXosip_wakeup();
@@ -368,7 +370,9 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
 	i = _eXosip_build_response_default(&answer, jd->d_dialog, 481, evt->sip);
       if (i!=0)
 	{
-	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
+     OSIP_TRACE (osip_trace
+		 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "eXosip: cannot cancel transaction.\n"));
 	  osip_list_add(eXosip.j_transactions, tr, 0);
 	  osip_transaction_set_your_instance(tr, NULL);
 	  return ;
@@ -377,7 +381,7 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  transaction->transactionid;
       osip_transaction_add_event(transaction,evt_answer);
-      
+
       if (jd!=NULL)
 	osip_list_add(jd->d_inc_trs, transaction , 0);
       else
@@ -395,7 +399,9 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
 	i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
       if (i!=0)
 	{
-	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
+     OSIP_TRACE (osip_trace
+		 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "eXosip: cannot cancel transaction.\n"));
 	  osip_list_add(eXosip.j_transactions, tr, 0);
 	  osip_transaction_set_your_instance(tr, NULL);
 	  return ;
@@ -405,7 +411,7 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
       evt_answer->transactionid =  transaction->transactionid;
       osip_transaction_add_event(transaction,evt_answer);
       __eXosip_wakeup();
-      
+
       if (jd!=NULL)
 	osip_list_add(jd->d_inc_trs, transaction , 0);
       else
@@ -421,7 +427,9 @@ static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t 
 					  tr->orig_request);
       if (i!=0)
 	{
-	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
+     OSIP_TRACE (osip_trace
+	    (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "eXosip: cannot cancel transaction.\n"));
 	  osip_list_add(eXosip.j_transactions, tr, 0);
 	  osip_transaction_set_your_instance(tr, NULL);
 	  return ;
@@ -510,7 +518,7 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	eXosip_send_default_answer(jd, transaction, evt, 500, "Internal SDP Error", "SDP packet is corrupted", __LINE__);
 	osip_message_free(answer);
 	return NULL;
-      } 
+      }
       i = osip_message_set_body(answer, local_body);
       if (i!=0) {
 	osip_list_add(eXosip.j_transactions, transaction, 0);
@@ -534,10 +542,10 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	eXosip_send_default_answer(jd, transaction, evt, 500, "Internal SIP Error", "Content-Type cannot be added in message", __LINE__);
 	osip_message_free(answer);
 	return NULL;
-      }	
+      }
 
     }
-  
+
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
@@ -563,7 +571,7 @@ static void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd
     if (eXosip.j_call_callbacks[EXOSIP_CALL_HOLD]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_HOLD](EXOSIP_CALL_HOLD, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
-      eXosip_event_add(je);    
+      eXosip_event_add(je);
   }
   osip_transaction_add_event(transaction, sipevent);
   __eXosip_wakeup();
@@ -585,7 +593,7 @@ static void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *j
     if (eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD](EXOSIP_CALL_OFFHOLD, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
-      eXosip_event_add(je);    
+      eXosip_event_add(je);
   }
   osip_transaction_add_event(transaction, sipevent);
   __eXosip_wakeup();
@@ -593,16 +601,21 @@ static void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *j
 
 static void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *evt)
 {
-  eXosip_call_t *jc;
+  osip_event_t *evt_answer;
+  osip_message_t *answer;
+  int i;
 
-  eXosip_call_init(&jc);
-  ADD_ELEMENT(eXosip.j_calls, jc);
+  i = _eXosip_build_response_default(&answer, NULL, 200, evt->sip);
+  if (i!=0)
+    {
+      return ;
+    }
 
-  jc->c_inc_options_tr = transaction;
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid =  transaction->transactionid;
 
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
-  eXosip_update();
-
+  osip_transaction_add_event(transaction,evt_answer);
+  __eXosip_wakeup();
 }
 
 static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *evt)
@@ -621,7 +634,9 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
   i = _eXosip_build_response_default(&answer, NULL, 101, evt->sip);
   if (i!=0)
     {
-      fprintf(stderr, "eXosip: cannot create dialog.");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot create dialog."));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for invite\n"));
@@ -631,7 +646,9 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
   i = complete_answer_that_establish_a_dialog(answer, evt->sip);
   if (i!=0)
     {
-      fprintf(stderr, "eXosip: cannot complete answer!\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot complete answer!\n"));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
       osip_message_free(answer);
@@ -641,7 +658,9 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
   i = eXosip_dialog_init_as_uas(&jd, evt->sip, answer);
   if (i!=0)
     {
-      fprintf(stderr, "eXosip: cannot create dialog!\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot create dialog!\n"));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
       osip_message_free(answer);
@@ -663,7 +682,9 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
 
   if (i!=0)
     {
-      fprintf(stderr, "eXosip: cannot send ringback.");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot send ringback."));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for invite\n"));
@@ -672,7 +693,9 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
   i = complete_answer_that_establish_a_dialog(answer, evt->sip);
   if (i!=0)
     {
-      fprintf(stderr, "eXosip: cannot complete answer!\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot complete answer!\n"));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       osip_transaction_set_your_instance(transaction, NULL);
       osip_message_free(answer);
@@ -710,7 +733,7 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
     if (eXosip.j_call_callbacks[EXOSIP_CALL_NEW]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_NEW](EXOSIP_CALL_NEW, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)
-      eXosip_event_add(je);    
+      eXosip_event_add(je);
   }
 
   jc->c_inc_tr = transaction;
@@ -738,10 +761,10 @@ static void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t
       osip_body_t *body;
       body = (osip_body_t *)osip_list_get(evt->sip->bodies,pos);
       pos++;
-      
+
       i = sdp_message_init(&sdp);
       if (i!=0) break;
-      
+
       /* WE ASSUME IT IS A SDP BODY AND THAT    */
       /* IT IS THE ONLY ONE, OF COURSE, THIS IS */
       /* NOT TRUE */
@@ -789,7 +812,7 @@ static void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t
 	  pos = 0;
 	  pos_media++;
 	}
-      
+
       if (ipaddr==NULL)
 	{
 	  sndrcv = NULL;
@@ -875,7 +898,9 @@ static void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   i = _eXosip_build_response_default(&answer, NULL, 101, evt->sip);
   if (i!=0)
     {
-      fprintf(stderr, "eXosip: cannot create dialog.");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot create dialog."));
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for invite\n"));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_notify_free(jn);
@@ -885,7 +910,9 @@ static void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   if (i!=0)
     {
       osip_message_free(answer);
-      fprintf(stderr, "eXosip: cannot complete answer!\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot complete answer!\n"));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_notify_free(jn);
       return ;
@@ -895,7 +922,9 @@ static void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   if (i!=0)
     {
       osip_message_free(answer);
-      fprintf(stderr, "eXosip: cannot create dialog!\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot create dialog!\n"));
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_notify_free(jn);
       return ;
@@ -929,7 +958,7 @@ static void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   _eXosip_notify_add_expires_in_2XX_for_subscribe(jn, answer);
 
   {
-    
+
     i = complete_answer_that_establish_a_dialog(answer, evt->sip);
     if (i!=0)
       {
@@ -970,11 +999,11 @@ static void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
       eXosip_send_default_answer(jd, transaction, evt, 500, "Internal SIP Error", "Failed to build Answer for SUBSCRIBE", __LINE__);
       return ;
     }
-  
+
   _eXosip_notify_add_expires_in_2XX_for_subscribe(jn, answer);
 
   {
-    
+
     i = complete_answer_that_establish_a_dialog(answer, evt->sip);
     if (i!=0)
       {
@@ -1066,7 +1095,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	  {
 	    eXosip_event_add_status(je, answer);
 	  }
-	
+
 	if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY]!=NULL)
 	  eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY](EXOSIP_SUBSCRIPTION_NOTIFY, je);
 	else if (eXosip.j_runtime_mode==EVENT_MODE)
@@ -1141,7 +1170,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 		{
 		  js->s_online_status = EXOSIP_NOTIFY_AWAY;
 		  break;
-		}	
+		}
 	      else if (tmp[0]=='o' && 0==strncmp(tmp, "onthephone", 10))
 		{
 		  js->s_online_status = EXOSIP_NOTIFY_ONTHEPHONE;
@@ -1228,7 +1257,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	  {
 	    eXosip_event_add_status(je, answer);
 	  }
-	
+
 	if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY]!=NULL)
 	  eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY](EXOSIP_SUBSCRIPTION_NOTIFY, je);
 	else if (eXosip.j_runtime_mode==EVENT_MODE)
@@ -1280,33 +1309,33 @@ static int
 eXosip_match_notify_for_subscribe(eXosip_subscribe_t *js, osip_message_t *notify)
 {
   osip_transaction_t *out_sub;
-  
+
   if (js==NULL)
     return -1;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			"Trying to match notify with subscribe\n"));
-  
+
   out_sub = eXosip_find_last_out_subscribe(js, NULL);
   if (out_sub==NULL || out_sub->orig_request==NULL)
-    return -1;      
+    return -1;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			"subscribe transaction found\n"));
-  
+
   /* some checks to avoid crashing on bad requests */
   if (notify == NULL || notify->cseq == NULL
       || notify->cseq->method == NULL || notify->to == NULL)
     return -1;
-  
+
   if (0 != osip_call_id_match (out_sub->callid, notify->call_id))
     return -1;
-  
+
   {
     /* The From tag of outgoing request must match
        the To tag of incoming notify:
     */
     osip_generic_param_t *tag_from;
     osip_generic_param_t *tag_to;
-    
+
     osip_from_param_get_byname (out_sub->from, "tag", &tag_from);
     osip_from_param_get_byname (notify->to, "tag", &tag_to);
     if (tag_to == NULL || tag_to->gvalue==NULL)
@@ -1321,11 +1350,11 @@ eXosip_match_notify_for_subscribe(eXosip_subscribe_t *js, osip_message_t *notify
 			      "Uncompliant user agent: no tag in to of incoming request\n"));
 	return -1;
       }
-    
+
     if (0 != strcmp (tag_from->gvalue, tag_to->gvalue))
       return -1;
   }
-  
+
   return 0;
 }
 
@@ -1350,7 +1379,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
       ctx_type = -1;
 #if 0 /* ACK must be announced */
       osip_event_free(evt);
-      return ;	
+      return ;
 #endif
     }
   else if (MSG_IS_REQUEST(evt->sip))
@@ -1361,7 +1390,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
     { /* We should handle late response and 200 OK before coming here. */
       ctx_type = -1;
       osip_event_free(evt);
-      return ;	
+      return ;
     }
 
   transaction=NULL;
@@ -1388,13 +1417,13 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	  osip_event_free(evt);
 	  return ;
 	}
-	
+
       osip_message_set_content_length(answer, "0");
       /*  send message to transaction layer */
-	
+
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid = transaction->transactionid;
-	
+
       /* add the REQUEST & the 100 Trying */
       osip_transaction_add_event(transaction, evt);
       osip_transaction_add_event(transaction, evt_answer);
@@ -1436,7 +1465,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	 3: a REQUEST with a wrong CSeq.
 	 4: a NOT-SUPPORTED method with a wrong CSeq.
       */
-      
+
       if (!MSG_IS_BYE(evt->sip))
 	{
 	  /* reject all requests for a closed dialog */
@@ -1447,7 +1476,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	      eXosip_send_default_answer(jd, transaction, evt, 481, NULL, NULL, __LINE__);
 	      return ;
 	    }
-	  
+
 	  old_trn = eXosip_find_last_out_bye(jc, jd);
 	  if (old_trn!=NULL)
 	    {
@@ -1461,7 +1490,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	{
 	  /* the previous transaction MUST be freed */
 	  old_trn = eXosip_find_last_inc_invite(jc, jd);
-	    
+
 	  if (old_trn!=NULL && old_trn->state!=IST_TERMINATED)
 	    {
 	      osip_list_add(eXosip.j_transactions, transaction, 0);
@@ -1485,7 +1514,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
       else if (MSG_IS_BYE(evt->sip))
 	{
 	  old_trn = eXosip_find_last_inc_bye(jc, jd);
-	    
+
 	  if (old_trn!=NULL) /* && old_trn->state!=NIST_TERMINATED) */
 	    { /* this situation should NEVER occur?? (we can't receive
 		 two different BYE for one call! */
@@ -1581,7 +1610,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	{
 	  /* the previous transaction MUST be freed */
 	  old_trn = eXosip_find_last_inc_notify(js, jd);
-	  
+
 	  /* shouldn't we wait for the COMPLETED state? */
 	  if (old_trn!=NULL && old_trn->state!=NIST_TERMINATED)
 	    {
@@ -1622,7 +1651,9 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	      i = eXosip_dialog_init_as_uac(&jd, evt->sip);
 	      if (i!=0)
 		{
-		  fprintf(stderr, "eXosip: cannot establish a dialog\n");
+        OSIP_TRACE (osip_trace
+	       (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		     "eXosip: cannot establish a dialog\n"));
 		  return;
 		}
 	      ADD_ELEMENT(js->s_dialogs, jd);
@@ -1632,7 +1663,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	      return;
 	    }
 	}
-      
+
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer(NULL, transaction, evt, 481, NULL, NULL, __LINE__);
       return;
@@ -1668,7 +1699,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	{
 	  /* the previous transaction MUST be freed */
 	  old_trn = eXosip_find_last_inc_subscribe(jn, jd);
-	  
+
 	  /* shouldn't we wait for the COMPLETED state? */
 	  if (old_trn!=NULL && old_trn->state!=NIST_TERMINATED
 	      && old_trn->state!=NIST_COMPLETED)
@@ -1698,7 +1729,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
       if (0==eXosip_event_package_is_supported(transaction, evt))
 	{
 	  return;
-	}	
+	}
       eXosip_process_new_subscribe(transaction, evt);
       return;
     }
@@ -1713,17 +1744,17 @@ static void eXosip_process_response_out_of_transaction (osip_event_t *evt)
   osip_event_free(evt);
 }
 
-/* if second==-1 && useconds==-1  -> wait for ever 
+/* if second==-1 && useconds==-1  -> wait for ever
    if max_message_nb<=0  -> infinite loop....  */
 int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 {
   fd_set osip_fdset;
   struct timeval tv;
   char *buf;
-  
+
   tv.tv_sec = sec_max;
   tv.tv_usec = usec_max;
-  
+
   buf = (char *)osip_malloc(SIP_MESSAGE_MAX_LENGTH*sizeof(char)+1);
   while (max_message_nb!=0 && eXosip.j_stop_ua==0)
     {
@@ -1731,16 +1762,24 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
       int max;
       int wakeup_socket = jpipe_get_read_descr(eXosip.j_socketctl);
       FD_ZERO(&osip_fdset);
+#if defined (WIN32) || defined (_WIN32_WCE)
+      FD_SET((unsigned int)eXosip.j_socket, &osip_fdset);
+#else
       FD_SET(eXosip.j_socket, &osip_fdset);
+#endif
       max = eXosip.j_socket;
+#if defined (WIN32) || defined (_WIN32_WCE)
+      FD_SET((unsigned int)wakeup_socket, &osip_fdset);
+#else
       FD_SET(wakeup_socket, &osip_fdset);
+#endif
       if (wakeup_socket>eXosip.j_socket)
 	max = wakeup_socket;
       if ((sec_max==-1)||(usec_max==-1))
 	i = select(max+1, &osip_fdset, NULL, NULL, NULL);
       else
 	i = select(max+1, &osip_fdset, NULL, NULL, &tv);
-      
+
       if (FD_ISSET (wakeup_socket, &osip_fdset))
 	{
 	  char buf2[500];
@@ -1919,7 +1958,7 @@ static int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dial
 }
 
 static int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
-{    
+{
   osip_transaction_t *tr;
   tr = eXosip_find_last_inc_bye(jc, jd);
   if (tr==NULL)

@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2002, 2003  Aymeric MOIZARD  - jack@atosc.org
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -28,7 +28,7 @@
 extern eXosip_t eXosip;
 
 /* Private functions */
-static char *generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd, 
+static char *generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			 osip_message_t *orig_request, char *local_sdp_port);
 
 int
@@ -130,7 +130,7 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 	    osip_list_add(response->headers, cp, 0);
 	}
     }
-    
+
   osip_message_set_allow(response, "INVITE");
   osip_message_set_allow(response, "ACK");
   osip_message_set_allow(response, "OPTIONS");
@@ -229,23 +229,23 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 #endif
 
   osip_message_set_contact(response, contact);
-	
+
   return 0;
 }
 
 static char *
-generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd, 
+generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			 osip_message_t *orig_request, char *local_sdp_port)
 {
   sdp_message_t *local_sdp = NULL;
   char *local_body = NULL;
   char *size;
   int i;
-  
+
   jc->c_ack_sdp = 1;
   if(osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &local_sdp, local_sdp_port, NULL) != 0)
     return NULL;
-  
+
   if (local_sdp!=NULL)
     {
       int pos=0;
@@ -281,9 +281,9 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	  pos++;
 	}
     }
-  
+
   i = sdp_message_to_str(local_sdp, &local_body);
-  
+
   if (local_body!=NULL)
     {
       size= (char *)osip_malloc(7*sizeof(char));
@@ -294,17 +294,17 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
 #endif
       osip_message_set_content_length(orig_request, size);
       osip_free(size);
-  
+
       osip_message_set_body(orig_request, local_body);
       osip_message_set_content_type(orig_request, "application/sdp");
     }
   else
     osip_message_set_content_length(orig_request, "0");
-  
-  osip_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);  
-  
+
+  osip_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);
+
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO3,NULL,"200 OK w/ SDP (RESPONSE TO INVITE w/ NO SDP)=\n%s\n", local_body));
-  
+
   return local_body;
 }
 
@@ -325,16 +325,16 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
       body = (osip_body_t *)osip_list_get(request->bodies,0);
       if(body == NULL)
 	return NULL;
-      
+
       /* remote_sdp = (sdp_message_t *) osip_malloc(sizeof(sdp_message_t)); */
       i = sdp_message_init(&remote_sdp);
       if (i!=0) return NULL;
-      
+
       /* WE ASSUME IT IS A SDP BODY AND THAT    */
       /* IT IS THE ONLY ONE, OF COURSE, THIS IS */
       /* NOT TRUE */
       i = sdp_message_parse(remote_sdp,body->body);
-      if (i!=0) return NULL;      
+      if (i!=0) return NULL;
 
       i = osip_negotiation_ctx_set_remote_sdp(context, remote_sdp);
 
@@ -400,7 +400,7 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
 				  }
 			  }
 		  }
-	  }	  
+	  }
 
 	  i = sdp_message_to_str(local_sdp, &local_body);
 
@@ -425,7 +425,7 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
       remote_sdp = osip_negotiation_ctx_get_remote_sdp(context);
       sdp_message_free(remote_sdp);
       osip_negotiation_ctx_set_remote_sdp(context, NULL);
-    } 
+    }
   return NULL;
 }
 
@@ -440,7 +440,9 @@ eXosip_answer_options_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   tr = eXosip_find_last_inc_options(jc, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return -1;
     }
 
@@ -481,7 +483,9 @@ eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   tr = eXosip_find_last_inc_options(jc, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return -1;
     }
   osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, "10400", NULL);
@@ -550,7 +554,9 @@ eXosip_answer_options_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   tr = eXosip_find_last_inc_options(jc, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return -1;
     }
 
@@ -594,7 +600,9 @@ _eXosip2_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osi
   tr = eXosip_find_last_inc_invite(jc, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return -1;
     }
   /* is the transaction already answered? */
@@ -602,7 +610,9 @@ _eXosip2_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osi
       || tr->state==IST_CONFIRMED
       || tr->state==IST_TERMINATED)
     {
-      fprintf(stderr, "eXosip: transaction already answered\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: transaction already answered\n"));
       return -1;
     }
 
@@ -624,7 +634,7 @@ _eXosip2_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osi
     {
       i = complete_answer_that_establish_a_dialog(*answer, tr->orig_request);
     }
-  
+
   return 0;
 }
 
@@ -637,13 +647,17 @@ _eXosip2_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osi
 
   if (tr==NULL || tr->orig_request==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer\n"));
       return -1;
     }
 
   if (jd!=NULL && jd->d_dialog==NULL)
     {  /* element previously removed */
-      fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot answer this closed transaction\n"));
       return -1;
     }
 
@@ -652,10 +666,12 @@ _eXosip2_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osi
       || tr->state==IST_CONFIRMED
       || tr->state==IST_TERMINATED)
     {
-      fprintf(stderr, "eXosip: transaction already answered\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: transaction already answered\n"));
       return -1;
     }
-  
+
   if (jd==NULL)
     i = _eXosip_build_response_default(answer, NULL, code, tr->orig_request);
   else
@@ -689,7 +705,9 @@ _eXosip2_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, 
   tr = eXosip_find_last_inc_invite(jc, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return -1;
     }
   /* is the transaction already answered? */
@@ -697,7 +715,9 @@ _eXosip2_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, 
       || tr->state==IST_CONFIRMED
       || tr->state==IST_TERMINATED)
     {
-      fprintf(stderr, "eXosip: transaction already answered\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: transaction already answered\n"));
       return -1;
     }
 
@@ -730,7 +750,9 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   tr = eXosip_find_last_inc_invite(jc, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return -1;
     }
   /* is the transaction already answered? */
@@ -738,7 +760,9 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       || tr->state==IST_CONFIRMED
       || tr->state==IST_TERMINATED)
     {
-      fprintf(stderr, "eXosip: transaction already answered\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: transaction already answered\n"));
       return -1;
     }
 
@@ -767,7 +791,9 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 	  i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
 	  if (i!=0)
 	    {
-	      fprintf(stderr, "eXosip: cannot create dialog!\n");
+         OSIP_TRACE (osip_trace
+		     (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	         "eXosip: cannot create dialog!\n"));
 	    }
 	  ADD_ELEMENT(jc->c_dialogs, jd);
 	}
@@ -778,7 +804,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 
   osip_transaction_add_event(tr, evt_answer);
   __eXosip_wakeup();
-  
+
   return 0;
 }
 
@@ -794,13 +820,17 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
 
   if (tr==NULL || tr->orig_request==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer\n"));
       return -1;
     }
 
   if (jd!=NULL && jd->d_dialog==NULL)
     {  /* element previously removed */
-      fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot answer this closed transaction\n"));
       return -1;
     }
 
@@ -809,10 +839,12 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
       || tr->state==IST_CONFIRMED
       || tr->state==IST_TERMINATED)
     {
-      fprintf(stderr, "eXosip: transaction already answered\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: transaction already answered\n"));
       return -1;
     }
-  
+
   if (jd==NULL)
     i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
   else
@@ -828,7 +860,7 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
   if (code==488)
     {
       osip_message_set_content_length(response, "0");
-      /*  TODO: send message to transaction layer */      
+      /*  TODO: send message to transaction layer */
       evt_answer = osip_new_outgoing_sipmessage(response);
       evt_answer->transactionid = tr->transactionid;
       osip_transaction_add_event(tr, evt_answer);
@@ -863,7 +895,9 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
       i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
       if (i!=0)
 	{
-	  fprintf(stderr, "eXosip: cannot create dialog!\n");
+     OSIP_TRACE (osip_trace
+		 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "eXosip: cannot create dialog!\n"));
 	  return -1;
 	}
       ADD_ELEMENT(jc->c_dialogs, jd);
@@ -897,13 +931,17 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
 
   if (tr==NULL || tr->orig_request==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer\n"));
       return -1;
     }
 
   if (jd!=NULL && jd->d_dialog==NULL)
     {  /* element previously removed */
-      fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot answer this closed transaction\n"));
       return -1;
     }
 
@@ -912,7 +950,9 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
       || tr->state==IST_CONFIRMED
       || tr->state==IST_TERMINATED)
     {
-      fprintf(stderr, "eXosip: transaction already answered\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: transaction already answered\n"));
       return -1;
     }
 
@@ -921,17 +961,17 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
     {
       body = generating_sdp_answer(tr->orig_request, jc->c_ctx);
       if (body==NULL)
-	code = 488; /* bad sdp */      
+	code = 488; /* bad sdp */
     }
   else
     {
       if(local_sdp_port==NULL)
 	code = 488; /* session description in the request is not acceptable. */
-      else 
+      else
 	/* body is NULL (contains no SDP), generate a response to INVITE w/ no SDP */
 	body = generating_no_sdp_answer(jc, jd, tr->orig_request, local_sdp_port);
     }
-  
+
   if (jd==NULL)
     i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
   else
@@ -949,7 +989,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
     {
       osip_message_set_content_length(response, "0");
       /*  TODO: send message to transaction layer */
-      osip_free(body);      
+      osip_free(body);
       evt_answer = osip_new_outgoing_sipmessage(response);
       evt_answer->transactionid = tr->transactionid;
       osip_transaction_add_event(tr, evt_answer);
@@ -990,7 +1030,9 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
       i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
       if (i!=0)
 	{
-	  fprintf(stderr, "eXosip: cannot create dialog!\n");
+     OSIP_TRACE (osip_trace
+		 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "eXosip: cannot create dialog!\n"));
 	  return -1;
 	}
       ADD_ELEMENT(jc->c_dialogs, jd);
@@ -1022,7 +1064,9 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   tr = eXosip_find_last_inc_invite(jc, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return -1;
     }
   /* is the transaction already answered? */
@@ -1030,7 +1074,9 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       || tr->state==IST_CONFIRMED
       || tr->state==IST_TERMINATED)
     {
-      fprintf(stderr, "eXosip: transaction already answered\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: transaction already answered\n"));
       return -1;
     }
 
@@ -1069,7 +1115,9 @@ eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
   tr = eXosip_find_last_inc_subscribe(jn, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return;
     }
 
@@ -1095,7 +1143,9 @@ eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
 	  i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
 	  if (i!=0)
 	    {
-	      fprintf(stderr, "eXosip: cannot create dialog!\n");
+         OSIP_TRACE (osip_trace
+	    	  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	         "eXosip: cannot create dialog!\n"));
 	    }
 	  ADD_ELEMENT(jn->n_dialogs, jd);
 	}
@@ -1120,13 +1170,17 @@ eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
 
   if (tr==NULL || tr->orig_request==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer\n"));
       return;
     }
 
   if (jd!=NULL && jd->d_dialog==NULL)
     {  /* element previously removed, this is a no hop! */
-      fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot answer this closed transaction\n"));
       return ;
     }
 
@@ -1158,7 +1212,9 @@ eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
       i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
       if (i!=0)
 	{
-	  fprintf(stderr, "eXosip: cannot create dialog!\n");
+     OSIP_TRACE (osip_trace
+       (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "eXosip: cannot create dialog!\n"));
 	  return;
 	}
       ADD_ELEMENT(jn->n_dialogs, jd);
@@ -1189,7 +1245,9 @@ eXosip_notify_answer_subscribe_3456xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, 
   tr = eXosip_find_last_inc_subscribe(jn, jd);
   if (tr==NULL)
     {
-      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: cannot find transaction to answer"));
       return;
     }
   i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);

@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2002, 2003  Aymeric MOIZARD  - jack@atosc.org
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -77,7 +77,7 @@ via_branch_new_random(void)
 }
 
 /* prepare a minimal request (outside of a dialog) with required headers */
-/* 
+/*
    method_name is the type of request. ("INVITE", "REGISTER"...)
    to is the remote target URI
    transport is either "TCP" or "UDP" (by now, only UDP is implemented!)
@@ -126,7 +126,9 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       i = osip_message_set_to(request, to);
       if (i!=0)
 	{
-	  fprintf(stderr, "ERROR: callee address does not seems to be a sipurl: %s\n", to);
+     OSIP_TRACE (osip_trace
+		 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	     "ERROR: callee address does not seems to be a sipurl: %s\n", to));
 	  goto brood_error_1;
 	}
       if (proxy!=NULL)
@@ -189,7 +191,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   osip_message_set_from(request, from);
   /* add a tag */
   osip_from_set_tag(request->from, osip_from_tag_new_random());
-  
+
   /* set the cseq and call_id header */
   if (0==strcmp("REGISTER", method_name))
     {
@@ -522,7 +524,7 @@ generating_register(osip_message_t **reg, char *from,
 			locip,
 			eXosip.localport);
 	    }
-	  
+
 	  osip_message_set_contact(*reg, contact);
 	  osip_free(contact);
 	}
@@ -540,7 +542,7 @@ generating_register(osip_message_t **reg, char *from,
   }
 
   osip_message_set_content_length(*reg, "0");
-  
+
   return 0;
 }
 
@@ -566,7 +568,7 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
   i = generating_request_out_of_dialog(invite, "INVITE", to, "UDP", from,
 				       route);
   if (i!=0) return -1;
-  
+
 #if 0
   if (subject==NULL)
 	  osip_message_set_subject(*invite, "New Call");
@@ -630,7 +632,7 @@ int generating_initial_subscribe(osip_message_t **subscribe, char *to,
   i = generating_request_out_of_dialog(subscribe, "SUBSCRIBE", to, "UDP", from,
 				       route);
   if (i!=0) return -1;
-  
+
 #define LOW_EXPIRE
 #ifdef LOW_EXPIRE
   osip_message_set_expires(*subscribe, "60");
@@ -660,11 +662,11 @@ int generating_message(osip_message_t **message, char *to, char *from,
     route=NULL;
   if (buff!=NULL && *buff=='\0')
     return -1; /* at least, the message must be of length >= 1 */
-  
+
   i = generating_request_out_of_dialog(message, "MESSAGE", to, "UDP", from,
 				       route);
   if (i!=0) return -1;
-  
+
   /* after this delay, we should send a CANCEL */
   osip_message_set_expires(*message, "120");
 
@@ -688,7 +690,7 @@ generating_options(osip_message_t **options, char *from, char *to, char *proxy)
 
 #if 0
   if (sdp!=NULL)
-    {      
+    {
       osip_message_set_content_type(*options, "application/sdp");
       osip_message_set_body(*options, sdp);
     }
@@ -728,7 +730,7 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
     }
   else
     route = (osip_route_t*)osip_list_get(dialog->route_set, 0);
-    
+
   osip_uri_uparam_get_byname(route->url, "lr", &lr_param);
   if (lr_param!=NULL) /* the remote target URI is the req_uri! */
     {
@@ -756,15 +758,15 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
 
   /* if the first URI of route set does not contain "lr", the req_uri
      is set to the first uri of route set */
-  
-  
+
+
   i = osip_uri_clone(route->url, &(request->req_uri));
   if (i!=0) return -1;
   /* add the route set */
   /* "The UAC MUST add a route header field containing
      the remainder of the route set values in order. */
   pos=0; /* yes it is */
-  
+
   while (!osip_list_eol(dialog->route_set, pos)) /* not the first one in the list */
     {
       osip_route_t *route2;
@@ -795,7 +797,7 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
   i = osip_message_set_route(request, last_route);
   osip_free(last_route);
   if (i!=0) { return -1; }
-  
+
   /* route header and req_uri set */
   return 0;
 }
@@ -811,7 +813,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 #else
   char locip[50];
 #endif
-  
+
   i = osip_message_init(&request);
   if (i!=0) return -1;
 
@@ -846,7 +848,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       /* fill the request-uri, and the route headers. */
       dialog_fill_route_set(dialog, request);
     }
-  
+
   /* To and From already contains the proper tag! */
   i = osip_to_clone(dialog->remote_uri, &(request->to));
   if (i!=0) goto grwd_error_1;
@@ -881,7 +883,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       osip_cseq_set_method(cseq, osip_strdup(method_name));
       request->cseq = cseq;
     }
-  
+
   /* always add the Max-Forward header */
   osip_message_set_max_forwards(request, "5"); /* a UA should start a request with 70 */
 
@@ -933,7 +935,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 		      locip,
 		      eXosip.localport,
 		      via_branch_new_random() );
-	      
+
 	    osip_message_set_via(request, tmp);
 	  }
   }
@@ -1115,7 +1117,7 @@ generating_options_within_dialog(osip_message_t **options, osip_dialog_t *dialog
 
 #if 0
   if (sdp!=NULL)
-    {      
+    {
       osip_message_set_content_type(*options, "application/sdp");
       osip_message_set_body(*options, sdp);
     }
@@ -1139,10 +1141,10 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
 {
   int i;
   osip_message_t *request;
-  
+
   i = osip_message_init(&request);
   if (i!=0) return -1;
-  
+
   /* prepare the request-line */
   osip_message_set_method(request, osip_strdup("CANCEL"));
   osip_message_set_version(request, osip_strdup("SIP/2.0"));
@@ -1151,12 +1153,12 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
 
   i = osip_uri_clone(request_cancelled->req_uri, &(request->req_uri));
   if (i!=0) goto gc_error_1;
-  
+
   i = osip_to_clone(request_cancelled->to, &(request->to));
   if (i!=0) goto gc_error_1;
   i = osip_from_clone(request_cancelled->from, &(request->from));
   if (i!=0) goto gc_error_1;
-  
+
   /* set the cseq and call_id header */
   i = osip_call_id_clone(request_cancelled->call_id, &(request->call_id));
   if (i!=0) goto gc_error_1;
@@ -1164,7 +1166,7 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
   if (i!=0) goto gc_error_1;
   osip_free(request->cseq->method);
   request->cseq->method = osip_strdup("CANCEL");
-  
+
   /* copy ONLY the top most Via Field (this method is also used by proxy) */
   {
     osip_via_t *via;

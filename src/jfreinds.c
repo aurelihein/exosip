@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2002, 2003  Aymeric MOIZARD  - jack@atosc.org
-  
+
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -101,7 +101,7 @@ jfriend_get_and_set_next_token (char **dest, char *buf, char **next)
   while ((*end != '\0') && (*end != '\r') && (*end != '\n')
          && (*end != '\t') && (*end != '|'))
     end++;
-  
+
   if ((*end == '\r') || (*end == '\n'))
     /* we should continue normally only if this is the separator asked! */
     return -1;
@@ -159,7 +159,9 @@ void __jfriend_remove(char *nickname, char *home)
 
   sprintf(tmp , "delete");
 
-  fprintf(stderr, "%s", command);
+  OSIP_TRACE (osip_trace
+    (__FILE__, __LINE__, OSIP_ERROR, NULL,
+     "%s", command));
   system(command);
 }
 
@@ -234,7 +236,7 @@ void jfriend_add(char *nickname, char *home,
     sprintf(tmp , " \"\"");
 
   /*  fprintf(stderr, "%s", command); */
-  system(command);  
+  system(command);
 }
 
 void
@@ -262,7 +264,7 @@ int
 jfriend_load()
 {
   FILE *file;
-  char *s; 
+  char *s;
   jfriend_t *fr;
   int pos;
   char *home;
@@ -271,7 +273,7 @@ jfriend_load()
   jfriend_unload();
   home = getenv("HOME");
   sprintf(filename, "%s/%s/%s", home, EXOSIP_ETC_DIR, "jm_contact");
-  
+
   file = fopen(filename, "r");
   if (file==NULL) return -1;
   s = (char *)osip_malloc(255*sizeof(char));
