@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.15 $)dnl
+AC_REVISION($Revision: 1.16 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip/eXosip.h)
 
@@ -190,6 +190,19 @@ AC_CHECK_LIB(posix4,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lposix4 -mt"])
 AC_CHECK_LIB(nsl,nis_add,[EXOSIP_LIB="$EXOSIP_LIB -lnsl"])
 AC_CHECK_LIB(socket,sendto,[EXOSIP_LIB="$EXOSIP_LIB -lsocket"])
 
+if test "$host_os" = "hpux11.00" -o "$host_os" = "hpux11.11" ;then
+        echo "We are on HPUX"
+	AC_CHECK_LIB(rt,clock_gettime,[JOSUA_LIB="$JOSUA_LIB -lrt"])
+	AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
+elif test "$host_os" = "osf4.0g" ;then
+        echo "We are on OSF"
+	AC_CHECK_LIB(rt,sem_open,[JOSUA_LIB="$JOSUA_LIB -lrt"])
+	AC_CHECK_LIB(rt,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
+else
+        echo "We are on $host_os"
+	AC_CHECK_LIB(rt,clock_gettime,[JOSUA_LIB="$JOSUA_LIB -lrt"])
+	AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
+fi
 
 if test "x$disable_ncurses" = "xyes"; then
   JOSUA_FLAGS="$JOSUA_FLAGS -DNCURSES_SUPPORT"

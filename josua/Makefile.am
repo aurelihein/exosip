@@ -41,9 +41,9 @@ gui_loglines.h              gui_setup.h              ppl_getopt.h           \
 sound-ucl.c
 
 if GLIB_SUPPORT
-josua_LDFLAGS = -O -Wall -leXosip -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@  `pkg-config --libs glib-2.0`
+josua_LDFLAGS = -O -Wall   @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@  `pkg-config --libs glib-2.0`
 else
-josua_LDFLAGS = -O  -Wall -leXosip -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ 
+josua_LDFLAGS = -O  -Wall  @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ 
 endif
 
 if UCL_SUPPORT
@@ -64,7 +64,7 @@ endif
 endif
 endif
 
-josua_LDADD = $(top_builddir)/src/libeXosip.la -losip2 -lrt $(MORE_MYADD)
+josua_LDADD = $(top_builddir)/src/libeXosip.la -losip2 -losipparser2 -lrt $(MORE_MYADD)
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(includedir) $(MORE_INCLUDES)
 
