@@ -241,6 +241,20 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   if (eXosip.j_firewall_ip[0]!='\0')
   {
 	  char *c_address = request->req_uri->host;
+
+	  struct addrinfo *addrinfo;
+	  struct __eXosip_sockaddr addr;
+	  i = eXosip_get_addrinfo(&addrinfo, request->req_uri->host, 5060);
+	  if (i==0)
+		{
+		  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+		  freeaddrinfo (addrinfo);
+		  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+			  "eXosip: here is the resolved destination host=%s\n", c_address));
+		}
+
 	  if (0!=strncmp(c_address, "192.168",7)
 		  && 0!=strncmp(c_address, "10.",3)
 		  && 0!=strncmp(c_address, "172.16.",7)
@@ -337,6 +351,20 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  if (eXosip.j_firewall_ip[0]!='\0')
 	    {
 	      char *c_address = request->req_uri->host;
+
+		  struct addrinfo *addrinfo;
+		  struct __eXosip_sockaddr addr;
+		  i = eXosip_get_addrinfo(&addrinfo, request->req_uri->host, 5060);
+		  if (i==0)
+			{
+			  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+			  freeaddrinfo (addrinfo);
+			  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+			  OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				  "eXosip: here is the resolved destination host=%s\n", c_address));
+			}
+
 	      if (0!=strncmp(c_address, "192.168",7)
 		  && 0!=strncmp(c_address, "10.",3)
 		  && 0!=strncmp(c_address, "172.16.",7)
@@ -475,6 +503,20 @@ generating_register(osip_message_t **reg, char *from,
 	  if (eXosip.j_firewall_ip[0]!='\0')
 	    {
 	      char *c_address = (*reg)->req_uri->host;
+
+		  struct addrinfo *addrinfo;
+		  struct __eXosip_sockaddr addr;
+		  i = eXosip_get_addrinfo(&addrinfo, (*reg)->req_uri->host, 5060);
+		  if (i==0)
+			{
+			  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+			  freeaddrinfo (addrinfo);
+			  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+			  OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				  "eXosip: here is the resolved destination host=%s\n", c_address));
+			}
+
 	      if (0!=strncmp(c_address, "192.168",7)
 		  && 0!=strncmp(c_address, "10.",3)
 		  && 0!=strncmp(c_address, "172.16.",7)
@@ -893,6 +935,20 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   if (eXosip.j_firewall_ip[0]!='\0')
   {
 	  char *c_address = request->req_uri->host;
+
+	  struct addrinfo *addrinfo;
+	  struct __eXosip_sockaddr addr;
+	  i = eXosip_get_addrinfo(&addrinfo, request->req_uri->host, 5060);
+	  if (i==0)
+		{
+		  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+		  freeaddrinfo (addrinfo);
+		  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+			  "eXosip: here is the resolved destination host=%s\n", c_address));
+		}
+
 	  if (0!=strncmp(c_address, "192.168",7)
 		  && 0!=strncmp(c_address, "10.",3)
 		  && 0!=strncmp(c_address, "172.16.",7)
@@ -982,6 +1038,20 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       if (eXosip.j_firewall_ip[0]!='\0')
 	{
 	  char *c_address = request->req_uri->host;
+
+	  struct addrinfo *addrinfo;
+	  struct __eXosip_sockaddr addr;
+	  i = eXosip_get_addrinfo(&addrinfo, request->req_uri->host, 5060);
+	  if (i==0)
+		{
+		  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+		  freeaddrinfo (addrinfo);
+		  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+			  "eXosip: here is the resolved destination host=%s\n", c_address));
+		}
+
 	  if (0!=strncmp(c_address, "192.168",7)
 	      && 0!=strncmp(c_address, "10.",3)
 	      && 0!=strncmp(c_address, "172.16.",7)

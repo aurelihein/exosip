@@ -461,3 +461,89 @@ char *strdup_printf(const char *fmt, ...)
 			return NULL;
 	}
 }
+
+int
+eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
+{
+#ifndef WIN32
+  struct in_addr addr;
+  struct in6_addr addrv6;
+#else
+  unsigned long int one_inet_addr;
+#endif
+  struct addrinfo hints;
+  int error;
+  char portbuf[10];
+  if (service!=0)
+    snprintf(portbuf, sizeof(portbuf), "%i", service);
+
+  memset (&hints, 0, sizeof (hints));
+#ifndef WIN32
+ if (inet_pton(AF_INET, hostname, &addr)>0)
+ {
+   /* ipv4 address detected */
+   hints.ai_flags = AI_NUMERICHOST;
+   hints.ai_family = PF_INET;
+   OSIP_TRACE (osip_trace
+	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		"IPv4 address detected: %s\n", hostname));
+ }
+ else if (inet_pton(AF_INET6, hostname, &addrv6)>0)
+ {
+   /* ipv6 address detected */
+   /* Do the resolution anyway */
+   hints.ai_flags = AI_CANONNAME;
+   hints.ai_family = PF_INET6;
+   OSIP_TRACE (osip_trace
+	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		"IPv6 address detected: %s\n", hostname));
+ }
+ else
+ {
+   /* hostname must be resolved */
+   hints.ai_flags = AI_CANONNAME;
+   hints.ai_family = PF_UNSPEC;
+   OSIP_TRACE (osip_trace
+	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		"Not an IPv4 or IPv6 address: %s\n", hostname));
+ }
+#else
+  if ((int)(one_inet_addr = inet_addr(hostname)) == -1)
+    hints.ai_flags = AI_CANONNAME;
+  else
+    hints.ai_flags = AI_NUMERICHOST;
+
+#ifdef IPV6_SUPPORT
+  hints.ai_family = PF_UNSPEC; /* ipv6 support */
+#else
+  hints.ai_family = PF_INET;   /* ipv4 only support */
+#endif
+
+#endif
+
+  hints.ai_socktype = SOCK_DGRAM;
+  hints.ai_protocol = IPPROTO_UDP;
+  if (service==0)
+    {
+      error = getaddrinfo (hostname, "sip", &hints, addrinfo);
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "SRV resolution with udp-sip-%s\n", hostname));
+    }
+  else
+    {
+      error = getaddrinfo (hostname, portbuf, &hints, addrinfo);
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "DNS resolution with %s:%i\n", hostname, service));
+    }
+  if (error || *addrinfo == NULL)
+    { 
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "getaddrinfo failure. %s:%s (%s)\n", hostname, portbuf, gai_strerror(error)));
+     return -1;
+    }
+
+  return 0;
+}

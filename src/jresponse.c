@@ -192,6 +192,20 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
       if (con!=NULL && con->url!=NULL && con->url->host!=NULL)
 	{
 	  char *c_address = con->url->host;
+
+	  struct addrinfo *addrinfo;
+	  struct __eXosip_sockaddr addr;
+	  i = eXosip_get_addrinfo(&addrinfo, con->url->host, 5060);
+	  if (i==0)
+		{
+		  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+		  freeaddrinfo (addrinfo);
+		  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+			  "eXosip: here is the resolved destination host=%s\n", c_address));
+		}
+
 	  /* If c_address is a PUBLIC address, the request was
 	     coming from the PUBLIC network. */
 	  if (0!=strncmp(c_address, "192.168",7)
@@ -359,6 +373,20 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
 		  }
 		  if (c_address!=NULL) /* found a connection address: check if it is public */
 		  {
+
+			  struct addrinfo *addrinfo;
+			  struct __eXosip_sockaddr addr;
+			  i = eXosip_get_addrinfo(&addrinfo, c_address, 5060);
+			  if (i==0)
+				{
+				  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+				  freeaddrinfo (addrinfo);
+				  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+				  OSIP_TRACE (osip_trace
+					  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+					  "eXosip: here is the resolved destination host=%s\n", c_address));
+				}
+
 			  if (0!=strncmp(c_address, "192.168",7)
 				  && 0!=strncmp(c_address, "10.",3)
 				  && 0!=strncmp(c_address, "172.16.",7)

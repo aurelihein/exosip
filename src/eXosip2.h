@@ -335,6 +335,13 @@ void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state);
 void eXosip_delete_early_dialog(eXosip_dialog_t *jd);
 
 
+struct __eXosip_sockaddr {
+  u_char ss_len;
+  u_char ss_family;
+  u_char padding[128 - 2];
+};
+int eXosip_get_addrinfo (struct addrinfo **addrinfo,
+				char *hostname, int service);
 void eXosip_get_localip_from_via(osip_message_t *,char**localip);
 int  generating_initial_subscribe(osip_message_t **message, char *to,
 				 char *from, char *route);

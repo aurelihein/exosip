@@ -845,6 +845,18 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 	  {
 		  char *c_address = invite->req_uri->host;
 		  int pos=0;
+		  struct addrinfo *addrinfo;
+		  struct __eXosip_sockaddr addr;
+		  i = eXosip_get_addrinfo(&addrinfo, invite->req_uri->host, 5060);
+		  if (i==0)
+			{
+			  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+			  freeaddrinfo (addrinfo);
+			  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+			  OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				  "eXosip: here is the resolved destination host=%s\n", c_address));
+			}
 
 		  /* If remote message contains a Public IP, we have to replace the SDP
 			connection address */

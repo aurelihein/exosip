@@ -710,6 +710,8 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
 #endif
 
   eXosip_update();
+  jc->c_inc_tr = transaction;
+  osip_transaction_add_event(transaction, evt_answer);
 
   {
     eXosip_event_t *je;
@@ -736,8 +738,10 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
       eXosip_event_add(je);
   }
 
-  jc->c_inc_tr = transaction;
-  osip_transaction_add_event(transaction, evt_answer);
+  /* be sure the invite will be processed
+  before any API call on this dialog*/
+  osip_ist_execute(eXosip.j_osip);
+
   __eXosip_wakeup();
 
 }
@@ -1987,11 +1991,11 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				    "Received message: \n%s\n", buf));
 #ifdef WIN32
-	      if (strlen(buf)>511)
-		{
-		  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-					"Message suite: \n%s\n", buf+511));
-		}
+		  if (strlen(buf)>412)
+		  {
+		      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+					    "Message suite: \n%s\n", buf+412));
+		  }
 #endif
 
 	      sipevent = osip_parse(buf, i);
