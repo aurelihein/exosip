@@ -65,8 +65,10 @@ eXosip_call_free(eXosip_call_t *jc)
 
   __eXosip_delete_jinfo(jc->c_inc_tr);
   __eXosip_delete_jinfo(jc->c_out_tr);
-  osip_transaction_free(jc->c_inc_tr);
-  osip_transaction_free(jc->c_out_tr);
+  if (jc->c_inc_tr!=NULL)
+    osip_list_add(eXosip.j_transactions, jc->c_inc_tr, 0);
+  if (jc->c_out_tr!=NULL)
+    osip_list_add(eXosip.j_transactions, jc->c_out_tr, 0);
 
   osip_negotiation_ctx_free(jc->c_ctx);
   osip_free(jc);

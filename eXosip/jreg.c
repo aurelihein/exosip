@@ -24,6 +24,8 @@
 
 #include <eXosip/eXosip.h>
 
+extern eXosip_t eXosip;
+
 int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
 {
   *jr = (eXosip_reg_t*) osip_malloc(sizeof(eXosip_reg_t));
@@ -58,14 +60,16 @@ void eXosip_reg_free(eXosip_reg_t *jreg)
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			    "Release a terminated transaction\n"));
       __eXosip_delete_jinfo(jreg->r_last_tr);
-      osip_transaction_free(jreg->r_last_tr);
+      if (jreg->r_last_tr!=NULL)
+	osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
     }
   else
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			    "Release a non-terminated transaction\n"));
       __eXosip_delete_jinfo(jreg->r_last_tr);
-      osip_transaction_free(jreg->r_last_tr);
+      if (jreg->r_last_tr!=NULL)
+	osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
     }
   
   osip_free(jreg);

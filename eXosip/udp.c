@@ -1472,9 +1472,7 @@ int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
     tr = eXosip_find_last_out_bye(jc, jd);
 
   if (tr!=NULL &&
-      ( tr->state==NIST_TERMINATED || tr->state==NICT_TERMINATED )
-      && tr->last_response!=NULL
-      && MSG_IS_STATUS_2XX(tr->last_response))
+      ( tr->state==NIST_TERMINATED || tr->state==NICT_TERMINATED ))
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 			    "eXosip: eXosip_release_finished_calls remove a dialog\n"));
@@ -1537,28 +1535,40 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	{
 	  if (jc->c_inc_tr->last_response==NULL)
 	    {
-	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
-				    "eXosip: eXosip_release_aborted_calls transaction with no answer\n"));
+	      /* OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
+		 "eXosip: eXosip_release_aborted_calls transaction with no answer\n")); */
 	    }
 	  else if (MSG_IS_STATUS_3XX(jc->c_inc_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 3xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_4XX(jc->c_inc_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 4xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_5XX(jc->c_inc_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 5xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_6XX(jc->c_inc_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls answered with a 6xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	}
       else if (tr==jc->c_out_tr)
@@ -1567,26 +1577,41 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed with no answer\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_3XX(jc->c_out_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_4XX(jc->c_out_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 4xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_5XX(jc->c_out_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 5xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_6XX(jc->c_out_tr->last_response))
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				    "eXosip: eXosip_release_aborted_calls completed answered with 6xx\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      eXosip_call_free(jc);
+	      return 0;
 	    }
 	}
     }
@@ -1598,45 +1623,50 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 void eXosip_release_terminated_calls ( void )
 {
   eXosip_dialog_t *jd;
+  eXosip_dialog_t *jdnext;
   eXosip_call_t *jc;
+  eXosip_call_t *jcnext;
   int now = time(NULL);
   int pos;
 
-  for (jc = eXosip.j_calls ; jc != NULL; jc=jc->next)
+  for (jc = eXosip.j_calls ; jc != NULL; )
     {
+      jcnext=jc->next;
       /* free call terminated with a BYE */
       for (jd = jc->c_dialogs ; jd != NULL; )
 	{
+	  jdnext=jd->next;
 	  if (0==eXosip_pendingosip_transaction_exist(jc, jd))
-	    { jd=jd->next; }
+	    { }
 	  else if (0==eXosip_release_finished_calls(jc, jd))
-	    { jd = NULL; jc = eXosip.j_calls; }
+	    { jd = jc->c_dialogs; }
 	  else if (0==eXosip_release_aborted_calls(jc, jd))
-	    { jd = NULL; jc = eXosip.j_calls; }
+	    { jdnext = NULL; }
 	  else
-	    { jd=jd->next; }
+	    { }
+	  jd=jdnext;
 	}
+      jc=jcnext;
     }
 
   for (jc = eXosip.j_calls ; jc != NULL; )
     {
+      jcnext=jc->next;
       if (jc->c_dialogs==NULL)
 	{
 	  if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED)
-	    { jc=jc->next; }
+	    {  }
 	  else if (jc->c_out_tr!=NULL && jc->c_out_tr->state!=ICT_TERMINATED)
-	    { jc=jc->next; }
+	    {  }
 	  else /* no active pending transaction */
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				    "eXosip: remove a call\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
 	      eXosip_call_free(jc);
-	      jc = eXosip.j_calls;
 	    }
 	}
-      else
-	jc = jc->next;
+      jc = jcnext;
     }
 
   pos = 0;
