@@ -70,5 +70,4 @@ EXPORTS
 	subscribers_add @66
 	eXosip_answer_options @67
 	eXosip_options_call @68
-	eXosip_answer_info @69
-	eXosip_options_call @70
+	eXosip_info_call @70

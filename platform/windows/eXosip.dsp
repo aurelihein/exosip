@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "EXOSIP_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\osip\include" /I "..\.." /D "EXOSIP_EXPORTS" /D "_DEBUG" /D "ENABLE_TRACE" /D "ENABLE_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "OSIP_MT" /D "USE_TMP_BUFFER" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\osip\include" /I "..\..\include" /D "EXOSIP_EXPORTS" /D "_DEBUG" /D "ENABLE_TRACE" /D "ENABLE_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "OSIP_MT" /D "USE_TMP_BUFFER" /FR /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x40c /d "_DEBUG"
@@ -92,7 +92,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\eXosip\eXosip.c
+SOURCE=..\..\src\eXosip.c
 # End Source File
 # Begin Source File
 
@@ -100,67 +100,67 @@ SOURCE=.\eXosip.def
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\eXutils.c
+SOURCE=..\..\src\eXutils.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jcall.c
+SOURCE=..\..\src\jcall.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jcallback.c
+SOURCE=..\..\src\jcallback.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jdialog.c
+SOURCE=..\..\src\jdialog.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jevents.c
+SOURCE=..\..\src\jevents.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jfreinds.c
+SOURCE=..\..\src\jfreinds.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jidentity.c
+SOURCE=..\..\src\jidentity.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jnotify.c
+SOURCE=..\..\src\jnotify.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jreg.c
+SOURCE=..\..\src\jreg.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jrequest.c
+SOURCE=..\..\src\jrequest.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jresponse.c
+SOURCE=..\..\src\jresponse.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jsubscribe.c
+SOURCE=..\..\src\jsubscribe.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\jsubscribers.c
+SOURCE=..\..\src\jsubscribers.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\misc.c
+SOURCE=..\..\src\misc.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\sdp_offans.c
+SOURCE=..\..\src\sdp_offans.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\udp.c
+SOURCE=..\..\src\udp.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -168,11 +168,15 @@ SOURCE=..\..\eXosip\udp.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\..\eXosip\eXosip.h
+SOURCE=..\..\include\eXosip\eXosip.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\eXosip\eXosip2.h
+SOURCE=..\..\src\eXosip2.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\eXosip\eXosip_cfg.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
