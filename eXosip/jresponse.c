@@ -46,20 +46,20 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   /* initialise osip_message_t structure */
   /* yet done... */
 
-  response->strtline->sipversion = (char *)osip_malloc(8*sizeof(char));
-  sprintf(response->strtline->sipversion,"SIP/2.0");
-  response->strtline->statuscode = (char *)osip_malloc(5*sizeof(char));
-  sprintf(response->strtline->statuscode,"%i",status);
-  response->strtline->reasonphrase = osip_parser_get_reason(status);
-  if (response->strtline->reasonphrase==NULL)
+  response->sipversion = (char *)osip_malloc(8*sizeof(char));
+  sprintf(response->sipversion,"SIP/2.0");
+  response->statuscode = (char *)osip_malloc(5*sizeof(char));
+  sprintf(response->statuscode,"%i",status);
+  response->reasonphrase = osip_parser_get_reason(status);
+  if (response->reasonphrase==NULL)
     {
-      if (0==strcmp(response->strtline->statuscode, "101"))
-	response->strtline->reasonphrase = osip_strdup("Dialog Establishement");
+      if (0==strcmp(response->statuscode, "101"))
+	response->reasonphrase = osip_strdup("Dialog Establishement");
       else
-	response->strtline->reasonphrase = osip_strdup("Unknown code");
+	response->reasonphrase = osip_strdup("Unknown code");
     }
-  response->strtline->rquri     = NULL;
-  response->strtline->sipmethod = NULL;
+  response->rquri     = NULL;
+  response->sipmethod = NULL;
 
   i = osip_to_clone(request->to, &(response->to));
   if (i!=0) goto grd_error_1;

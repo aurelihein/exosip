@@ -47,13 +47,13 @@ extern char *register_callid_number;
 int
 eXosip_lock()
 {
-  return osip_mutex_lock((struct osip_mutex_t*)eXosip.j_mutexlock);
+  return osip_mutex_lock((struct osip_mutex*)eXosip.j_mutexlock);
 }
 
 int
 eXosip_unlock()
 {
-  return osip_mutex_unlock((struct osip_mutex_t*)eXosip.j_mutexlock);
+  return osip_mutex_unlock((struct osip_mutex*)eXosip.j_mutexlock);
 }
 
 void
@@ -87,10 +87,10 @@ void eXosip_quit()
   int i;
 
   eXosip.j_stop_ua = 1; /* ask to quit the application */
-  i = osip_thread_join((struct osip_thread_t*)eXosip.j_thread);
+  i = osip_thread_join((struct osip_thread*)eXosip.j_thread);
   if (i!=0)
     fprintf(stderr, "eXosip: can't terminate thread!");
-  osip_free((struct osip_thread_t*)eXosip.j_thread);
+  osip_free((struct osip_thread*)eXosip.j_thread);
 
   osip_free(localip);
   osip_free(localport);
@@ -105,7 +105,7 @@ void eXosip_quit()
       eXosip_call_free(jc);
     }
   
-  osip_mutex_destroy((struct osip_mutex_t*)eXosip.j_mutexlock);
+  osip_mutex_destroy((struct osip_mutex*)eXosip.j_mutexlock);
 
   sdp_negotiation_free();  
 
@@ -246,7 +246,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
   osip_list_init(eXosip.j_transactions);
   eXosip.j_reg = NULL;
 
-  eXosip.j_mutexlock = (struct osip_mutex_t*)osip_mutex_init();
+  eXosip.j_mutexlock = (struct osip_mutex*)osip_mutex_init();
 
   if (-1==osip_init(&osip))
     {

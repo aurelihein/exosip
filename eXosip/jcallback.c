@@ -50,9 +50,9 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 
   if (host==NULL)
     {
-      host = sip->strtline->rquri->host;
-      if (sip->strtline->rquri->port!=NULL)
-	port = osip_atoi(sip->strtline->rquri->port);
+      host = sip->rquri->host;
+      if (sip->rquri->port!=NULL)
+	port = osip_atoi(sip->rquri->port);
       else
 	port = 5060;
     }
@@ -509,9 +509,9 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
     else
       {
 	port = 5060;
-	if (ack->strtline->rquri->port!=NULL)
-	  port = osip_atoi(ack->strtline->rquri->port);
-	host = ack->strtline->rquri->host;
+	if (ack->rquri->port!=NULL)
+	  port = osip_atoi(ack->rquri->port);
+	host = ack->rquri->host;
       }
 
     cb_udp_snd_message(NULL, ack, host, port, eXosip.j_socket);
