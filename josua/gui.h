@@ -50,6 +50,7 @@
 
 
 int gui_start();
+int josua_event_get();
 void josua_printf(char *chfr, ...);
 
 void __josua_message();

@@ -34,6 +34,37 @@ static void __josua_init()
     }
 }
 
+
+int
+jcall_get_number_of_pending_calls()
+{
+  int pos=0;
+  int k;
+  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+    {
+      if (jcalls[k].state != NOT_USED)
+	{
+	  pos++;
+	}
+    }
+  return pos;
+}
+
+jcall_t *jcall_find_call(int pos)
+{
+  int k;
+  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+    {
+      if (jcalls[k].state != NOT_USED)
+	{
+	  if (pos==0)
+	    return &(jcalls[k]);
+	  pos--;
+	}
+    }
+  return NULL;
+}
+
 int jcall_new(eXosip_event_t *je)
 {
   jcall_t *ca;

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.39 2003-06-11 09:23:41 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.40 2003-06-12 15:11:58 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -38,9 +38,10 @@ static const char server_built[] = __DATE__ " " __TIME__;
 static const char server_built[] = "unknown";
 #endif
 
-void
+int
 josua_event_get()
 {
+  int counter =0;
   /* use events to print some info */
   eXosip_event_t *je;
   for (;;)
@@ -49,7 +50,7 @@ josua_event_get()
       je = eXosip_event_wait(0,0);
       if (je==NULL)
 	break;
-
+      counter++;
       if (je->type==EXOSIP_CALL_NEW)
 	{
 	  snprintf(buf, 99, "<- INVITE from: %s", je->remote_uri);
@@ -176,6 +177,9 @@ josua_event_get()
 	
       eXosip_event_free(je);
     }
+  if (counter>0)
+    return 0;
+  return -1;
 }
 
 

@@ -838,8 +838,6 @@ int eXosip_terminate_call(int cid, int jid)
   if (jd!=NULL && jd->d_dialog!=NULL)
     {
       osip_transaction_t *tr;
-      fprintf(stderr, "eXosip: Cancel established dialog!");
-      /* #warning TODO: choose the latest not the first one. */
       tr=eXosip_find_last_out_invite(jc, jd);
       if (tr!=NULL && tr->last_response!=NULL && MSG_IS_STATUS_1XX(tr->last_response))
 	{

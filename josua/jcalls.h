@@ -50,6 +50,9 @@ typedef struct jcall jcall_t;
 #define MAX_NUMBER_OF_CALLS 10
 #endif
 
+jcall_t *jcall_find_call(int pos);
+int jcall_get_number_of_pending_calls();
+
 int jcall_new(eXosip_event_t *je);
 int jcall_answered(eXosip_event_t *je);
 int jcall_proceeding(eXosip_event_t *je);
