@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.29 2003-05-30 08:44:20 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.30 2003-05-30 08:55:22 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -2268,8 +2268,8 @@ int main(int argc, const char *const *argv) {
 	{
 	  eXosip_lock();
 	  eXosip_subscribe(cfg.to,
-			       cfg.identity,
-			       cfg.route);
+			   cfg.identity,
+			   cfg.route);
 	  eXosip_unlock();
 	}
     }
@@ -2435,7 +2435,7 @@ void __josua_answer_call() {
   if (c==-1) return;
  
   eXosip_lock();
-  eXosip_answer_call(cid , c); /* close 1st call with code (like 200) */
+  eXosip_answer_call(cid , c);
   eXosip_unlock();
   
 }
@@ -2493,9 +2493,30 @@ void __josua_terminate_call() {
 			    "id"));
   if (c==-1) return;
 
-  eXosip_lock();
-  eXosip_terminate_call(c, 1); /* a SIP call can have several SIP dialog. */
-  eXosip_unlock();
+
+  {
+    /* find the dailgo id to close */
+    eXosip_call_t *jc = eXosip.j_calls;
+    eXosip_lock();
+    for (;jc!=NULL && (jc->c_id!=c); jc=jc->next)
+      {}
+
+    if (jc==NULL || jc->c_dialogs==NULL)
+      {
+	eXosip_unlock();
+      }
+    else
+      {
+	int did = jc->c_dialogs->d_id;
+	eXosip_unlock();
+
+	eXosip_lock();
+	eXosip_terminate_call(c, did);
+	eXosip_unlock();
+
+      }
+  }
+
 }
 
 void __josua_transfer_call() {
