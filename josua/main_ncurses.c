@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.56 2004-12-08 01:05:31 aymeric Exp $"; */
+/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.57 2004-12-28 17:28:39 aymeric Exp $"; */
 
 #ifdef NCURSES_SUPPORT
 
@@ -756,7 +756,7 @@ int main(int argc, const char *const *argv) {
 	}
     }
 
-  josua_printf("Welcome To Josua");
+  josua_printf("Welcome To Josua (%s - port=%i)", cfg.identity, cfg.port);
 
   gui_start();
 
