@@ -2342,7 +2342,8 @@ int eXosip_register      (int rid, int registration_period)
       /* fprintf(stderr, "eXosip: no registration info saved!\n"); */
       return -1;
     }
-  jr->r_reg_period = registration_period;
+  if (registration_period>=0)
+    jr->r_reg_period = registration_period;
   if (jr->r_reg_period==0)
     {} /* unregistration */
   else if (jr->r_reg_period>3600)
