@@ -2196,6 +2196,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 	      eXosip_event_add(je);
 	  }
 	  eXosip_dialog_free(jd);
+	  __eXosip_wakeup();
 	  return 0;
 	}
     }
@@ -2225,6 +2226,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_4XX(jc->c_inc_tr->last_response))
@@ -2241,6 +2243,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_5XX(jc->c_inc_tr->last_response))
@@ -2257,6 +2260,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_6XX(jc->c_inc_tr->last_response))
@@ -2273,6 +2277,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	}
@@ -2292,6 +2297,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_3XX(jc->c_out_tr->last_response))
@@ -2308,6 +2314,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_4XX(jc->c_out_tr->last_response))
@@ -2324,6 +2331,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_5XX(jc->c_out_tr->last_response))
@@ -2340,6 +2348,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	  else if (MSG_IS_STATUS_6XX(jc->c_out_tr->last_response))
@@ -2356,6 +2365,7 @@ static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	      return 0;
 	    }
 	}
@@ -2417,6 +2427,7 @@ void eXosip_release_terminated_calls ( void )
 		      eXosip_event_add(je);
 		  }
 		  eXosip_call_free(jc);
+		  __eXosip_wakeup();
 		}
 	      else if (jc->c_inc_options_tr->state!=NIST_TERMINATED
 		       && jc->c_inc_options_tr->birth_time+180<now)
@@ -2433,6 +2444,7 @@ void eXosip_release_terminated_calls ( void )
 		      eXosip_event_add(je);
 		  }
 		  eXosip_call_free(jc);
+		  __eXosip_wakeup();
 		}
 	    }
 	  else if (jc->c_out_options_tr!=NULL)
@@ -2451,6 +2463,7 @@ void eXosip_release_terminated_calls ( void )
 		      eXosip_event_add(je);
 		  }
 		  eXosip_call_free(jc);
+		  __eXosip_wakeup();
 		}
 	      else if (jc->c_out_options_tr->state!=NIST_TERMINATED
 		       && jc->c_out_options_tr->birth_time+180<now)
@@ -2467,6 +2480,7 @@ void eXosip_release_terminated_calls ( void )
 		      eXosip_event_add(je);
 		  }
 		  eXosip_call_free(jc);
+		  __eXosip_wakeup();
 		}
 	    }
 	  else if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED
@@ -2484,6 +2498,7 @@ void eXosip_release_terminated_calls ( void )
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	    }
 	  else if (jc->c_out_tr!=NULL && jc->c_out_tr->state!=ICT_TERMINATED
 		   && jc->c_out_tr->birth_time+180<now)
@@ -2500,6 +2515,7 @@ void eXosip_release_terminated_calls ( void )
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	    }
 	  else if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED)
 	    {  }
@@ -2519,6 +2535,7 @@ void eXosip_release_terminated_calls ( void )
 		  eXosip_event_add(je);
 	      }
 	      eXosip_call_free(jc);
+	      __eXosip_wakeup();
 	    }
 	}
       jc = jcnext;
