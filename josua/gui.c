@@ -982,91 +982,6 @@ int window_new_call_run_command(int c)
   return 0;
 }
 
-void
-__show_new_call()
-{
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI]==NULL)
-    gui_windows[EXTRAGUI]= &gui_window_new_call;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI]= &gui_window_new_call;
-    }
-
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
-
-  window_new_call_print();
-}
-
-
-
-int window_manage_call_print();
-int window_manage_call_run_command();
-
-gui_t gui_window_manage_call = {
-  GUI_OFF,
-  20,
-  -999,
-  10,
-  -6,
-  NULL,
-  &window_manage_call_print,
-  &window_manage_call_run_command,
-  NULL,
-  -1,
-  -1,
-  -1
-};
-
-int window_manage_call_print()
-{
-  int k, pos;
-  int y,x;
-  char buf[250];
-  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
-
-  getmaxyx(stdscr,y,x);
-  attrset(A_NORMAL);
-  attrset(COLOR_PAIR(1));
-
-  if (gui_window_manage_call.x1==-999)
-    {}
-  else x = gui_window_manage_call.x1;
-
-  attrset(COLOR_PAIR(0));
-
-  pos=1;
-  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
-    {
-      if (jcalls[k].state != NOT_USED)
-	{
-	  snprintf(buf, 199, "%i//%i %i %s with: %s %199.199s",
-		   jcalls[k].cid,
-		   jcalls[k].did,
-		   jcalls[k].status_code,
-		   jcalls[k].reason_phrase,
-		   jcalls[k].remote_uri, " ");
-
-	  mvaddnstr(gui_window_manage_call.y0+pos-1,
-		    gui_window_manage_call.x0,
-		    buf,
-		    x-gui_window_manage_call.x0-1);
-	  pos++;
-	}
-      if (pos==y+gui_window_manage_call.y1-gui_window_manage_call.y0+1)
-	break; /* do not print next one */
-    }
-  return 0;
-}
-
-int window_manage_call_run_command()
-{
-  return 0;
-}
-
 int
 josua_clear_box_and_commands(gui_t *box)
 {
@@ -1109,6 +1024,129 @@ josua_clear_box_and_commands(gui_t *box)
 
   return 0;
 }
+
+
+void
+__show_new_call()
+{
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_new_call;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_new_call;
+    }
+
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_new_call_print();
+}
+
+int window_manage_call_print();
+int window_manage_call_run_command(int c);
+
+gui_t gui_window_manage_call = {
+  GUI_OFF,
+  20,
+  -999,
+  10,
+  -6,
+  NULL,
+  &window_manage_call_print,
+  &window_manage_call_run_command,
+  NULL,
+  -1,
+  -1,
+  -1
+};
+
+int cursor_manage_call = 0;
+
+int window_manage_call_print()
+{
+  int k, pos;
+  int y,x;
+  char buf[250];
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+
+  getmaxyx(stdscr,y,x);
+  attrset(A_NORMAL);
+  attrset(COLOR_PAIR(1));
+
+  if (gui_window_manage_call.x1==-999)
+    {}
+  else x = gui_window_manage_call.x1;
+
+  attrset(COLOR_PAIR(0));
+
+  pos=1;
+  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+    {
+      if (jcalls[k].state != NOT_USED)
+	{
+	  snprintf(buf, 199, "%c%c %i//%i %i %s with: %s %199.199s",
+		   (cursor_manage_call==pos) ? '-' : ' ',
+		   (cursor_manage_call==pos) ? '>' : ' ',
+		   jcalls[k].cid,
+		   jcalls[k].did,
+		   jcalls[k].status_code,
+		   jcalls[k].reason_phrase,
+		   jcalls[k].remote_uri, " ");
+
+	  attrset(COLOR_PAIR(5));
+	  attrset((pos==cursor_manage_call) ? A_REVERSE : A_NORMAL);
+
+	  mvaddnstr(gui_window_manage_call.y0+pos-1,
+		    gui_window_manage_call.x0,
+		    buf,
+		    x-gui_window_manage_call.x0-1);
+	  pos++;
+	}
+      if (pos>y+gui_window_manage_call.y1-gui_window_manage_call.y0+1)
+	break; /* do not print next one */
+    }
+  return 0;
+}
+
+int window_manage_call_run_command(int c)
+{
+  int max;
+  int y,x;
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+
+  getmaxyx(stdscr,y,x);
+
+  if (gui_window_manage_call.x1==-999)
+    {}
+  else x = gui_window_manage_call.x1;
+
+  if (gui_window_manage_call.y1<0)
+    max = y + gui_window_manage_call.y1 - gui_window_manage_call.y0+2;
+  else
+    max = gui_window_manage_call.y1 - gui_window_manage_call.y0+2;
+
+  switch (c)
+    {
+    case KEY_DOWN:
+      cursor_manage_call++;
+      cursor_manage_call %= max;
+      break;
+    case KEY_UP:
+      cursor_manage_call += max-1;
+      cursor_manage_call %= max;
+      break;
+    default:
+      beep();
+      return -1;
+    }
+
+  window_manage_call_print();
+  return 0;
+}
+
 
 void
 __josua_manage_call()
