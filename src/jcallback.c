@@ -174,12 +174,8 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 {
   static int num = 0;
   unsigned long int one_inet_addr;
-#ifdef WIN32
-  struct sockaddr_in addr;
-#else
   struct addrinfo *addrinfo;
   struct __eXosip_sockaddr addr;
-#endif
   char *message;
   int i;
 
@@ -194,36 +190,13 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 	port = 5060;
     }
 
-#ifndef WIN32
   i = eXosip_get_addrinfo(&addrinfo, host, port);
   if (i!=0)
     {
       return -1;
     }
   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-  if ((int)(one_inet_addr = inet_addr(host)) == -1)
-    {
-	  freeaddrinfo (addrinfo);
-    }
-  else
-  { /* fake instance of addrinfo (allocated by me)! */
-      osip_free(addrinfo);
-  }
-
-#else
-  /* the above code seems broken on WIN32?? */
-  if ((int)(one_inet_addr = inet_addr(host)) == -1)
-    {
-      return -1;
-    }
-  else
-    { 
-      addr.sin_addr.s_addr = one_inet_addr;
-      addr.sin_port        = htons((short)port);
-      addr.sin_family      = AF_INET;
-    }
-#endif
-
+  freeaddrinfo (addrinfo);
 
   i = osip_message_to_str(sip, &message);
 
