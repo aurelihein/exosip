@@ -41,7 +41,7 @@ int eXosip_call_find(int cid, eXosip_call_t **jc)
 }
 
 osip_transaction_t *
-eXosip_find_last_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
+eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *inc_tr;
   osip_transaction_t *out_tr;
@@ -58,7 +58,7 @@ eXosip_find_last_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 }
 
 osip_transaction_t *
-eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
+eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *inc_tr;
   int pos;
@@ -85,7 +85,7 @@ eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 }
 
 osip_transaction_t *
-eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
+eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *out_tr;
   int pos;
@@ -112,7 +112,7 @@ eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 }
 
 osip_transaction_t *
-eXosip_find_last_inc_bye(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
+eXosip_find_last_inc_bye(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *inc_tr;
   int pos;
@@ -133,7 +133,7 @@ eXosip_find_last_inc_bye(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 }
 
 osip_transaction_t *
-eXosip_find_last_out_bye(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
+eXosip_find_last_out_bye(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *out_tr;
   int pos;
@@ -154,7 +154,7 @@ eXosip_find_last_out_bye(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 }
 
 osip_transaction_t *
-eXosip_find_last_inc_refer(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
+eXosip_find_last_inc_refer(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *inc_tr;
   int pos;
@@ -175,7 +175,7 @@ eXosip_find_last_inc_refer(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 }
 
 osip_transaction_t *
-eXosip_find_last_out_refer(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
+eXosip_find_last_out_refer(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *out_tr;
   int pos;
@@ -210,12 +210,12 @@ eXosip_call_free(eXosip_call_t *jc)
 {
   /* ... */
 
-  eXosip_osip_dialog_t *jd;
+  eXosip_dialog_t *jd;
 
   for (jd = jc->c_dialogs; jd!=NULL; jd=jc->c_dialogs)
     {
       REMOVE_ELEMENT(jc->c_dialogs, jd);
-      eXosip_osip_dialog_free(jd);
+      eXosip_dialog_free(jd);
     }
 
   __eXosip_delete_jinfo(jc->c_inc_tr);

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.8 2003-03-26 20:17:52 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.9 2003-03-27 01:26:14 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -721,7 +721,7 @@ void print_calls()
   int yline;
   int y,x;
   eXosip_call_t *jc;
-  eXosip_osip_dialog_t *jd;
+  eXosip_dialog_t *jd;
 
   cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
   getmaxyx(stdscr,y,x);
@@ -1092,11 +1092,11 @@ void __josua_menu() {
   int cursor=0;
   dme(0,1);
   for (;;) {
-    //    refresh();
+    //refresh();
     do
       {	
 	print_calls();
-	//refresh();
+	refresh();
 	halfdelay(1);
 	c= getch();
       }
@@ -1119,7 +1119,7 @@ void __josua_menu() {
                c==KEY_BACKSPACE || c==KEY_DC || c=='k') {
       dme(cursor,0); cursor+= NBELEMENT_IN_MENU-1; cursor %= NBELEMENT_IN_MENU; dme(cursor,1);
     } else if (c=='\n' || c=='\r' || c==KEY_ENTER) {
-      clear(); //refresh();
+      clear(); refresh();
       if (cursor==NBELEMENT_IN_MENU)
 	return ;
       print_menu(josua_menu[cursor].menu_id); dme(cursor,1);
@@ -1486,7 +1486,7 @@ void __josua_start_call() {
   eXosip_start_call(invite);
   eXosip_unlock();
 
-  //refresh();
+  refresh();
   /* make a call */
 }
 

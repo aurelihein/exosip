@@ -26,12 +26,12 @@
 
 extern eXosip_t eXosip;
 
-void eXosip_osip_dialog_set_state(eXosip_osip_dialog_t *jd, int state)
+void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state)
 {
   jd->d_STATE = state;
 }
 
-int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_osip_dialog_t **jd)
+int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd)
 {
   for (*jc=eXosip.j_calls; *jc!=NULL; *jc=(*jc)->next)
     {
@@ -48,25 +48,24 @@ int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_osip_dialog_t **jd)
   return -1;
 }
 
-int eXosip_dialog_set_200ok(eXosip_osip_dialog_t *jd, osip_message_t *_200Ok)
+int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, osip_message_t *_200Ok)
 {
   int i;
   if (jd==NULL) return -1;
   i = msg_clone(_200Ok, &(jd->d_200Ok));
   if (i!=0) {
-    eXosip_osip_dialog_free(jd);
     return -1;
   }
   return 0;
 }
 
 
-int eXosip_osip_dialog_init_as_uac(eXosip_osip_dialog_t **_jd, osip_message_t *_200Ok)
+int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, osip_message_t *_200Ok)
 {
   int i;
-  eXosip_osip_dialog_t *jd;
+  eXosip_dialog_t *jd;
   *_jd = NULL;
-  jd = (eXosip_osip_dialog_t *) osip_malloc(sizeof(eXosip_osip_dialog_t));
+  jd = (eXosip_dialog_t *) osip_malloc(sizeof(eXosip_dialog_t));
   jd->d_id  = -1; /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
 
@@ -94,12 +93,12 @@ int eXosip_osip_dialog_init_as_uac(eXosip_osip_dialog_t **_jd, osip_message_t *_
   return 0;
 }
 
-int eXosip_osip_dialog_init_as_uas(eXosip_osip_dialog_t **_jd, osip_message_t *_invite, osip_message_t *_200Ok)
+int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, osip_message_t *_invite, osip_message_t *_200Ok)
 {
   int i;
-  eXosip_osip_dialog_t *jd;
+  eXosip_dialog_t *jd;
   *_jd = NULL;
-  jd = (eXosip_osip_dialog_t *) osip_malloc(sizeof(eXosip_osip_dialog_t));
+  jd = (eXosip_dialog_t *) osip_malloc(sizeof(eXosip_dialog_t));
   jd->d_id  = -1; /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
   i = osip_dialog_init_as_uas(&(jd->d_dialog), _invite, _200Ok);
@@ -126,9 +125,8 @@ int eXosip_osip_dialog_init_as_uas(eXosip_osip_dialog_t **_jd, osip_message_t *_
   return 0;
 }
 
-void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd)
+void eXosip_dialog_free(eXosip_dialog_t *jd)
 {
-  int i;
   msg_free(jd->d_200Ok);
   msg_free(jd->d_ack);
 
@@ -145,22 +143,16 @@ void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd)
     {
       osip_transaction_t *tr = osip_list_get(jd->d_inc_trs, 0);
       osip_list_remove(jd->d_inc_trs, 0);
-      i = osip_remove_nist(eXosip.j_osip, tr);
-      if (i!=0)
-	osip_remove_ist(eXosip.j_osip, tr);
       __eXosip_delete_jinfo(tr);
-      osip_transaction_free2(tr);
+      osip_list_add(eXosip.j_transactions, tr, 0);
     }
 
   while (!osip_list_eol(jd->d_out_trs, 0))
     {
       osip_transaction_t *tr = osip_list_get(jd->d_out_trs, 0);
       osip_list_remove(jd->d_out_trs, 0);
-      i = osip_remove_nict(eXosip.j_osip, tr);
-      if (i!=0)
-	osip_remove_ict(eXosip.j_osip, tr);
       __eXosip_delete_jinfo(tr);
-      osip_transaction_free2(tr);
+      osip_list_add(eXosip.j_transactions, tr, 0);
     }
   osip_free(jd);
 }

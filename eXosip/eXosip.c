@@ -173,20 +173,21 @@ void eXosip_quit()
 
 int eXosip_execute ( void )
 {
+  eXosip_call_t *jc;
+  eXosip_dialog_t *jd;
   int i;
-  eXosip_lock();
-  i = eXosip_read_message(1, 0, 200000);
-  eXosip_unlock();
+  i = eXosip_read_message(1, 0, 500000);
   if (i==-2)
-    return -2;
-  
+    {
+      return -2;
+    }
+
+  eXosip_lock();
   osip_timers_ict_execute(eXosip.j_osip);
   osip_timers_nict_execute(eXosip.j_osip);
   osip_timers_ist_execute(eXosip.j_osip);
   osip_timers_nist_execute(eXosip.j_osip);
   
-  eXosip_lock();
-
   osip_ict_execute(eXosip.j_osip);
   osip_nict_execute(eXosip.j_osip);
   osip_ist_execute(eXosip.j_osip);
@@ -299,7 +300,7 @@ void
 eXosip_update()
 {
   eXosip_call_t *jc;
-  eXosip_osip_dialog_t *jd;
+  eXosip_dialog_t *jd;
   int counter=1;
   int counter2=1;
   for (jc=eXosip.j_calls; jc!=NULL; jc=jc->next)
@@ -426,7 +427,7 @@ void eXosip_start_call    (osip_message_t *invite)
 
 void eXosip_answer_call   (int jid, int status)
 {
-  eXosip_osip_dialog_t *jd = NULL;
+  eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   if (jid>0)
     {
@@ -458,7 +459,7 @@ void eXosip_answer_call   (int jid, int status)
 
 void eXosip_on_hold_call  (int jid)
 {
-  eXosip_osip_dialog_t *jd = NULL;
+  eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
 
   osip_transaction_t *transaction;
@@ -555,7 +556,7 @@ void eXosip_off_hold_call (int jid)
 }
 
 int eXosip_create_transaction(eXosip_call_t *jc,
-			     eXosip_osip_dialog_t *jd,
+			     eXosip_dialog_t *jd,
 			     osip_message_t *request)
 {
   osip_event_t *sipevent;
@@ -588,7 +589,7 @@ void eXosip_transfer_call(int jid, char *refer_to)
 {
   int i;
   osip_message_t *request;
-  eXosip_osip_dialog_t *jd = NULL;
+  eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   if (jid<=0)
     return;
@@ -610,7 +611,7 @@ void eXosip_transfer_call(int jid, char *refer_to)
 }
 
 int eXosip_create_cancel_transaction(eXosip_call_t *jc,
-				    eXosip_osip_dialog_t *jd, osip_message_t *request)
+				    eXosip_dialog_t *jd, osip_message_t *request)
 {
   osip_event_t *sipevent;
   osip_transaction_t *tr;
@@ -640,7 +641,7 @@ void eXosip_terminate_call(int cid, int jid)
 {
   int i;
   osip_message_t *request;
-  eXosip_osip_dialog_t *jd = NULL;
+  eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   if (jid>0)
     {

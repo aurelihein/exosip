@@ -289,7 +289,7 @@ generating_3456xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction
 }
 
 void
-eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
+eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
   osip_message_t *response;
@@ -330,7 +330,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
 
       if (jd==NULL)
 	{
-	  i = eXosip_osip_dialog_init_as_uas(&jd, tr->orig_request, response);
+	  i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
 	  if (i!=0)
 	    {
 	      fprintf(stderr, "eXosip: cannot create dialog!\n");
@@ -348,7 +348,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
 }
 
 void
-eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
+eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
   osip_message_t *response;
@@ -438,7 +438,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
 
   if (jd==NULL)
     {
-      i = eXosip_osip_dialog_init_as_uas(&jd, tr->orig_request, response);
+      i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
       if (i!=0)
 	{
 	  fprintf(stderr, "eXosip: cannot create dialog!\n");
@@ -463,7 +463,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
 }
 
 void
-eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
+eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
   osip_message_t *response;
