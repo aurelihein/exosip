@@ -1,4 +1,5 @@
 eXosip (0.6.3)
+	* use of event oriented interface in josua.
 	
 eXosip (0.6.2)
 	* New Event oriented interface with applications.

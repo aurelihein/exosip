@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.22 2003-04-22 23:03:58 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.23 2003-04-23 00:45:46 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -117,15 +117,15 @@ void __josua_register();
 static const menu_t josua_menu[]= {
   { "message",	"m",	" [M]ini-message", MENU_MG,
     " Exchange Mini-message.", &__josua_message },
-  /*  { "Call Management",	"i",	" [I]nvite", MENU_MC,
-      " Cancel, Answer and Disconnect calls.", &__josua_manage_call },*/
+  { "call",	"c",    " [C]all Management", MENU_MC,
+    " Cancel, Answer and Disconnect calls.", &__josua_manage_call },
   { "invite",	"i",	" [I]nvite", MENU_IN,
     " Make a call.",                     &__josua_start_call },
-  { "answer",	"a",	" [A]nswer", MENU_AN,
-    " Answer a call.",                     &__josua_answer_call },
+  /*  { "answer",	"a",	" [A]nswer", MENU_AN,
+      " Answer a call.",                     &__josua_answer_call }, */
   { "bye",	"b",	" [B]ye",    MENU_TC,
     " Disconnect active branch.",	&__josua_terminate_call },
-  { "cancel",	"c",	" [C]ancel", MENU_TC,
+  { "cancel",	"a",	" c[A]ncel", MENU_TC,
     " Cancel early dialog.",	        &__josua_terminate_call },
   { "hold",	"h",	" [H]old",   MENU_HLD,
     " Put remote party on hold.",	&__josua_on_hold_call },
@@ -1195,6 +1195,117 @@ void print_identity(int i, jidentity_t *fr, int so)
   attrset(A_NORMAL);
 }
 
+void print_call(int i, eXosip_call_t *jc, int so)
+{
+  eXosip_dialog_t *jd;
+  int y,x;
+  char buf[256];
+  char buf2[256];
+  int pos = i;
+  for (;jc!=NULL && (pos!=0); jc=jc->next)
+    pos--;
+  if (jc==NULL)
+    {
+      return ;
+    }
+  if (jc!=NULL)
+    {
+      jd = jc->c_dialogs;
+      if (jd!=NULL)
+	{
+	  char *tmp;
+	  if (jd->d_dialog!=NULL)
+	    {
+	      osip_transaction_t *tr;
+	      tr = eXosip_find_last_invite(jc, jd);
+	      if (tr!=NULL && jd->d_dialog->type==CALLEE
+		  && jd->d_dialog->state==DIALOG_EARLY
+		  && tr->last_response!=NULL)
+		{
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		  snprintf(buf, 255 ,"%s %s: // From: %s",
+			   tr->last_response->statuscode,
+			   tr->last_response->reasonphrase,
+			   tmp);
+		  osip_free(tmp);
+		}
+	      else if (tr!=NULL && jd->d_dialog->type==CALLER
+		  && jd->d_dialog->state==DIALOG_EARLY
+		  && tr->last_response!=NULL)
+		{
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		  snprintf(buf, 255, "%s %s // To: %s",
+			  tr->last_response->statuscode,
+			  tr->last_response->reasonphrase,
+			  tmp);
+		  osip_free(tmp);
+		}
+	      else if (tr!=NULL && tr->last_response!=NULL)
+		{
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		  if (jd->d_dialog->type==CALLEE)
+		    snprintf(buf, 255,"%s %s // From: %s",
+			    tr->last_response->statuscode,
+			    tr->last_response->reasonphrase,
+			    tmp);
+		  else
+		    snprintf(buf, 255, "%s %s // To: %s",
+			    tr->last_response->statuscode,
+			    tr->last_response->reasonphrase,
+			    tmp);
+		  osip_free(tmp);
+		}
+	      else
+		{
+		  sprintf(buf,"C%i D%i: Waiting for info.",
+			  jc->c_id, jd->d_id);
+		  if (tr==NULL)
+		    sprintf(buf,"buf is NULL");
+		  if (jd==NULL)
+		    sprintf(buf,"jd est NULL");
+		  else if (jd->d_dialog==NULL)
+		    sprintf(buf,"jd->dialog est NULL");
+		  else if (jd->d_dialog->type==CALLER)
+		    sprintf(buf,"type est CALLER");
+		  else if (jd->d_dialog->type==CALLEE)
+		    sprintf(buf,"type est CALLEE");
+		  else if (tr!=NULL && tr->last_response==NULL)
+		    sprintf(buf,"last response is not received");
+		}
+		
+	    }
+	  else 
+	    {
+	      sprintf(buf,"C%i D%i: Connection closed.",
+		      jc->c_id, jd->d_id);
+	    }
+	}
+      else
+	sprintf(buf,"C%i D-1: Waiting for info.",
+		jc->c_id);
+
+      sprintf(buf2,"%c%c %d // %-80.80s ",
+	      so ? '-' : ' ',
+	      so ? '>' : ' ', i,
+	      buf);
+      getmaxyx(stdscr,y,x);
+      
+      attrset(COLOR_PAIR(6));
+      if (so)
+	attrset(so ? A_REVERSE : A_NORMAL);
+      mvaddnstr(i+1,0, buf2,x-1);
+      attrset(A_NORMAL);
+
+      if (jd!=NULL)
+	jd = jc->c_dialogs->next;
+      for (; jd!=NULL; jd = jd->next)
+	{
+	  /* automaticly terminated those 2nd calls ! */
+	  eXosip_terminate_call(jc->c_id, jd->d_id);
+	}
+    }  
+}
+
 void print_subscriber(int i, jsubscriber_t *js, int so)
 {
   int y,x;
@@ -1625,6 +1736,116 @@ int __josua_choose_subscriber_in_list() {
   }  
 }
 
+int __josua_manage_choose_call_in_list() {
+#define C(x) ((x)-'a'+1)
+  int c, i;
+  int cursor=0;
+  eXosip_call_t *jc;
+  int max;
+  int x,y;
+  char buf[200];
+
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+  refresh();
+  clear();
+
+  getmaxyx(stdscr,y,x);
+  attrset(A_NORMAL);
+  attrset(COLOR_PAIR(1));
+  sprintf(buf,"  Back to menu    Cancel/Terminate%80.80s"," ");
+  mvaddnstr(y-5,0, buf,x-1);
+  sprintf(buf,"  Put on/off hold%80.80s", " ");
+  mvaddnstr(y-4,0, buf,x-1);
+
+  /* print letters for the menu. */
+  attrset(A_STANDOUT);
+  attrset(COLOR_PAIR(3));
+  /*  attrset(A_REVERSE); */
+  mvaddnstr(y-5,0, "<",x-1);
+  mvaddnstr(y-4,0, "h",x-1);
+
+  mvaddnstr(y-5,12, "t",1);
+
+  eXosip_lock();
+  if (eXosip.j_calls!=NULL)
+    {
+      i=1;
+      print_call(0, eXosip.j_calls, 1);
+      for (jc = eXosip.j_calls->next; jc!=NULL; jc=jc->next, i++)
+	print_call(i, eXosip.j_calls, 0);
+    }
+  else {
+    eXosip_unlock();
+    return -1;
+  }
+  eXosip_unlock();
+
+  cursor = 0;
+  max = i;
+  for (;;) {
+    {
+      eXosip_update();
+      josua_event_get();
+      josua_printf_show();
+      refresh();
+    }
+    do
+      c= getch();
+    while (c == ERR && errno == EINTR);
+    if (c==ERR)  {
+      if(errno != 0)
+	fprintf(stderr, "failed to getch in main menu\n");
+      else {
+	/*
+	  clearok(stdscr,TRUE);
+	  clear();
+	  print_menu(0);
+	  dme(cursor,1); */
+      }
+    }
+    
+    if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
+      eXosip_lock();
+      print_call(cursor, eXosip.j_calls, 0);
+      cursor++; cursor %= max;
+      print_call(cursor, eXosip.j_calls, 1);
+      eXosip_unlock();
+    } else if (c==C('p') || c==KEY_UP || c==C('h') ||
+               c==KEY_BACKSPACE || c==KEY_DC || c=='k') {
+      eXosip_lock();
+      print_call(cursor, eXosip.j_calls, 0);
+      cursor+= max-1; cursor %= max;
+      print_call(cursor, eXosip.j_calls, 1);
+      eXosip_unlock();
+    } else if (c=='\n' || c=='\r' || c==KEY_ENTER) {
+      clear(); refresh();
+      return cursor;
+    } else if (isdigit(c)) {
+      char buf[2]; buf[0]=c; buf[1]=0; c=atoi(buf);
+      if (c < max) {
+	eXosip_lock();
+	print_call(cursor, eXosip.j_calls, 0);
+	cursor=c;
+	print_call(cursor, eXosip.j_calls, 1);
+	eXosip_unlock();
+      } else {
+        beep();
+      }
+    } else if (c=='<' || c=='q') {
+      return -1;
+    } else if (c=='a') {
+      eXosip_answer_call(cursor, 200);
+    } else if (c=='t') {
+      eXosip_terminate_call(cursor, 1);
+    } else if (c=='h') {
+      /* Put on/off Hold */
+      eXosip_on_hold_call(c);
+    } else {
+      beep();
+    }
+  }  
+}
+
 /*
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
 */
@@ -1976,15 +2197,13 @@ void __josua_message() {
 
 }
 
-/*
 void
 __josua_manage_call() {
 
-  // print the list of calls 
-  print_calls();
+  /* print the list of calls */
+  __josua_manage_choose_call_in_list();
   
 }
-*/
 
 void __josua_start_call() {
   osip_message_t *invite;
