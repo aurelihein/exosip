@@ -74,3 +74,4 @@ EXPORTS
 	eXosip_set_firewallip @75
 	eXosip_guess_localip @76
 	__eXosip_wakeup_event @77
+	eXosip_force_localip @78
