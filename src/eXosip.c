@@ -673,6 +673,8 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 
   jc->external_reference = reference;
   ADD_ELEMENT(eXosip.j_calls, jc);
+
+  eXosip_update(); /* fixed? */
   return 0;
 }
 
