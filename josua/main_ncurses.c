@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.6 2003-03-25 00:17:52 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.7 2003-03-25 21:38:19 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -651,7 +651,7 @@ char *nctab_findvalue(nctab_t (*nctab)[], int nctab_size, char *field)
     {
       if ((*nctab)[i].value!='\0')
 	{
-	  if (0==strcasecmp((*nctab)[i].element, field))
+	  if (0==osip_strcasecmp((*nctab)[i].element, field))
 	    return (*nctab)[i].value;
 	}
     }
