@@ -149,6 +149,14 @@ int jcall_remove(jcall_t *ca)
 {
   if (ca==NULL)
     return -1;
+
+
+  if (ca->enable_audio>0)
+    {
+      ca->enable_audio = -1;
+      os_sound_close(ca);
+    }
+
   ca->state = NOT_USED;
   return 0;
 }

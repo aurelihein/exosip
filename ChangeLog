@@ -1,5 +1,9 @@
 eXosip (0.7.6)
 	* support for IPv4 and IPv6.
+	* do not send 180 Ringing any more on new INVITEs.
+	* close correctly rtp streams in josua.
+	* improve the eXosip_event_wait method.
+	* performance updated on win32 for event handling.
 	
 eXosip (0.7.5)
 	* small improvements for josua.

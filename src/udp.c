@@ -651,9 +651,12 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
 
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid = transaction->transactionid;
+#ifdef AUTO_RING /* default is now to not send a 180 Ringing */
   osip_transaction_add_event(transaction, evt_answer);
   __eXosip_wakeup();
+#endif
 
+#ifdef AUTO_RING /* default is now to not send a 180 Ringing */
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 180, evt->sip);
 
   if (i!=0)
@@ -679,6 +682,7 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
 
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid = transaction->transactionid;
+#endif
 
   eXosip_update();
 

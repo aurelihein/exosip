@@ -384,11 +384,17 @@ int os_sound_start(jcall_t *ca)
 
 void os_sound_close(jcall_t *ca)
 {
-  osip_thread_join(ca->audio_thread);
-  osip_free(ca->audio_thread);
-  /* Say bye-bye */
-  rtp_send_bye(ca->rtp_session);
-  rtp_done(ca->rtp_session);
+  if (ca->rtp_session!=NULL)
+    {
+      osip_thread_join(ca->audio_thread);
+      osip_free(ca->audio_thread);
+      /* Say bye-bye */
+      rtp_send_bye(ca->rtp_session);
+      rtp_done(ca->rtp_session);
+      
+      ca->rtp_session = NULL;
+      ca->enable_audio=-1;
+    }
 
 #ifdef SPEEX_SUPPORT
   speex_bits_destroy(&ca->speex_bits);
