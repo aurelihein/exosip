@@ -173,6 +173,12 @@ int window_address_book_browse_run_command(int c)
 	show_mail=0;
       else show_mail=-1;
       break;
+    case 'd':
+      /* delete entry */
+      break;
+    case 24:
+      /* start call */
+      break;
     default:
       beep();
       return -1;
