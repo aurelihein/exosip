@@ -1,11 +1,5 @@
 
-EXTRA_DIST = README autogen.sh eX_script
-
-bin_PROGRAMS = eXosip_addfriend.sh eXosip_addidentity.sh eXosip_addsubscriber.sh
-
-eXosip_addfriend_sh_SOURCES = eXosip_addfriend.sh
-eXosip_addidentity_sh_SOURCES = eXosip_addidentity.sh
-eXosip_addsubscriber_sh_SOURCES = eXosip_addsubscriber.sh
+EXTRA_DIST = README autogen.sh eX_script eXosip_addfriend.sh eXosip_addidentity.sh eXosip_addsubscriber.sh
 
 SUBDIRS = eXosip josua scripts
 
@@ -15,3 +9,10 @@ josuarpm:
 eXosiprpm:
 	rpm -ba eXosip.spec
 
+install-exec-local:
+	echo "Installing script file for Josua";
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@chmod 0755 $(DESTDIR)$(bindir)
+	$(INSTALL_SCRIPT) eXosip_addsubscriber.sh $(DESTDIR)$(bindir)/eXosip_addsubscriber.sh
+	$(INSTALL_SCRIPT) eXosip_addidentity.sh $(DESTDIR)$(bindir)/eXosip_addidentity.sh
+	$(INSTALL_SCRIPT) eXosip_addfriend.sh $(DESTDIR)$(bindir)/eXosip_addfriend.sh
