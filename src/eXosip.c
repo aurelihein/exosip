@@ -655,6 +655,7 @@ int eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
   __eXosip_wakeup();
+  return 0;
 }
 
 int eXosip_info_call(int jid, char *content_type, char *body)
