@@ -107,9 +107,9 @@ void
 
 #ifdef USE_PCM
 	if (ca->payload==8) /* A-Law */
-	  alaw_dec(data_in, data_in_dec);
+	  alaw_dec(data_in, data_in_dec, 160);
 	if (ca->payload==0) /* Mu-Law */
-	  mulaw_dec(data_in, data_in_dec);
+	  mulaw_dec(data_in, data_in_dec, 160);
 
 	write(fd, data_in_dec, i*2);
 #else

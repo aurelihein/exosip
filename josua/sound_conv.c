@@ -177,11 +177,12 @@ int ulaw_to_s16(unsigned char u_val)
 
 
 
-void mulaw_dec(char *mulaw_data /* contains 160 char */,
-	       char *s16_data    /* contains 320 char */ )
+void mulaw_dec(char *mulaw_data /* contains size char */,
+	       char *s16_data    /* contains size*2 char */,
+	       int size)
 {
   int i;
-  for(i=0;i<160;i++)
+  for(i=0;i<size;i++)
     {
       *((signed short*)s16_data)=ulaw_to_s16( (unsigned char) mulaw_data[i]);
       s16_data+=2;
@@ -201,11 +202,12 @@ void mulaw_enc(char *s16_data    /* contains pcm_size char */,
     }
 }
 
-void alaw_dec(char *alaw_data   /* contains 160 char */,
-	      char *s16_data    /* contains 320 char */ )
+void alaw_dec(char *alaw_data   /* contains size char */,
+	      char *s16_data    /* contains size*2 char */,
+	      int size)
 {
   int i;
-  for(i=0;i<160;i++)
+  for(i=0;i<size;i++)
     {
       ((signed short*)s16_data)[i]=alaw_to_s16( (unsigned char) alaw_data[i]);
     }

@@ -66,15 +66,17 @@ packet_print(struct rtp *session, rtp_packet *p)
 #ifdef USE_PCM
   char data_in_dec[1280];
 #endif
-  fprintf(stderr, "Received data (payload %d timestamp %06d size %d) ", p->pt, p->ts, p->data_len);
+  fprintf(stderr, "Received data (payload %d timestamp %06d size %d)\n", p->pt, p->ts, p->data_len);
   
 #ifdef USE_PCM
+
   if (p->pt==8) /* A-Law */
-    alaw_dec(p->data, data_in_dec);
+    alaw_dec(p->data, data_in_dec, p->data_len);
   if (p->pt==0) /* Mu-Law */
-    mulaw_dec(p->data, data_in_dec);
-  
+    mulaw_dec(p->data, data_in_dec, p->data_len);
+
   write(fd, data_in_dec, p->data_len*2);
+
 #else
   write(fd, p->data, p->data_len);
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
