@@ -554,7 +554,14 @@ int eXosip_event_package_is_supported(osip_transaction_t *transaction,
   /* get the event type and return "489 Bad Event". */
   osip_message_header_get_byname(evt->sip, "event", 0, &event_hdr);
   if (event_hdr==NULL || event_hdr->hvalue==NULL)
-    code = 400;      /* Bad Request */
+    {
+#ifdef SUPPORT_MSN
+      /* msn don't show any event header */
+      code = 200;      /* Bad Request... anyway... */
+#else
+      code = 400;      /* Bad Request */
+#endif
+    }
   else if (0!=osip_strcasecmp(event_hdr->hvalue, "presence"))
     code = 489;
   else code = 200;

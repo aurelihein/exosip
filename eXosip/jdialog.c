@@ -149,6 +149,11 @@ int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, osip_message_t *_invite, os
   jd->d_inc_trs = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
   osip_list_init(jd->d_inc_trs);
 
+#ifdef SUPPORT_MSN
+  /* bugguy MSN */
+  jd->d_dialog->local_cseq = 1;
+#endif
+
   *_jd = jd;
   return 0;
 }

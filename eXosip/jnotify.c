@@ -218,6 +218,7 @@ int
 _eXosip_notify_add_body(eXosip_notify_t *jn, osip_message_t *notify)
 {
   char buf[1000];
+  int atom_id = 1000;
 
   if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_ACTIVE
       || jn->n_contact_info=='\0') /* mandatory! */
@@ -225,36 +226,43 @@ _eXosip_notify_add_body(eXosip_notify_t *jn, osip_message_t *notify)
 
 #ifdef SUPPORT_MSN
 
-  if (jn->n_online_status!=EXOSIP_NOTIFY_ONLINE)
+  if (jn->n_online_status==EXOSIP_NOTIFY_ONLINE)
     {
-      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
-<tuple id=\"sg89ae\">\n\
-<status>\n\
-<basic>open</basic>\n\
-</status>\n\
-<contact priority=\"0.8\">%s</contact>\n\
-</tuple>\n\
-</presence>",
-	      jn->n_contact_info, jn->n_contact_info);
+      sprintf(buf, "<?xml version=\"1.0\"?>\n\
+<!DOCTYPE presence\n\
+PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
+<presence>\n\
+<presentity uri=\"%s;method=SUBSCRIBE\" />\n\
+<atom id=\"%i\">\n\
+<address uri=\"%s;user=ip\" priority=\"0.800000\">\n\
+<status status=\"open\" />\n\
+<msnsubstatus substatus=\"online\" />\n\
+</address>\n\
+</atom>\n\
+</presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
+
     }
   else
     {
-      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
-<tuple id=\"sg89ae\">\n\
-<status>\n\
-<basic>closed</basic>\n\
-</status>\n\
-</tuple>\n\
-</presence>",
-	      jn->n_contact_info);
+      sprintf(buf, "<?xml version=\"1.0\"?>\n\
+<!DOCTYPE presence\n\
+PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
+<presence>\n\
+<presentity uri=\"%s;method=SUBSCRIBE\" />\n\
+<atom id=\"%i\">\n\
+<address uri=\"%s;user=ip\" priority=\"0.800000\">\n\
+<status status=\"inuse\" />\n\
+<msnsubstatus substatus=\"busy\" />\n\
+</address>\n\
+</atom>\n\
+</presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
+
     }
   osip_parser_set_body(notify, buf);
-  osip_parser_set_content_type(request, "application/pidf+xml");
+  osip_parser_set_content_type(notify, "application/xpidf+xml");
 #else
 
-  if (jn->n_online_status!=EXOSIP_NOTIFY_ONLINE)
+  if (jn->n_online_status==EXOSIP_NOTIFY_ONLINE)
     {
       sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\

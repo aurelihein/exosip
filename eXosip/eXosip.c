@@ -916,14 +916,14 @@ void eXosip_subscribe_close(int sid)
 
 void eXosip_notify_send_notify(eXosip_notify_t *jn,
 			       eXosip_dialog_t *jd,
-			       int subsciption_status,
+			       int subscription_status,
 			       int online_status)
 {
   osip_transaction_t *transaction;
   osip_message_t *notify;
   osip_event_t *sipevent;
   int   i;
-  char  subsciption_state[50];
+  char  subscription_state[50];
   char *tmp;
   int   now = time(NULL);
   transaction = eXosip_find_last_out_notify(jn, jd);
@@ -934,12 +934,29 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
 	return;
     }
 
+#ifndef SUPPORT_MSN
+
+#else
+
+  /* DO NOT SEND ANY NOTIFY when the status
+     is not active (or terminated?) */
+  if (subscription_status!=EXOSIP_SUBCRSTATE_ACTIVE
+      && subscription_status!=EXOSIP_SUBCRSTATE_TERMINATED)
+    {
+      /* set the new state anyway! */
+      jn->n_online_status = online_status;
+      jn->n_ss_status = subscription_status;
+      return;
+    }
+
+#endif
+
   i = _eXosip_build_request_within_dialog(&notify, "NOTIFY", jd->d_dialog, "UDP");
   if (i!=0) {
     return;
   }
   jn->n_online_status = online_status;
-  jn->n_ss_status = subsciption_status;
+  jn->n_ss_status = subscription_status;
 
   /* add the notifications info */
   if (jn->n_ss_status==EXOSIP_SUBCRSTATE_UNKNOWN)
@@ -947,29 +964,29 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
 
 #ifndef SUPPORT_MSN
   if (jn->n_ss_status==EXOSIP_SUBCRSTATE_PENDING)
-    osip_strncpy(subsciption_state, "pending;expires=", 16);
+    osip_strncpy(subscription_state, "pending;expires=", 16);
   else if (jn->n_ss_status==EXOSIP_SUBCRSTATE_ACTIVE)
-    osip_strncpy(subsciption_state, "active;expires=", 15);
+    osip_strncpy(subscription_state, "active;expires=", 15);
   else if (jn->n_ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
     {
       if (jn->n_ss_reason==DEACTIVATED)
-	osip_strncpy(subsciption_state, "terminated;reason=deactivated", 29);
+	osip_strncpy(subscription_state, "terminated;reason=deactivated", 29);
       else if (jn->n_ss_reason==PROBATION)
-	osip_strncpy(subsciption_state, "terminated;reason=probation", 27);
+	osip_strncpy(subscription_state, "terminated;reason=probation", 27);
       else if (jn->n_ss_reason==REJECTED)
-	osip_strncpy(subsciption_state, "terminated;reason=rejected", 26);
+	osip_strncpy(subscription_state, "terminated;reason=rejected", 26);
       else if (jn->n_ss_reason==TIMEOUT)
-	osip_strncpy(subsciption_state, "terminated;reason=timeout", 25);
+	osip_strncpy(subscription_state, "terminated;reason=timeout", 25);
       else if (jn->n_ss_reason==GIVEUP)
-	osip_strncpy(subsciption_state, "terminated;reason=giveup", 24);
+	osip_strncpy(subscription_state, "terminated;reason=giveup", 24);
       else if (jn->n_ss_reason==NORESSOURCE)
-	osip_strncpy(subsciption_state, "terminated;reason=noressource", 29);
+	osip_strncpy(subscription_state, "terminated;reason=noressource", 29);
     }
-  tmp = subsciption_state + strlen(subsciption_state);
+  tmp = subscription_state + strlen(subscription_state);
   if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_TERMINATED)
     sprintf(tmp, "%i", jn->n_ss_expires-now);
   osip_parser_set_header(notify, "Subscription-State",
-			 subsciption_state);
+			 subscription_state);
 #endif
 
   /* add a body */
