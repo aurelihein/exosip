@@ -204,6 +204,8 @@ osip_create_authorization_header(osip_message_t *previous_answer,
   osip_message_get_www_authenticate(previous_answer,0,&wa);
 
   /* make some test */
+  if (passwd==NULL)
+    return -1;
   if (wa==NULL||wa->auth_type==NULL
       ||(wa->realm==NULL)||(wa->nonce==NULL)) {
     OSIP_TRACE (osip_trace
@@ -248,7 +250,8 @@ osip_create_authorization_header(osip_message_t *previous_answer,
     sprintf(tmp,"\"%s\"",rquri);
     osip_authorization_set_uri(aut,tmp);
   }
-    osip_authorization_set_algorithm(aut,osip_strdup("MD5"));
+
+  osip_authorization_set_algorithm(aut,osip_strdup("MD5"));
   
   {   
     char * pszNonce = osip_strdup_without_quote(osip_www_authenticate_get_nonce(wa));
@@ -266,21 +269,7 @@ osip_create_authorization_header(osip_message_t *previous_answer,
     HASHHEX HA2 = "";
     HASHHEX Response;
 
-    if (passwd!=NULL)
-      {
-	pszPass=passwd;
-      }
-    else
-      {
-	OSIP_TRACE (osip_trace
-		    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		     "Unable to get a password: no registration context."));
-	return -1;
-      }
-    /*
-      printf("call_leg->reg_context=%x, password=%x\n",
-      call_leg->reg_context,call_leg->reg_context->password);
-    */
+    pszPass=passwd;
     if (osip_authorization_get_nonce_count(aut)!=NULL)
       szNonceCount = osip_strdup(osip_authorization_get_nonce_count(aut));
     if (osip_authorization_get_message_qop(aut)!=NULL)
@@ -291,7 +280,7 @@ osip_create_authorization_header(osip_message_t *previous_answer,
     DigestCalcResponse(HA1, pszNonce, szNonceCount, pszCNonce, pszQop,
 		       pszMethod, pszURI, HA2, Response);
     OSIP_TRACE (osip_trace
-		(__FILE__, __LINE__, OSIP_INFO1, NULL,
+		(__FILE__, __LINE__, OSIP_INFO4, NULL,
 		 "Response in authorization |%s|\n", Response));
     {
       char *resp = osip_malloc(35);
@@ -316,6 +305,8 @@ osip_create_proxy_authorization_header(osip_message_t *previous_answer,
   osip_message_get_proxy_authenticate(previous_answer,0,&wa);
   
   /* make some test */
+  if (passwd==NULL)
+    return -1;
   if (wa==NULL||wa->auth_type==NULL
       ||(wa->realm==NULL)||(wa->nonce==NULL))
     {
@@ -379,15 +370,7 @@ osip_create_proxy_authorization_header(osip_message_t *previous_answer,
     HASHHEX HA2 = "";
     HASHHEX Response;
     
-    if (passwd!=NULL)
-      pszPass=passwd;
-    else 
-      {
-	OSIP_TRACE (osip_trace
-		    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		     "Unable to get a password: no registration context."));
-	return -1;
-      }
+    pszPass=passwd;
 	
     if (osip_www_authenticate_get_nonce(wa)==NULL)
       return -1;
@@ -410,7 +393,7 @@ osip_create_proxy_authorization_header(osip_message_t *previous_answer,
     DigestCalcResponse(HA1, pszNonce, szNonceCount, pszCNonce, pszQop,
 		       pszMethod, pszURI, HA2, Response);
     OSIP_TRACE (osip_trace
-		(__FILE__, __LINE__, OSIP_INFO1, NULL,
+		(__FILE__, __LINE__, OSIP_INFO4, NULL,
 		 "Response in proxy_authorization |%s|\n", Response));
     {
       char *resp = osip_malloc(35);

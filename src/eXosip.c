@@ -403,11 +403,9 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_events = (osip_fifo_t*) osip_malloc(sizeof(osip_fifo_t));
   osip_fifo_init(eXosip.j_events);
 
-#if 0
   eXosip_add_authentication_info("jack", "jack",
 				 "jack", NULL,
 				 "atosc.org");
-#endif
 
   jfriend_load();
   jidentity_load();
@@ -1340,7 +1338,8 @@ eXosip_add_authentication_information(osip_message_t *req,
 					   authinfo->username,
 					   authinfo->passwd,
 					   &aut);
-      if (i!=0) { osip_free(uri); return -1; }
+      osip_free(uri);
+      if (i!=0) return -1;
 
       if (aut != NULL)
 	osip_list_add (req->authorizations, aut, -1);
@@ -1366,7 +1365,8 @@ eXosip_add_authentication_information(osip_message_t *req,
 						 authinfo->username,
 						 authinfo->passwd,
 						 &proxy_aut);
-      if (i!=0) { osip_free(uri); return -1; }
+      osip_free(uri);
+      if (i!=0) return -1;
 
       if (proxy_aut != NULL)
 	osip_list_add (req->proxy_authorizations, proxy_aut, -1);
