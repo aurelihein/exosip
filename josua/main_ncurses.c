@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.34 2003-06-02 23:59:13 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.35 2003-06-04 22:25:57 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -2127,7 +2127,9 @@ int __josua_manage_choose_call_in_list() {
       if (jcalls[k].state==NOT_USED || pos!=-1)
 	  beep();
       else {
+	eXosip_lock();
 	eXosip_answer_call(jcalls[k].did, 603);
+	eXosip_unlock();
 	jcall_remove(&(jcalls[k]));
       }
 
@@ -2153,7 +2155,9 @@ int __josua_manage_choose_call_in_list() {
 	code = osip_atoi(tmp);
 	if (code>100 && code<699)
 	  {
+	    eXosip_lock();
 	    eXosip_answer_call(jcalls[k].did, code);
+	    eXosip_unlock();
 	    if (code>299)
 	      {
 		jcall_remove(&(jcalls[k]));
@@ -2175,7 +2179,9 @@ int __josua_manage_choose_call_in_list() {
       if (jcalls[k].state==NOT_USED || pos!=-1)
 	beep();
       else {
+	eXosip_lock();
 	eXosip_answer_call(jcalls[k].did, 200);
+	eXosip_unlock();
       }
     } else if (c=='t') {
       int pos = cursor;
@@ -2191,7 +2197,9 @@ int __josua_manage_choose_call_in_list() {
       if (jcalls[k].state==NOT_USED || pos!=-1)
 	beep();
       else {
+	eXosip_lock();
 	eXosip_terminate_call(jcalls[k].cid, jcalls[k].did);
+	eXosip_unlock();
 	jcall_remove(&(jcalls[k]));
       }
     } else if (c=='h') {
@@ -2208,7 +2216,9 @@ int __josua_manage_choose_call_in_list() {
       if (jcalls[k].state==NOT_USED || pos!=-1)
 	beep();
       else {
+	eXosip_lock();
 	eXosip_on_hold_call(jcalls[k].did);
+	eXosip_unlock();
       }
     } else {
       beep();
