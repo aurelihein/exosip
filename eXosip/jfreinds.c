@@ -30,18 +30,30 @@ extern eXosip_t eXosip;
 #define EXOSIP_ETC_DIR ".eXosip"
 #endif
 
-#ifndef EXOSIP_ADDFREINDS_SH
-#define EXOSIP_ADDFREINDS_SH "eXosip_addfriend.sh"
+#ifndef EXOSIP_ADDFRIENDS_SH
+#define EXOSIP_ADDFRIENDS_SH "eXosip_addfriend.sh"
 #endif
 
 void friends_add(char *nickname, char *home,
 		 char *work, char *email, char *e164)
 {
+  char *Home;
   char command[256];
   char *tmp = command;
   int length = 0;
   if (nickname!=NULL)
     length = strlen(nickname);
+
+  Home = getenv("HOME");
+  if (Home==NULL)
+    return;
+  length = length + strlen(Home);
+
+  osip_clrspace(nickname);
+  osip_clrspace(home);
+  osip_clrspace(work);
+  osip_clrspace(email);
+  osip_clrspace(e164);
 
   if (home!=NULL)
     length = length + strlen(home);
@@ -59,7 +71,8 @@ void friends_add(char *nickname, char *home,
   if (length>235) /* leave some room for SPACEs and \r\n */
     return ;
 
-  sprintf(tmp , "%s %s/jm_contact", EXOSIP_ADDFREINDS_SH, EXOSIP_ETC_DIR);
+  sprintf(tmp , "%s %s/%s/jm_contact", EXOSIP_ADDFRIENDS_SH,
+	  Home, EXOSIP_ETC_DIR);
 
   tmp = tmp + strlen(tmp);
   if (nickname!=NULL)
@@ -91,6 +104,7 @@ void friends_add(char *nickname, char *home,
   else
     sprintf(tmp , " \"\"");
 
+  fprintf(stderr, "%s", command);
   system(command);  
 }
 
@@ -213,7 +227,6 @@ jfriend_load()
   home = getenv("HOME");
   sprintf(filename, "%s/%s/%s", home, EXOSIP_ETC_DIR, "jm_contact");
   
-
   file = fopen(filename, "r");
   if (file==NULL) return -1;
   s = (char *)osip_malloc(255*sizeof(char));

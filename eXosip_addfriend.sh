@@ -27,6 +27,7 @@ work=$4
 email=$5
 e164=$6
 
+
 if !(test -w $1); then
  mkdir -p `dirname $1`
  touch $1
@@ -60,19 +61,19 @@ if !(test "$nickname"); then
 fi
 
 if !(test "$home"); then
-  $home="*empty*"
+  home="*empty*"
 fi
 
 if !(test "$work"); then
-  work=="*empty*"
+  work="*empty*"
 fi
 
-if !(test "email"); then
-  email=="*empty*"
+if !(test "$email"); then
+  email="*empty*"
 fi
 
 if !(test "$e164"); then
-  e164=="*e164*"
+  e164="*e164*"
 fi
 
 echo  $num "ENTRY:" $nickname"|"$home"|"$work"|"$email"|"$e164 >> $afile

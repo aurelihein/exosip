@@ -19,6 +19,7 @@
  */
 
 #include "gui_address_book_menu.h"
+#include "gui_address_book_newentry.h"
 
 gui_t gui_window_address_book_menu = {
   GUI_OFF,
@@ -116,22 +117,20 @@ int window_address_book_menu_run_command(int c)
 void
 __show_newentry_abook()
 {
-  /*
   active_gui->on_off = GUI_OFF;
   if (gui_windows[EXTRAGUI]==NULL)
-    gui_windows[EXTRAGUI]= &gui_window_new_call;
+    gui_windows[EXTRAGUI]= &gui_window_address_book_newentry;
   else
     {
       gui_windows[EXTRAGUI]->on_off = GUI_OFF;
       josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI]= &gui_window_new_call;
+      gui_windows[EXTRAGUI]= &gui_window_address_book_newentry;
     }
 
   active_gui = gui_windows[EXTRAGUI];
   active_gui->on_off = GUI_ON;
 
-  window_new_call_print();
-  */
+  window_address_book_newentry_print();
 }
 
 

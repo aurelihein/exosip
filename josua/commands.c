@@ -38,3 +38,49 @@ int _josua_start_call(char *from, char *to, char *subject, char *route)
   eXosip_unlock();  
   return i;
 }
+
+int _josua_add_contact(char *sipurl, char *telurl, char *email, char *phone)
+{
+  int i;
+  char *_telurl;
+  char *_email;
+  char *_phone;
+
+  osip_to_t *to;
+
+  if (telurl==NULL||telurl[0]=='\0')
+    _telurl = 0;
+  else
+    _telurl = telurl;
+
+  if (email==NULL||email[0]=='\0')
+    _email = 0;
+  else
+    _email = email;
+
+  if (phone==NULL||phone[0]=='\0')
+    _phone = 0;
+  else
+    _phone = phone;
+
+  if (sipurl==NULL||sipurl[0]=='\0')
+    return -1;
+
+  i = osip_to_init(&to);
+  if (i!=0)
+    return -1;
+  i = osip_to_parse(to, sipurl);
+  if (i!=0)
+    return -1;
+  if (to->displayname==NULL && to->url->username==NULL)
+    friends_add("xxxx", sipurl, _telurl, _email, _phone);
+  else if (to->displayname!=NULL)
+    friends_add(to->displayname, sipurl, _telurl, _email, _phone);
+  else if (to->url!=NULL && to->url->username!=NULL)
+    friends_add(to->url->username, sipurl, _telurl, _email, _phone);
+
+  osip_to_free(to);
+  jfriend_unload();
+  jfriend_load();
+  return 0;
+}
