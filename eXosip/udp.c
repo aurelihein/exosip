@@ -468,6 +468,21 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_NEW, jc, jd);
+    if (je!=NULL)
+      {
+	osip_header_t *subject;
+	char *tmp;
+	osip_message_get_subject(evt->sip, 0, &subject);
+	if (subject!=NULL && subject->hvalue!=NULL)
+	  snprintf(je->subject, 255, "%s", subject->hvalue);
+	osip_uri_to_str(evt->sip->req_uri, &tmp);
+	if (tmp!=NULL)
+	  {
+	    snprintf(je->req_uri, 255, "%s", tmp);
+	    osip_free(tmp);
+	  }
+	
+      }
     if (eXosip.j_call_callbacks[EXOSIP_CALL_NEW]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_NEW](EXOSIP_CALL_NEW, je);
     else if (eXosip.j_runtime_mode==EVENT_MODE)

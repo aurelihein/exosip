@@ -79,7 +79,10 @@ eXosip_event_init_for_call(int type,
 
 	      osip_uri_to_str(tr->orig_request->req_uri, &tmp);
 	      if (tmp!=NULL)
-		snprintf(je->req_uri, 255, "%s", tmp);
+		{
+		  snprintf(je->req_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
 	    }
 	}
     }
