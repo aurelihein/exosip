@@ -775,21 +775,26 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
 	{
 	  if (pos!=0)
 	    osip_list_add(request->routes, route2, 0);
+	  else
+	    osip_route_free(route2);
 	}
       else
 	{
 	  if (!osip_list_eol(dialog->route_set, pos+1))
 	    osip_list_add(request->routes, route2, -1);
+	  else
+	    osip_route_free(route2);
 	}
-	  pos++;
+      pos++;
     }
-      /* The UAC MUST then place the remote target URI into
-	 the route header field as the last value */
+
+  /* The UAC MUST then place the remote target URI into
+     the route header field as the last value */
   i = osip_uri_to_str(dialog->remote_contact_uri->url, &last_route);
   if (i!=0) return -1;
   i = osip_message_set_route(request, last_route);
-  if (i!=0) { osip_free(last_route); return -1; }
-
+  osip_free(last_route);
+  if (i!=0) { return -1; }
   
   /* route header and req_uri set */
   return 0;
