@@ -65,7 +65,7 @@ void  eXosip_subscribe(char *to, char *from, char *route, char *buff);
 void  eXosip_subscribe_terminate(int sid);
 
 /* This is to manage incoming subscription */
-void  eXosip_accept_subscribe(int nid);
-void  eXosip_notify(int nid, int state);
+void  eXosip_notify_accept_subscribe   (int nid, int code, int status);
+void  eXosip_notify(int nid, int status);
 
 #endif

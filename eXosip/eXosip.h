@@ -57,35 +57,6 @@
 
 #endif
 
-typedef struct eXosip_subscribe_t eXosip_subscribe_t;
-
-struct eXosip_subscribe_t {
-
-  int                 d_id;
-  int                 d_STATE;
-  osip_dialog_t      *d_dialog;      /* active dialog */
-
-  osip_list_t        *d_inc_trs;
-  osip_list_t        *d_out_trs;
-
-  eXosip_subscribe_t *next;
-  eXosip_subscribe_t *parent;
-};
-
-typedef struct eXosip_notify_t eXosip_notify_t;
-
-struct eXosip_notify_t {
-
-  int              d_id;
-  int              d_STATE;
-  osip_dialog_t   *d_dialog;      /* active dialog */
-
-  osip_list_t     *d_inc_trs;
-  osip_list_t     *d_out_trs;
-
-  eXosip_notify_t *next;
-  eXosip_notify_t *parent;
-};
 
 typedef struct eXosip_dialog_t eXosip_dialog_t;
 
@@ -107,33 +78,36 @@ struct eXosip_dialog_t {
   eXosip_dialog_t *parent;
 };
 
-/* presentation of dialogs ***********
 
-   1
-   State: TALKING
-   Subject: You have a Call 
-   <sip:jack@osip.org>
-   at <sip:jack@anode.osip.org:5080>
-   audio: 80.200.197.80 9300 RTP/AVP 0 speex/8000
-   video: 80.200.197.80 9320 RTP/AVP 0 speex/8000
-   
-   2
-   State: QUEUED
-   Subject: Let's talk 
-   <sip:jack@osip.org>
-   at <sip:jack@anode.osip.org:5080>
-   audio: 9300 RTP/AVP   0 PCMU/8000
-   video: 9320 RTP/AVP   0 XXXqsxqs
+typedef struct eXosip_subscribe_t eXosip_subscribe_t;
 
-   3
-   State: ONHOLD
-   Subject: Let's talk 
-   <sip:jack@osip.org>
-   at <sip:jack@anode.osip.org:5080>
-   audio: 9300 RTP/AVP   0 PCMU/8000
-   video: 9320 RTP/AVP   0 XXXqsxqs
+struct eXosip_subscribe_t {
 
-*/
+  int                 s_id;
+  int                 s_online_status; /* User Status */
+  eXosip_dialog_t    *s_dialogs;
+
+  osip_transaction_t *s_inc_tr;
+  osip_transaction_t *s_out_tr;
+
+  eXosip_subscribe_t *next;
+  eXosip_subscribe_t *parent;
+};
+
+typedef struct eXosip_notify_t eXosip_notify_t;
+
+struct eXosip_notify_t {
+
+  int                 n_id;
+  int                 n_online_status; /* User Status */
+  eXosip_dialog_t    *n_dialogs;
+
+  osip_transaction_t *n_inc_tr;
+  osip_transaction_t *n_out_tr;
+
+  eXosip_notify_t    *next;
+  eXosip_notify_t    *parent;
+};
 
 typedef struct eXosip_call_t eXosip_call_t;
 
@@ -215,22 +189,24 @@ typedef struct eXosip_t eXosip_t;
 
 struct eXosip_t {
 
-  FILE          *j_input;
-  FILE          *j_output;
-  eXosip_call_t *j_calls;
+  FILE               *j_input;
+  FILE               *j_output;
+  eXosip_call_t      *j_calls;        /* my calls        */
+  eXosip_subscribe_t *j_subscribes;   /* my freinds      */
+  eXosip_notify_t    *j_notifies;     /* my susbscribers */
   osip_list_t        *j_transactions;
 
-  eXosip_reg_t  *j_reg;
+  eXosip_reg_t       *j_reg;
 
-  void          *j_mutexlock;
-  osip_t        *j_osip;
-  int            j_socket;
-  int            j_stop_ua;
-  void          *j_thread;
+  void               *j_mutexlock;
+  osip_t             *j_osip;
+  int                 j_socket;
+  int                 j_stop_ua;
+  void               *j_thread;
 
   /* configuration informations */
-  jfriend_t     *j_friends;
-  jidentity_t   *j_identitys;
+  jfriend_t          *j_friends;
+  jidentity_t        *j_identitys;
 };
 
 typedef struct jinfo_t jinfo_t;
@@ -280,13 +256,21 @@ int  eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact);
 void eXosip_reg_free(eXosip_reg_t *jreg);
 int  generating_register(osip_message_t **reg, char *transport, char *from, char *proxy);
 
-int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd);
+int eXosip_call_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd);
+int eXosip_notify_dialog_find(int nid, eXosip_notify_t **jn, eXosip_dialog_t **jd);
+int eXosip_subscribe_dialog_find(int nid, eXosip_subscribe_t **js, eXosip_dialog_t **jd);
 int eXosip_call_find(int cid, eXosip_call_t **jc);
 int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, osip_message_t *_200Ok);
 
 void eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 void eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 void eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+void eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jc,
+					eXosip_dialog_t *jd, int code);
+void eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn,
+					eXosip_dialog_t *jd, int code);
+void eXosip_notify_answer_subscribe_3456xx(eXosip_notify_t *jn,
+					   eXosip_dialog_t *jd, int code);
 
 int _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 				  int status, osip_message_t *request);
@@ -294,6 +278,8 @@ int complete_answer_that_establish_a_dialog(osip_message_t *response, osip_messa
 int _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 				       osip_dialog_t *dialog, char *transport);
 
+osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd);
+osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);
@@ -309,6 +295,12 @@ void eXosip_call_set_subject(eXosip_call_t *jc, char *subject);
 int  eXosip_read_message(int max_message_nb, int sec_max, int usec_max);
 void eXosip_release_terminated_calls ( void );
 
+
+int  eXosip_subscribe_init(eXosip_subscribe_t **js);
+void eXosip_subscribe_free(eXosip_subscribe_t *js);
+
+int  eXosip_notify_init(eXosip_notify_t **jn);
+void eXosip_notify_free(eXosip_notify_t *jn);
 
 
 #define REMOVE_ELEMENT(first_element, element)   \

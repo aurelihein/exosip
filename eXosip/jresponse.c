@@ -498,3 +498,176 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   return ;
 }
 
+
+void
+eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int code)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *response;
+  int i;
+  osip_transaction_t *tr;
+  tr = eXosip_find_last_inc_subscribe(jn, jd);
+  if (tr==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      return;
+    }
+
+  if (jd==NULL)
+    i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
+  else
+    i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
+
+  if (i!=0)
+    {
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for subscribe\n"));
+      return;
+    }
+
+  if (code>100)
+    {
+      /* request that estabish a dialog: */
+      /* 12.1.1 UAS Behavior */
+      char *contact;
+      contact = (char *) osip_malloc(50);
+      sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
+	      localip,
+	      localport);
+      i = complete_answer_that_establish_a_dialog(response, tr->orig_request, contact);
+      osip_free(contact);
+
+      if (jd==NULL)
+	{
+	  i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
+	  if (i!=0)
+	    {
+	      fprintf(stderr, "eXosip: cannot create dialog!\n");
+	    }
+	  ADD_ELEMENT(jn->n_dialogs, jd);
+	}
+    }
+
+  evt_answer = osip_new_outgoing_sipmessage(response);
+  evt_answer->transactionid = tr->transactionid;
+
+  osip_transaction_add_event(tr, evt_answer);
+  return ;
+}
+
+void
+eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int code)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *response;
+  int i;
+  osip_transaction_t *tr;
+  tr = eXosip_find_last_inc_subscribe(jn, jd);
+
+  if (tr==NULL || tr->orig_request==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer\n");
+      return;
+    }
+
+  if (jd!=NULL && jd->d_dialog==NULL)
+    {  /* element previously removed, this is a no hop! */
+      fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
+      return ;
+    }
+
+  if (jd==NULL)
+    i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
+  else
+    i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
+
+  if (i!=0)
+    {
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for subscribe\n"));
+      code = 500; /* ? which code to use? */
+      return;
+    }
+
+  /* request that estabish a dialog: */
+  /* 12.1.1 UAS Behavior */
+  {
+    char *contact;
+    contact = (char *) osip_malloc(50);
+    sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
+	    localip,
+	    localport);
+    i = complete_answer_that_establish_a_dialog(response, tr->orig_request,
+						contact);
+    osip_free(contact);
+    if (i!=0) goto g2atii_error_1;; /* ?? */
+  }
+  /* response should contains the allow and supported headers */
+  osip_parser_set_allow(response, "INVITE");
+  osip_parser_set_allow(response, "ACK");
+  osip_parser_set_allow(response, "OPTIONS");
+  osip_parser_set_allow(response, "CANCEL");
+  osip_parser_set_allow(response, "BYE");
+  osip_parser_set_allow(response, "SUBSCRIBE");
+  osip_parser_set_allow(response, "NOTIFY");
+  osip_parser_set_allow(response, "MESSAGE");
+
+  /* THIS RESPONSE MUST BE SENT RELIABILY until the final ACK is received !! */
+  /* this response must be stored at the upper layer!!! (it will be destroyed*/
+  /* right after being sent! */
+
+  if (jd==NULL)
+    {
+      i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
+      if (i!=0)
+	{
+	  fprintf(stderr, "eXosip: cannot create dialog!\n");
+	  return;
+	}
+      ADD_ELEMENT(jn->n_dialogs, jd);
+    }
+
+  eXosip_dialog_set_200ok(jd, response);
+  evt_answer = osip_new_outgoing_sipmessage(response);
+  evt_answer->transactionid = tr->transactionid;
+
+  osip_transaction_add_event(tr, evt_answer);
+
+  osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
+  return ;
+
+ g2atii_error_1:
+  msg_free(response);
+  return ;
+}
+
+void
+eXosip_notify_answer_subscribe_3456xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int code)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *response;
+  int i;
+  osip_transaction_t *tr;
+  tr = eXosip_find_last_inc_subscribe(jn, jd);
+  if (tr==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      return;
+    }
+  i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
+  if (i!=0)
+    {
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for subscribe\n"));
+      return;
+    }
+
+  if (300<=code<=399)
+    {
+      /* Should add contact fields */
+      /* ... */
+    }
+
+  evt_answer = osip_new_outgoing_sipmessage(response);
+  evt_answer->transactionid = tr->transactionid;
+
+  osip_transaction_add_event(tr, evt_answer);
+  return ;
+}

@@ -388,16 +388,9 @@ void eXosip_start_call    (osip_message_t *invite)
   eXosip_call_init(&jc);
   i = osip_parser_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
-  jc->c_dialogs = NULL;
   
   sdp_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
   sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
-
-  jc->c_inc_tr = NULL;
-  jc->c_out_tr = NULL;
-
-  jc->next     = NULL;
-  jc->parent   = NULL;
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -406,7 +399,6 @@ void eXosip_start_call    (osip_message_t *invite)
   if (i!=0)
     {
       /* TODO: release the j_call.. */
-
       msg_free(invite);
       return ;
     }
@@ -428,7 +420,7 @@ void eXosip_answer_call   (int jid, int status)
   eXosip_call_t *jc = NULL;
   if (jid>0)
     {
-      eXosip_dialog_find(jid, &jc, &jd);
+      eXosip_call_dialog_find(jid, &jc, &jd);
     }
   if (jd==NULL)
     {
@@ -469,7 +461,7 @@ void eXosip_on_hold_call  (int jid)
 
   if (jid>0)
     {
-      eXosip_dialog_find(jid, &jc, &jd);
+      eXosip_call_dialog_find(jid, &jc, &jd);
     }
   if (jd==NULL)
     {
@@ -591,7 +583,7 @@ void eXosip_transfer_call(int jid, char *refer_to)
   if (jid<=0)
     return;
 
-  eXosip_dialog_find(jid, &jc, &jd);
+  eXosip_call_dialog_find(jid, &jc, &jd);
   if (jd==NULL || jd->d_dialog==NULL || jd->d_dialog->state==DIALOG_EARLY)
     {
       fprintf(stderr, "eXosip: No established call here!");
@@ -642,7 +634,7 @@ void eXosip_terminate_call(int cid, int jid)
   eXosip_call_t *jc = NULL;
   if (jid>0)
     {
-      eXosip_dialog_find(jid, &jc, &jd);
+      eXosip_call_dialog_find(jid, &jc, &jd);
       if (jd==NULL)
 	{
 	  fprintf(stderr, "eXosip: No call here? ");
@@ -787,4 +779,139 @@ eXosip_register_init(char *from, char *proxy, char *contact)
       return ;
     }
   eXosip.j_reg = jr;
+}
+
+
+void eXosip_subscribe    (char *to, char *from, char *route, char *buff)
+{
+  eXosip_subscribe_t *js;
+  osip_message_t *subscribe;
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  int i;
+    
+  i = generating_message(&subscribe, to, from, route, buff);
+  if (i!=0) 
+    {
+      fprintf(stderr, "eXosip: cannot subscribe (cannot build SUBSCRIBE)! ");
+      return;
+    }
+
+  i = eXosip_subscribe_init(&js);
+  if (i!=0)
+    {
+      fprintf(stderr, "eXosip: cannot subscribe.");
+      return;
+    }
+  
+  i = osip_transaction_init(&transaction,
+		       NICT,
+		       eXosip.j_osip,
+		       subscribe);
+  if (i!=0)
+    {
+      msg_free(subscribe);
+      return ;
+    }
+  
+  js->s_out_tr = transaction;
+  
+  sipevent = osip_new_outgoing_sipmessage(subscribe);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_add_event(transaction, sipevent);
+
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, js, NULL));
+  ADD_ELEMENT(eXosip.j_subscribes, js);
+}
+
+
+void eXosip_notify  (int nid, int status)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_notify_t *jn = NULL;
+
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  osip_message_t *notify;
+  int i;
+
+  if (nid>0)
+    {
+      eXosip_notify_dialog_find(nid, &jn, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No subscribe dialog here?\n");
+      return;
+    }
+
+  transaction = eXosip_find_last_out_notify(jn, jd);
+  if (transaction!=NULL)
+    {
+      if (transaction->state!=NICT_TERMINATED &&
+	  transaction->state!=NIST_TERMINATED)
+	return;
+    }
+
+  i = _eXosip_build_request_within_dialog(&notify, "NOTIFY", jd->d_dialog, "UDP");
+  if (i!=0) {
+    return;
+  }
+
+  jn->n_online_status = status;
+
+  i = osip_transaction_init(&transaction,
+		       NICT,
+		       eXosip.j_osip,
+		       notify);
+  if (i!=0)
+    {
+      /* TODO: release the j_call.. */
+      msg_free(notify);
+      return ;
+    }
+  
+  osip_list_add(jd->d_out_trs, transaction, 0);
+  
+  sipevent = osip_new_outgoing_sipmessage(notify);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_add_event(transaction, sipevent);
+
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, jn));
+}
+
+void eXosip_notify_accept_subscribe   (int nid, int code, int status)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_notify_t *jn = NULL;
+  if (nid>0)
+    {
+      eXosip_notify_dialog_find(nid, &jn, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return;
+    }
+  if (code>100 && code<200)
+    {
+      eXosip_notify_answer_subscribe_1xx(jn, jd, code);
+    }
+  else if (code>199 && code<300)
+    {
+      eXosip_notify_answer_subscribe_2xx(jn, jd, code);
+    }
+  else if (code>300 && code<699)
+    {
+      eXosip_notify_answer_subscribe_3456xx(jn, jd, code);
+    }
+  else
+    {
+      fprintf(stderr, "eXosip: wrong status code (101<code<699)\n");
+      return;
+    }
+
+  eXosip_notify(nid, status);
 }

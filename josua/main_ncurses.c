@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.10 2003-03-29 17:00:20 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.11 2003-03-30 18:45:12 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -1101,10 +1101,14 @@ void __josua_menu() {
 	c= getch();
       }
     //    while (c == ERR && errno == EINTR);
-    while (c == ERR || errno == EINTR);
+    while (c == ERR && errno == EINTR);
+
     if (c==ERR)  {
       if(errno != 0)
-	fprintf(stderr, "failed to getch in main menu\n");
+	{
+	  fprintf(stderr, "failed to getch in main menu\n");
+	  exit(1);
+	}
       else {
 	/*
 	  clearok(stdscr,TRUE);
@@ -1113,8 +1117,7 @@ void __josua_menu() {
 	  dme(cursor,1); */
       }
     }
-    
-    if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
+    else if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
       dme(cursor,0); cursor++; cursor %= NBELEMENT_IN_MENU; dme(cursor,1);
     } else if (c==C('p') || c==KEY_UP || c==C('h') ||
                c==KEY_BACKSPACE || c==KEY_DC || c=='k') {

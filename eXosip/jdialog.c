@@ -31,20 +31,48 @@ void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state)
   jd->d_STATE = state;
 }
 
-int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd)
+int eXosip_call_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd)
 {
   for (*jc=eXosip.j_calls; *jc!=NULL; *jc=(*jc)->next)
     {
       for (*jd=(*jc)->c_dialogs; *jd!=NULL; *jd=(*jd)->next)
 	{
 	  if ((*jd)->d_id==jid)
-	    {
-	      return 0;
-	    }
+	    return 0;
 	}
     }
   *jd = NULL;
   *jc = NULL;
+  return -1;
+}
+
+int eXosip_notify_dialog_find(int nid, eXosip_notify_t **jn, eXosip_dialog_t **jd)
+{
+  for (*jn=eXosip.j_notifies; *jn!=NULL; *jn=(*jn)->next)
+    {
+      for (*jd=(*jn)->n_dialogs; *jd!=NULL; *jd=(*jd)->next)
+	{
+	  if ((*jd)->d_id==nid)
+	      return 0;
+	}
+    }
+  *jd = NULL;
+  *jn = NULL;
+  return -1;
+}
+
+int eXosip_subscribe_dialog_find(int sid, eXosip_subscribe_t **js, eXosip_dialog_t **jd)
+{
+  for (*js=eXosip.j_subscribes; *js!=NULL; *js=(*js)->next)
+    {
+      for (*jd=(*js)->s_dialogs; *jd!=NULL; *jd=(*jd)->next)
+	{
+	  if ((*jd)->d_id==sid)
+	      return 0;
+	}
+    }
+  *jd = NULL;
+  *js = NULL;
   return -1;
 }
 
