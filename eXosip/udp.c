@@ -93,10 +93,10 @@ int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
   osip_generic_param_t *br;
   osip_generic_param_t *br2;
   osip_via_t *via;
-  osip_via_param_get_byname (invite->topvia, "branch", &br);
+  osip_via_param_get_by_name (invite->topvia, "branch", &br);
   via = osip_list_get(cancel->vias, 0);
   if (via==NULL) return -1; /* request without via??? */
-  osip_via_param_get_byname (via, "branch", &br2);
+  osip_via_param_get_by_name (via, "branch", &br2);
   if (br!=NULL && br2==NULL)
     return -1;
   if (br2!=NULL && br==NULL)
