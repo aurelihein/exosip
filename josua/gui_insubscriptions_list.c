@@ -132,9 +132,11 @@ void window_insubscriptions_list_draw_commands()
     "a",  "Accept",
     "c",  "Close" ,
     "o",  "Online",
-    "g",  "Gone",
-    "O",  "OnlineAll",
-    "G",  "GoneAll",
+    "g",  "Away",
+    "b",  "Busy",
+    "5",  "BackSoon",
+    "p",  "OnthePhone",
+    "l",  "OutToLunch",
     "t",  "ViewSubscribers",
     NULL
   };
@@ -149,6 +151,12 @@ int window_insubscriptions_list_run_command(int c)
   int i;
   int max;
   int y,x;
+
+  int do_notify = 0;
+  int do_allnotify = 0;
+  int online_state;
+  int sub_state;
+
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
 
   getmaxyx(stdscr,y,x);
@@ -187,12 +195,9 @@ int window_insubscriptions_list_run_command(int c)
       break;
 
     case 'a':
-      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (js==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
-      if (i!=0) beep();
-      eXosip_unlock();
+      do_notify = 1;
+      online_state = EXOSIP_NOTIFY_ONLINE;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
       break;
     case 'c':
       js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
@@ -204,57 +209,88 @@ int window_insubscriptions_list_run_command(int c)
 	jinsubscription_remove(js);
       eXosip_unlock();
       break;
-    case 'o':
-      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (js==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
-      if (i!=0) beep();
-      eXosip_unlock();
-      break;
-    case 'g':
-      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (js==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_AWAY);
-      if (i!=0) beep();
-      eXosip_unlock();
-      break;
     case 'O':
-      {
-	int k;
-	josua_online_status = EXOSIP_NOTIFY_ONLINE;
-	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
-	  {
-	    if (jinsubscriptions[k].state != NOT_USED)
-	      {
-		eXosip_lock();
-		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, josua_online_status);
-		if (i!=0) beep();
-		eXosip_unlock();
-	      }
-	  }
-      }
+      do_allnotify = 1;
+      online_state = EXOSIP_NOTIFY_ONLINE;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'o':
+      do_notify = 1;
+      online_state = EXOSIP_NOTIFY_ONLINE;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
       break;
     case 'G':
-      {
-	int k;
-	josua_online_status = EXOSIP_NOTIFY_AWAY;
-	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
-	  {
-	    if (jinsubscriptions[k].state != NOT_USED)
-	      {
-		eXosip_lock();
-		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, josua_online_status);
-		if (i!=0) beep();
-		eXosip_unlock();
-	      }
-	  }
-      }
+      do_allnotify = 1;
+      online_state = EXOSIP_NOTIFY_AWAY;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'g':
+      do_notify = 1;
+      online_state = EXOSIP_NOTIFY_AWAY;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'B':
+      do_allnotify = 1;
+      online_state = EXOSIP_NOTIFY_BUSY;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'b':
+      do_notify = 1;
+      online_state = EXOSIP_NOTIFY_BUSY;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case '5':
+      do_notify = 1;
+      online_state = EXOSIP_NOTIFY_BERIGHTBACK;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'P':
+      do_allnotify = 1;
+      online_state = EXOSIP_NOTIFY_ONTHEPHONE;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'p':
+      do_notify = 1;
+      online_state = EXOSIP_NOTIFY_ONTHEPHONE;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'L':
+      do_allnotify = 1;
+      online_state = EXOSIP_NOTIFY_OUTTOLUNCH;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
+      break;
+    case 'l':
+      do_notify = 1;
+      online_state = EXOSIP_NOTIFY_OUTTOLUNCH;
+      sub_state = EXOSIP_SUBCRSTATE_ACTIVE;
       break;
     default:
       beep();
       return -1;
+    }
+
+  if (do_notify==1)
+    {
+      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
+      if (js==NULL) { beep(); return -1; }
+      eXosip_lock();
+      i = eXosip_notify(js->did, sub_state, online_state);
+      if (i!=0) beep();
+      eXosip_unlock();
+    }
+  else if (do_allnotify==1)
+    {
+      int k;
+      for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
+	{
+	  if (jinsubscriptions[k].state != NOT_USED)
+	    {
+	      eXosip_lock();
+	      i = eXosip_notify(jinsubscriptions[k].did, sub_state, online_state);
+	      if (i!=0) beep();
+	      eXosip_unlock();
+	    }
+	}
     }
 
   if (gui_window_insubscriptions_list.on_off==GUI_ON)
