@@ -27,12 +27,15 @@
 #include <sys/ioctl.h>
 #endif
 
+#define AUDIO_DEVICE "/dev/dsp"
 extern char    *localip;
+
+#elif defined(MEDIASTREAMER_SUPPORT)
+
 #endif
 
 jcall_t jcalls[MAX_NUMBER_OF_CALLS];
 
-#define AUDIO_DEVICE "/dev/dsp"
 
 static int ___call_init = 0;
 
@@ -103,6 +106,11 @@ static int __call_init()
   }
   printf("blocksize = %i\n", min_size);
 #endif
+#elif defined(MEDIASTREAMER_SUPPORT)
+  ortp_init();
+  ortp_set_debug_file("oRTP",NULL);
+  rtp_profile_set_payload(&av_profile,115,&lpc1015);
+  rtp_profile_set_payload(&av_profile,110,&speex_nb);
 #endif
   return 0;
 }
@@ -269,6 +277,16 @@ int jcall_new(eXosip_event_t *je)
 					    jcall_ortp_start_out_thread, ca);
       ca->enable_audio=1; /* audio is started */
 
+#elif defined(MEDIASTREAMER_SUPPORT)
+      ms_init();
+      ms_speex_codec_init();
+      ca->audio=audio_stream_start(&av_profile,
+				   10500,
+				   ca->remote_sdp_audio_ip,
+				   ca->remote_sdp_audio_port,
+				   ca->payload,
+				   250);
+      ca->enable_audio=1; /* audio is started */
 #endif
     }
 
@@ -504,6 +522,16 @@ int jcall_answered(eXosip_event_t *je)
       ca->out_audio_thread = osip_thread_create(20000,
 					    jcall_ortp_start_out_thread, ca);
       ca->enable_audio=1; /* audio is started */
+#elif defined(MEDIASTREAMER_SUPPORT)
+      ms_init();
+      ms_speex_codec_init();
+      ca->audio=audio_stream_start(&av_profile,
+				   10500,
+				   ca->remote_sdp_audio_ip,
+				   ca->remote_sdp_audio_port,
+				   ca->payload,
+				   250);
+      ca->enable_audio=1; /* audio is started */
 #endif
     }
 
@@ -551,6 +579,12 @@ int jcall_redirected(eXosip_event_t *je)
 						(RtpCallback)rcv_telephone_event);
       rtp_session_destroy(ca->rtp_session);
     }
+#elif defined(MEDIASTREAMER_SUPPORT)
+  if (ca->enable_audio>0)
+    {
+      audio_stream_stop(ca->audio);
+      ca->enable_audio = -1;
+    }
 #endif
 
   ca->state = NOT_USED;
@@ -591,6 +625,12 @@ int jcall_requestfailure(eXosip_event_t *je)
       rtp_session_signal_disconnect_by_callback(ca->rtp_session, "telephone-event",
 						(RtpCallback)rcv_telephone_event);
       rtp_session_destroy(ca->rtp_session);
+    }
+#elif defined(MEDIASTREAMER_SUPPORT)
+  if (ca->enable_audio>0)
+    {
+      audio_stream_stop(ca->audio);
+      ca->enable_audio = -1;
     }
 #endif
 
@@ -634,6 +674,12 @@ int jcall_serverfailure(eXosip_event_t *je)
 						(RtpCallback)rcv_telephone_event);
       rtp_session_destroy(ca->rtp_session);
     }
+#elif defined(MEDIASTREAMER_SUPPORT)
+  if (ca->enable_audio>0)
+    {
+      audio_stream_stop(ca->audio);
+      ca->enable_audio = -1;
+    }
 #endif
 
   ca->state = NOT_USED;
@@ -675,6 +721,12 @@ int jcall_globalfailure(eXosip_event_t *je)
 						(RtpCallback)rcv_telephone_event);
       rtp_session_destroy(ca->rtp_session);
     }
+#elif defined(MEDIASTREAMER_SUPPORT)
+  if (ca->enable_audio>0)
+    {
+      audio_stream_stop(ca->audio);
+      ca->enable_audio = -1;
+    }
 #endif
 
   ca->state = NOT_USED;
@@ -714,6 +766,12 @@ int jcall_closed(eXosip_event_t *je)
       rtp_session_signal_disconnect_by_callback(ca->rtp_session, "telephone-event",
 						(RtpCallback)rcv_telephone_event);
       rtp_session_destroy(ca->rtp_session);
+    }
+#elif defined(MEDIASTREAMER_SUPPORT)
+  if (ca->enable_audio>0)
+    {
+      audio_stream_stop(ca->audio);
+      ca->enable_audio = -1;
     }
 #endif
 

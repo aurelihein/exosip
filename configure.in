@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.9 $)dnl
+AC_REVISION($Revision: 1.10 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(eXosip/eXosip.h)
 
@@ -56,6 +56,14 @@ AC_ARG_ENABLE(josua,
 [  --disable-josua         do not compile josua.],
 disable_josua=$enableval,disable_josua="yes")
 
+AC_ARG_ENABLE(mediastreamer,
+[  --enable-mediastreamer  link with the mediastreamer.],
+enable_mediastreamer=$enableval,enable_mediastreamer="yes")
+
+AC_ARG_ENABLE(ortp,
+[  --enable-ortp           do not use ortp.],
+enable_ortp=$enableval,enable_ortp="no")
+
 AC_ARG_ENABLE(debug,
 [  --disable-debug         turn off debugging.],
 disable_debug=$enableval,disable_debug="yes")
@@ -103,8 +111,6 @@ disable_ncurses=$enableval,disable_ncurses="yes")
 
 JOSUA_FLAGS="-DOSIP_AT_OSIP_DOT_ORG"
 
-AM_CONDITIONAL(COMPILE_JOSUA, test "x$disable_josua" = "xyes")
-
 dnl compile with mt support
 if test "x$enable_mt" = "xyes"; then
   if test "x$enable_pth" = "xyes"; then
@@ -119,6 +125,27 @@ dnl    EXOSIP_LIB="-lpthread"
   fi
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
 fi
+
+AM_CONDITIONAL(COMPILE_JOSUA, test "x$disable_josua" = "xyes")
+
+dnl if test "x$enable_mediastreamer" = "xyes"; then
+dnl  AM_PATH_GLIB_2_0(2.0.0, ,
+dnl	[echo "Glib (> 2.0.0) has not been found"
+dnl	enable_mediastreamer="no"
+dnl	],
+dnl	gthread gmodule)
+dnl fi
+
+if test "x$enable_mediastreamer" = "xyes"; then
+  JOSUA_FLAGS="$JOSUA_FLAGS -DMEDIASTREAMER_SUPPORT"
+fi
+
+if test "x$enable_ortp" = "xyes"; then
+  JOSUA_FLAGS="$JOSUA_FLAGS -DORTP_SUPPORT"
+fi
+
+AM_CONDITIONAL(COMPILE_ORTP, test "x$enable_ortp" = "xyes")
+AM_CONDITIONAL(COMPILE_MEDIASTREAMER, test "x$enable_mediastreamer" = "xyes")
 
 if test "x$enable_semaphore" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DHAVE_SEMAPHORE_H"

@@ -3,8 +3,13 @@ if COMPILE_JOSUA
 bin_PROGRAMS = josua
 endif
 
-AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ \
-`pkg-config --cflags glib-2.0`
+if COMPILE_MEDIASTREAMER
+AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@
+#AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ \
+#$(GLIB_CFLAGS)
+else
+AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@
+endif
 
 josua_SOURCES = jcalls.c \
 commands.c      gui_menu.c         jconfig.c          \
@@ -27,9 +32,27 @@ jinsubscriptions.c jinsubscriptions.h \
 gui_online.c gui_online.h
 
 
-josua_LDFLAGS = -O  -Wall `pkg-config --libs glib-2.0`
+josua_LDFLAGS = -O  -Wall
+
+if COMPILE_MEDIASTREAMER
+
 josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
-$(top_builddir)/eXosip/libeXosip.la -lortp  -lm
+$(top_builddir)/eXosip/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex
+#$(top_builddir)/eXosip/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex $(GLIB_LIBS)
+
+else
+if COMPILE_ORTP
+
+josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
+$(top_builddir)/eXosip/libeXosip.la -lortp  -lm -lortp
+
+else
+
+josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
+$(top_builddir)/eXosip/libeXosip.la -lortp  -lm 
+
+endif
+endif
 
 INCLUDES = -I$(top_srcdir) -I$(includedir) -I$(includedir)/ortp
 

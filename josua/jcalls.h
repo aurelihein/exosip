@@ -21,10 +21,20 @@
 #ifndef __JCALLS_H__
 #define __JCALLS_H__
 
+#include <stdio.h>
 #ifdef ORTP_SUPPORT
+
 #undef PACKAGE
 #undef VERSION
 #include <ortp.h>
+
+#elif defined(MEDIASTREAMER_SUPPORT)
+
+#undef PACKAGE
+#undef VERSION
+#include <mediastream.h>
+#undef PACKAGE
+#undef VERSION
 #endif
 
 #include <eXosip/eXosip.h>
@@ -49,10 +59,13 @@ struct jcall {
   char payload_name[50];
   
 #ifdef ORTP_SUPPORT
-  RtpSession *rtp_session;
   int enable_audio; /* 0 started, -1 stopped */
+  RtpSession *rtp_session;
   struct osip_thread *audio_thread;
   struct osip_thread *out_audio_thread;
+#elif defined(MEDIASTREAMER_SUPPORT)
+  int enable_audio; /* 0 started, -1 stopped */
+  AudioStream *audio;
 #endif
 
 #define NOT_USED      0
