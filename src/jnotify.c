@@ -123,6 +123,7 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
       return -1;
     }
   osip_strncpy((*jn)->n_uri, uri, 254);
+  osip_free(uri);
 
   if (inc_subscribe->to->url->username!=NULL)
     {
