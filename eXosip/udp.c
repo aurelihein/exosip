@@ -769,11 +769,8 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   osip_message_header_get_byname(evt->sip, "expires",
 				 0,
 				 &expires);
-  if (expires==NULL||expires->hvalue==NULL)
-    {
-      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
-    }
-  else if (0==osip_strcasecmp(expires->hvalue, "0"))
+  if (expires!=NULL||expires->hvalue!=NULL
+      && 0==osip_strcasecmp(expires->hvalue, "0"))
     {
       /* delete the dialog! */
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
@@ -781,7 +778,55 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
     }
   else
     {
+      osip_content_type_t *ctype;
+      osip_body_t *body = NULL;
       osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+      js->s_ss_status = EXOSIP_SUBCRSTATE_ACTIVE;
+      js->s_online_status = EXOSIP_NOTIFY_UNKNOWN; /* default value */
+
+      ctype = osip_parser_get_content_type(evt->sip);
+      if (ctype!=NULL && ctype->type!=NULL && ctype->subtype!=NULL)
+	{
+	  if (0==osip_strcasecmp(ctype->type, "application")
+	      && 0==osip_strcasecmp(ctype->subtype, "xpidf+xml"))
+	    osip_parser_get_body(evt->sip, 0, &body);
+	  else
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
+				    "Unknown body: %s/%s\n",
+				    ctype->type, ctype->subtype));
+	    }
+	}
+
+      if (body!=NULL)
+	{
+	  /* search for the open string */
+	  char *tmp = body->body;
+	  while (tmp!='\0')
+	    {
+	      if (tmp[0]=='o' && 0==strncmp(tmp, "online", 6))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_ONLINE;
+		  /* search for the contact entry */
+		  while (tmp[0]!='\0')
+		    {
+		      if (tmp[0]=='c' && 0==strncmp(tmp, "contact", 7))
+			{
+			  /* ... */
+			}
+		      tmp++;
+		    }
+		  break;
+		}
+	      else if (tmp[0]=='c' && 0==strncmp(tmp, "busy", 4))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_AWAY;
+		  break;
+		}
+	      tmp++;
+	    }
+	}
+
     }
 #else
   /* modify the status of user */
@@ -841,7 +886,8 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       js->s_ss_status = EXOSIP_SUBCRSTATE_PENDING;
       js->s_online_status = EXOSIP_NOTIFY_PENDING;
     }
-  else if (0==osip_strncasecmp(sub_state->hvalue, "terminated", 10))
+
+  if (0==osip_strncasecmp(sub_state->hvalue, "terminated", 10))
     {
       /* delete the dialog! */
       js->s_ss_status = EXOSIP_SUBCRSTATE_TERMINATED;
