@@ -122,7 +122,7 @@ char *eXosip_guess_ip_for_via ()
 	return NULL;
 }
 
-PPL_DECLARE (int)
+int
 ppl_dns_get_local_fqdn (char **servername, char **serverip,
 			char **netmask, unsigned int WIN32_interface)
 {
@@ -198,10 +198,16 @@ ppl_dns_get_local_fqdn (char **servername, char **serverip,
 
 #else /* sun, *BSD, linux, and other? */
 
+
+#if defined WIN32
+#include <winsock.h>
+#else if 
+// end andrea
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
 #include <sys/ioctl.h>
 #include <net/route.h>

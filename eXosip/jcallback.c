@@ -24,10 +24,16 @@
 
 #include <eXosip.h>
 
+
+#if defined WIN32
+#include <winsock.h>
+#else if 
+// end andrea
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
 extern eXosip_t eXosip;
 

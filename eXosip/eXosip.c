@@ -27,10 +27,14 @@
 
 #include <osip2/thread.h>
 
+#if defined WIN32
+#include <winsock.h>
+#else
+// end andrea
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-//#include <arpa/inet.h>
+#endif
 
 #include <unistd.h>
 

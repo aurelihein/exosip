@@ -25,6 +25,13 @@
 #ifndef __EXOSIP_H__
 #define __EXOSIP_H__
 
+#ifdef WIN32
+#include <stdio.h>
+#include <stdlib.h>
+#define snprintf _snprintf
+#define close(s) closesocket(s)
+#endif
+
 #include <stdio.h>
 
 #include <osip2/osip.h>
