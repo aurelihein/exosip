@@ -113,10 +113,16 @@ eXosip_notify_free(eXosip_notify_t *jn)
 
   __eXosip_delete_jinfo(jn->n_inc_tr);
   __eXosip_delete_jinfo(jn->n_out_tr);
-  osip_transaction_set_your_instance(jn->n_inc_tr, NULL);
-  osip_list_add(eXosip.j_transactions, jn->n_inc_tr, 0);
-  osip_transaction_set_your_instance(jn->n_out_tr, NULL);
-  osip_list_add(eXosip.j_transactions, jn->n_out_tr, 0);
+  if (jn->n_inc_tr!=NULL)
+    {
+      osip_transaction_set_your_instance(jn->n_inc_tr, NULL);
+      osip_list_add(eXosip.j_transactions, jn->n_inc_tr, 0);
+    }
+  if (jn->n_out_tr!=NULL)
+    {
+      osip_transaction_set_your_instance(jn->n_out_tr, NULL);
+      osip_list_add(eXosip.j_transactions, jn->n_out_tr, 0);
+    }
 
   osip_free(jn);
 }

@@ -151,11 +151,63 @@ void cb_ist_kill_transaction(int type, osip_transaction_t *tr)
 void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
 {
   int i;
+  eXosip_dialog_t    *jd;
+  eXosip_call_t      *jc;
+  eXosip_subscribe_t *js;
+  eXosip_notify_t    *jn;
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_nict_kill_transaction (id=%i)\r\n", tr->transactionid));
   i = osip_remove_nict(eXosip.j_osip, tr);
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_BUG,NULL,"cb_nict_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n", tr->transactionid));
+    }
+
+  if (jinfo==NULL)
+    return;
+  jd = jinfo->jd;
+  jc = jinfo->jc;
+  jn = jinfo->jn;
+  js = jinfo->js;
+
+  if (jn==NULL && js==NULL)
+    return;
+
+  /* no answer to a NOTIFY request! */
+  if (MSG_IS_NOTIFY(tr->orig_request)
+      && type==OSIP_NICT_KILL_TRANSACTION
+      && tr->last_response==NULL)
+    {
+      /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_notifies, jn);
+      eXosip_notify_free(jn);
+    }
+
+  /* no answer to a SUBSCRIBE request! */
+  if (MSG_IS_SUBSCRIBE(tr->orig_request)
+      && type==OSIP_NICT_KILL_TRANSACTION
+      && tr->last_response==NULL)
+    {
+      /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_subscribes, js);
+      eXosip_subscribe_free(js);
+    }
+
+  /* no answer to a SUBSCRIBE request! */
+  if (MSG_IS_SUBSCRIBE(tr->orig_request)
+      && type==OSIP_NICT_KILL_TRANSACTION)
+    {
+      osip_header_t *expires;
+      osip_parser_get_expires(tr->orig_request, 0, &expires);
+      if (expires==NULL || expires->hvalue==NULL)
+	{
+	}
+      else if (0==strcmp(expires->hvalue, "0"))
+	{
+	  /* delete the dialog! */
+	  REMOVE_ELEMENT(eXosip.j_subscribes, js);
+	  eXosip_subscribe_free(js);
+	}
     }
 }
 
@@ -168,6 +220,7 @@ void cb_nist_kill_transaction(int type, osip_transaction_t *tr)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_BUG,NULL,"cb_nist_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n", tr->transactionid));
     }
+
 }
   
 void cb_rcvinvite  (int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -690,7 +743,8 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       else if (0==osip_strcasecmp(expires->hvalue, "0"))
 	{
 	  /* delete the dialog! */
-	  eXosip_subscribe_free(js);
+	  REMOVE_ELEMENT(eXosip.j_notifies, jn);
+	  eXosip_notify_free(jn);
 	}
 #else
       osip_header_t  *sub_state;
@@ -703,7 +757,8 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       else if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
 	{
 	  /* delete the dialog! */
-	  eXosip_subscribe_free(js);
+	  REMOVE_ELEMENT(eXosip.j_notifies, jn);
+	  eXosip_notify_free(jn);
 	}
 #endif
     }
@@ -934,34 +989,6 @@ void cb_rcvreq_retransmission(int type, osip_transaction_t *tr, osip_message_t *
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvreq_retransmission (id=%i)\r\n", tr->transactionid));
 }
-  
-void cb_killtransaction(int type, osip_transaction_t *tr)
-{
-  eXosip_dialog_t    *jd;
-  eXosip_call_t      *jc;
-  eXosip_subscribe_t *js;
-  eXosip_notify_t    *jn;
-  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
-  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_killtransaction (id=%i)\r\n", tr->transactionid));
-  if (jinfo==NULL)
-    return;
-  jd = jinfo->jd;
-  jc = jinfo->jc;
-  jn = jinfo->jn;
-  js = jinfo->js;
-
-  if (jn==NULL)
-    return;
-
-  /* no answer to a NOTIFY request! */
-  if (MSG_IS_NOTIFY(tr->orig_request)
-      && type==OSIP_NICT_KILL_TRANSACTION
-      && tr->last_response==NULL)
-    {
-      /* delete the dialog! */
-      eXosip_notify_free(jn);
-    }
-}
 
 void cb_endoftransaction(int type, osip_transaction_t *tr)
 {
@@ -983,14 +1010,23 @@ void cb_transport_error(int type, osip_transaction_t *tr, int error)
   jn = jinfo->jn;
   js = jinfo->js;
 
-  if (jn==NULL)
+  if (jn==NULL || js==NULL)
     return;
 
   if (MSG_IS_NOTIFY(tr->orig_request)
       && type==OSIP_NICT_TRANSPORT_ERROR)
     {
       /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_notifies, jn);
       eXosip_notify_free(jn);
+    }
+
+  if (MSG_IS_SUBSCRIBE(tr->orig_request)
+      && type==OSIP_NICT_TRANSPORT_ERROR)
+    {
+      /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_subscribes, js);
+      eXosip_subscribe_free(js);
     }
 
 }

@@ -836,7 +836,7 @@ void eXosip_subscribe    (char *to, char *from, char *route)
       return;
     }
 
-  i = eXosip_subscribe_init(&js);
+  i = eXosip_subscribe_init(&js, to);
   if (i!=0)
     {
       fprintf(stderr, "eXosip: cannot subscribe.");
@@ -884,7 +884,7 @@ void eXosip_subscribe_refresh  (int sid)
   eXosip_subscribe_send_subscribe(js, jd, "600");
 }
 
-void eXosip_close_subscribe(int sid)
+void eXosip_subscribe_close(int sid)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_subscribe_t *js = NULL;

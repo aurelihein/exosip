@@ -87,11 +87,13 @@ eXosip_find_last_inc_notify(eXosip_subscribe_t *js, eXosip_dialog_t *jd )
 }
 
 int
-eXosip_subscribe_init(eXosip_subscribe_t **js)
+eXosip_subscribe_init(eXosip_subscribe_t **js, char *uri)
 {
+  if (uri==NULL) return -1;
   *js = (eXosip_subscribe_t *)osip_malloc(sizeof(eXosip_subscribe_t));
   if (*js == NULL) return -1;
   memset(*js, 0, sizeof(eXosip_subscribe_t));
+  osip_strncpy((*js)->s_uri, uri, strlen(uri));
   return 0;
 }
 
@@ -110,10 +112,16 @@ eXosip_subscribe_free(eXosip_subscribe_t *js)
 
   __eXosip_delete_jinfo(js->s_inc_tr);
   __eXosip_delete_jinfo(js->s_out_tr);
-  osip_transaction_set_your_instance(js->s_inc_tr, NULL);
-  osip_list_add(eXosip.j_transactions, js->s_inc_tr, 0);
-  osip_transaction_set_your_instance(js->s_out_tr, NULL);
-  osip_list_add(eXosip.j_transactions, js->s_out_tr, 0);
+  if (js->s_inc_tr!=NULL)
+    {
+      osip_transaction_set_your_instance(js->s_inc_tr, NULL);
+      osip_list_add(eXosip.j_transactions, js->s_inc_tr, 0);
+    }
+  if (js->s_out_tr!=NULL)
+    {
+      osip_transaction_set_your_instance(js->s_out_tr, NULL);
+      osip_list_add(eXosip.j_transactions, js->s_out_tr, 0);
+    }
 
   osip_free(js);
 }

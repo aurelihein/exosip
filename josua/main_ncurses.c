@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.16 2003-04-05 17:21:32 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.17 2003-04-10 11:20:17 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -50,6 +50,26 @@ extern eXosip_t eXosip;
 
 static char *from = "<sip:jack@atosc.org>";
 
+
+typedef struct _main_config_t {
+  char  config_file[256];    /* -f <config file>   */
+  char  identity_file[256];  /* -I <identity file> */
+  char  contact_file[256];   /* -C <contact file>  */
+  char  log_file[256];       /* -L <log file>      */
+  int   debug_level;         /* -d <verbose level>   */
+  int   port;                /* -p <SIP port>  default is 5060 */
+  char  identity[256];       /* -i <from url>  local identity */
+
+  /* the application can command to make a new call */
+  char  to[255];             /* -t <sipurl to call>!  */
+  char  route[256];          /* -r <sipurl for route> */
+  char  subject[256];        /* -s <subject>          */
+  int   timeout;        /* -T <delay> connection is closed after 60s */
+} main_config_t;
+
+main_config_t cfg = {
+  "\0", "\0", "\0", "\0", 1, 5060, "\0", "\0", "\0", "\0", 60
+};
 
 typedef struct menu_t {
   const char *command;
@@ -718,6 +738,7 @@ nctab_get_values(nctab_t (*nctab)[],
 }
 
 static int cur_pos = 0;
+static int last_cur_pos = 13;
 
 void print_calls()
 {
@@ -1005,7 +1026,22 @@ void print_notifies()
     {
       icon = 0;
     }
-    
+
+  /* save last cur_pos and erase old extra entries. */
+  {
+    int i = cur_pos;
+    attrset(A_NORMAL);
+    for (;;i++) 
+      {
+	if (i>last_cur_pos)
+	  break;
+	sprintf(buf, " %80.80s", " ");
+	mvaddnstr(cur_pos,0,buf,x-1);
+      }
+  }
+  last_cur_pos = cur_pos;
+
+
   eXosip_unlock();
 
 }
@@ -1099,7 +1135,7 @@ void print_subscriber(int i, jsubscriber_t *js, int so)
 void print_menu(int menu)
 {
   int y,x;
-  char buf[120];
+  char buf[250];
   const menu_t *mep;
   int i;
 
@@ -1107,7 +1143,7 @@ void print_menu(int menu)
   refresh();
   clear();
 
-  sprintf(buf,"powered by eXosip/osip2. %-50.50s"," ");
+  sprintf(buf,"Josua 0.6.2 \\\\//                                     Powered by eXosip/osip2. %-50.50s"," ");
   getmaxyx(stdscr,y,x);
   attrset(A_NORMAL);
   attrset(COLOR_PAIR(1));
@@ -1324,10 +1360,32 @@ int __josua_choose_subscriber_in_list() {
   int cursor=0;
   jsubscriber_t *js;
   int max;
+  int x,y;
+  char buf[200];
 
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
   refresh();
   clear();
+
+  getmaxyx(stdscr,y,x);
+  attrset(A_NORMAL);
+  attrset(COLOR_PAIR(1));
+  sprintf(buf,"  Main Menu     Subscribe To   Delete user%80.80s"," ");
+  mvaddnstr(y-2,0, buf,x-1);
+  sprintf(buf,"  Accept user   Reject user%80.80s", " ");
+  mvaddnstr(y-1,0, buf,x-1);
+
+  /* print letters for the menu. */
+  attrset(A_STANDOUT);
+  attrset(COLOR_PAIR(3));
+  /*  attrset(A_REVERSE); */
+  mvaddnstr(y-2,0, "<",x-1);
+  mvaddnstr(y-1,0, "a",x-1);
+
+  mvaddnstr(y-2,14, "s",1);
+  mvaddnstr(y-1,14, "r",1);
+
+  mvaddnstr(y-2,29, "d",1);
 
   eXosip_lock();
   if (eXosip.j_subscribers!=NULL)
@@ -1384,6 +1442,39 @@ int __josua_choose_subscriber_in_list() {
       } else {
         beep();
       }
+    } else if (c=='<' || c=='q') {
+      return -1;
+    } else if (c=='s') {
+      /* send a SUBSCRIBE? */
+      char *uri;
+      eXosip_lock();
+      uri = jsubscriber_get_uri(cursor);
+      eXosip_subscribe(uri, cfg.identity, cfg.route);
+      osip_free(uri);
+      eXosip_unlock();
+    } else if (c=='d') {
+      /* send a SUBSCRIBE? */
+      char *uri;
+      eXosip_subscribe_t *js;
+      eXosip_lock();
+      uri = jsubscriber_get_uri(cursor);
+      /* find the id of context */
+      for (js = eXosip.j_subscribes;js!=NULL; js=js->next)
+	{
+	  if (js->s_id!=-1 && 0==strcmp(js->s_uri, uri))
+	    {
+	      if (js->s_dialogs!=NULL)
+		eXosip_subscribe_close(js->s_dialogs->d_id);
+	      else
+		{ /* Can I safely remove it? */
+		  REMOVE_ELEMENT(eXosip.j_subscribes, js);
+		  eXosip_subscribe_free(js);
+		}
+	      break;
+	    }
+	}
+      osip_free(uri);
+      eXosip_unlock();
     } else if (c=='a') {
       /* Allow */
       int pos = cursor;
@@ -1513,26 +1604,6 @@ void __josua_menu() {
     }
   }
 }
-
-typedef struct _main_config_t {
-  char  config_file[256];    /* -f <config file>   */
-  char  identity_file[256];  /* -I <identity file> */
-  char  contact_file[256];   /* -C <contact file>  */
-  char  log_file[256];       /* -L <log file>      */
-  int   debug_level;         /* -d <verbose level>   */
-  int   port;                /* -p <SIP port>  default is 5060 */
-  char  identity[256];       /* -i <from url>  local identity */
-
-  /* the application can command to make a new call */
-  char  to[255];             /* -t <sipurl to call>!  */
-  char  route[256];          /* -r <sipurl for route> */
-  char  subject[256];        /* -s <subject>          */
-  int   timeout;        /* -T <delay> connection is closed after 60s */
-} main_config_t;
-
-main_config_t cfg = {
-  "\0", "\0", "\0", "\0", 1, 5060, "\0", "\0", "\0", "\0", 60
-};
 
 #if defined(__DATE__) && defined(__TIME__)
 static const char server_built[] = __DATE__ " " __TIME__;

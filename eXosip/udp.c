@@ -753,6 +753,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   else if (0==osip_strcasecmp(expires->hvalue, "0"))
     {
       /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
     }
   else
@@ -763,6 +764,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
     {
       /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
     }
   else

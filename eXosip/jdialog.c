@@ -169,7 +169,8 @@ void eXosip_dialog_free(eXosip_dialog_t *jd)
 
   while (!osip_list_eol(jd->d_inc_trs, 0))
     {
-      osip_transaction_t *tr = osip_list_get(jd->d_inc_trs, 0);
+      osip_transaction_t *tr;
+      tr = (osip_transaction_t*) osip_list_get(jd->d_inc_trs, 0);
       osip_list_remove(jd->d_inc_trs, 0);
       __eXosip_delete_jinfo(tr);
       osip_list_add(eXosip.j_transactions, tr, 0);
@@ -177,7 +178,8 @@ void eXosip_dialog_free(eXosip_dialog_t *jd)
 
   while (!osip_list_eol(jd->d_out_trs, 0))
     {
-      osip_transaction_t *tr = osip_list_get(jd->d_out_trs, 0);
+      osip_transaction_t *tr;
+      tr = (osip_transaction_t*) osip_list_get(jd->d_out_trs, 0);
       osip_list_remove(jd->d_out_trs, 0);
       __eXosip_delete_jinfo(tr);
       osip_list_add(eXosip.j_transactions, tr, 0);

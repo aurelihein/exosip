@@ -108,6 +108,7 @@ typedef struct eXosip_subscribe_t eXosip_subscribe_t;
 struct eXosip_subscribe_t {
 
   int                 s_id;
+  char                s_uri[255];
   int                 s_online_status;
   int                 s_ss_status;
   int                 s_ss_reason;
@@ -341,7 +342,7 @@ int  eXosip_read_message(int max_message_nb, int sec_max, int usec_max);
 void eXosip_release_terminated_calls ( void );
 
 
-int  eXosip_subscribe_init(eXosip_subscribe_t **js);
+int  eXosip_subscribe_init(eXosip_subscribe_t **js, char *uri);
 void eXosip_subscribe_free(eXosip_subscribe_t *js);
 int  _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t *js, osip_message_t *inc_subscribe);
 int  eXosip_subscribe_need_refresh(eXosip_subscribe_t *js, int now);
