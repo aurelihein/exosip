@@ -706,11 +706,56 @@ eXosip_event_add(eXosip_event_t *je)
   return i;
 }
 
+#ifdef CLOCK_REALTIME
+/* if CLOCK_REALTIME exist, then clock_gettime should be defined */
+
+#define OSIP_CLOCK_REALTIME CLOCK_REALTIME
+
+void
+__eXosip_clock_gettime(clockid_t cid, struct timespec *time)
+{
+  clock_gettime(cid, time);
+}
+
+#elif defined (WIN32) || defined (_WIN32_WCE)
+
+#include <sys/types.h>
+#include <sys/timeb.h>
+
+#define OSIP_CLOCK_REALTIME 4002
+
+struct timespec
+{
+  long   tv_sec;
+  long   tv_nsec;
+};
+
+void
+__eXosip_clock_gettime(unsigned int cid, struct timespec *time)
+{
+   struct _timeb time_val;
+
+   if (clock_id != OSIP_CLOCK_REALTIME)
+     return -1;
+
+   if (tp == NULL)
+     return -1;
+
+   _ftime (&time_val);
+   tp->tv_sec = time_val.time;
+   tp->tv_nsec = time_val.millitm * 1000000;
+   return 0;
+}
+#endif
+
 eXosip_event_t *
 eXosip_event_wait(int tv_s, int tv_ms)
 {
   int i;
   eXosip_event_t *je;
+
+#if defined (CLOCK_REALTIME) || defined (WIN32) || defined (_WIN32_WCE)
+
   struct timespec deadline;
   struct timespec interval;
   long tot_ms = (tv_s*1000) + tv_ms;
@@ -718,7 +763,7 @@ eXosip_event_wait(int tv_s, int tv_ms)
   interval.tv_sec = tot_ms / 1000;
   interval.tv_nsec = (tot_ms % 1000) * 1000000L;
   
-  osip_clock_gettime(OSIP_CLOCK_REALTIME, &deadline);
+  __eXosip_clock_gettime(OSIP_CLOCK_REALTIME, &deadline);
   
   if ((deadline.tv_nsec += interval.tv_nsec) >= 1000000000L)
     {
@@ -734,6 +779,7 @@ eXosip_event_wait(int tv_s, int tv_ms)
 			   (struct osip_mutex *)eXosip.j_condmutex,
 			   &deadline);
   
+#endif
   je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
   return je;
 }
