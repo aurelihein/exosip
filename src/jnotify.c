@@ -367,7 +367,7 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
 </presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
     }
 
-  osip_message_set_body(notify, buf);
+  osip_message_set_body(notify, buf, strlen(buf));
   osip_message_set_content_type(notify, "application/xpidf+xml");
 #else
 
@@ -396,7 +396,7 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
 </presence>",
 	      jn->n_contact_info);
     }
-  osip_message_set_body(notify, buf);
+  osip_message_set_body(notify, buf, strlen(buf));
   osip_message_set_content_type(notify, "application/cpim-pidf+xml");
 
 #endif

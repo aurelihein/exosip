@@ -228,6 +228,8 @@ eXosip_event_t *eXosip_event_init_for_subscribe(int type,
 eXosip_event_t *eXosip_event_init_for_notify(int type, eXosip_notify_t *jn,
 						eXosip_dialog_t *jd);
 eXosip_event_t *eXosip_event_init_for_reg(int type, eXosip_reg_t *jr);
+eXosip_event_t *eXosip_event_init_for_message(int type, osip_transaction_t
+					      *tr, osip_message_t *sip);
 int eXosip_event_init(eXosip_event_t **je, int type);
 eXosip_call_t *eXosip_event_get_callinfo(eXosip_event_t *je);
 eXosip_dialog_t *eXosip_event_get_dialoginfo(eXosip_event_t *je);

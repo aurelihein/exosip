@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.25 $)dnl
+AC_REVISION($Revision: 1.26 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip/eXosip.h)
 
@@ -12,8 +12,8 @@ AC_MSG_NOTICE([Copyright (C) 2002,2003,2004 Aymeric MOIZARD - <jack@atosc.org>])
 dnl *********************************************************************
 dnl Source packaging numbers
 EXOSIP_MAJOR_VERSION=0
-EXOSIP_MINOR_VERSION=7
-EXOSIP_MICRO_VERSION=7
+EXOSIP_MINOR_VERSION=8
+EXOSIP_MICRO_VERSION=0
 
 dnl program extension
 EXOSIP_VERSION=$EXOSIP_MAJOR_VERSION.$EXOSIP_MINOR_VERSION.$EXOSIP_MICRO_VERSION

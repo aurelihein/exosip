@@ -704,7 +704,7 @@ int eXosip_info_call(int jid, char *content_type, char *body)
     }
   
   osip_message_set_content_type(info, content_type);
-  osip_message_set_body(info, body);
+  osip_message_set_body(info, body, strlen(body));
   
   i = osip_transaction_init(&transaction,
 			    NICT,
@@ -740,7 +740,7 @@ int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, 
 	sprintf(size,"%i",strlen(body));
 	osip_message_set_content_length(invite, size);
 	osip_free(size);
-	osip_message_set_body(invite, body);
+	osip_message_set_body(invite, body, strlen(body));
 	osip_message_set_content_type(invite,bodytype);
   }
   else osip_message_set_content_length(invite, "0");
@@ -749,7 +749,7 @@ int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, 
   i = osip_message_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
 
-  jc->c_ack_sdp = 1;
+  jc->c_ack_sdp = 0;
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -901,7 +901,7 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 	  osip_message_set_content_length(invite, size);
 	  osip_free(size);
 	  
-	  osip_message_set_body(invite, body);
+	  osip_message_set_body(invite, body, strlen(body));
 	  osip_free(body);
 	  osip_message_set_content_type(invite, "application/sdp");
 	}
@@ -1367,7 +1367,7 @@ int eXosip_on_hold_call  (int jid)
       osip_message_set_content_length(invite, size);
       osip_free(size);
       
-      osip_message_set_body(invite, body);
+      osip_message_set_body(invite, body, strlen(body));
       osip_free(body);
       osip_message_set_content_type(invite, "application/sdp");
     }
@@ -1411,7 +1411,7 @@ int eXosip_on_hold_call  (int jid)
   return 0;
 }
 
-int eXosip_off_hold_call (int jid)
+int eXosip_off_hold_call (int jid, char *rtp_ip, int port)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
@@ -1458,6 +1458,33 @@ int eXosip_off_hold_call (int jid)
     return -2;
   }
 
+  if (rtp_ip!=NULL)
+    {
+      /* modify the connection address of host */
+      sdp_connection_t *conn;
+      sdp_media_t *med;
+      int pos_media = 0;
+      conn = sdp_message_connection_get(sdp, -1, 0);
+      if (conn!=NULL && conn->c_addr!=NULL)
+	{
+	  osip_free(conn->c_addr);
+	  conn->c_addr = osip_strdup(rtp_ip);
+	}
+      med = (sdp_media_t *) osip_list_get (sdp->m_medias, pos_media);
+      while (med != NULL)
+	{
+	  if (med->m_media!=NULL && 0==osip_strcasecmp(med->m_media, "audio"))
+	    {
+	      osip_free(med->m_port);
+	      med->m_port=(char *)osip_malloc(15);
+	      snprintf(med->m_port, 14, "%i", port);
+	      break;
+	    }
+	  pos_media++;
+	  med = (sdp_media_t *) osip_list_get (sdp->m_medias, pos_media);
+	}
+    }
+
   i = sdp_message_to_str(sdp, &body);
   if (body!=NULL)
     {
@@ -1470,7 +1497,7 @@ int eXosip_off_hold_call (int jid)
       osip_message_set_content_length(invite, size);
       osip_free(size);
 
-      osip_message_set_body(invite, body);
+      osip_message_set_body(invite, body, strlen(body));
       osip_free(body);
       osip_message_set_content_type(invite, "application/sdp");
     }

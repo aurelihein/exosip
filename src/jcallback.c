@@ -200,6 +200,7 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 		       int port, int out_socket)
 {
   int len = 0;
+  size_t length = 0;
   static int num = 0;
   struct addrinfo *addrinfo;
   struct __eXosip_sockaddr addr;
@@ -227,16 +228,16 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 
   freeaddrinfo (addrinfo);
 
-  i = osip_message_to_str(sip, &message);
+  i = osip_message_to_str(sip, &message, &length);
 
-  if (i!=0) {
+  if (i!=0 || length<=0) {
     return -1;
   }
 
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			"Message sent: \n%s (len=%i sizeof(addr)=%i %i)\n",
 			message, len, sizeof(addr), sizeof(struct sockaddr_in6)));
-  if (0  > sendto (eXosip.j_socket, (const void*) message, strlen (message), 0,
+  if (0  > sendto (eXosip.j_socket, (const void*) message, length, 0,
 		   (struct sockaddr *) &addr, len /* sizeof(addr) */ )) 
     {
 #ifdef WIN32
@@ -1066,7 +1067,7 @@ static void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 	    return;
 	  }
 
-	i = osip_message_set_body(ack, body);
+	i = osip_message_set_body(ack, body, strlen(body));
 	if (i!=0)
 	  {
 	    return;
@@ -1271,6 +1272,19 @@ static void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       if (jd!=NULL)
 	jd->d_STATE = JD_TERMINATED;
     }
+  else if (MSG_IS_RESPONSE_FOR(sip, "MESSAGE"))
+    {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_message(EXOSIP_MESSAGE_SUCCESS, tr, sip);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_MESSAGE_SUCCESS]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_MESSAGE_SUCCESS](EXOSIP_MESSAGE_SUCCESS,
+							je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
   else if (MSG_IS_RESPONSE_FOR(sip, "NOTIFY"))
     {
 #ifdef SUPPORT_MSN
@@ -1386,28 +1400,42 @@ static void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     }
 
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
-  {
-    eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_REDIRECTED, jc, jd);
-    if (je!=NULL)
-      eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_CALL_REDIRECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_CALL_REDIRECTED](EXOSIP_CALL_REDIRECTED, je);
-    else if (eXosip.j_runtime_mode==EVENT_MODE)
-      eXosip_event_add(je);
-  }
+    {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_call(EXOSIP_CALL_REDIRECTED, jc, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_CALL_REDIRECTED]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_CALL_REDIRECTED](EXOSIP_CALL_REDIRECTED,
+							je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+    }
+  else if (MSG_IS_RESPONSE_FOR(sip, "MESSAGE"))
+    {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_message(EXOSIP_MESSAGE_FAILURE, tr, sip);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE](EXOSIP_MESSAGE_FAILURE,
+							je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }    
   else if (MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
-  {
-    eXosip_event_t *je;
-    je = eXosip_event_init_for_subscribe(EXOSIP_SUBSCRIPTION_REDIRECTED, js, jd);
-    if (je!=NULL)
-      eXosip_event_add_status(je, sip);
-    if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_REDIRECTED]!=NULL)
-      eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_REDIRECTED](EXOSIP_SUBSCRIPTION_REDIRECTED, je);
-    else if (eXosip.j_runtime_mode==EVENT_MODE)
-      eXosip_event_add(je);
-  }
-
+    {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_subscribe(EXOSIP_SUBSCRIPTION_REDIRECTED, js, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_REDIRECTED]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_REDIRECTED](EXOSIP_SUBSCRIPTION_REDIRECTED, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+    }
+  
   if (jd==NULL) return;
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
       || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
@@ -1473,6 +1501,19 @@ static void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
+  else if (MSG_IS_RESPONSE_FOR(sip, "MESSAGE"))
+  {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_message(EXOSIP_MESSAGE_FAILURE, tr, sip);
+      if (je!=NULL)
+       eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE]!=NULL)
+       eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE](EXOSIP_MESSAGE_FAILURE
+                                                       , je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+       eXosip_event_add(je);
+      return;
+  }    
   else if (MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
   {
     eXosip_event_t *je;
@@ -1552,6 +1593,18 @@ static void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
+  else if (MSG_IS_RESPONSE_FOR(sip, "MESSAGE"))
+  {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_message(EXOSIP_MESSAGE_FAILURE, tr, sip);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE](EXOSIP_MESSAGE_FAILURE, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+  }    
   else if (MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
   {
     eXosip_event_t *je;
@@ -1628,6 +1681,18 @@ static void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
+  else if (MSG_IS_RESPONSE_FOR(sip, "MESSAGE"))
+  {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_message(EXOSIP_MESSAGE_FAILURE, tr, sip);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_MESSAGE_FAILURE](EXOSIP_MESSAGE_FAILURE, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+  }    
   else if (MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
   {
     eXosip_event_t *je;

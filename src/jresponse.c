@@ -295,7 +295,7 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
       osip_message_set_content_length(orig_request, size);
       osip_free(size);
   
-      osip_message_set_body(orig_request, local_body);
+      osip_message_set_body(orig_request, local_body, strlen(local_body));
       osip_message_set_content_type(orig_request, "application/sdp");
     }
   else
@@ -513,7 +513,7 @@ eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
     osip_message_free(response);
     return -1;
   }
-  i = osip_message_set_body(response, body);
+  i = osip_message_set_body(response, body, strlen(body));
   if (i!=0) {
     osip_message_free(response);
     return -1;
@@ -868,7 +868,7 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
       return 0;
     }
 
-  i = osip_message_set_body(response, body);
+  i = osip_message_set_body(response, body, strlen(body));
   if (i!=0) {
     goto g2atii_error_1;
   }
@@ -997,7 +997,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
       return 0;
     }
 
-  i = osip_message_set_body(response, body);
+  i = osip_message_set_body(response, body, strlen(body));
   if (i!=0) {
     goto g2atii_error_1;
   }

@@ -519,7 +519,7 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	osip_message_free(answer);
 	return NULL;
       }
-      i = osip_message_set_body(answer, local_body);
+      i = osip_message_set_body(answer, local_body, strlen(local_body));
       if (i!=0) {
 	osip_list_add(eXosip.j_transactions, transaction, 0);
 	eXosip_send_default_answer(jd, transaction, evt, 500, "Internal SDP Error", "SDP cannot be added in message", __LINE__);
@@ -1358,6 +1358,157 @@ eXosip_match_notify_for_subscribe(eXosip_subscribe_t *js, osip_message_t *notify
   return 0;
 }
 
+static void
+eXosip_process_message_outside_of_dialog(osip_transaction_t *transaction,
+					 osip_event_t *evt)
+{
+  osip_message_t *answer;
+  osip_event_t   *evt_answer;
+  osip_header_t  *expires, *date;
+  int i;
+  
+  /* Check whether the Expire time has been reached */
+  
+  /* the Expires header is present ? */
+  if (osip_message_get_expires(evt->sip, 0, &expires) != -1  && expires->hvalue!=NULL)
+    {
+      
+      unsigned long expires_ul;
+      time_t now_ts, date_ts;
+      
+      expires_ul = strtoul(expires->hvalue, (char**)NULL, 10);
+      now_ts = time(NULL);
+      
+      /*
+      ** A MESSAGE request is said to be expired if its expiration time has
+      ** passed. The expiration time is determined by examining the Expires
+      ** header field, if present.  MESSAGE requests without an Expires header
+      ** field do not expire.  If the MESSAGE request containing an Expires
+      ** header field also contains a Date header field, the UAS SHOULD
+      ** interpret the Expires header field value as delta time from the Date
+      ** header field value.  If the request does not contain a Date header
+      ** field, the UAS SHOULD interpret the Expires header value as delta
+      ** time from the time the UAS received the request.
+      */
+      
+      /* Does the message also contain a Date header ? */
+      if (osip_message_get_date(evt->sip, 0, &date) != -1 && date->hvalue != NULL)
+	{
+	  
+	  /*
+	    20.17 Date
+	    The Date header field contains the date and time.  Unlike HTTP/1.1,
+	    SIP only supports the most recent RFC 1123 [20] format for dates. 
+	    As in [H3.3], SIP restricts the time zone in SIP-date to "GMT", while
+	    RFC 1123 allows any time zone.  An RFC 1123 date is case-sensitive.
+	    The Date header field reflects the time when the request or
+	    response is first sent.
+
+	    The Date header field can be used by simple end systems without a
+	    battery-backed clock to acquire a notion of current time.
+	    However, in its GMT form, it requires clients to know their offset
+	    from GMT.
+	    
+	    Example:
+	    
+	    Date: Sat, 13 Nov 2010 23:29:00 GMT
+	    
+	    20.19 Expires
+	    
+	    The Expires header field gives the relative time after which the
+	    message (or content) expires.
+	    
+	    The precise meaning of this is method dependent.
+	    
+	    The expiration time in an INVITE does not affect the duration of
+	    the actual session that may result from the invitation.  Session
+	    description protocols may offer the ability to express time limits
+	    on the session duration, however.
+	    
+	    The value of this field is an integral number of seconds (in decimal)
+	    between 0 and (2**32)-1, measured from the receipt of the request.
+	    
+	    Example:
+	    
+	    Expires: 5
+	    
+	  */
+	  
+	  /* TODO: 
+	     date_ts = RECUPERE_TIMESTAMP(date->hvalue);
+	  */
+	  
+	  date_ts = time(NULL);
+	  
+	  /* Has the message expired ? */
+	  if (date_ts + expires_ul < now_ts)
+	    {
+	      /* discard old data. */
+	      return;
+	    }
+	}
+      else if (expires_ul != 0)
+	{
+	  /* No date header, but a not null Expires one:
+	  ** TODO: Compare to the UAS reception time
+	  */
+	  date_ts = transaction->birth_time;
+	}
+      /* The message has not expired */
+    }
+  
+  /* We must create the event */
+  {
+    eXosip_event_t *je;    
+    je = eXosip_event_init_for_message(EXOSIP_MESSAGE_NEW, transaction, evt->sip);    
+    i = _eXosip_build_response_default(&answer, NULL, SIP_OK, evt->sip);
+    if (i!=0)
+      {
+	osip_list_add(eXosip.j_transactions, transaction, 0);
+	return ;
+      }
+    
+    if (je!=NULL)
+      {
+	int pos = 0;
+	osip_body_t *oldbody;
+	
+	eXosip_event_add_status(je, answer);
+	
+	while (!osip_list_eol(evt->sip->bodies, pos))
+	  {
+	    int len;
+	    oldbody = (osip_body_t *)osip_list_get(evt->sip->bodies, pos);
+	    len = strlen(oldbody->body);
+	    pos++;
+	    
+	    if (len<999)
+	      osip_strncpy(je->sdp_body, oldbody->body, len);
+	    else
+	      osip_strncpy(je->sdp_body, oldbody->body, 999);
+          }
+      }
+    
+    if (eXosip.j_call_callbacks[EXOSIP_MESSAGE_NEW]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_MESSAGE_NEW](EXOSIP_MESSAGE_NEW, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);
+  }
+  
+  /* finally, send the 200 OK response */
+  
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid = transaction->transactionid;
+  
+  osip_transaction_add_event(transaction, evt_answer);
+  
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
+  return;
+}
+
+
 static void eXosip_process_newrequest (osip_event_t *evt)
 {
   osip_transaction_t *transaction;
@@ -1606,7 +1757,15 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	 3: a REQUEST with a wrong CSeq.
 	 4: a NOT-SUPPORTED method with a wrong CSeq.
       */
-      if (MSG_IS_NOTIFY(evt->sip))
+      if (MSG_IS_MESSAGE(evt->sip))
+	{
+	  /* eXosip_process_imessage_within_subscribe_dialog(transaction, evt); */
+	  osip_list_add(eXosip.j_transactions, transaction, 0);
+	  eXosip_send_default_answer(jd, transaction, evt, SIP_NOT_IMPLEMENTED,
+				     NULL, "MESSAGEs within dialogs are not implemented.", __LINE__);
+	  return;
+	}
+      else if (MSG_IS_NOTIFY(evt->sip))
 	{
 	  /* the previous transaction MUST be freed */
 	  old_trn = eXosip_find_last_inc_notify(js, jd);
@@ -1695,7 +1854,14 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	 3: a REQUEST with a wrong CSeq.
 	 4: a NOT-SUPPORTED method with a wrong CSeq.
       */
-      if (MSG_IS_SUBSCRIBE(evt->sip))
+      if (MSG_IS_MESSAGE(evt->sip))
+	{
+	  osip_list_add(eXosip.j_transactions, transaction, 0);
+	  eXosip_send_default_answer(jd, transaction, evt, SIP_NOT_IMPLEMENTED,
+				     NULL, "MESSAGEs within dialogs are not implemented.", __LINE__);
+	  return;
+	}
+      else if (MSG_IS_SUBSCRIBE(evt->sip))
 	{
 	  /* the previous transaction MUST be freed */
 	  old_trn = eXosip_find_last_inc_subscribe(jn, jd);
@@ -1721,6 +1887,12 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	  eXosip_send_default_answer(jd, transaction, evt, 501, NULL, NULL, __LINE__);
 	}
       return ;
+    }
+
+  if (MSG_IS_MESSAGE(evt->sip))
+    {
+      eXosip_process_message_outside_of_dialog(transaction , evt);
+      return;
     }
 
   if (MSG_IS_SUBSCRIBE(evt->sip))
@@ -1815,14 +1987,14 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				    "Received message: \n%s\n", buf));
 #ifdef WIN32
-		  if (strlen(buf)>511)
-		  {
-		      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-					    "Message suite: \n%s\n", buf+511));
-		  }
+	      if (strlen(buf)>511)
+		{
+		  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+					"Message suite: \n%s\n", buf+511));
+		}
 #endif
 
-		  sipevent = osip_parse(buf);
+	      sipevent = osip_parse(buf, i);
 	      transaction = NULL;
 	      if (sipevent!=NULL&&sipevent->sip!=NULL)
 		{

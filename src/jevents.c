@@ -470,6 +470,53 @@ eXosip_event_init_for_reg(int type,
   return je;
 }
 
+eXosip_event_t *
+eXosip_event_init_for_message(int type, osip_transaction_t *tr,
+			      osip_message_t *sip)
+{
+  eXosip_event_t *je;
+  eXosip_event_init(&je, type);
+  if (je==NULL) return NULL;
+  
+  /* fill in usefull info */
+  { 
+    char *tmp;
+    
+    /* Request URI */
+    
+    osip_uri_to_str(sip->req_uri, &tmp);
+    if (tmp!=NULL)
+      {
+	snprintf(je->req_uri, 255, "%s", tmp);
+	osip_free(tmp);
+      }
+    
+    /* FROM & TO */
+    
+    
+    if (sip->from != NULL)
+      {
+	osip_from_to_str(sip->from, &tmp);
+	if (tmp!=NULL)
+	  {
+	    snprintf(je->remote_uri, 255, "%s", tmp);
+	    osip_free(tmp);
+	  }
+      }
+    if (sip->to != NULL)
+      {
+	osip_to_to_str(sip->to, &tmp);
+	if (tmp!=NULL)
+	  {
+	    snprintf(je->local_uri, 255, "%s", tmp);
+	    osip_free(tmp);
+	  }
+      }
+  }
+  
+  return je;
+}
+
 int
 eXosip_event_init(eXosip_event_t **je, int type)
 {
@@ -509,7 +556,7 @@ eXosip_event_init(eXosip_event_t **je, int type)
     }
   else if (type==EXOSIP_CALL_GLOBALFAILURE)
     {
-      sprintf((*je)->textinfo, "5xx received for Call!");
+      sprintf((*je)->textinfo, "6xx received for Call!");
     }
   else if (type==EXOSIP_CALL_NEW)
     {
@@ -613,7 +660,19 @@ eXosip_event_init(eXosip_event_t **je, int type)
     }
   else if (type==EXOSIP_INFO_GLOBALFAILURE)
     {
-      sprintf((*je)->textinfo, "5xx received for INFO!");
+      sprintf((*je)->textinfo, "6xx received for INFO!");
+    }
+  else if (type==EXOSIP_MESSAGE_NEW)
+    {
+      sprintf((*je)->textinfo, "New MESSAGE received!");
+    }
+  else if (type==EXOSIP_MESSAGE_SUCCESS)
+    {
+      sprintf((*je)->textinfo, "User has successfully received our MESSAGE!");
+    }
+  else if (type==EXOSIP_MESSAGE_FAILURE)
+    {
+      sprintf((*je)->textinfo, "Error received for our MESSAGE!");
     }
   else if (type==EXOSIP_SUBSCRIPTION_NEW)
     {

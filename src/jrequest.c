@@ -667,11 +667,9 @@ int generating_message(osip_message_t **message, char *to, char *from,
 				       route);
   if (i!=0) return -1;
   
-  /* after this delay, we should send a CANCEL */
   osip_message_set_expires(*message, "120");
-
-  osip_message_set_body(*message, buff);
-  osip_message_set_content_type(*message, "xxxx/yyyy");
+  osip_message_set_body(*message, buff, strlen(buff));
+  osip_message_set_content_type(*message, "text/plain");
 
   /* osip_message_set_organization(*message, "Jack's Org"); */
 
