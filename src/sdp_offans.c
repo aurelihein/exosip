@@ -162,6 +162,7 @@ void eXosip_sdp_negotiation_free(osip_negotiation_t *sn)
   if (sn==NULL)
     return;
   osip_list_ofchar_free(supported_codec);
+  supported_codec = NULL;
   osip_negotiation_free(sn);
 }
 
