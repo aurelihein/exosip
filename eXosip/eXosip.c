@@ -434,7 +434,8 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
 
 void eXosip_start_call    (osip_message_t *invite,
 			   void *reference,
-			   void *sdp_context_reference)
+			   void *sdp_context_reference,
+			   char *local_sdp_port)
 {
   eXosip_call_t *jc;
   osip_header_t *subject;
@@ -445,7 +446,7 @@ void eXosip_start_call    (osip_message_t *invite,
   char *body;
   char *size;
   
-  osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, "10500", NULL);
+  osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, local_sdp_port, NULL);
 
   i = sdp_message_to_str(sdp, &body);
   if (body!=NULL)

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.32 2003-06-02 16:20:15 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.33 2003-06-02 16:47:09 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -2431,7 +2431,7 @@ int main(int argc, const char *const *argv) {
 	      exit(0);
 	    }
 	  eXosip_lock();
-	  eXosip_start_call(invite, NULL, NULL);
+	  eXosip_start_call(invite, NULL, NULL, "10500");
 	  eXosip_unlock();
 	}
       else
@@ -2577,7 +2577,7 @@ void __josua_start_call() {
 
   if (i!=0) return;
   eXosip_lock();
-  eXosip_start_call(invite, NULL, NULL);
+  eXosip_start_call(invite, NULL, NULL, "10500");
   eXosip_unlock();
 
   refresh();
