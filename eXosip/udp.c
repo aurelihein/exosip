@@ -1737,6 +1737,38 @@ void eXosip_release_terminated_calls ( void )
       jcnext=jc->next;
       if (jc->c_dialogs==NULL)
 	{
+	  if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED
+	      && jc->c_inc_tr->birth_time+180<now)
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+				    "eXosip: remove an incoming call with no final answer\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, NULL);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
+	      eXosip_call_free(jc);
+	    }
+	  else if (jc->c_out_tr!=NULL && jc->c_out_tr->state!=ICT_TERMINATED
+		   && jc->c_out_tr->birth_time+180<now)
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+				    "eXosip: remove an outgoing call with no final answer\n"));
+	      REMOVE_ELEMENT(eXosip.j_calls, jc);
+	      {
+		eXosip_event_t *je;
+		je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, NULL);
+		if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		  eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		else if (eXosip.j_runtime_mode==EVENT_MODE)
+		  eXosip_event_add(je);
+	      }
+	      eXosip_call_free(jc);
+	    }
 	  if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED)
 	    {  }
 	  else if (jc->c_out_tr!=NULL && jc->c_out_tr->state!=ICT_TERMINATED)
