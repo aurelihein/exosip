@@ -320,7 +320,8 @@ int  eXosip_set_call_reference(int jid, void *reference);
  * @param jid          dialog id of call.
  */
 int   eXosip_on_hold_call  (int jid);
-int   eXosip_off_hold_call (int jid, char *rtp_ip, int port);
+int   eXosip_off_hold_call (int jid);
+  /* int   eXosip_off_hold_call (int jid, char *rtp_ip, int port); */
 
 /**
  * Tranfer a call.
