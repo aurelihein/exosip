@@ -4,9 +4,9 @@ bin_PROGRAMS = josua
 endif
 
 if GLIB_SUPPORT
-MORE_CFLAGS = -Wall @CFLAGS@ @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ @EXOSIP_FLAGS@ `pkg-config --cflags glib-2.0`
+MORE_CFLAGS = @CFLAGS@ @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ @EXOSIP_FLAGS@ `pkg-config --cflags glib-2.0`
 else
-MORE_CFLAGS = -Wall @CFLAGS@ @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ @EXOSIP_FLAGS@
+MORE_CFLAGS = @CFLAGS@ @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ @EXOSIP_FLAGS@
 endif
 
 if UCL_SUPPORT
@@ -41,9 +41,9 @@ gui_loglines.h              gui_setup.h              ppl_getopt.h           \
 sound-ucl.c
 
 if GLIB_SUPPORT
-josua_LDFLAGS = -O -Wall   @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@  `pkg-config --libs glib-2.0`
+josua_LDFLAGS = -O @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@  `pkg-config --libs glib-2.0`
 else
-josua_LDFLAGS = -O  -Wall  @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ 
+josua_LDFLAGS = -O @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ 
 endif
 
 if UCL_SUPPORT

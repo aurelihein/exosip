@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.21 $)dnl
+AC_REVISION($Revision: 1.22 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip/eXosip.h)
 
@@ -150,18 +150,20 @@ else
 fi
 
 case $OS in
-  linux)
+  linux*)
      EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
      ;;
-  hpux)
+  irix*)
      ;;
-  aix)
+  hpux* | hp-ux*)
      ;;
-  osf)
+  aix*)
+     ;;
+  osf*)
      AC_CHECK_LIB(rt,sem_open,[JOSUA_LIB="$JOSUA_LIB -lrt"])
      AC_CHECK_LIB(rt,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
      ;;
-  sunos)
+  sunos*)
      ;;
   darwin*)
      EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
@@ -201,6 +203,105 @@ if test "x$enable_josua" = "xyes"; then
 fi
 
 EXOSIP_FLAGS="$EXOSIP_FLAGS -DUSE_TMP_BUFFER"
+
+AC_CACHE_CHECK([whether -Wall works], Wall_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wall"
+  AC_TRY_COMPILE(, , Wall_flag=yes, Wall_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wall_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wall"
+fi
+
+AC_CACHE_CHECK([whether -Wcast-align works], Wcast_align_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wcast-align"
+  AC_TRY_COMPILE(, , Wcast_align_flag=yes, Wcast_align_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wcast_align_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wcast-align"
+fi
+
+AC_CACHE_CHECK([whether -Wchar-subscripts works], Wchar_subscripts_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wchar-subscripts"
+  AC_TRY_COMPILE(, , Wchar_subscripts_flag=yes, Wchar_subscripts_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wchar_subscripts_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wchar-subscripts"
+fi
+
+AC_CACHE_CHECK([whether -Wformat works], Wformat_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wformat"
+  AC_TRY_COMPILE(, , Wformat_flag=yes, Wformat_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wformat_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wformat"
+fi
+
+AC_CACHE_CHECK([whether -Winline works], Winline_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Winline"
+  AC_TRY_COMPILE(, , Winline_flag=yes, Winline_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Winline_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Winline"
+fi
+
+AC_CACHE_CHECK([whether -Wmissing-declarations works], Wmissing_declarations_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wmissing-declarations"
+  AC_TRY_COMPILE(, , Wmissing_declarations_flag=yes, Wmissing_declarations_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wmissing_declarations_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wmissing-declarations"
+fi
+
+AC_CACHE_CHECK([whether -Wmissing-prototypes works], Wmissing_prototypes_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wmissing-prototypes"
+  AC_TRY_COMPILE(, , Wmissing_prototypes_flag=yes, Wmissing_prototypes_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wmissing_prototypes_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wmissing-prototypes"
+fi
+
+AC_CACHE_CHECK([whether -Wnested-externs works], Wnested_externs_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wnested-externs"
+  AC_TRY_COMPILE(, , Wnested_externs_flag=yes, Wnested_externs_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wnested_externs_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wnested-externs"
+fi
+
+AC_CACHE_CHECK([whether -Wpointer-arith works], Wpointer_arith_flag, [
+  saved_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="-Wpointer-arith"
+  AC_TRY_COMPILE(, , Wpointer_arith_flag=yes, Wpointer_arith_flag=no)
+  CPPFLAGS=$saved_CPPFLAGS
+])
+
+if test "x$Wpointer_arith_flag" = xyes; then
+  CPPFLAGS="$CPPFLAGS -Wpointer-arith"
+fi
 
 AC_SUBST(EXOSIP_FLAGS)
 AC_SUBST(JOSUA_FLAGS)
