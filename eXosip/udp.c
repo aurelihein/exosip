@@ -784,9 +784,64 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
     }
 #else
-  if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+  /* modify the status of user */
+  if (0==osip_strcasecmp(sub_state->hvalue, "active"))
+    {
+      osip_content_type_t *ctype;
+      osip_body_t *body = NULL;
+      js->s_ss_status = EXOSIP_SUBCRSTATE_ACTIVE;
+      js->s_online_status = EXOSIP_NOTIFY_UNKNOWN; /* default value */
+
+      /* if there is a body which we understand, analyse it */
+      ctype = osip_parser_get_content_type(evt->sip);
+      if (ctype!=NULL && ctype->type!=NULL && ctype->subtype!=NULL)
+	{
+	  if (0==strcmp(ctype->type, "application")
+	      && 0==strcmp(ctype->type, "cpim-pidf+xml"))
+	    {
+	      /* correct body found! */
+	      osip_parser_get_body(evt->sip, 0, &body);
+	    }
+	}
+
+      if (body!=NULL)
+	{
+	  /* search for the open string */
+	  char *tmp = body->body;
+	  while (tmp!='\0')
+	    {
+	      if (tmp[0]=='o' && 0==strncmp(tmp, "open", 4))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_ONLINE;
+		  /* search for the contact entry */
+		  while (tmp[0]!='\0')
+		    {
+		      if (tmp[0]=='c' && 0==strncmp(tmp, "contact", 7))
+			{
+			  /* ... */
+			}
+		      tmp++;
+		    }
+		  break;
+		}
+	      else if (tmp[0]=='c' && 0==strncmp(tmp, "closed", 6))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_AWAY;
+		}
+	      tmp++;
+	    }
+	}
+    }
+  else if (0==osip_strcasecmp(sub_state->hvalue, "pending"))
+    {
+      js->s_ss_status = EXOSIP_SUBCRSTATE_PENDING;
+      js->s_online_status = EXOSIP_NOTIFY_PENDING;
+    }
+  else if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
     {
       /* delete the dialog! */
+      js->s_ss_status = EXOSIP_SUBCRSTATE_TERMINATED;
+      js->s_online_status = EXOSIP_NOTIFY_UNKNOWN;
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
     }
