@@ -60,7 +60,6 @@ char *jidentity_get_registrar(int fid);
 int   eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 			       char *route, char *subject);
 void  eXosip_start_call    (osip_message_t *invite, void *reference);
-
 void  eXosip_answer_call   (int jid, int status);
 void  eXosip_on_hold_call  (int jid);
 void  eXosip_off_hold_call (int jid);

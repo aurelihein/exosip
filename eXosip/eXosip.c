@@ -486,6 +486,7 @@ void eXosip_start_call    (osip_message_t *invite, void *reference)
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
 
+  jc->external_reference = reference;
   ADD_ELEMENT(eXosip.j_calls, jc);
 }
 

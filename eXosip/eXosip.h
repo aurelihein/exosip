@@ -163,7 +163,9 @@ struct eXosip_call_t {
   osip_transaction_t      *c_inc_tr;
   osip_transaction_t      *c_out_tr;
 
-  osip_negotiation_ctx_t   *c_ctx;
+  void                    *external_reference;
+
+  osip_negotiation_ctx_t  *c_ctx;
 
   eXosip_call_t           *next;
   eXosip_call_t           *parent;
@@ -276,7 +278,7 @@ typedef enum eXosip_event_type_t {
 
 typedef struct eXosip_event {
   eXosip_event_type_t type;
-
+  void               *external_reference;
   char                reason_phrase[50];
   int                 status_code;
 

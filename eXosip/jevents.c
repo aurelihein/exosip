@@ -43,6 +43,8 @@ eXosip_event_init_for_call(int type,
   if (jd!=NULL)
     je->did = jd->d_id;
 
+  je->external_reference = jc->external_reference;
+
   /* fill in usefull info */
   if (type==EXOSIP_CALL_NEW
       || type==EXOSIP_CALL_PROCEEDING
