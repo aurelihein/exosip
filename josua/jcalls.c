@@ -101,6 +101,7 @@ static int __call_init()
 	min_size=blocksize;
       }
   }
+  printf("blocksize = %i\n", min_size);
 #endif
 #endif
   return 0;
@@ -153,6 +154,7 @@ void
       i=read(fd, data_out, min_size);
       if (i>0)
         {
+	  printf("data_out=%i\n",i);
 	  rtp_session_send_with_ts(ca->rtp_session, data_out, i,timestamp);
 	  timestamp+=i;
         }
@@ -229,7 +231,7 @@ int jcall_new(eXosip_event_t *je)
   osip_strncpy(ca->remote_uri, je->remote_uri, 255);
   osip_strncpy(ca->subject,    je->subject, 255);
 
-  if (ca->remote_sdp_audio_ip[0]=='0')
+  if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       int p;
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
@@ -336,10 +338,12 @@ int jcall_proceeding(eXosip_event_t *je)
   osip_strncpy(ca->remote_uri, je->remote_uri, 255);
   osip_strncpy(ca->subject,    je->subject, 255);
 
-  if (ca->remote_sdp_audio_ip[0]=='0')
+  if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
+      ca->payload = je->payload;
+      osip_strncpy(ca->payload_name, je->payload_name, 49);
     }
 
   if (je->reason_phrase[0]!='\0')
@@ -399,10 +403,12 @@ int jcall_ringing(eXosip_event_t *je)
   osip_strncpy(ca->remote_uri, je->remote_uri, 255);
   osip_strncpy(ca->subject,    je->subject, 255);
 
-  if (ca->remote_sdp_audio_ip[0]=='0')
+  if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
+      ca->payload = je->payload;
+      osip_strncpy(ca->payload_name, je->payload_name, 49);
     }
 
   if (je->reason_phrase[0]!='\0')
@@ -461,17 +467,11 @@ int jcall_answered(eXosip_event_t *je)
   osip_strncpy(ca->remote_uri, je->remote_uri, 255);
   osip_strncpy(ca->subject,    je->subject, 255);
 
-  if (ca->remote_sdp_audio_ip[0]=='0')
-    {
-      osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
-      ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
-    }
-
-  if (je->reason_phrase[0]!='\0')
+  if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       int p;
-      osip_strncpy(ca->reason_phrase, je->reason_phrase, 49);
-      ca->status_code = je->status_code;
+      osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
+      ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
       ca->payload = je->payload;
       osip_strncpy(ca->payload_name, je->payload_name, 49);
 
@@ -489,9 +489,9 @@ int jcall_answered(eXosip_event_t *je)
       rtp_session_set_profile(ca->rtp_session, &av_profile);
       rtp_session_set_jitter_compensation(ca->rtp_session, 60);
       rtp_session_set_local_addr(ca->rtp_session, localip, 10500);
-      rtp_session_set_remote_addr(ca->rtp_session,
-				  ca->remote_sdp_audio_ip,
-				  ca->remote_sdp_audio_port);
+      p = rtp_session_set_remote_addr(ca->rtp_session,
+				      ca->remote_sdp_audio_ip,
+				      ca->remote_sdp_audio_port);
       rtp_session_set_payload_type(ca->rtp_session, je->payload);
       rtp_session_signal_connect(ca->rtp_session, "telephone-event",
 				 (RtpCallback)rcv_telephone_event, ca);
@@ -505,7 +505,12 @@ int jcall_answered(eXosip_event_t *je)
 					    jcall_ortp_start_out_thread, ca);
       ca->enable_audio=1; /* audio is started */
 #endif
+    }
 
+  if (je->reason_phrase[0]!='\0')
+    {
+      osip_strncpy(ca->reason_phrase, je->reason_phrase, 49);
+      ca->status_code = je->status_code;
     }
   ca->state = je->type;
   return 0;
@@ -740,7 +745,7 @@ int jcall_onhold(eXosip_event_t *je)
   ca = &(jcalls[k]);
   osip_strncpy(ca->textinfo,   je->textinfo, 255);
 
-  if (ca->remote_sdp_audio_ip[0]=='0')
+  if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
@@ -779,7 +784,7 @@ int jcall_offhold(eXosip_event_t *je)
   ca = &(jcalls[k]);
   osip_strncpy(ca->textinfo,   je->textinfo, 255);
 
-  if (ca->remote_sdp_audio_ip[0]=='0')
+  if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
