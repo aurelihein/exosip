@@ -27,6 +27,7 @@
 extern char *localip;
 extern char *localport;
 
+extern eXosip_t eXosip;
 int
 eXosip_build_response_default(int jid, int status)
 {
@@ -192,7 +193,7 @@ generating_sdp_answer(osip_message_t *request)
 	}
       i = sdp_negotiation_ctx_set_remote_sdp(context, remote_sdp);
 
-      i = sdp_negotiation_ctx_execute_negotiation(context);
+      i = sdp_negotiation_ctx_execute_negotiation(eXosip.sdp_negotiation, context);
       if (i==200)
 	{
 	  local_sdp = sdp_negotiation_ctx_get_local_sdp(context);

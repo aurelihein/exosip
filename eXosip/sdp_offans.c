@@ -25,6 +25,7 @@
 #include <eXosip.h>
 
 extern char *localip;
+extern eXosip_t eXosip;
 
 int eXosip_sdp_accept_audio_codec(sdp_negotiation_ctx_t *context,
 			      char *port, char *number_of_port,
@@ -58,48 +59,49 @@ char *eXosip_sdp_get_audio_port(sdp_negotiation_ctx_t *context, int pos_media)
 
 int eXosip_sdp_negotiation_init()
 {
-
-  int i = sdp_negotiation_init();
+  sdp_negotiation_t *sn;
+  int i = sdp_negotiation_init(&(eXosip.sdp_negotiation));
   if (i!=0) {
     return -1;
   }
-  sdp_negotiation_set_o_username(osip_strdup("userX"));
-  sdp_negotiation_set_o_session_id(osip_strdup("20000001"));
-  sdp_negotiation_set_o_session_version(osip_strdup("20000001"));
-  sdp_negotiation_set_o_nettype(osip_strdup("IN"));
-  sdp_negotiation_set_o_addrtype(osip_strdup("IP4"));
-  sdp_negotiation_set_o_addr(osip_strdup(localip));
+  sn = eXosip.sdp_negotiation;
+  sdp_negotiation_set_o_username(sn, osip_strdup("userX"));
+  sdp_negotiation_set_o_session_id(sn, osip_strdup("20000001"));
+  sdp_negotiation_set_o_session_version(sn, osip_strdup("20000001"));
+  sdp_negotiation_set_o_nettype(sn, osip_strdup("IN"));
+  sdp_negotiation_set_o_addrtype(sn, osip_strdup("IP4"));
+  sdp_negotiation_set_o_addr(sn, osip_strdup(localip));
   
-  sdp_negotiation_set_c_nettype(osip_strdup("IN"));
-  sdp_negotiation_set_c_addrtype(osip_strdup("IP4"));
-  sdp_negotiation_set_c_addr(osip_strdup(localip));
+  sdp_negotiation_set_c_nettype(sn, osip_strdup("IN"));
+  sdp_negotiation_set_c_addrtype(sn, osip_strdup("IP4"));
+  sdp_negotiation_set_c_addr(sn, osip_strdup(localip));
   
   /* ALL CODEC MUST SHARE THE SAME "C=" line and proto as the media 
      will appear on the same "m" line... */
-  sdp_negotiation_add_support_for_audio_codec(osip_strdup("0"),
+  sdp_negotiation_add_support_for_audio_codec(sn, osip_strdup("0"),
 					 NULL,
 					 osip_strdup("RTP/AVP"),
 					 NULL, NULL, NULL,
 					 NULL,NULL,
 					 osip_strdup("0 PCMU/8000"));
-  sdp_negotiation_add_support_for_audio_codec(osip_strdup("3"),
+  sdp_negotiation_add_support_for_audio_codec(sn, osip_strdup("3"),
 					 NULL,
 					 osip_strdup("RTP/AVP"),
 					 NULL, NULL, NULL,
 					 NULL,NULL,
 					 osip_strdup("3 GSM/8000"));
-  sdp_negotiation_add_support_for_audio_codec(osip_strdup("8"),
+  sdp_negotiation_add_support_for_audio_codec(sn, osip_strdup("8"),
 					 NULL,
 					 osip_strdup("RTP/AVP"),
 					 NULL, NULL, NULL,
 					 NULL,NULL,
 					 osip_strdup("8 PCMA/8000"));
   
-  sdp_negotiation_set_fcn_accept_audio_codec(&eXosip_sdp_accept_audio_codec);
-  sdp_negotiation_set_fcn_accept_video_codec(&eXosip_sdp_accept_video_codec);
+  sdp_negotiation_set_fcn_accept_audio_codec(sn, &eXosip_sdp_accept_audio_codec);
+  sdp_negotiation_set_fcn_accept_video_codec(sn, &eXosip_sdp_accept_video_codec);
   
-  sdp_negotiation_set_fcn_accept_other_codec(&eXosip_sdp_accept_other_codec);
-  sdp_negotiation_set_fcn_get_audio_port(&eXosip_sdp_get_audio_port);
+  sdp_negotiation_set_fcn_accept_other_codec(sn, &eXosip_sdp_accept_other_codec);
+  sdp_negotiation_set_fcn_get_audio_port(sn, &eXosip_sdp_get_audio_port);
 
   return 0;
 }

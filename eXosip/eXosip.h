@@ -345,6 +345,8 @@ struct eXosip_t {
   int                 j_runtime_mode;
   eXosip_callback_t   j_call_callbacks[EXOSIP_CALLBACK_COUNT];
   osip_fifo_t        *j_events;
+
+  sdp_negotiation_t  *sdp_negotiation;
 };
 
 typedef struct jinfo_t jinfo_t;

@@ -106,7 +106,7 @@ void eXosip_quit()
   
   osip_mutex_destroy((struct osip_mutex*)eXosip.j_mutexlock);
 
-  sdp_negotiation_free();  
+  sdp_negotiation_free(eXosip.sdp_negotiation);  
 
   if (eXosip.j_input)
     fclose(eXosip.j_input);
@@ -426,7 +426,7 @@ void eXosip_start_call    (osip_message_t *invite)
   char *body;
   char *size;
   
-  sdp_build_offer(NULL, &sdp, "10500", NULL);
+  sdp_build_offer(eXosip.sdp_negotiation, NULL, &sdp, "10500", NULL);
 
   i = sdp_message_to_str(sdp, &body);
   if (body!=NULL)

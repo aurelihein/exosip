@@ -288,7 +288,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, NULL);
       }
     local_sdp = NULL;
-    i = sdp_negotiation_ctx_execute_negotiation(jc->c_ctx);
+    i = sdp_negotiation_ctx_execute_negotiation(eXosip.sdp_negotiation, jc->c_ctx);
 
     if (i!=200)
       {
@@ -301,7 +301,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
   if (remote_sdp==NULL)
     {
       sdp_message_t *local_sdp;
-      sdp_build_offer(NULL, &local_sdp, "25563", NULL);
+      sdp_build_offer(eXosip.sdp_negotiation, NULL, &local_sdp, "25563", NULL);
       sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);
 
       if (local_sdp==NULL)
