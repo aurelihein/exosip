@@ -43,7 +43,11 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   int pos;
   int i;
 
+  if (request==NULL) return -1;
+
   i = osip_message_init(&response);
+  if (i!=0)
+    return -1;
   /* initialise osip_message_t structure */
   /* yet done... */
 
@@ -313,7 +317,7 @@ generating_3456xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction
   return ;
 }
 
-void
+int
 eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
@@ -324,7 +328,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   if (tr==NULL)
     {
       fprintf(stderr, "eXosip: cannot find transaction to answer");
-      return;
+      return -1;
     }
 
   if (jd==NULL)
@@ -335,7 +339,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for invite\n"));
-      return;
+      return -2;
     }
 
   osip_message_set_content_length(response, "0");
@@ -369,10 +373,10 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 
   osip_transaction_add_event(tr, evt_answer);
   
-  return ;
+  return 0;
 }
 
-void
+int
 eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
@@ -386,13 +390,13 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   if (tr==NULL || tr->orig_request==NULL)
     {
       fprintf(stderr, "eXosip: cannot find transaction to answer\n");
-      return;
+      return -1;
     }
 
   if (jd!=NULL && jd->d_dialog==NULL)
-    {  /* element previously removed, this is a no hop! */
+    {  /* element previously removed */
       fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
-      return ;
+      return -1;
     }
 
   body = generating_sdp_answer(tr->orig_request, jc->c_ctx);
@@ -410,7 +414,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for invite\n"));
       code = 500; /* ? which code to use? */
       osip_free(body); /* not used */
-      return;
+      return -1;
     }
 
   if (code==488)
@@ -421,7 +425,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       evt_answer = osip_new_outgoing_sipmessage(response);
       evt_answer->transactionid = tr->transactionid;
       osip_transaction_add_event(tr, evt_answer);
-      return;
+      return 0;
     }
 
   i = osip_message_set_body(response, body);
@@ -461,7 +465,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       if (i!=0)
 	{
 	  fprintf(stderr, "eXosip: cannot create dialog!\n");
-	  return;
+	  return -1;
 	}
       ADD_ELEMENT(jc->c_dialogs, jd);
     }
@@ -473,15 +477,15 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   osip_transaction_add_event(tr, evt_answer);
 
   osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
-  return ;
+  return 0;
 
  g2atii_error_1:
   osip_free(body);
   osip_message_free(response);
-  return ;
+  return -1;
 }
 
-void
+int
 eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
@@ -492,13 +496,13 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   if (tr==NULL)
     {
       fprintf(stderr, "eXosip: cannot find transaction to answer");
-      return;
+      return -1;
     }
   i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for invite\n"));
-      return;
+      return -1;
     }
 
   if (300<=code<=399)
@@ -514,7 +518,7 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-  return ;
+  return 0;
 }
 
 

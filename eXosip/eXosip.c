@@ -432,10 +432,9 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_add_event(transaction, sipevent);
 }
 
-void eXosip_start_call    (osip_message_t *invite,
-			   void *reference,
-			   void *sdp_context_reference,
-			   char *local_sdp_port)
+int eXosip_start_call(osip_message_t *invite, void *reference,
+		      void *sdp_context_reference,
+		      char *local_sdp_port)
 {
   eXosip_call_t *jc;
   osip_header_t *subject;
@@ -480,9 +479,9 @@ void eXosip_start_call    (osip_message_t *invite,
 		       invite);
   if (i!=0)
     {
-      /* TODO: release the j_call.. */
+      eXosip_call_free(jc);
       osip_message_free(invite);
-      return ;
+      return -1;
     }
   
   jc->c_out_tr = transaction;
@@ -495,10 +494,12 @@ void eXosip_start_call    (osip_message_t *invite,
 
   jc->external_reference = reference;
   ADD_ELEMENT(eXosip.j_calls, jc);
+  return 0;
 }
 
-void eXosip_answer_call   (int jid, int status)
+int eXosip_answer_call   (int jid, int status)
 {
+  int i = -1;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   if (jid>0)
@@ -508,28 +509,31 @@ void eXosip_answer_call   (int jid, int status)
   if (jd==NULL)
     {
       fprintf(stderr, "eXosip: No call here?\n");
-      return;
+      return -1;
     }
   if (status>100 && status<200)
     {
-      eXosip_answer_invite_1xx(jc, jd, status);
+      i = eXosip_answer_invite_1xx(jc, jd, status);
     }
   else if (status>199 && status<300)
     {
-      eXosip_answer_invite_2xx(jc, jd, status);
+      i = eXosip_answer_invite_2xx(jc, jd, status);
     }
   else if (status>300 && status<699)
     {
-      eXosip_answer_invite_3456xx(jc, jd, status);
+      i = eXosip_answer_invite_3456xx(jc, jd, status);
     }
   else
     {
       fprintf(stderr, "eXosip: wrong status code (101<status<699)\n");
-      return;
+      return -1;
     }
+  if (i!=0)
+    return -1;
+  return 0;
 }
 
-void eXosip_on_hold_call  (int jid)
+int eXosip_on_hold_call  (int jid)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
@@ -549,29 +553,29 @@ void eXosip_on_hold_call  (int jid)
   if (jd==NULL)
     {
       fprintf(stderr, "eXosip: No call here?\n");
-      return;
+      return -1;
     }
 
   transaction = eXosip_find_last_invite(jc, jd);
-  if (transaction==NULL) return;
+  if (transaction==NULL) return -1;
   if (transaction->state!=ICT_TERMINATED &&
       transaction->state!=IST_TERMINATED)
-    return;
+    return -1;
 
   sdp = eXosip_get_local_sdp_info(transaction);
   if (sdp==NULL)
-    return;
+    return -1;
   i = osip_negotiation_sdp_message_put_on_hold(sdp);
   if (i!=0)
     {
       sdp_message_free(sdp);
-      return ;
+      return -2;
     }
 
   i = _eXosip_build_request_within_dialog(&invite, "INVITE", jd->d_dialog, "UDP");
   if (i!=0) {
     sdp_message_free(sdp);
-    return;
+    return -2;
   }
 
   i = sdp_message_to_str(sdp, &body);
@@ -592,7 +596,7 @@ void eXosip_on_hold_call  (int jid)
   if (jc->c_subject!=NULL)
     osip_message_set_subject(invite, jc->c_subject);
   else
-    osip_message_set_subject(invite, jc->c_subject);
+    osip_message_set_subject(invite, "New Call");
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -602,9 +606,8 @@ void eXosip_on_hold_call  (int jid)
     {
       /* TODO: release the j_call.. */
       osip_message_free(invite);
-      return ;
+      return -2;
     }
-  
   
   {
     sdp_message_t *old_sdp = osip_negotiation_ctx_get_local_sdp(jc->c_ctx);
@@ -619,12 +622,99 @@ void eXosip_on_hold_call  (int jid)
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
-
+  return 0;
 }
 
-void eXosip_off_hold_call (int jid)
+int eXosip_off_hold_call (int jid)
 {
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
 
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  osip_message_t *invite;
+  int i;
+  sdp_message_t *sdp;
+  char *body;
+  char *size;
+
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return -1;
+    }
+
+  transaction = eXosip_find_last_invite(jc, jd);
+  if (transaction==NULL) return -1;
+  if (transaction->state!=ICT_TERMINATED &&
+      transaction->state!=IST_TERMINATED)
+    return -1;
+
+  sdp = eXosip_get_local_sdp_info(transaction);
+  if (sdp==NULL)
+    return -1;
+  i = osip_negotiation_sdp_message_put_off_hold(sdp);
+  if (i!=0)
+    {
+      sdp_message_free(sdp);
+      return -2;
+    }
+
+  i = _eXosip_build_request_within_dialog(&invite, "INVITE", jd->d_dialog, "UDP");
+  if (i!=0) {
+    sdp_message_free(sdp);
+    return -2;
+  }
+
+  i = sdp_message_to_str(sdp, &body);
+  if (body!=NULL)
+    {
+      size= (char *)osip_malloc(7*sizeof(char));
+      sprintf(size,"%i",strlen(body));
+      osip_message_set_content_length(invite, size);
+      osip_free(size);
+      
+      osip_message_set_body(invite, body);
+      osip_free(body);
+      osip_message_set_content_type(invite, "application/sdp");
+    }
+  else
+    osip_message_set_content_length(invite, "0");
+
+  if (jc->c_subject!=NULL)
+    osip_message_set_subject(invite, jc->c_subject);
+  else
+    osip_message_set_subject(invite, "New Call");
+
+  i = osip_transaction_init(&transaction,
+		       ICT,
+		       eXosip.j_osip,
+		       invite);
+  if (i!=0)
+    {
+      /* TODO: release the j_call.. */
+      osip_message_free(invite);
+      return -2;
+    }
+  
+  {
+    sdp_message_t *old_sdp = osip_negotiation_ctx_get_local_sdp(jc->c_ctx);
+    sdp_message_free(old_sdp);
+    osip_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
+  }
+
+  osip_list_add(jd->d_out_trs, transaction, 0);
+  
+  sipevent = osip_new_outgoing_sipmessage(invite);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+  osip_transaction_add_event(transaction, sipevent);
+  return 0;
 }
 
 int eXosip_create_transaction(eXosip_call_t *jc,
@@ -657,29 +747,36 @@ int eXosip_create_transaction(eXosip_call_t *jc,
   return 0;
 }
 
-void eXosip_transfer_call(int jid, char *refer_to)
+int eXosip_transfer_call(int jid, char *refer_to)
 {
   int i;
   osip_message_t *request;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   if (jid<=0)
-    return;
+    return -1;
 
   eXosip_call_dialog_find(jid, &jc, &jd);
   if (jd==NULL || jd->d_dialog==NULL || jd->d_dialog->state==DIALOG_EARLY)
     {
       fprintf(stderr, "eXosip: No established call here!");
-      return;
+      return -1;
     }
 
   i = generating_refer(&request, jd->d_dialog, refer_to);
   if (i!=0)
-    fprintf(stderr, "eXosip: cannot terminate this call! ");
+    {
+      fprintf(stderr, "eXosip: cannot generate REFER for call!");
+      return -2;
+    }
 
   i = eXosip_create_transaction(jc, jd, request);
   if (i!=0)
-    fprintf(stderr, "eXosip: cannot initiate SIP transfer transaction!");
+    {
+      fprintf(stderr, "eXosip: cannot initiate SIP transfer transaction!");
+      return i;
+    }
+  return 0;
 }
 
 int eXosip_create_cancel_transaction(eXosip_call_t *jc,
@@ -697,7 +794,7 @@ int eXosip_create_cancel_transaction(eXosip_call_t *jc,
       /* TODO: release the j_call.. */
 
       osip_message_free(request);
-      return -1;
+      return -2;
     }
   
   osip_list_add(eXosip.j_transactions, tr, 0);
@@ -709,7 +806,7 @@ int eXosip_create_cancel_transaction(eXosip_call_t *jc,
   return 0;
 }
 
-void eXosip_terminate_call(int cid, int jid)
+int eXosip_terminate_call(int cid, int jid)
 {
   int i;
   osip_message_t *request;
@@ -721,7 +818,7 @@ void eXosip_terminate_call(int cid, int jid)
       if (jd==NULL)
 	{
 	  fprintf(stderr, "eXosip: No call here? ");
-	  return;
+	  return -1;
 	}
     }
   else
@@ -731,12 +828,12 @@ void eXosip_terminate_call(int cid, int jid)
 
   if (jc==NULL)
     {
-      return;
+      return -1;
     }
   if (jd==NULL || jd->d_dialog==NULL)
     {
       fprintf(stderr, "eXosip: No established dialog!");
-      return ;
+      return -1;
     }
   if (jd!=NULL && jd->d_dialog!=NULL)
     {
@@ -750,34 +847,45 @@ void eXosip_terminate_call(int cid, int jid)
 	  if (i!=0)
 	    {
 	      fprintf(stderr, "eXosip: cannot terminate this call! ");
-	      return;
+	      return -2;
 	    }
 	  i = eXosip_create_cancel_transaction(jc, jd, request);
 	  if (i!=0)
-	    fprintf(stderr, "eXosip: cannot initiate SIP transaction! ");
-	  return;
+	    {
+	      fprintf(stderr, "eXosip: cannot initiate SIP transaction! ");
+	      return i;
+	    }
+	  return 0;
 	}
       if (tr==NULL)
 	{
+	  /*this may not be enough if it's a re-INVITE! */
 	  tr = eXosip_find_last_inc_invite(jc, jd);
 	  if (tr!=NULL && tr->last_response!=NULL &&
 	      MSG_IS_STATUS_1XX(tr->last_response))
 	    { /* answer with 603 */
-	      eXosip_answer_call(jid, 603);
-	      return;
+	      i = eXosip_answer_call(jid, 603);
+	      return i;
 	    }
 	}
     }
   i = generating_bye(&request, jd->d_dialog);
   if (i!=0)
-    fprintf(stderr, "eXosip: cannot terminate this call! ");
+    {
+      fprintf(stderr, "eXosip: cannot terminate this call! ");
+      return -2;
+    }
 
   i = eXosip_create_transaction(jc, jd, request);
   if (i!=0)
-    fprintf(stderr, "eXosip: cannot initiate SIP transaction! ");
+    {
+      fprintf(stderr, "eXosip: cannot initiate SIP transaction! ");
+      return -2;
+    }
 
   osip_dialog_free(jd->d_dialog);
   jd->d_dialog = NULL;
+  return 0;
 }
 
 void eXosip_register      (int rid)

@@ -59,12 +59,12 @@ char *jidentity_get_registrar(int fid);
 
 int   eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 			       char *route, char *subject);
-void  eXosip_start_call    (osip_message_t *invite, void *reference, void *sdp_context_reference, char *local_sdp_port);
-void  eXosip_answer_call   (int jid, int status);
-void  eXosip_on_hold_call  (int jid);
-void  eXosip_off_hold_call (int jid);
-void  eXosip_transfer_call(int jid, char *refer_to);
-void  eXosip_terminate_call(int cid, int jid);
+int   eXosip_start_call    (osip_message_t *invite, void *reference, void *sdp_context_reference, char *local_sdp_port);
+int   eXosip_answer_call   (int jid, int status);
+int   eXosip_on_hold_call  (int jid);
+int   eXosip_off_hold_call (int jid);
+int   eXosip_transfer_call(int jid, char *refer_to);
+int   eXosip_terminate_call(int cid, int jid);
 
 void  eXosip_message    (char *to, char *from, char *route, char *buff);
 

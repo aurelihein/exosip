@@ -434,9 +434,9 @@ int eXosip_subscribe_dialog_find(int nid, eXosip_subscribe_t **js, eXosip_dialog
 int eXosip_call_find(int cid, eXosip_call_t **jc);
 int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, osip_message_t *_200Ok);
 
-void eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
-void eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
-void eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+int eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+int eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+int eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 void eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jc,
 					eXosip_dialog_t *jd, int code);
 void eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn,
