@@ -75,7 +75,11 @@ eXosip_event_init_for_call(int type,
 	    {
 	      osip_message_get_subject(tr->orig_request, 0, &subject);
 	      if (subject!=NULL && subject->hvalue!=NULL)
-		snprintf(je->subject, 256, "%s", subject->hvalue);
+		snprintf(je->subject, 255, "%s", subject->hvalue);
+
+	      osip_uri_to_str(tr->orig_request->req_uri, &tmp);
+	      if (tmp!=NULL)
+		snprintf(je->req_uri, 255, "%s", tmp);
 	    }
 	}
     }

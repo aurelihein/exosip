@@ -277,7 +277,8 @@ typedef enum eXosip_event_type_t {
 typedef struct eXosip_event {
   eXosip_event_type_t type;
 
-  char                textinfo[150];
+  char                textinfo[256];
+  char                req_uri[256];
   char                local_uri[256];
   char                remote_uri[256];
   char                subject[256];
