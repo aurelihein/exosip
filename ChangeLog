@@ -1,3 +1,7 @@
+eXosip (0.7.7)
+	* memory leaks.
+	* tiny bugs, code clean-up.
+	
 eXosip (0.7.6)
 	* fix bug when 1st proxy is using strict routing.
 	* support for IPv4 and IPv6.
