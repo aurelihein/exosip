@@ -52,8 +52,8 @@ void window_address_book_browse_draw_commands()
 {
   int x,y;
   char *address_book_browse_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "X",  "StartCall" ,
     "a",  "AddEntry" ,
     "d",  "DeleteEntry" ,

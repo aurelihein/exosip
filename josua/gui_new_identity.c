@@ -218,8 +218,8 @@ void window_new_identity_draw_commands()
 {
   int x,y;
   char *new_identity_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "^A", "AddIdentity" ,
     "^D", "DeleteLine",
     "^E", "EraseAll",

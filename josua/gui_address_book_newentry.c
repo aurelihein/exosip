@@ -218,8 +218,8 @@ void window_address_book_newentry_draw_commands()
 {
   int x,y;
   char *address_book_newentry_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "^A", "AddEntry" ,
     "^D", "DeleteLine",
     "^E", "EraseAll",

@@ -897,7 +897,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   osip_message_header_get_byname(evt->sip, "expires",
 				 0,
 				 &expires);
-  if (expires!=NULL||expires->hvalue!=NULL
+  if (expires!=NULL&&expires->hvalue!=NULL
       && 0==osip_strcasecmp(expires->hvalue, "0"))
     {
       /* delete the dialog! */
@@ -917,11 +917,16 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	  eXosip_event_add(je);
       }
 
+      sipevent = osip_new_outgoing_sipmessage(answer);
+      sipevent->transactionid =  transaction->transactionid;
+      osip_transaction_add_event(transaction, sipevent);
+
+      osip_list_add(eXosip.j_transactions, transaction, 0);
 
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
-      osip_list_add(eXosip.j_transactions, transaction, 0);
-      return 0;
+
+      return ;
     }
   else
     {
@@ -1053,6 +1058,11 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	else if (eXosip.j_runtime_mode==EVENT_MODE)
 	  eXosip_event_add(je);
       }
+
+      sipevent = osip_new_outgoing_sipmessage(answer);
+      sipevent->transactionid =  transaction->transactionid;
+      osip_transaction_add_event(transaction, sipevent);
+
       osip_list_add(eXosip.j_transactions, transaction, 0);
 
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
@@ -1350,6 +1360,10 @@ void eXosip_process_newrequest (osip_event_t *evt)
 
   if (MSG_IS_NOTIFY(evt->sip))
     {
+      /* I should probably initiate a dialog with info from NOTIFY...
+	 By now, I prefer to discard the message until an answer for
+	 the subscribe is received, then I'll be able to answer
+	 the NOTIFY retransmission. */
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer(NULL, transaction, evt, 481);
       return;

@@ -67,7 +67,7 @@ int window_subscriptions_list_print()
       if (jsubscriptions[k].state != NOT_USED)
 	{
 	  char *tmp;
-	  snprintf(buf, 199, "%c%c %i//%i %30.30s ",
+	  snprintf(buf, 199, "%c%c %3.3i//%3.3i    %-40.40s ",
 		   (cursor_subscriptions_list==pos-1) ? '-' : ' ',
 		   (cursor_subscriptions_list==pos-1) ? '>' : ' ',
 		   jsubscriptions[k].sid,
@@ -91,6 +91,9 @@ int window_subscriptions_list_print()
 	    }
 	  else if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
 	    snprintf(tmp, 199-strlen(buf), " %10.10s", "--terminated--");
+
+	  tmp = buf + strlen(buf);
+	  snprintf(tmp, 199-strlen(buf), " %100.100s", " ");
 
 	  attrset(COLOR_PAIR(5));
 	  attrset((pos-1==cursor_subscriptions_list) ? A_REVERSE : A_NORMAL);
@@ -131,8 +134,8 @@ void window_subscriptions_list_draw_commands()
 {
   int x,y;
   char *subscriptions_list_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "r",  "Refresh",
     "c",  "Close" ,
     "t",  "ViewSubscribers",
@@ -189,7 +192,7 @@ int window_subscriptions_list_run_command(int c)
       js = jsubscription_find_subscription(cursor_subscriptions_list);
       if (js==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_subscribe_refresh(js->sid, "600");
+      i = eXosip_subscribe_refresh(js->did, "600");
       if (i!=0) beep();
       eXosip_unlock();
       window_subscriptions_list_print();
@@ -198,56 +201,13 @@ int window_subscriptions_list_run_command(int c)
       js = jsubscription_find_subscription(cursor_subscriptions_list);
       if (js==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_subscribe_close(js->sid);
+      i = eXosip_subscribe_close(js->did);
       if (i!=0) beep();
       if (i==0)
 	jsubscription_remove(js);
       eXosip_unlock();
       window_subscriptions_list_print();
       break;
-#if 0
-    case 'b':
-      ca = jsubscription_find_subscription(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_answer_call(ca->did, 486);
-      if (i==0)
-	jsubscription_remove(ca);
-      eXosip_unlock();
-      window_subscriptions_list_print();
-      break;
-    case 'c':
-      ca = jsubscription_find_subscription(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_terminate_call(ca->sid, ca->did);
-      if (i==0)
-	jsubscription_remove(ca);
-      eXosip_unlock();
-      window_subscriptions_list_print();
-      break;
-    case 'm':
-      ca = jsubscription_find_call(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      eXosip_on_hold_call(ca->did);
-      eXosip_unlock();
-      break;
-    case 'u':
-      ca = jsubscription_find_call(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      eXosip_off_hold_call(ca->did);
-      eXosip_unlock();
-      break;
-    case 'o':
-      ca = jsubscription_find_call(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      eXosip_options_call(ca->did);
-      eXosip_unlock();
-      break;
-#endif
     default:
       beep();
       return -1;

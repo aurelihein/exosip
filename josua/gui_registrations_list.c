@@ -49,8 +49,8 @@ void window_registrations_list_draw_commands()
 {
   int x,y;
   char *registrations_list_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "a",  "AddRegistration",
     "d",  "DeleteRegistration",
     "r",  "Register",

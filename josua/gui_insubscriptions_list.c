@@ -21,6 +21,7 @@
 #include "jinsubscriptions.h"
 #include "gui_menu.h"
 #include "gui_insubscriptions_list.h"
+#include "gui_online.h"
 
 gui_t gui_window_insubscriptions_list = {
   GUI_OFF,
@@ -60,20 +61,40 @@ int window_insubscriptions_list_print()
   else x = gui_window_insubscriptions_list.x1;
 
   attrset(COLOR_PAIR(0));
-
+	
   pos=1;
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED)
 	{
-	  snprintf(buf, 199, "%c%c %i//%i %i %s with: %s %199.199s",
+	  char *tmp;
+	  snprintf(buf, 199, "%c%c %3.3i//%3.3i    %-40.40s ",
 		   (cursor_insubscriptions_list==pos-1) ? '-' : ' ',
 		   (cursor_insubscriptions_list==pos-1) ? '>' : ' ',
 		   jinsubscriptions[k].nid,
 		   jinsubscriptions[k].did,
-		   jinsubscriptions[k].status_code,
-		   jinsubscriptions[k].reason_phrase,
-		   jinsubscriptions[k].remote_uri, " ");
+		   jinsubscriptions[k].remote_uri);
+	  tmp = buf + strlen(buf);
+	  if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_UNKNOWN)
+	    snprintf(tmp, 199-strlen(buf), " %-11.11s", "--unknown--");
+	  else if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_PENDING)
+	    snprintf(tmp, 199-strlen(buf), " %-11.11s", "--pending--");
+	  else if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_ACTIVE)
+	    {
+	      if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_UNKNOWN)
+		snprintf(tmp, 199-strlen(buf), " %-11.11s", "unknown");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_PENDING)
+		snprintf(tmp, 199-strlen(buf), " %-11.11s", "pending");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_ONLINE)
+		snprintf(tmp, 199-strlen(buf), " %-11.11s", "online");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_AWAY)
+		snprintf(tmp, 199-strlen(buf), " %-11.11s", "away");
+	    }
+	  else if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
+	    snprintf(tmp, 199-strlen(buf), " %11.11s", "--terminated--");
+
+	  tmp = buf + strlen(buf);
+	  snprintf(tmp, 199-strlen(buf), " %100.100s", " ");
 
 	  attrset(COLOR_PAIR(5));
 	  attrset((pos-1==cursor_insubscriptions_list) ? A_REVERSE : A_NORMAL);
@@ -96,8 +117,8 @@ void window_insubscriptions_list_draw_commands()
 {
   int x,y;
   char *insubscriptions_list_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "a",  "Accept",
     "c",  "Close" ,
     "o",  "Online",
@@ -192,6 +213,7 @@ int window_insubscriptions_list_run_command(int c)
     case 'O':
       {
 	int k;
+	josua_online_status = EXOSIP_NOTIFY_ONLINE;
 	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
 	  {
 	    if (jinsubscriptions[k].state != NOT_USED)
@@ -207,6 +229,7 @@ int window_insubscriptions_list_run_command(int c)
     case 'G':
       {
 	int k;
+	josua_online_status = EXOSIP_NOTIFY_AWAY;
 	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
 	  {
 	    if (jinsubscriptions[k].state != NOT_USED)

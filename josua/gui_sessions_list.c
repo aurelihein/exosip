@@ -95,8 +95,8 @@ void window_sessions_list_draw_commands()
 {
   int x,y;
   char *sessions_list_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "c",  "Close" ,
     "a",  "Answer",
     "m",  "Mute"  ,

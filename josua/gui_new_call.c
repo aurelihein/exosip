@@ -285,8 +285,8 @@ void window_new_call_draw_commands()
 {
   int x,y;
   char *new_call_commands[] = {
-    "<",  "PrevWindow",
-    ">",  "NextWindow",
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
     "^X", "StartCall" ,
     "^O", "StartOptions" ,
     "^U", "StartSubscribe" ,

@@ -26,7 +26,10 @@
 #include "gui_menu.h"
 #include "gui_new_call.h"
 #include "gui_sessions_list.h"
+#include "gui_subscriptions_list.h"
+#include "gui_insubscriptions_list.h"
 #include "gui_loglines.h"
+#include "gui_online.h"
 
 
 gui_t *gui_windows[10] =
@@ -349,6 +352,25 @@ josua_clear_box_and_commands(gui_t *box)
   return 0;
 }
 
+void
+__show_toggle_online_logline()
+{
+  static int log_or_online=0;
+
+  if (log_or_online==0)
+    {
+      log_or_online = 1;
+      gui_windows[LOGLINESGUI] = &gui_window_online;
+      window_online_print();
+    }
+  else
+    {
+      log_or_online = 0;
+      gui_windows[LOGLINESGUI] = &gui_window_loglines;
+      window_loglines_print();
+    }
+}
+
 int josua_gui_key_pressed()
 {
   int c;
@@ -390,8 +412,11 @@ int josua_gui_key_pressed()
     }
   else 
     {
-
-      if (c==KEY_RIGHT || c=='>')
+      if (c==22) /* Ctrl v */
+	{
+	  __show_toggle_online_logline();
+	}
+      else if (c==KEY_RIGHT)
 	{
 	  /* activate previous windows */
 	  for (i = 0; gui_windows[i]!=NULL
@@ -437,7 +462,7 @@ int josua_gui_key_pressed()
 	    gui_windows[i]->gui_draw_commands();
 	  else josua_clear_commands_only();
 	}
-      else if (c==KEY_LEFT || c=='<')
+      else if (c==KEY_LEFT)
 	{
 	  /* activate previous windows */
 	  for (i = 0; gui_windows[i]!=NULL
@@ -566,7 +591,15 @@ gui_start()
 	{
 	  window_sessions_list_print();
 	}
-      window_loglines_print();
+      else if (i==0 && gui_windows[EXTRAGUI]==&gui_window_insubscriptions_list)
+	{
+	  window_insubscriptions_list_print();
+	}
+      else if (i==0 && gui_windows[EXTRAGUI]==&gui_window_subscriptions_list)
+	{
+	  window_subscriptions_list_print();
+	}
+      gui_windows[LOGLINESGUI]->gui_print();
     }
 
   echo();

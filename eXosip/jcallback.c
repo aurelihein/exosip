@@ -280,6 +280,19 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_BUG,NULL,"cb_nict_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n", tr->transactionid));
     }
 
+  if (MSG_IS_REGISTER(tr->orig_request)
+      && type==OSIP_NICT_KILL_TRANSACTION
+      && tr->last_response==NULL)
+    {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_reg(EXOSIP_REGISTRATION_FAILURE, eXosip.j_reg);
+      if (eXosip.j_call_callbacks[EXOSIP_REGISTRATION_FAILURE]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_REGISTRATION_FAILURE](EXOSIP_REGISTRATION_FAILURE, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
+
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;

@@ -18,11 +18,12 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.47 2003-06-23 16:47:50 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.48 2003-06-25 12:45:01 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
 #include "gui.h"
+#include "gui_online.h"
 
 extern eXosip_t eXosip;
 
@@ -195,6 +196,12 @@ josua_event_get()
 		   je->remote_uri,
 		   je->req_uri);
 	  josua_printf(buf);
+
+	  josua_registration_status = je->status_code;
+	  snprintf(josua_registration_server, 100, "%s", je->req_uri);
+	  if (je->reason_phrase!='\0')
+	    snprintf(josua_registration_reason_phrase, 100, "%s", je->reason_phrase);
+	  else josua_registration_reason_phrase[0] = '\0';
 	}
       else if (je->type==EXOSIP_REGISTRATION_FAILURE)
 	{
@@ -205,6 +212,12 @@ josua_event_get()
 		   je->remote_uri,
 		   je->req_uri);
 	  josua_printf(buf);
+	  josua_registration_status = je->status_code;
+	  snprintf(josua_registration_server, 100, "%s", je->req_uri);
+	  if (je->reason_phrase!='\0')
+	    snprintf(josua_registration_reason_phrase, 100, "%s", je->reason_phrase);
+	  else josua_registration_reason_phrase[0] = '\0';
+	  
 	}
       else if (je->type==EXOSIP_OPTIONS_NEW)
 	{

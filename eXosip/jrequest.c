@@ -687,7 +687,11 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   if (0==strcmp("SUBSCRIBE", method_name))
     {
       osip_message_set_header(request, "Event", "presence");
+#ifdef SUPPORT_MSN
+      osip_message_set_accept(request, "application/xpidf+xml");
+#else
       osip_message_set_accept(request, "application/cpim-pidf+xml");
+#endif
     }
   else if (0==strcmp("NOTIFY", method_name))
     {
