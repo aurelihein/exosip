@@ -57,10 +57,16 @@ void  identitys_add(char *identity, char *registrar, char *realm,
 char *jidentity_get_identity(int fid);
 char *jidentity_get_registrar(int fid);
 
-int   eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
-			       char *route, char *subject);
+int   eXosip_build_initial_options(osip_message_t **info, char *to,
+				   char *from, char *route);
+int   eXosip_start_options(osip_message_t *options, void *reference,
+			   void *sdp_context_reference,
+			   char *local_sdp_port);
+int   eXosip_build_initial_invite(osip_message_t **invite, char *to,
+				  char *from, char *route, char *subject);
 int   eXosip_start_call    (osip_message_t *invite, void *reference, void *sdp_context_reference, char *local_sdp_port);
 int   eXosip_answer_call   (int jid, int status);
+int   eXosip_options_call     (int jid);
 int   eXosip_on_hold_call  (int jid);
 int   eXosip_off_hold_call (int jid);
 int   eXosip_transfer_call(int jid, char *refer_to);

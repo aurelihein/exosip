@@ -232,7 +232,7 @@ generating_1xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
   i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
   if (i!=0)
     {
-      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for invite\n"));
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for OPTIONS\n"));
       return;
     }
 

@@ -75,6 +75,47 @@ void eXosip_send_default_answer(eXosip_dialog_t *jd,
   
 }
 
+void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
+			    osip_transaction_t *transaction, osip_event_t *evt)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *answer;
+  int i;
+
+  osip_transaction_set_your_instance(transaction,
+				     __eXosip_new_jinfo(jc,
+							NULL /*jd */,
+							NULL,
+							NULL));
+
+  i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
+  if (i!=0)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      return ;
+    }
+    
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid =  transaction->transactionid;
+
+  osip_list_add(jd->d_inc_trs, transaction , 0);
+
+  /* Release the eXosip_dialog */
+  osip_dialog_free(jd->d_dialog);
+  jd->d_dialog = NULL;
+
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_OPTIONS_NEW, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_NEW]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_OPTIONS_NEW](EXOSIP_OPTIONS_NEW, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);    
+  }
+
+  osip_transaction_add_event(transaction,evt_answer);
+}
+
 void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			osip_transaction_t *transaction, osip_event_t *evt)
 {
@@ -404,6 +445,61 @@ void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 				  osip_event_t *evt, sdp_message_t *sdp)
 {
   eXosip_process_invite_on_hold(jc, jd, transaction, evt, sdp);
+
+}
+
+void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *evt)
+{
+  osip_event_t *evt_answer;
+  int i;
+  eXosip_call_t *jc;
+  osip_message_t *answer;
+  char contact[200];
+
+  eXosip_call_init(&jc);
+  ADD_ELEMENT(eXosip.j_calls, jc);
+
+  i = _eXosip_build_response_default(&answer, NULL, 100, evt->sip);
+  if (i!=0)
+    {
+      fprintf(stderr, "eXosip: cannot create dialog.");
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      osip_transaction_set_your_instance(transaction, NULL);
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for options\n"));
+      return;
+    }
+  sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
+	  localip,
+	  localport);
+
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid = transaction->transactionid;
+
+  jc->c_inc_options_tr = transaction;
+
+  eXosip_update();
+
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_OPTIONS_NEW, jc, NULL);
+    if (je!=NULL)
+      {
+	char *tmp;
+	osip_uri_to_str(evt->sip->req_uri, &tmp);
+	if (tmp!=NULL)
+	  {
+	    snprintf(je->req_uri, 255, "%s", tmp);
+	    osip_free(tmp);
+	  }
+	eXosip_event_add_status(je, answer);
+      }
+    if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_NEW]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_OPTIONS_NEW](EXOSIP_OPTIONS_NEW, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);    
+  }
+
+  osip_transaction_add_event(transaction, evt_answer);
 
 }
 
@@ -1172,6 +1268,10 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	  osip_list_add(eXosip.j_transactions, transaction, 0);
 	  eXosip_send_default_answer(jd, transaction, evt, 501);
 	}
+      else if (MSG_IS_OPTIONS(evt->sip))
+	{
+	  eXosip_process_options(jc, jd, transaction, evt);
+	}
       else
 	{
 	  osip_list_add(eXosip.j_transactions, transaction, 0);
@@ -1181,12 +1281,17 @@ void eXosip_process_newrequest (osip_event_t *evt)
     }
 
 
-  if (MSG_IS_INVITE(evt->sip))
+  if (MSG_IS_OPTIONS(evt->sip))
+    {
+      eXosip_process_new_options(transaction, evt);
+      return;
+    }
+  else if (MSG_IS_INVITE(evt->sip))
     {
       eXosip_process_new_invite(transaction, evt);
       return;
     }
-  if (MSG_IS_BYE(evt->sip))
+  else if (MSG_IS_BYE(evt->sip))
     {
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer(jd, transaction, evt, 481);

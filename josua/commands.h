@@ -48,6 +48,8 @@ extern main_config_t cfg;
 
 int _josua_start_call(char *from, char *to, char *subject, char *route);
 
+int _josua_start_options(char *from, char *to, char *route);
+
 int _josua_add_contact(char *sipurl, char *telurl, char *email, char *phone);
 
 int _josua_register(int pos_id);

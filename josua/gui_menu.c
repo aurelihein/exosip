@@ -20,7 +20,7 @@
 
 #include "gui_menu.h"
 #include "gui_new_call.h"
-#include "gui_address_book_menu.h"
+#include "gui_address_book_browse.h"
 #include "gui_sessions_list.h"
 #include "gui_registrations_list.h"
 
@@ -42,7 +42,7 @@ gui_t gui_window_menu = {
 
 static const menu_t josua_menu[]= {
   { "a", " ADDRESS BOOK       -    Update address book",
-    &__show_address_book_menu  },
+    &__show_address_book_browse  },
   { "i", " INITIATE SESSION   -    Initiate a session",
     &__show_initiate_session },
   { "u", " SUBSCRIPTIONS LIST -    View pending subscriptions",
@@ -150,8 +150,24 @@ int window_menu_run_command(int c)
   return 0;
 }
 
-void __show_address_book_menu()
+void __show_address_book_browse()
 {
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_address_book_browse;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_address_book_browse;
+    }
+
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_address_book_browse_print();
+}
+#if 0
   active_gui->on_off = GUI_OFF;
   if (gui_windows[MENUGUI]==NULL)
     gui_windows[MENUGUI]= &gui_window_address_book_menu;
@@ -173,6 +189,7 @@ void __show_address_book_menu()
 
   window_address_book_menu_print();
 }
+#endif
 
 
 void

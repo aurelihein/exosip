@@ -19,10 +19,11 @@
  */
 
 #include "gui_new_call.h"
+#include "gui_menu.h"
 
 gui_t gui_window_new_call = {
   GUI_OFF,
-  2,
+  0,
   -999,
   10,
   -6,
@@ -131,6 +132,7 @@ int window_new_call_print()
 int window_new_call_run_command(int c)
 {
   int y,x;
+  int i;
   getmaxyx(stdscr,y,x);
 
   if (gui_window_new_call.x1==-999)
@@ -181,6 +183,7 @@ int window_new_call_run_command(int c)
 
       /* case 20: */  /* Ctrl-T */
     case 1:  /* Ctrl-A */
+      __show_address_book_browse();
       break;
     case 4:  /* Ctrl-D */
       {
@@ -238,7 +241,26 @@ int window_new_call_run_command(int c)
 	ycur++;
 	mvinnstr(ycur, xcur, route, x-gui_window_new_call.x0-10);
 
-	_josua_start_call(cfg.identity, to, subject, route);
+	i = _josua_start_call(cfg.identity, to, subject, route);
+	if (i!=0) beep();
+	/* mvinnstr(ycur, xcur, tmp, 199); */
+      }
+      break;
+    case 23: /* Ctrl-W */
+      {
+	int ycur = gui_window_new_call.y0;
+	int xcur = gui_window_new_call.x0+10;
+	char to[200];
+	char route[200];
+	/* char attachment[200]; */
+	ycur++;
+	mvinnstr(ycur, xcur, to, x-gui_window_new_call.x0-10);
+	ycur++;
+	ycur++;
+	mvinnstr(ycur, xcur, route, x-gui_window_new_call.x0-10);
+
+	i = _josua_start_options(cfg.identity, to, route);
+	if (i!=0) beep();
 	/* mvinnstr(ycur, xcur, tmp, 199); */
       }
       break;

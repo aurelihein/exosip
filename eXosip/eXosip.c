@@ -447,6 +447,68 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_add_event(transaction, sipevent);
 }
 
+int eXosip_start_options(osip_message_t *options, void *reference,
+			 void *sdp_context_reference,
+			 char *local_sdp_port)
+{
+  eXosip_call_t *jc;
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  int i;
+#if 0
+  sdp_message_t *sdp;
+  char *body;
+  char *size;
+  
+  osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, local_sdp_port, NULL);
+
+  i = sdp_message_to_str(sdp, &body);
+  if (body!=NULL)
+    {
+      size= (char *)osip_malloc(7*sizeof(char));
+      sprintf(size,"%i",strlen(body));
+      osip_message_set_content_length(options, size);
+      osip_free(size);
+      
+      osip_message_set_body(options, body);
+      osip_free(body);
+      osip_message_set_content_type(options, "application/sdp");
+    }
+  else
+    osip_message_set_content_length(options, "0");
+#endif
+  
+  eXosip_call_init(&jc);
+  
+  if (sdp_context_reference==NULL)
+    osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
+  else
+    osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
+
+  i = osip_transaction_init(&transaction,
+		       ICT,
+		       eXosip.j_osip,
+		       options);
+  if (i!=0)
+    {
+      eXosip_call_free(jc);
+      osip_message_free(options);
+      return -1;
+    }
+  
+  jc->c_out_options_tr = transaction;
+  
+  sipevent = osip_new_outgoing_sipmessage(options);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
+  osip_transaction_add_event(transaction, sipevent);
+
+  jc->external_reference = reference;
+  ADD_ELEMENT(eXosip.j_calls, jc);
+  return 0;
+}
+
 int eXosip_start_call(osip_message_t *invite, void *reference,
 		      void *sdp_context_reference,
 		      char *local_sdp_port)
@@ -545,6 +607,57 @@ int eXosip_answer_call   (int jid, int status)
     }
   if (i!=0)
     return -1;
+  return 0;
+}
+
+int eXosip_options_call  (int jid)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  osip_message_t *options;
+  int i;
+
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return -1;
+    }
+
+  transaction = eXosip_find_last_options(jc, jd);
+  if (transaction==NULL) return -1;
+  if (transaction->state!=NICT_TERMINATED &&
+      transaction->state!=NIST_TERMINATED)
+    return -1;
+
+  i = _eXosip_build_request_within_dialog(&options, "OPTIONS", jd->d_dialog, "UDP");
+  if (i!=0)
+    return -2;
+
+  i = osip_transaction_init(&transaction,
+		       NICT,
+		       eXosip.j_osip,
+		       options);
+  if (i!=0)
+    {
+      /* TODO: release the j_call.. */
+      osip_message_free(options);
+      return -2;
+    }
+  
+  osip_list_add(jd->d_out_trs, transaction, 0);
+  
+  sipevent = osip_new_outgoing_sipmessage(options);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+  osip_transaction_add_event(transaction, sipevent);
   return 0;
 }
 

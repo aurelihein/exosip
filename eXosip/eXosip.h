@@ -162,7 +162,8 @@ struct eXosip_call_t {
   eXosip_dialog_t         *c_dialogs;
   osip_transaction_t      *c_inc_tr;
   osip_transaction_t      *c_out_tr;
-
+  osip_transaction_t      *c_inc_options_tr;
+  osip_transaction_t      *c_out_options_tr;
   void                    *external_reference;
 
   osip_negotiation_ctx_t  *c_ctx;
@@ -274,6 +275,19 @@ typedef enum eXosip_event_type_t {
   EXOSIP_CALL_HOLD,            /* audio must be stopped                 */
   EXOSIP_CALL_OFFHOLD,         /* audio must be restarted               */
   EXOSIP_CALL_CLOSED,          /* a BYE was received for this call      */
+
+  /* for UAC events */
+  EXOSIP_OPTIONS_NOANSWER,        /* announce no answer within the timeout */
+  EXOSIP_OPTIONS_PROCEEDING,      /* announce processing by a remote app   */
+  EXOSIP_OPTIONS_RINGING,         /* announce ringback                     */
+  EXOSIP_OPTIONS_ANSWERED,        /* announce a 200ok                      */
+  EXOSIP_OPTIONS_REDIRECTED,      /* announce a redirection                */
+  EXOSIP_OPTIONS_REQUESTFAILURE,  /* announce a request failure            */
+  EXOSIP_OPTIONS_SERVERFAILURE,   /* announce a server failure             */
+  EXOSIP_OPTIONS_GLOBALFAILURE,   /* announce a global failure             */
+
+  /* for UAS events */
+  EXOSIP_OPTIONS_NEW,             /* announce a new info method            */
 
   /* for both UAS & UAC events */
   EXOSIP_CALL_STARTAUDIO,      /* audio must be established           */
@@ -417,15 +431,15 @@ int generating_initial_subscribe(osip_message_t **message, char *to,
 int generating_message(osip_message_t **message, char *to, char *from,
 		       char *route, char *buff);
 int  generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled);
-int  generating_info(osip_message_t **info, osip_dialog_t *dialog);
+int  generating_options_within_dialog(osip_message_t **info, osip_dialog_t *dialog);
 int  generating_bye(osip_message_t **bye, osip_dialog_t *dialog);
 int  generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to);
 int  generating_invite_on_hold(osip_message_t **invite, osip_dialog_t *dialog,
 				char *subject, char *sdp);
 int  generating_invite_off_hold(osip_message_t **invite, osip_dialog_t *dialog,
 				char *subject, char *sdp);
-int  generating_options(osip_message_t **options, char *from, char *to,
-			char *sdp, char *proxy);
+int  generating_options(osip_message_t **options, char *from, char *to, char *proxy);
+int  generating_info(osip_message_t **info, char *from, char *to, char *proxy);
 
 int  eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact);
 void eXosip_reg_free(eXosip_reg_t *jreg);
@@ -457,6 +471,10 @@ int eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *j
 osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t *jn, eXosip_dialog_t *jd);
+
+osip_transaction_t *eXosip_find_last_out_options(eXosip_call_t *jc, eXosip_dialog_t *jd );
+osip_transaction_t *eXosip_find_last_inc_options(eXosip_call_t *jc, eXosip_dialog_t *jd );
+osip_transaction_t *eXosip_find_last_options(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);

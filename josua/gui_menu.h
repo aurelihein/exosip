@@ -38,7 +38,7 @@ typedef struct menu_t {
 /* some external methods */
 
 
-void __show_address_book_menu();
+void __show_address_book_browse();
 void __show_initiate_session();
 void __show_sessions_list();
 void __show_subscriptions_list();

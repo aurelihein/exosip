@@ -53,7 +53,8 @@ void window_address_book_browse_draw_commands()
   char *address_book_browse_commands[] = {
     "<",  "PrevWindow",
     ">",  "NextWindow",
-    "^X", "StartCall" ,
+    "X",  "StartCall" ,
+    "a",  "AddEntry" ,
     "d",  "DeleteEntry" ,
     "t",  "Toggle",
     NULL
@@ -105,7 +106,7 @@ int window_address_book_browse_print()
 		   (cursor_address_book_browse==pos) ? '>' : ' ',
 		   fr->f_nick, fr->f_email);
 	}
-      attrset((pos==cursor_address_book_browse) ? A_REVERSE : COLOR_PAIR(1));
+      attrset((pos==cursor_address_book_browse) ? A_REVERSE : COLOR_PAIR(0));
       mvaddnstr(pos+gui_window_address_book_browse.y0,
 		gui_window_address_book_browse.x0,
 		buf,
@@ -117,6 +118,26 @@ int window_address_book_browse_print()
   window_address_book_browse_draw_commands();
   return 0;
 }
+
+void
+__show_newentry_abook()
+{
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_address_book_newentry;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_address_book_newentry;
+    }
+
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_address_book_newentry_print();
+}
+
 
 int window_address_book_browse_run_command(int c)
 {
@@ -180,8 +201,23 @@ int window_address_book_browse_run_command(int c)
 	show_mail=0;
       else show_mail=-1;
       break;
+    case 'a':
+      __show_newentry_abook();
+      break;
     case 'd':
       /* delete entry */
+      pos=0;
+      for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+	{
+	  if (cursor_address_book_browse+cursor_address_book_start==pos)
+	    break;
+	  pos++;
+	}
+      if (fr!=NULL)
+	{
+	  REMOVE_ELEMENT(eXosip.j_friends, fr);
+	  
+	}
       break;
     default:
       beep();

@@ -7,8 +7,8 @@ josua_SOURCES = jcalls.c \
 commands.c      gui_menu.c         jconfig.c          \
 gui.c           gui_new_call.c     main_ncurses.c     \
 gui_icon.c      gui_topline.c      pplgetopt.c        \
-gui_loglines.c  gui_sessions_list.c  gui_address_book_menu.c \
-gui_address_book_menu.h            gui_address_book_newentry.c \
+gui_loglines.c  gui_sessions_list.c   \
+gui_address_book_newentry.c \
 gui_address_book_newentry.h        gui_address_book_browse.h \
 gui_address_book_browse.c \
 commands.h      gui_loglines.h     gui_topline.h     \

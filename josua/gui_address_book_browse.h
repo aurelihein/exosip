@@ -30,4 +30,6 @@ void window_address_book_browse_draw_commands();
 
 extern gui_t gui_window_address_book_browse;
 
+void __show_browse_abook();
+
 #endif

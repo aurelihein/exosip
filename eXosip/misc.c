@@ -86,6 +86,77 @@ eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *jc)
 }
 
 osip_transaction_t *
+eXosip_find_last_options(eXosip_call_t *jc, eXosip_dialog_t *jd )
+{
+  osip_transaction_t *inc_tr;
+  osip_transaction_t *out_tr;
+  inc_tr = eXosip_find_last_inc_options(jc, jd);
+  out_tr = eXosip_find_last_out_options(jc, jd);
+  if (inc_tr==NULL)
+    return out_tr;
+  if (out_tr==NULL)
+    return inc_tr;
+
+  if (inc_tr->birth_time>out_tr->birth_time)
+    return inc_tr;
+  return out_tr;
+}
+
+osip_transaction_t *
+eXosip_find_last_inc_options(eXosip_call_t *jc, eXosip_dialog_t *jd )
+{
+  osip_transaction_t *inc_tr;
+  int pos;
+  inc_tr = NULL;
+  pos=0;
+  if (jd!=NULL)
+    {
+      while (!osip_list_eol(jd->d_inc_trs, pos))
+	{
+	  inc_tr = osip_list_get(jd->d_inc_trs, pos);
+	  if (0==strcmp(inc_tr->cseq->method, "OPTIONS"))
+	    break;
+	  else inc_tr = NULL;
+	  pos++;
+	}
+    }
+  else
+    inc_tr = NULL;
+
+  if (inc_tr==NULL)
+    return jc->c_inc_options_tr; /* can be NULL */
+
+  return inc_tr;
+}
+
+osip_transaction_t *
+eXosip_find_last_out_options(eXosip_call_t *jc, eXosip_dialog_t *jd )
+{
+  osip_transaction_t *out_tr;
+  int pos;
+  out_tr = NULL;
+  pos=0;
+  if (jd==NULL && jc==NULL) return NULL;
+
+  if (jd!=NULL)
+    {
+      while (!osip_list_eol(jd->d_out_trs, pos))
+	{
+	  out_tr = osip_list_get(jd->d_out_trs, pos);
+	  if (0==strcmp(out_tr->cseq->method, "OPTIONS"))
+	    break;
+	  else out_tr = NULL;
+	  pos++;
+	}
+    }
+
+  if (out_tr==NULL)
+    return jc->c_out_options_tr; /* can be NULL */
+
+  return out_tr;
+}
+
+osip_transaction_t *
 eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *inc_tr;

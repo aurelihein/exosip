@@ -39,6 +39,24 @@ int _josua_start_call(char *from, char *to, char *subject, char *route)
   return i;
 }
 
+int _josua_start_options(char *from, char *to, char *route)
+{
+  osip_message_t *options;
+  int i;
+  i = eXosip_build_initial_options(&options,
+				  to,
+				  from,
+				  route);
+  if (i!=0)
+    {
+      return -1;
+    }
+  eXosip_lock();
+  i = eXosip_start_options(options, NULL, NULL, "10500");
+  eXosip_unlock();  
+  return i;
+}
+
 int _josua_add_contact(char *sipurl, char *telurl, char *email, char *phone)
 {
   int i;

@@ -34,6 +34,53 @@ extern eXosip_t eXosip;
 #define EXOSIP_ADDFRIENDS_SH "eXosip_addfriend.sh"
 #endif
 
+void friends_remove(char *nickname, char *home)
+{
+  char *Home;
+  char command[256];
+  char *tmp = command;
+  int length = 0;
+  if (nickname!=NULL)
+    length = strlen(nickname);
+
+  Home = getenv("HOME");
+  if (Home==NULL)
+    return;
+  length = length + strlen(Home);
+  osip_clrspace(nickname);
+  osip_clrspace(home);
+
+  if (home!=NULL)
+    length = length + strlen(home);
+  else
+    return; /* MUST be set */
+  length = length + strlen(EXOSIP_ETC_DIR);
+
+  length = length + strlen("/jm_contact");
+  if (length>235) /* leave some room for SPACEs and \r\n */
+    return ;
+
+  sprintf(tmp , "%s %s/%s/jm_contact", EXOSIP_ADDFRIENDS_SH,
+	  Home, EXOSIP_ETC_DIR);
+
+  tmp = tmp + strlen(tmp);
+  if (nickname!=NULL)
+    sprintf(tmp , " %s", nickname);
+  else
+    sprintf(tmp , " \"\"");
+
+  tmp = tmp + strlen(tmp);
+  if (home!=NULL)
+    sprintf(tmp , " %s", home);
+  else
+    sprintf(tmp , " \"\"");
+
+  sprintf(tmp , "delete");
+
+  fprintf(stderr, "%s", command);
+  system(command);
+}
+
 void friends_add(char *nickname, char *home,
 		 char *work, char *email, char *e164)
 {
@@ -104,7 +151,7 @@ void friends_add(char *nickname, char *home,
   else
     sprintf(tmp , " \"\"");
 
-  fprintf(stderr, "%s", command);
+  /*  fprintf(stderr, "%s", command); */
   system(command);  
 }
 

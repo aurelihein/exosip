@@ -22,7 +22,7 @@
 
 gui_t gui_window_address_book_newentry = {
   GUI_OFF,
-  2,
+  0,
   -999,
   10,
   -6,

@@ -528,6 +528,26 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jc = jinfo->jc;
   jn = jinfo->jn;
   js = jinfo->js;
+
+  if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
+    {
+      eXosip_event_t *je;
+      if (jc==NULL || jc->c_out_options_tr==NULL)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv1xx (id=%i) Error: no call or transaction info for OPTIONS transaction\r\n", tr->transactionid));
+	  return;
+	}
+      je = eXosip_event_init_for_call(EXOSIP_OPTIONS_PROCEEDING, jc, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_PROCEEDING]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_OPTIONS_PROCEEDING](EXOSIP_OPTIONS_PROCEEDING
+							, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
+
   if ((MSG_IS_RESPONSE_FOR(sip, "INVITE")
        || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
       && !MSG_TEST_CODE(sip, 100))
@@ -949,6 +969,26 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jc = jinfo->jc;
   jn = jinfo->jn;
   js = jinfo->js;
+
+  if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
+    {
+      eXosip_event_t *je;
+      if (jc==NULL || jc->c_out_options_tr==NULL)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv2xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
+	  return;
+	}
+      je = eXosip_event_init_for_call(EXOSIP_OPTIONS_ANSWERED, jc, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_ANSWERED]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_OPTIONS_ANSWERED](EXOSIP_OPTIONS_ANSWERED
+							, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
+
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
     {
       cb_rcv2xx_4invite(tr, sip);
@@ -1051,6 +1091,25 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
 
+  if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
+    {
+      eXosip_event_t *je;
+      if (jc==NULL || jc->c_out_options_tr==NULL)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv3xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
+	  return;
+	}
+      je = eXosip_event_init_for_call(EXOSIP_OPTIONS_REDIRECTED, jc, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_REDIRECTED]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_OPTIONS_REDIRECTED](EXOSIP_OPTIONS_REDIRECTED
+							, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
+
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
@@ -1091,6 +1150,25 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     return;
   jd = jinfo->jd;
   jc = jinfo->jc;
+
+  if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
+    {
+      eXosip_event_t *je;
+      if (jc==NULL || jc->c_out_options_tr==NULL)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv4xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
+	  return;
+	}
+      je = eXosip_event_init_for_call(EXOSIP_OPTIONS_REQUESTFAILURE, jc, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_REQUESTFAILURE]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_OPTIONS_REQUESTFAILURE](EXOSIP_OPTIONS_REQUESTFAILURE
+							, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
 
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
@@ -1135,6 +1213,25 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
 
+  if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
+    {
+      eXosip_event_t *je;
+      if (jc==NULL || jc->c_out_options_tr==NULL)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv5xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
+	  return;
+	}
+      je = eXosip_event_init_for_call(EXOSIP_OPTIONS_SERVERFAILURE, jc, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_SERVERFAILURE]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_OPTIONS_SERVERFAILURE](EXOSIP_OPTIONS_SERVERFAILURE
+							, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
+
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
@@ -1174,6 +1271,25 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     return;
   jd = jinfo->jd;
   jc = jinfo->jc;
+
+  if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
+    {
+      eXosip_event_t *je;
+      if (jc==NULL || jc->c_out_options_tr==NULL)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv6xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
+	  return;
+	}
+      je = eXosip_event_init_for_call(EXOSIP_OPTIONS_GLOBALFAILURE, jc, jd);
+      if (je!=NULL)
+	eXosip_event_add_status(je, sip);
+      if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_GLOBALFAILURE]!=NULL)
+	eXosip.j_call_callbacks[EXOSIP_OPTIONS_GLOBALFAILURE](EXOSIP_OPTIONS_GLOBALFAILURE
+							, je);
+      else if (eXosip.j_runtime_mode==EVENT_MODE)
+	eXosip_event_add(je);
+      return;
+    }
 
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
@@ -1418,6 +1534,13 @@ void cb_transport_error(int type, osip_transaction_t *tr, int error)
       eXosip_subscribe_free(js);
     }
 
+  if (MSG_IS_OPTIONS(tr->orig_request) && jc->c_dialogs==NULL
+      && type==OSIP_NICT_TRANSPORT_ERROR)
+    {
+      /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_calls, jc);
+      eXosip_call_free(jc);
+    }
 }
 
 

@@ -275,11 +275,10 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
     }
   else if (0==strcmp("INFO", method_name))
     {
-
     }
   else if (0==strcmp("OPTIONS", method_name))
     {
-
+      osip_message_set_accept(request, "application/sdp");
     }
 
   osip_message_set_user_agent(request, "josua/0.6.2");
@@ -372,6 +371,33 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 
 /* this method can't be called unless the previous
    INVITE transaction is over. */
+int eXosip_build_initial_options(osip_message_t **options, char *to, char *from,
+				 char *route)
+{
+  int i;
+
+  if (to!=NULL && *to=='\0')
+    return -1;
+
+  osip_clrspace(to);
+  osip_clrspace(from);
+  osip_clrspace(route);
+  if (route!=NULL && *route=='\0')
+    route=NULL;
+
+  i = generating_request_out_of_dialog(options, "INVITE", to, "UDP", from,
+				       route);
+  if (i!=0) return -1;
+
+  /* after this delay, we should send a CANCEL */
+  osip_message_set_expires(*options, "120");
+
+  /* osip_message_set_organization(*invite, "Jack's Org"); */
+  return 0;
+}
+
+/* this method can't be called unless the previous
+   INVITE transaction is over. */
 int generating_initial_subscribe(osip_message_t **subscribe, char *to,
 				 char *from, char *route)
 {
@@ -438,18 +464,31 @@ int generating_message(osip_message_t **message, char *to, char *from,
 
 
 int
-generating_options(osip_message_t **options, char *from, char *to, char *sdp, char *proxy)
+generating_options(osip_message_t **options, char *from, char *to, char *proxy)
 {
   int i;
   i = generating_request_out_of_dialog(options, "OPTIONS", to, "UDP",
 				       from, proxy);
   if (i!=0) return -1;
 
+#if 0
   if (sdp!=NULL)
     {      
       osip_message_set_content_type(*options, "application/sdp");
       osip_message_set_body(*options, sdp);
     }
+#endif
+
+  return 0;
+}
+
+int
+generating_info(osip_message_t **info, char *from, char *to, char *proxy)
+{
+  int i;
+  i = generating_request_out_of_dialog(info, "INFO", to, "UDP",
+				       from, proxy);
+  if (i!=0) return -1;
   return 0;
 }
 
@@ -706,23 +745,25 @@ generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to)
 
 /* this request can be inside or outside a dialog */
 int
-generating_options_within_dialog(osip_message_t **options, osip_dialog_t *dialog, char *sdp)
+generating_options_within_dialog(osip_message_t **options, osip_dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(options, "OPTIONS", dialog, "UDP");
   if (i!=0) return -1;
 
+#if 0
   if (sdp!=NULL)
     {      
       osip_message_set_content_type(*options, "application/sdp");
       osip_message_set_body(*options, sdp);
     }
+#endif
 
   return 0;
 }
 
 int
-generating_info(osip_message_t **info, osip_dialog_t *dialog)
+generating_info_within_dialog(osip_message_t **info, osip_dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(info, "INFO", dialog, "UDP");
