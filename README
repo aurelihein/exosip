@@ -1,0 +1,40 @@
+Project    : eXosip - the eXtended osip Library.
+Email      : jack@atosc.org
+License    : GPL
+Home Page  : http://savannah.gnu.org
+
+eXosip is a GPL library that  extend  the  capability  of
+the oSIP library. It aims  to  implement  a  simple  high
+layer API to control the SIP for sessions establishements
+and common extensions.
+
+Once completed, this eXtended library should  provide  an
+API for call management, messaging and presence features.
+
+rfc that are to be implemented:
+  rfc3261: SIP
+  rfcxxxx: MESSAGE request.
+  rfcxxxx: SIMPLE support.
+
+Installation procedure:
+-----------------------
+
+The program is known to run on linux, but might work
+on any unix and windows systems.
+
+./configure
+make
+su -c 'make install'
+
+
+Contact information:
+--------------------
+
+For more information on eXosip, any contributions, or any remarks,
+you can contact me at <jack@atosc.org>.
+
+Use the *osip* mailing list for question about eXosip.
+  <osip@atosc.org>.
+
+Subscribe by writing to:
+  <osip-request@atosc.org> with a subject set to "subscribe".

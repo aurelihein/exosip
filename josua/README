@@ -1,0 +1,32 @@
+Project    : "Jack's Open SIP User Agent" is a SIP phone.
+Email      : jack@atosc.org
+License    : GPL (http://www.gnu.org)
+Home Page  : http://www.osip.org
+Download   : http://osip.atosc.org/osip/download
+
+"Jack's Open SIP User Agent" is a implementation of SIP
+based on the oSIP stack. It implements a SIP phone. SIP
+is the Session Initiation Protocol and is described  by
+the rfc3261.
+
+Installation procedure:
+-----------------------
+
+The program is known to run on linux, but might work
+on any unix and windows systems.
+
+Contact information:
+--------------------
+
+For more information on this program SIP stack, or any contributions,
+you can contact the author at <jack@atosc.org>.
+
+A Mailing list is available for support: <osip@atosc.org>.
+You can subscribe by writing to: <osip-request@atosc.org>
+with a subject set to "subscribe".
+
+Latest version is available at:
+ftp://ftp.gnu.org/gnu/osip
+
+Home page is located at:
+http://www.fsf.org/software/osip/osip.html

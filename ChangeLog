@@ -1,0 +1,6 @@
+eXosip (0.6.1)
+	* INVITE, CANCEL, BYE, REGISTER, MESSAGE, REFER
+	* script for adding/updating contact. (eXosip_addfreind.sh)
+	* script for adding/updating iedntity. (eXosip_addidentity.sh)
+	* NCURSES interface.
+	* options for current session.

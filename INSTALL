@@ -1,0 +1,24 @@
+
+To compile, you should prefer the following method:
+
+tar -xvzf eXosip-x.x.x.tar.gz
+mkdir build-eXosip
+cd build-eXosip
+CFLAGS="-DSHOW_MESSAGE -I/new/includedir" ./configure
+make
+
+as root:
+make install
+
+
+To get the list options of arguments, use:
+
+   ./configure --help
+
+
+
+For example, to install in $prefix directory:
+
+   ./configure --prefix=/your/local
+
+
