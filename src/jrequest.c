@@ -773,7 +773,7 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
       if (i!=0) return -1;
       if (dialog->type==CALLER)
 	{
-	  if (pos!=0)
+	  if (pos!=osip_list_size(dialog->route_set)-1)
 	    osip_list_add(request->routes, route2, 0);
 	  else
 	    osip_route_free(route2);
