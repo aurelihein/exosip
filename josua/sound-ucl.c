@@ -30,6 +30,8 @@ extern char _localip[30];
 
 #define AUDIO_DEVICE "/dev/dsp"
 
+#define USE_PCM
+
 int fd = -1;
 static int min_size = 0;
 
@@ -132,7 +134,6 @@ rtp_event_handler(struct rtp *session, rtp_event *e)
 #define ALAW_PAYLOAD	8
 #define MULAW_MS	20
 
-#if 0
 void
 *os_sound_start_thread(void *_ca)
 {
@@ -140,104 +141,10 @@ void
   jcall_t *ca = (jcall_t*)_ca;
   struct timeval timeout;
   uint32_t       rtp_ts, round;
-  uint8_t        mulaw_buffer[MULAW_BYTES];
-#ifdef USE_PCM
-  char           data_out[MULAW_BYTES*2];
-#endif
-  
-  fprintf(stderr, "Sending and listening to ");
-  fprintf(stderr, "%s port %d (local SSRC = 0x%08x)\n", 
-	 rtp_get_addr(ca->rtp_session), 
-	 rtp_get_rx_port(ca->rtp_session),
-	 rtp_my_ssrc(ca->rtp_session));
-    
-  round = 0;
-  
-  while (ca->enable_audio != -1)
-    {
-      struct timeval t_beg;
-      struct timeval t_end;
-      struct timeval interval;
-
-      gettimeofday(&t_beg, NULL);
-
-      round++;
-      /* original line rtp_ts = round * MULAW_MS; */
-      rtp_ts = round * MULAW_BYTES;
-
-      
-      /* Send control packets */
-      rtp_send_ctrl(ca->rtp_session, rtp_ts, NULL);
-
-      /* Send data packets */
-
-#ifdef USE_PCM
-      memset(data_out, 0, MULAW_BYTES*2);
-      memset(mulaw_buffer, 0, MULAW_BYTES);
-      i=read(fd, data_out, MULAW_BYTES*2);
-      if (ca->payload==8) /* A-Law */
-	alaw_enc(data_out, mulaw_buffer, i);
-      if (ca->payload==0) /* Mu-Law */
-	mulaw_enc(data_out, mulaw_buffer, i);
-      i = i/2;
-#else
-      memset(mulaw_buffer, 0, MULAW_BYTES);
-      i=read(fd, mulaw_buffer, MULAW_BYTES); /* ?? */
-#endif
-
-      fprintf(stderr, "reading %i stream from sound card\n", i);
-      if (i>0)
-        {
-	  rtp_send_data(ca->rtp_session, rtp_ts, ca->payload, 
-			0, 0, 0,
-			(char*)mulaw_buffer, MULAW_BYTES,
-			0, 0, 0);
-	}
-      
-      /* Receive control and data packets */
-      timeout.tv_sec  = 0;
-      timeout.tv_usec = 0;
-      rtp_recv(ca->rtp_session, &timeout, rtp_ts);
-      
-      /* State maintenance */
-      rtp_update(ca->rtp_session);
-      
-      gettimeofday(&t_end, NULL);
-
-      /* make a diff between t_beg and t_end */
-      interval.tv_sec = t_end.tv_sec - t_beg.tv_sec;
-      interval.tv_usec = t_end.tv_usec - t_beg.tv_usec;
-
-      if (interval.tv_usec < 0)
-	{
-	  interval.tv_usec += 1000000L;
-	  --interval.tv_sec;
-	}
-      interval.tv_usec = (MULAW_MS * 1000 - interval.tv_usec);
-      if (interval.tv_usec < 0)
-	{
-	  interval.tv_usec += 1000000L;
-	  --interval.tv_sec;
-	}
-
-      select(0, NULL, NULL, NULL, &interval);
-    }
-  return NULL;
-}
-
-#else
-
-void
-*os_sound_start_thread(void *_ca)
-{
-  int i;
-  jcall_t *ca = (jcall_t*)_ca;
-  struct timeval timeout;
-  uint32_t       rtp_ts, round;
-  uint8_t        mulaw_buffer[MULAW_BYTES*8];
+  uint8_t        mulaw_buffer[MULAW_BYTES*16];
   int            mulaw_buffer_pos;
 #ifdef USE_PCM
-  char           data_out[MULAW_BYTES*2*8];
+  char           data_out[MULAW_BYTES*2*16];
 #endif
   
   fprintf(stderr, "Sending and listening to ");
@@ -269,29 +176,28 @@ void
 
       /* Send data packets */
 #ifdef USE_PCM
-	  memset(data_out, 0, MULAW_BYTES*2);
-	  memset(mulaw_buffer, 0, MULAW_BYTES);
-	  i=read(fd, data_out, MULAW_BYTES*2);
+	  i=read(fd, data_out, MULAW_BYTES*4);
 	  if (ca->payload==8) /* A-Law */
-	    alaw_enc(data_out, mulaw_buffer, i);
+	    alaw_enc(data_out, mulaw_buffer+mulaw_buffer_pos, i);
 	  if (ca->payload==0) /* Mu-Law */
-	    mulaw_enc(data_out, mulaw_buffer, i);
+	    mulaw_enc(data_out, mulaw_buffer+mulaw_buffer_pos, i);
 	  i = i/2;
+	  mulaw_buffer_pos = mulaw_buffer_pos + i;
 #else
-	  memset(mulaw_buffer+mulaw_buffer_pos, 0, MULAW_BYTES*4);
-	  i=read(fd, mulaw_buffer+mulaw_buffer_pos, MULAW_BYTES*4); /* ?? */
+	  memset(mulaw_buffer+mulaw_buffer_pos, 0, MULAW_BYTES*2);
+	  i=read(fd, mulaw_buffer+mulaw_buffer_pos, MULAW_BYTES*2); /* ?? */
 	  mulaw_buffer_pos = mulaw_buffer_pos + i;
 #endif
 	  fprintf(stderr, "reading %i stream from sound card\n", i);
 	}
 
-      if (mulaw_buffer_pos > MULAW_BYTES )
+      if (mulaw_buffer_pos >= MULAW_BYTES )
         {
 	  rtp_send_data(ca->rtp_session, rtp_ts, ca->payload, 
 			0, 0, 0,
 			(char*)mulaw_buffer, MULAW_BYTES,
 			0, 0, 0);
-	  memmove(mulaw_buffer, mulaw_buffer+MULAW_BYTES, MULAW_BYTES*7 );
+	  memmove(mulaw_buffer, mulaw_buffer+MULAW_BYTES, MULAW_BYTES*15 );
 	  mulaw_buffer_pos = mulaw_buffer_pos - MULAW_BYTES;
 	}
       
@@ -325,7 +231,6 @@ void
     }
   return NULL;
 }
-#endif
 
 int os_sound_init()
 {
@@ -461,7 +366,8 @@ int os_sound_start(jcall_t *ca)
       
       /* Filter out local packets if requested */
       /* rtp_set_option(ca->rtp_session, RTP_OPT_FILTER_MY_PACKETS, filter_me); */
-      
+      rtp_set_option(ca->rtp_session, RTP_OPT_WEAK_VALIDATION, TRUE);
+
       ca->audio_thread = osip_thread_create(20000,
 					    os_sound_start_thread, ca);
     }
