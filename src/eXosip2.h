@@ -429,6 +429,9 @@ osip_transaction_t *eXosip_find_last_info(eXosip_call_t *jc, eXosip_dialog_t *jd
 osip_transaction_t *eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);
+osip_transaction_t *eXosip_find_last_refer(eXosip_call_t *jc, eXosip_dialog_t *jd );
+osip_transaction_t *eXosip_find_last_inc_notify_for_refer(eXosip_call_t *jc, eXosip_dialog_t *jd);
+osip_transaction_t *eXosip_find_last_out_notify_for_refer(eXosip_call_t *jc, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_inc_bye(eXosip_call_t *jc, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_bye(eXosip_call_t *jc, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_inc_refer(eXosip_call_t *jc, eXosip_dialog_t *jd);
@@ -463,6 +466,10 @@ int  _eXosip_notify_is_a_known_subscriber(osip_message_t *sip);
 int  eXosip_notify_send_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd,
 			       int subsciption_status,
 			       int online_status);
+int  _eXosip_transfer_send_notify(eXosip_call_t *jc,
+				  eXosip_dialog_t *jd,
+				  int subscription_status,
+				  char *body);
 
 
 int eXosip_is_public_address(const char *addr);

@@ -111,6 +111,10 @@ eXosip_event_init_for_call(int type,
       || type==EXOSIP_CALL_OFFHOLD
       || type==EXOSIP_CALL_CLOSED
       || type==EXOSIP_CALL_STARTAUDIO
+
+      || type==EXOSIP_CALL_REFERED
+      || type==EXOSIP_CALL_REFER_STATUS
+
       || type==EXOSIP_CALL_RELEASED)
     {
       if (jc->c_sdp_port[0]!='\0')
@@ -142,6 +146,10 @@ eXosip_event_init_for_call(int type,
 		   || type==EXOSIP_INFO_GLOBALFAILURE
 		   || type==EXOSIP_INFO_NEW)
 	    tr = eXosip_find_last_info(jc, jd);
+	  else if (type==EXOSIP_CALL_REFERED)
+	    tr = eXosip_find_last_refer(jc, jd);
+	  else if (type==EXOSIP_CALL_REFER_STATUS)
+	    tr = eXosip_find_last_inc_notify_for_refer(jc, jd);
 	  else
 	    tr = eXosip_find_last_invite(jc, jd);
 	  if (tr!=NULL && tr->orig_request!=NULL)
@@ -149,6 +157,10 @@ eXosip_event_init_for_call(int type,
 	      osip_message_get_subject(tr->orig_request, 0, &subject);
 	      if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
 		snprintf(je->subject, 255, "%s", subject->hvalue);
+	      osip_message_header_get_byname(tr->orig_request, "refer-to", 0,
+					     &subject);
+	      if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
+		snprintf(je->refer_to, 255, "%s", subject->hvalue);
 
 	      osip_uri_to_str(tr->orig_request->req_uri, &tmp);
 	      if (tmp!=NULL)
@@ -176,8 +188,6 @@ eXosip_event_add_status(eXosip_event_t *je, osip_message_t *response)
       snprintf(je->reason_phrase, 49, "%s", response->reason_phrase);
       je->status_code = response->status_code;
     }
-  else
-    exit(0);
   return 0;
 }
 

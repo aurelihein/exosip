@@ -105,6 +105,7 @@ void window_sessions_list_draw_commands()
     "r",  "Reject",
     "b",  "AppearBusy",
     "o",  "SendOptions",
+    "R",  "Transfer",
     "digit",  "SendInfo",
     NULL
   };
@@ -217,6 +218,41 @@ int window_sessions_list_run_command(int c)
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
       eXosip_options_call(ca->did);
+      eXosip_unlock();
+      break;
+    case 'R':
+      ca = jcall_find_call(cursor_sessions_list);
+      if (ca==NULL) { beep(); break; }
+      eXosip_lock();
+      eXosip_transfer_call(ca->did, "sip:800@192.168.2.2:5000");
+      eXosip_unlock();
+      break;
+    case 'E':
+      ca = jcall_find_call(cursor_sessions_list);
+      if (ca==NULL) { beep(); break; }
+      eXosip_lock();
+      eXosip_transfer_send_notify(ca->did, EXOSIP_SUBCRSTATE_TERMINATED, "SIP/2.0 200 Ok");
+      eXosip_unlock();
+      break;
+    case 'T':
+      ca = jcall_find_call(cursor_sessions_list);
+      if (ca==NULL) { beep(); break; }
+      eXosip_lock();
+      eXosip_transfer_call(ca->did, "sips:800@192.168.2.2:5000");
+      eXosip_unlock();
+      break;
+    case 'Y':
+      ca = jcall_find_call(cursor_sessions_list);
+      if (ca==NULL) { beep(); break; }
+      eXosip_lock();
+      eXosip_transfer_call(ca->did, "http://antisip.com");
+      eXosip_unlock();
+      break;
+    case 'U':
+      ca = jcall_find_call(cursor_sessions_list);
+      if (ca==NULL) { beep(); break; }
+      eXosip_lock();
+      eXosip_transfer_call(ca->did, "sipoleantisip.com");
       eXosip_unlock();
       break;
 

@@ -942,12 +942,10 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 
   /* add specific headers for each kind of request... */
 
+#if 0
   if (0==strcmp("INVITE", method_name) || 0==strcmp("SUBSCRIBE", method_name))
+#endif
     {
-      /* add a Contact header for requests that establish a dialog:
-	 (only "INVITE") */
-      /* this Contact is the global location where to send request
-	 outside of a dialog! like sip:jack@atosc.org? */
       char contact[200];
       if (eXosip.j_firewall_ip[0]!='\0')
 	{
@@ -1001,10 +999,6 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
     }
   else if (0==strcmp("NOTIFY", method_name))
     {
-#ifdef SUPPORT_MSN
-#else
-      osip_message_set_header(request, "Event", "presence");
-#endif
     }
   else if (0==strcmp("INFO", method_name))
     {
@@ -1054,7 +1048,6 @@ generating_refer_outside_dialog(osip_message_t **refer, char *refer_to, char *fr
   if (i!=0) return -1;
 
   osip_message_set_header(*refer, "Refer-to", refer_to);
-
   return 0;
 }
 

@@ -54,6 +54,8 @@ static void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
 				   osip_transaction_t *transaction, osip_event_t *evt);
 static void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			       osip_transaction_t *transaction, osip_event_t *evt);
+static void eXosip_process_refer(eXosip_call_t *jc, eXosip_dialog_t *jd,
+				 osip_transaction_t *transaction, osip_event_t *evt);
 static void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_event_t *evt);
 static int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel);
 static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt);
@@ -244,6 +246,180 @@ static void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
   jd->d_dialog = NULL;
   __eXosip_report_event(EXOSIP_CALL_CLOSED, jc, jd, NULL);
 
+  osip_transaction_add_event(transaction,evt_answer);
+  __eXosip_wakeup();
+}
+
+static void eXosip_process_refer(eXosip_call_t *jc, eXosip_dialog_t *jd,
+				 osip_transaction_t *transaction, osip_event_t *evt)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *answer;
+  osip_header_t *referto_head = NULL;
+  osip_contact_t *referto;
+  int i;
+
+  /* check if the refer is valid */
+  osip_message_header_get_byname(evt->sip, "refer-to", 0, &referto_head);
+  if (referto_head==NULL || referto_head->hvalue==NULL)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 400, "Missing Refer-To header", "Missing Refer-To header", __LINE__);
+      return;
+    }
+  /* check if refer-to is well-formed */
+  osip_contact_init(&referto);
+  i = osip_contact_parse(referto, referto_head->hvalue);
+  if (i!=0)
+    {
+      osip_contact_free(referto);
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 400, "Non valid Refer-To header", "Non valid Refer-To header", __LINE__);
+      return;      
+    }
+  if (0!=osip_strcasecmp(referto->url->scheme, "sip"))
+    {
+      osip_contact_free(referto);
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 501, "Scheme Not Implemented", "Scheme Not Implemented", __LINE__);
+      return;
+    }
+
+  osip_contact_free(referto);
+
+  /* check policy so we can decline immediatly the refer */
+
+  osip_transaction_set_your_instance(transaction,
+ 				     __eXosip_new_jinfo(jc,
+ 							jd,
+ 							NULL,
+ 							NULL));
+
+  i = _eXosip_build_response_default(&answer, jd->d_dialog, 202, evt->sip);
+  if (i!=0)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+       return ;
+    }
+  
+  i = complete_answer_that_establish_a_dialog(answer, evt->sip);
+
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid =  transaction->transactionid;
+  
+  osip_list_add(jd->d_inc_trs, transaction , 0);
+  
+  osip_transaction_add_event(transaction,evt_answer);
+  __eXosip_wakeup();
+
+  _eXosip_transfer_send_notify(jc, jd, EXOSIP_SUBCRSTATE_ACTIVE, "SIP/2.0 100 Trying");  
+}
+
+static void eXosip_process_notify_for_refer(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					    osip_transaction_t *transaction, osip_event_t *evt)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *answer;
+  int i;
+  osip_transaction_t *ref;
+  osip_header_t *event_hdr;
+  osip_header_t *sub_state;
+  osip_content_type_t *ctype;
+  osip_body_t *body = NULL;
+
+  /* get the event type and return "489 Bad Event". */
+  osip_message_header_get_byname(evt->sip, "event", 0, &event_hdr);
+  if (event_hdr==NULL || event_hdr->hvalue==NULL)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 481, "Missing Event header in Notify", "Missing Event header in Notify", __LINE__);
+      return ;
+    }
+  if (0!=osip_strcasecmp(event_hdr->hvalue, "refer"))
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 501, "Unsupported Event header", "Unsupported Event header in Notify", __LINE__);
+      return ;
+    }
+  osip_message_header_get_byname(evt->sip, "subscription-state",
+				 0,
+				 &sub_state);
+  if (sub_state==NULL||sub_state->hvalue==NULL)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 400, NULL, NULL, __LINE__);
+      return;
+    }
+
+  ctype = osip_message_get_content_type(evt->sip);
+  if (ctype==NULL || ctype->type==NULL || ctype->subtype==NULL)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 400, "Missing Header", "Missing Content-Type Header", __LINE__);
+      return ;      
+    }
+  if (0!=osip_strcasecmp(ctype->type, "message")
+      || 0!=osip_strcasecmp(ctype->subtype, "sipfrag"))
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 501, "Unsupported body type", "Unsupported body type", __LINE__);
+      return ;
+    }
+
+  osip_message_get_body(evt->sip, 0, &body);
+  if (body==NULL || body->body==NULL)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 400, "Missing Body", "Missing Body", __LINE__);
+      return ;
+    }
+
+  
+  {
+    eXosip_event_t *je;
+    int len;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_REFER_STATUS, jc, jd);
+    if (je==NULL) return;
+    
+    len = strlen(body->body);
+    if (len<999)
+      osip_strncpy(je->sdp_body, body->body, len);
+    else
+      osip_strncpy(je->sdp_body, body->body, 999);
+    
+    __eXosip_report_event(EXOSIP_CALL_REFER_STATUS, NULL, NULL, je);
+  }
+
+  /* check if a refer was sent previously! */
+  ref = eXosip_find_last_out_refer(jc, jd);
+  if (ref==NULL)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 481, NULL, "Not associated refer", __LINE__);
+      return ;
+    }
+
+  osip_transaction_set_your_instance(transaction,
+ 				     __eXosip_new_jinfo(jc,
+ 							jd,
+ 							NULL,
+ 							NULL));
+  /* for now, send default response of 200ok.  eventually, application should
+      be deciding how to answer INFO messages */
+  i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
+  if (i!=0)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      return ;
+    }
+  
+  i = complete_answer_that_establish_a_dialog(answer, evt->sip);
+
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid =  transaction->transactionid;
+  
+  osip_list_add(jd->d_inc_trs, transaction , 0);
+  
   osip_transaction_add_event(transaction,evt_answer);
   __eXosip_wakeup();
 }
@@ -708,32 +884,33 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
   jc->c_inc_tr = transaction;
   osip_transaction_add_event(transaction, evt_answer);
 
-  {
-    eXosip_event_t *je;
-    je = eXosip_event_init_for_call(EXOSIP_CALL_NEW, jc, jd);
-    if (je!=NULL)
-      {
-	osip_header_t *subject;
-	char *tmp;
-	osip_message_get_subject(evt->sip, 0, &subject);
-	if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
-	  snprintf(je->subject, 255, "%s", subject->hvalue);
-	osip_uri_to_str(evt->sip->req_uri, &tmp);
-	if (tmp!=NULL)
-	  {
-	    snprintf(je->req_uri, 255, "%s", tmp);
-	    osip_free(tmp);
-	  }
-	eXosip_event_add_sdp_info(je, evt->sip);
-	eXosip_event_add_status(je, answer);
-      }
-    __eXosip_report_event(EXOSIP_CALL_NEW, NULL, NULL, je);
-  }
-
   /* be sure the invite will be processed
   before any API call on this dialog*/
   osip_ist_execute(eXosip.j_osip);
 
+  if (transaction->orig_request!=NULL)
+    {
+      eXosip_event_t *je;
+      je = eXosip_event_init_for_call(EXOSIP_CALL_NEW, jc, jd);
+      if (je!=NULL)
+	{
+	  osip_header_t *subject;
+	  char *tmp;
+	  osip_message_get_subject(transaction->orig_request, 0, &subject);
+	  if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
+	    snprintf(je->subject, 255, "%s", subject->hvalue);
+	  osip_uri_to_str(transaction->orig_request->req_uri, &tmp);
+	  if (tmp!=NULL)
+	    {
+	      snprintf(je->req_uri, 255, "%s", tmp);
+	      osip_free(tmp);
+	    }
+	  eXosip_event_add_sdp_info(je, transaction->orig_request);
+	  eXosip_event_add_status(je, answer);
+	}
+      __eXosip_report_event(EXOSIP_CALL_NEW, NULL, NULL, je);
+    }
+  
   __eXosip_wakeup();
 
 }
@@ -1673,8 +1850,7 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	}
       else if (MSG_IS_REFER(evt->sip))
 	{
-	  osip_list_add(eXosip.j_transactions, transaction, 0);
-	  eXosip_send_default_answer(jd, transaction, evt, 501, "Refer Not Yet Supported Within Calls", "Just Not implemented", __LINE__);
+	  eXosip_process_refer(jc, jd, transaction, evt);
 	}
       else if (MSG_IS_OPTIONS(evt->sip))
 	{
@@ -1684,10 +1860,14 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	{
 	  eXosip_process_info(jc, jd, transaction, evt);
 	}
+      else if (MSG_IS_NOTIFY(evt->sip))
+	{
+	  eXosip_process_notify_for_refer(jc, jd, transaction, evt);
+	}
       else
 	{
 	  osip_list_add(eXosip.j_transactions, transaction, 0);
-	  eXosip_send_default_answer(jd, transaction, evt, 501, NULL, "Just Not implemented", __LINE__);
+	  eXosip_send_default_answer(jd, transaction, evt, 405, NULL, "Method Not Allowed", __LINE__);
 	}
       return ;
     }

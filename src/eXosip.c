@@ -741,6 +741,7 @@ int eXosip_info_call(int jid, char *content_type, char *body)
       if (transaction->state!=NICT_TERMINATED &&
 	  transaction->state!=NIST_TERMINATED)
 	return -1;
+      transaction=NULL;
     }
  
   i = generating_info_within_dialog(&info, jd->d_dialog);
@@ -1395,6 +1396,7 @@ int eXosip_options_call  (int jid)
       if (transaction->state!=NICT_TERMINATED &&
 	  transaction->state!=NIST_TERMINATED)
 	return -1;
+      transaction=NULL;
     }
 
   i = _eXosip_build_request_within_dialog(&options, "OPTIONS", jd->d_dialog, "UDP");
@@ -1567,6 +1569,7 @@ int eXosip_on_hold_call  (int jid)
   else
 	  osip_message_set_subject(invite, jc->c_subject);
 
+  transaction=NULL;
   i = osip_transaction_init(&transaction,
 		       ICT,
 		       eXosip.j_osip,
@@ -1697,6 +1700,7 @@ int eXosip_off_hold_call (int jid, char *rtp_ip, int port)
   else
 	  osip_message_set_subject(invite, jc->c_subject);
 
+  transaction=NULL;
   i = osip_transaction_init(&transaction,
 		       ICT,
 		       eXosip.j_osip,
@@ -2531,6 +2535,123 @@ int eXosip_subscribe_close(int sid)
   return i;
 }
 
+int eXosip_transfer_send_notify(int jid, int subscription_status, char *body)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+       OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: No call here?\n"));
+      return -1;
+    }
+  if (jd==NULL || jd->d_dialog==NULL)
+    {
+       OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: No established dialog!"));
+      return -1;
+    }
+
+  return _eXosip_transfer_send_notify(jc, jd, subscription_status, body);
+}
+
+int _eXosip_transfer_send_notify(eXosip_call_t *jc,
+				 eXosip_dialog_t *jd,
+				 int subscription_status,
+				 char *body)
+{
+  osip_transaction_t *transaction;
+  osip_message_t *notify;
+  osip_event_t *sipevent;
+  int   i;
+  char  subscription_state[50];
+  char *tmp;
+
+  transaction = eXosip_find_last_inc_refer(jc, jd);
+  if (transaction==NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "eXosip: No pending transfer!\n"));
+      return -1;
+    }
+
+  transaction = eXosip_find_last_out_notify_for_refer(jc, jd);
+  if (transaction!=NULL)
+    {
+      if (transaction->state!=NICT_TERMINATED &&
+	  transaction->state!=NIST_TERMINATED)
+	return -1;
+      transaction=NULL;
+    }
+
+  i = _eXosip_build_request_within_dialog(&notify, "NOTIFY", jd->d_dialog, "UDP");
+  if (i!=0)
+    return -2;
+
+  if (subscription_status==EXOSIP_SUBCRSTATE_PENDING)
+    osip_strncpy(subscription_state, "pending;expires=", 16);
+  else if (subscription_status==EXOSIP_SUBCRSTATE_ACTIVE)
+    osip_strncpy(subscription_state, "active;expires=", 15);
+  else if (subscription_status==EXOSIP_SUBCRSTATE_TERMINATED)
+    {
+      int reason = NORESOURCE;
+      if (reason==DEACTIVATED)
+	osip_strncpy(subscription_state, "terminated;reason=deactivated", 29);
+      else if (reason==PROBATION)
+	osip_strncpy(subscription_state, "terminated;reason=probation", 27);
+      else if (reason==REJECTED)
+	osip_strncpy(subscription_state, "terminated;reason=rejected", 26);
+      else if (reason==TIMEOUT)
+	osip_strncpy(subscription_state, "terminated;reason=timeout", 25);
+      else if (reason==GIVEUP)
+	osip_strncpy(subscription_state, "terminated;reason=giveup", 24);
+      else if (reason==NORESOURCE)
+	osip_strncpy(subscription_state, "terminated;reason=noresource", 29);
+    }
+  tmp = subscription_state + strlen(subscription_state);
+  if (subscription_status!=EXOSIP_SUBCRSTATE_TERMINATED)
+    sprintf(tmp, "%i", 180);
+  osip_message_set_header(notify, "Subscription-State",
+			 subscription_state);
+
+  /* add a body */
+  if (body!=NULL)
+    {
+      osip_message_set_body(notify, body, strlen(body));
+      osip_message_set_content_type(notify, "message/sipfrag");
+    }
+
+  osip_message_set_header(notify, "Event", "refer");
+
+  i = osip_transaction_init(&transaction,
+		       NICT,
+		       eXosip.j_osip,
+		       notify);
+  if (i!=0)
+    {
+      osip_message_free(notify);
+      return -1;
+    }
+  
+  osip_list_add(jd->d_out_trs, transaction, 0);
+  
+  sipevent = osip_new_outgoing_sipmessage(notify);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+  osip_transaction_add_event(transaction, sipevent);
+  __eXosip_wakeup();
+  return 0;
+}
+
 int eXosip_notify_send_notify(eXosip_notify_t *jn,
 			      eXosip_dialog_t *jd,
 			      int subscription_status,
@@ -2549,6 +2670,7 @@ int eXosip_notify_send_notify(eXosip_notify_t *jn,
       if (transaction->state!=NICT_TERMINATED &&
 	  transaction->state!=NIST_TERMINATED)
 	return -1;
+      transaction=NULL;
     }
 
 #ifndef SUPPORT_MSN
@@ -2596,8 +2718,8 @@ int eXosip_notify_send_notify(eXosip_notify_t *jn,
 	osip_strncpy(subscription_state, "terminated;reason=timeout", 25);
       else if (jn->n_ss_reason==GIVEUP)
 	osip_strncpy(subscription_state, "terminated;reason=giveup", 24);
-      else if (jn->n_ss_reason==NORESSOURCE)
-	osip_strncpy(subscription_state, "terminated;reason=noressource", 29);
+      else if (jn->n_ss_reason==NORESOURCE)
+	osip_strncpy(subscription_state, "terminated;reason=noresource", 29);
     }
   tmp = subscription_state + strlen(subscription_state);
   if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_TERMINATED)
@@ -2612,6 +2734,11 @@ int eXosip_notify_send_notify(eXosip_notify_t *jn,
     {
 
     }
+
+#ifdef SUPPORT_MSN
+#else
+  osip_message_set_header(notify, "Event", "presence");
+#endif
 
   i = osip_transaction_init(&transaction,
 		       NICT,

@@ -388,6 +388,14 @@ int   eXosip_off_hold_call (int jid, char *rtp_ip, int port);
 int   eXosip_transfer_call(int jid, char *refer_to);
 
 /**
+ * Tranfer a call.
+ * 
+ * @param jid          dialog id of call.
+ * @param refer_to     SIP Url for transfer.
+ */
+int   eXosip_transfer_send_notify(int jid, int subscription_status, char *body);
+
+/**
  * Terminate a call.
  * 
  * @param cid          call id of call.
@@ -497,8 +505,11 @@ typedef enum eXosip_ss_reason {
   REJECTED,
   TIMEOUT,
   GIVEUP,
-  NORESSOURCE
+  NORESOURCE
 } eXosip_ss_reason_t;
+
+  /* typo error */
+#define NORESSOURCE NORESOURCE
 
 typedef enum eXosip_ss_status {
   EXOSIP_NOTIFY_UNKNOWN,
@@ -615,6 +626,9 @@ typedef enum eXosip_event_type_t {
   EXOSIP_IN_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.*/
   EXOSIP_IN_SUBSCRIPTION_RELEASED,     /* announce end of subscription.   */
 
+  EXOSIP_CALL_REFERED,              /* announce incoming REFER           */
+  EXOSIP_CALL_REFER_STATUS,         /* announce incoming NOTIFY          */
+
   EXOSIP_CALLBACK_COUNT
 } eXosip_event_type_t;
 
@@ -629,6 +643,7 @@ typedef struct eXosip_event {
   char                local_uri[256];
   char                remote_uri[256];
   char                remote_contact[256];
+  char                refer_to[256];
   char                subject[256];
   osip_content_type_t *i_ctt;
   osip_list_t         *i_bodies;

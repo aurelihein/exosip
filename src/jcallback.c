@@ -475,7 +475,33 @@ static void cb_rcvsubscribe (int type, osip_transaction_t *tr,osip_message_t *si
 
 static void cb_rcvunkrequest(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
+  eXosip_dialog_t    *jd;
+  eXosip_call_t      *jc;
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
+
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvunkrequest (id=%i)\r\n", tr->transactionid));
+
+  if (jinfo==NULL)
+    return;
+  jd = jinfo->jd;
+  jc = jinfo->jc;
+  if (jinfo->jc==NULL)
+    return;
+
+  
+  if (MSG_IS_REFER(sip))
+    {
+      eXosip_event_t *je;
+
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvrefer (id=%i)\r\n", tr->transactionid));
+
+      je = eXosip_event_init_for_call(EXOSIP_CALL_REFERED, jc, jd);
+      if (je!=NULL)
+	{
+	  report_event_with_status(je, NULL);
+	}
+    }
+
 }
 
 static void cb_sndinvite  (int type, osip_transaction_t *tr,osip_message_t *sip)
