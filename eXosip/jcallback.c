@@ -130,7 +130,7 @@ void cb_ict_kill_transaction(int type, osip_transaction_t *tr)
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_ict_kill_transaction (id=%i)\r\n", tr->transactionid));
 
-  i = osip_remove_ict(eXosip.j_osip, tr);
+  i = osip_remove_transaction(eXosip.j_osip, tr);
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_BUG,NULL,"cb_ict_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n", tr->transactionid));
@@ -141,7 +141,7 @@ void cb_ist_kill_transaction(int type, osip_transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_ist_kill_transaction (id=%i)\r\n", tr->transactionid));
-  i = osip_remove_ist(eXosip.j_osip, tr);
+  i = osip_remove_transaction(eXosip.j_osip, tr);
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_BUG,NULL,"cb_ist_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n", tr->transactionid));
@@ -157,7 +157,7 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
   eXosip_notify_t    *jn;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_nict_kill_transaction (id=%i)\r\n", tr->transactionid));
-  i = osip_remove_nict(eXosip.j_osip, tr);
+  i = osip_remove_transaction(eXosip.j_osip, tr);
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_BUG,NULL,"cb_nict_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n", tr->transactionid));
@@ -246,7 +246,7 @@ void cb_nist_kill_transaction(int type, osip_transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_nist_kill_transaction (id=%i)\r\n", tr->transactionid));
-  i = osip_remove_nist(eXosip.j_osip, tr);
+  i = osip_remove_transaction(eXosip.j_osip, tr);
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_BUG,NULL,"cb_nist_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n", tr->transactionid));
@@ -806,7 +806,7 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     {
 #ifdef SUPPORT_MSN
       osip_header_t  *expires;
-      osip_message_header_get_byname(tr->orig_request, "expires",
+      osip_parser_header_get_byname(tr->orig_request, "expires",
 				     0, &expires);
       if (expires==NULL || expires->hvalue==NULL)
 	{
@@ -820,7 +820,7 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	}
 #else
       osip_header_t  *sub_state;
-      osip_message_header_get_byname(tr->orig_request, "subscription-state",
+      osip_parser_header_get_byname(tr->orig_request, "subscription-state",
 				     0, &sub_state);
       if (sub_state==NULL || sub_state->hvalue==NULL)
 	{
@@ -1206,29 +1206,29 @@ eXosip_set_callbacks(osip_t *osip)
   osip_set_kill_transaction_callback(osip ,OSIP_NIST_KILL_TRANSACTION,
 				 &cb_nist_kill_transaction);
           
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_2XX_RECEIVED_AGAIN,
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_2XX_RECEIVED_AGAIN,
 			&cb_rcvresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_3456XX_RECEIVED_AGAIN,
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_3456XX_RECEIVED_AGAIN,
 			&cb_rcvresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_ICT_INVITE_SENT_AGAIN,
+  osip_set_message_callback(osip ,OSIP_ICT_INVITE_SENT_AGAIN,
 			&cb_sndreq_retransmission);
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_2XX_SENT_AGAIN,
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_2XX_SENT_AGAIN,
 			&cb_sndresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_3456XX_SENT_AGAIN,
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_3456XX_SENT_AGAIN,
 			&cb_sndresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_IST_INVITE_RECEIVED_AGAIN,
+  osip_set_message_callback(osip ,OSIP_IST_INVITE_RECEIVED_AGAIN,
 			&cb_rcvreq_retransmission);
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_2XX_RECEIVED_AGAIN,
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_2XX_RECEIVED_AGAIN,
 			&cb_rcvresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_3456XX_RECEIVED_AGAIN,
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_3456XX_RECEIVED_AGAIN,
 			&cb_rcvresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_NICT_REQUEST_SENT_AGAIN,
+  osip_set_message_callback(osip ,OSIP_NICT_REQUEST_SENT_AGAIN,
 			&cb_sndreq_retransmission);
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_2XX_SENT_AGAIN,
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_2XX_SENT_AGAIN,
 			&cb_sndresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_3456XX_SENT_AGAIN,
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_3456XX_SENT_AGAIN,
 			&cb_sndresp_retransmission);
-  osip_set_msg_callback(osip ,OSIP_NIST_REQUEST_RECEIVED_AGAIN,
+  osip_set_message_callback(osip ,OSIP_NIST_REQUEST_RECEIVED_AGAIN,
 			&cb_rcvreq_retransmission);
           
   osip_set_transport_error_callback(osip ,OSIP_ICT_TRANSPORT_ERROR,
@@ -1240,57 +1240,57 @@ eXosip_set_callbacks(osip_t *osip)
   osip_set_transport_error_callback(osip ,OSIP_NIST_TRANSPORT_ERROR,
 				    &cb_transport_error);
   
-  osip_set_msg_callback(osip ,OSIP_ICT_INVITE_SENT,     &cb_sndinvite);
-  osip_set_msg_callback(osip ,OSIP_ICT_ACK_SENT,        &cb_sndack);
-  osip_set_msg_callback(osip ,OSIP_NICT_REGISTER_SENT,  &cb_sndregister);
-  osip_set_msg_callback(osip ,OSIP_NICT_BYE_SENT,       &cb_sndbye);
-  osip_set_msg_callback(osip ,OSIP_NICT_CANCEL_SENT,    &cb_sndcancel);
-  osip_set_msg_callback(osip ,OSIP_NICT_INFO_SENT,      &cb_sndinfo);
-  osip_set_msg_callback(osip ,OSIP_NICT_OPTIONS_SENT,   &cb_sndoptions);
-  osip_set_msg_callback(osip ,OSIP_NICT_SUBSCRIBE_SENT, &cb_sndsubscribe);
-  osip_set_msg_callback(osip ,OSIP_NICT_NOTIFY_SENT,    &cb_sndnotify);
+  osip_set_message_callback(osip ,OSIP_ICT_INVITE_SENT,     &cb_sndinvite);
+  osip_set_message_callback(osip ,OSIP_ICT_ACK_SENT,        &cb_sndack);
+  osip_set_message_callback(osip ,OSIP_NICT_REGISTER_SENT,  &cb_sndregister);
+  osip_set_message_callback(osip ,OSIP_NICT_BYE_SENT,       &cb_sndbye);
+  osip_set_message_callback(osip ,OSIP_NICT_CANCEL_SENT,    &cb_sndcancel);
+  osip_set_message_callback(osip ,OSIP_NICT_INFO_SENT,      &cb_sndinfo);
+  osip_set_message_callback(osip ,OSIP_NICT_OPTIONS_SENT,   &cb_sndoptions);
+  osip_set_message_callback(osip ,OSIP_NICT_SUBSCRIBE_SENT, &cb_sndsubscribe);
+  osip_set_message_callback(osip ,OSIP_NICT_NOTIFY_SENT,    &cb_sndnotify);
   /*  osip_set_cb_nict_sndprack   (osip,&cb_sndprack); */
-  osip_set_msg_callback(osip ,OSIP_NICT_UNKNOWN_REQUEST_SENT, &cb_sndunkrequest);
+  osip_set_message_callback(osip ,OSIP_NICT_UNKNOWN_REQUEST_SENT, &cb_sndunkrequest);
 
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_2XX_RECEIVED, &cb_rcv2xx);
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_3XX_RECEIVED, &cb_rcv3xx);
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_4XX_RECEIVED, &cb_rcv4xx);
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_5XX_RECEIVED, &cb_rcv5xx);
-  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_6XX_RECEIVED, &cb_rcv6xx);
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_2XX_RECEIVED, &cb_rcv2xx);
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_3XX_RECEIVED, &cb_rcv3xx);
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_4XX_RECEIVED, &cb_rcv4xx);
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_5XX_RECEIVED, &cb_rcv5xx);
+  osip_set_message_callback(osip ,OSIP_ICT_STATUS_6XX_RECEIVED, &cb_rcv6xx);
   
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_1XX_SENT, &cb_snd1xx);
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_2XX_SENT, &cb_snd2xx);
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_3XX_SENT, &cb_snd3xx);
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_4XX_SENT, &cb_snd4xx);
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_5XX_SENT, &cb_snd5xx);
-  osip_set_msg_callback(osip ,OSIP_IST_STATUS_6XX_SENT, &cb_snd6xx);
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_1XX_SENT, &cb_snd1xx);
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_2XX_SENT, &cb_snd2xx);
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_3XX_SENT, &cb_snd3xx);
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_4XX_SENT, &cb_snd4xx);
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_5XX_SENT, &cb_snd5xx);
+  osip_set_message_callback(osip ,OSIP_IST_STATUS_6XX_SENT, &cb_snd6xx);
   
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_2XX_RECEIVED, &cb_rcv2xx);
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_3XX_RECEIVED, &cb_rcv3xx);
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_4XX_RECEIVED, &cb_rcv4xx);
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_5XX_RECEIVED, &cb_rcv5xx);
-  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_6XX_RECEIVED, &cb_rcv6xx);
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_2XX_RECEIVED, &cb_rcv2xx);
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_3XX_RECEIVED, &cb_rcv3xx);
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_4XX_RECEIVED, &cb_rcv4xx);
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_5XX_RECEIVED, &cb_rcv5xx);
+  osip_set_message_callback(osip ,OSIP_NICT_STATUS_6XX_RECEIVED, &cb_rcv6xx);
       
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_1XX_SENT, &cb_snd1xx);
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_2XX_SENT, &cb_snd2xx);
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_3XX_SENT, &cb_snd3xx);
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_4XX_SENT, &cb_snd4xx);
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_5XX_SENT, &cb_snd5xx);
-  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_6XX_SENT, &cb_snd6xx);
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_1XX_SENT, &cb_snd1xx);
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_2XX_SENT, &cb_snd2xx);
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_3XX_SENT, &cb_snd3xx);
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_4XX_SENT, &cb_snd4xx);
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_5XX_SENT, &cb_snd5xx);
+  osip_set_message_callback(osip ,OSIP_NIST_STATUS_6XX_SENT, &cb_snd6xx);
   
-  osip_set_msg_callback(osip ,OSIP_IST_INVITE_RECEIVED,     &cb_rcvinvite);
-  osip_set_msg_callback(osip ,OSIP_IST_ACK_RECEIVED,        &cb_rcvack);
-  osip_set_msg_callback(osip ,OSIP_IST_ACK_RECEIVED_AGAIN,  &cb_rcvack2);
-  osip_set_msg_callback(osip ,OSIP_NIST_REGISTER_RECEIVED,  &cb_rcvregister);
-  osip_set_msg_callback(osip ,OSIP_NIST_BYE_RECEIVED,       &cb_rcvbye);
-  osip_set_msg_callback(osip ,OSIP_NIST_CANCEL_RECEIVED,    &cb_rcvcancel);
-  osip_set_msg_callback(osip ,OSIP_NIST_INFO_RECEIVED,      &cb_rcvinfo);
-  osip_set_msg_callback(osip ,OSIP_NIST_OPTIONS_RECEIVED,   &cb_rcvoptions);
-  osip_set_msg_callback(osip ,OSIP_NIST_SUBSCRIBE_RECEIVED, &cb_rcvsubscribe);
-  osip_set_msg_callback(osip ,OSIP_NIST_NOTIFY_RECEIVED,    &cb_rcvnotify);
-  osip_set_msg_callback(osip ,OSIP_NIST_UNKNOWN_REQUEST_RECEIVED, &cb_sndunkrequest);
+  osip_set_message_callback(osip ,OSIP_IST_INVITE_RECEIVED,     &cb_rcvinvite);
+  osip_set_message_callback(osip ,OSIP_IST_ACK_RECEIVED,        &cb_rcvack);
+  osip_set_message_callback(osip ,OSIP_IST_ACK_RECEIVED_AGAIN,  &cb_rcvack2);
+  osip_set_message_callback(osip ,OSIP_NIST_REGISTER_RECEIVED,  &cb_rcvregister);
+  osip_set_message_callback(osip ,OSIP_NIST_BYE_RECEIVED,       &cb_rcvbye);
+  osip_set_message_callback(osip ,OSIP_NIST_CANCEL_RECEIVED,    &cb_rcvcancel);
+  osip_set_message_callback(osip ,OSIP_NIST_INFO_RECEIVED,      &cb_rcvinfo);
+  osip_set_message_callback(osip ,OSIP_NIST_OPTIONS_RECEIVED,   &cb_rcvoptions);
+  osip_set_message_callback(osip ,OSIP_NIST_SUBSCRIBE_RECEIVED, &cb_rcvsubscribe);
+  osip_set_message_callback(osip ,OSIP_NIST_NOTIFY_RECEIVED,    &cb_rcvnotify);
+  osip_set_message_callback(osip ,OSIP_NIST_UNKNOWN_REQUEST_RECEIVED, &cb_sndunkrequest);
 
 
   return 0;

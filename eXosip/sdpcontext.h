@@ -22,8 +22,8 @@
 #ifndef SDPCONTEXT_H
 #define SDPCONTEXT_H
 
-#include <osip/sdp.h>
-#include <osip/smsg.h>
+#include <osipparser2/sdp_message.h>
+#include <osipparser2/osip_message.h>
 #include <bodycontext.h>
 
 

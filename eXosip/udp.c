@@ -134,7 +134,7 @@ int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
     return -1;
   if (0 != osip_cseq_match (invite->cseq, cancel->cseq))
     return -1;
-  if (0 != via_match (invite->topvia, via))
+  if (0 != osip_via_match (invite->topvia, via))
     return -1;
   return 0;
 }
@@ -589,7 +589,7 @@ int eXosip_event_package_is_supported(osip_transaction_t *transaction,
   int code;
 
   /* get the event type and return "489 Bad Event". */
-  osip_message_header_get_byname(evt->sip, "event", 0, &event_hdr);
+  osip_parser_header_get_byname(evt->sip, "event", 0, &event_hdr);
   if (event_hdr==NULL || event_hdr->hvalue==NULL)
     {
 #ifdef SUPPORT_MSN
@@ -785,7 +785,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   /* if subscription-state has a reason state set to terminated,
      we close the dialog */
 #ifndef SUPPORT_MSN
-  osip_message_header_get_byname(evt->sip, "subscription-state",
+  osip_parser_header_get_byname(evt->sip, "subscription-state",
 				 0,
 				 &sub_state);
   if (sub_state==NULL||sub_state->hvalue==NULL)
@@ -803,7 +803,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
     }
 
 #ifdef SUPPORT_MSN
-  osip_message_header_get_byname(evt->sip, "expires",
+  osip_parser_header_get_byname(evt->sip, "expires",
 				 0,
 				 &expires);
   if (expires!=NULL||expires->hvalue!=NULL
@@ -1310,11 +1310,11 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				    "Received message: \n%s\n", buf));
 	      sipevent = osip_parse(buf);
-	      msg_fix_last_via_header(sipevent->sip, inet_ntoa (sa.sin_addr), ntohs (sa.sin_port));
+	      osip_parser_fix_last_via_header(sipevent->sip, inet_ntoa (sa.sin_addr), ntohs (sa.sin_port));
 	      transaction = NULL;
 	      if (sipevent!=NULL&&sipevent->sip!=NULL)
 		{
-		  i = osip_find_osip_transaction_and_add_event(eXosip.j_osip, sipevent);
+		  i = osip_find_transaction_and_add_event(eXosip.j_osip, sipevent);
 		  if (i!=0)
 		    {
 		      // this event has no transaction,
@@ -1364,7 +1364,7 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_nist(eXosip.j_osip, tr);
+	  osip_remove_transaction(eXosip.j_osip, tr);
 	  tr->state=NIST_TERMINATED;
 	}
       else
@@ -1377,7 +1377,7 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_nict(eXosip.j_osip, tr);
+	  osip_remove_transaction(eXosip.j_osip, tr);
 	  tr->state=NICT_TERMINATED;
 	}
       else
@@ -1390,7 +1390,7 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_ist(eXosip.j_osip, tr);
+	  osip_remove_transaction(eXosip.j_osip, tr);
 	  tr->state=IST_TERMINATED;
 	}
       else
@@ -1403,7 +1403,7 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_ict(eXosip.j_osip, tr);
+	  osip_remove_transaction(eXosip.j_osip, tr);
 	  tr->state=ICT_TERMINATED;
 	}
       else
@@ -1416,7 +1416,7 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_nist(eXosip.j_osip, tr);
+	  osip_remove_transaction(eXosip.j_osip, tr);
 	  tr->state=NIST_TERMINATED;
 	}
       else
@@ -1429,7 +1429,7 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       if (tr->birth_time+180<now) /* Wait a max of 2 minutes */
 	{
 	  /* remove the transaction from oSIP: */
-	  osip_remove_nict(eXosip.j_osip, tr);
+	  osip_remove_transaction(eXosip.j_osip, tr);
 	  tr->state=NICT_TERMINATED;
 	}
       else

@@ -35,8 +35,8 @@
 #include <stdio.h>
 
 #include <osip2/osip.h>
-#include <osip2/dialog.h>
-#include <osip2/sdp_negoc.h>
+#include <osip2/osip_dialog.h>
+#include <osip2/osip_negotiation.h>
 
 #ifndef JD_EMPTY
 
@@ -57,9 +57,9 @@
 
 #endif
 
-struct _BodyHandler;
+//struct _BodyHandler;
 
-struct _BodyHandler *sdp_handler_new ();
+//struct _BodyHandler *sdp_handler_new ();
 
 typedef struct eXosip_dialog_t eXosip_dialog_t;
 
@@ -77,7 +77,7 @@ struct eXosip_dialog_t {
   osip_list_t     *d_inc_trs;
   osip_list_t     *d_out_trs;
 
-  struct _BodyHandler     *d_bh;
+  //struct _BodyHandler     *d_bh;
 
   eXosip_dialog_t *next;
   eXosip_dialog_t *parent;

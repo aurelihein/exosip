@@ -25,7 +25,7 @@
 #ifndef __EXOSIP2_H__
 #define __EXOSIP2_H__
 
-#include <osip2/smsg.h>
+#include <osipparser2/osip_parser.h>
 
 /* This is used to initiate the Extented/Open/Sip library */
 int   eXosip_init(FILE *input, FILE *output, int port);

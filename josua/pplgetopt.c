@@ -53,7 +53,7 @@
  */
 
 #include <ppl_getopt.h>
-#include <osip2/port.h>
+#include <osipparser2/osip_port.h>
 
 #if defined(HAVE_STRING_H)
 # include <string.h>

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.4 2003-03-24 18:17:47 aymeric Exp $";
+static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.5 2003-05-05 12:53:45 aymeric Exp $";
 
 #ifndef NCURSES_SUPPORT
 
@@ -35,18 +35,13 @@ static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.4 2003-03-24 18:17:47 
 #include <ctype.h>
 #include <assert.h>
 
-#include <term.h>
-#include <ncurses.h>
-
 #include "config.h"
-#include <jmsip/jmsip.h>
-#include <osip2/thread.h>
-#include <jmsip/eXosip.h>
+#include <osip2/osip_mt.h>
+#include <eXosip/eXosip.h>
 
 #include "ppl_getopt.h"
 
 extern jmosip_message_t jmsip;
-
 
 
 void __jmsip_message(char *command);

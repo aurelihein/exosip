@@ -25,7 +25,7 @@
 #include <eXosip.h>
 #include <eXosip2.h>
 
-#include <osip2/thread.h>
+#include <osip2/osip_mt.h>
 
 #if defined WIN32
 #include <winsock.h>

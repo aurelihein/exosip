@@ -19,7 +19,8 @@
 */
 
 #include "sdphandler.h"
-#include <osip/smsg.h>
+#include <osipparser2/osip_message.h>
+#include <osipparser2/sdp_message.h>
 //#include "utils.h"
 
 int sdp_context_gen_out_req(SdpContext *obj, osip_message_t *req)
@@ -76,7 +77,7 @@ int sdp_context_gen_out_resp(SdpContext *obj, osip_message_t *resp)
 {
 	char *p;
 	/* if the response is not a 200 OK for invite, exit */
-	if (strcmp(osip_parser_get_statuscode(resp),"200")!=0){
+	if (strcmp(osip_message_get_statuscode(resp),"200")!=0){
 		return 0;
 	}
 	/* if in bad state exit too */

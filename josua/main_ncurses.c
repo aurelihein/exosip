@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.24 2003-04-23 17:49:42 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.25 2003-05-05 12:53:45 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -42,7 +42,7 @@ static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.24 2003-04-23 17:4
 #include <eXosip/eXosip.h>
 #include <eXosip/eXosip2.h>
 
-#include <osip2/thread.h>
+#include <osip2/osip_mt.h>
 
 #include "ppl_getopt.h"
 

@@ -9,8 +9,7 @@ jconfig.c 	jconfig.h \
 pplgetopt.c 	ppl_getopt.h
 
 josua_LDFLAGS = -O  -Wall
-josua_LDADD = -lfsmtl2 -losip2  \
-@EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
+josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
 $(top_builddir)/eXosip/libeXosip.la
 
 INCLUDES = -I$(top_srcdir)

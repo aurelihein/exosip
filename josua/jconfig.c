@@ -19,7 +19,7 @@
  */
 
 #include "config.h"
-#include <osip2/port.h>
+#include <osipparser2/osip_port.h>
 #include "jconfig.h"
 #include <eXosip/eXosip.h>
 
