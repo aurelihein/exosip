@@ -1,0 +1,494 @@
+/*
+ * josua - Jack's open sip User Agent
+ *
+ * Copyright (C) 2002,2003   Aymeric Moizard <jack@atosc.org>
+ *
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2,
+ * or (at your option) any later version.
+ *
+ * This is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with dpkg; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#include "jcalls.h"
+
+#ifdef UCL_SUPPORT
+
+extern char _localip[30];
+
+#include <osip2/osip_mt.h>
+#include <sys/soundcard.h>
+#include <sys/ioctl.h>
+
+#define AUDIO_DEVICE "/dev/dsp"
+
+int fd = -1;
+static int min_size = 0;
+
+void
+sdes_print(struct rtp *session, uint32_t ssrc, rtcp_sdes_type stype) {
+  const char *sdes_type_names[] = {
+    "end", "cname", "name", "email", "telephone", 
+    "location", "tool", "note", "priv"
+  };
+  const uint8_t n = sizeof(sdes_type_names) / sizeof(sdes_type_names[0]);
+  
+  if (stype > n) {
+    /* Theoretically impossible */
+    printf("boo! invalud sdes field %d\n", stype);
+    return;
+  }
+  
+  printf("SSRC 0x%08x reported SDES type %s - ", ssrc, 
+	 sdes_type_names[stype]);
+  
+  if (stype == RTCP_SDES_PRIV) {
+    /* Requires extra-handling, not important for example */
+    printf("don't know how to display.\n");
+  } else {
+    printf("%s\n", rtp_get_sdes(session, ssrc, stype));
+  }
+}
+
+void
+packet_print(struct rtp *session, rtp_packet *p) 
+{
+#ifdef USE_PCM
+  char data_in_dec[1280];
+#endif
+  printf("Received data (payload %d timestamp %06d size %d) ", p->pt, p->ts, p->data_len);
+  
+#ifdef USE_PCM
+  if (p->pt==8) /* A-Law */
+    alaw_dec(p->data, data_in_dec);
+  if (p->pt==0) /* Mu-Law */
+    mulaw_dec(p->data, data_in_dec);
+  
+  write(fd, data_in_dec, p->data_len*2);
+#else
+  write(fd, p->data, p->data_len);
+  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			  "received %i data written to the audio driver\n",
+			  p->data_len));
+#endif
+  
+  /*Unless filtering is enabled we are likely to see
+    out packets if sending to a multicast group. */
+  /*
+    if (p->ssrc == rtp_my_ssrc(session)) {
+    printf("that I just sent.\n");
+    } else {
+    printf("from SSRC 0x%08x\n", p->ssrc); 
+    } 
+  */
+}
+
+void
+rtp_event_handler(struct rtp *session, rtp_event *e) 
+{
+  rtp_packet     *p;
+  rtcp_sdes_item *r;
+  
+  switch(e->type) {
+  case RX_RTP: 	
+    p = (rtp_packet*)e->data;
+    packet_print(session, p);
+    free(p); /* xfree() is mandatory to release RTP packet data */
+    break;
+  case RX_SDES:
+    r = (rtcp_sdes_item*)e->data;
+    sdes_print(session, e->ssrc, r->type);
+    break;
+  case RX_BYE:
+    break;
+  case SOURCE_CREATED:
+    printf("New source created, SSRC = 0x%08x\n", e->ssrc);
+    break;
+  case SOURCE_DELETED:
+    printf("Source deleted, SSRC = 0x%08x\n", e->ssrc);
+    break;
+  case RX_SR:
+  case RX_RR:
+  case RX_RR_EMPTY:
+  case RX_RTCP_START:
+  case RX_RTCP_FINISH:
+  case RR_TIMEOUT:
+  case RX_APP:
+    break;
+  }
+  fflush(stdout);
+}
+
+#define MULAW_BYTES	160
+#define MULAW_PAYLOAD	0
+#define MULAW_MS	20
+
+#if 0
+void
+*os_sound_start_thread(void *_ca)
+{
+  int i;
+  jcall_t *ca = (jcall_t*)_ca;
+  struct timeval timeout;
+  uint32_t       rtp_ts, round;
+  uint8_t        mulaw_buffer[MULAW_BYTES];
+#ifdef USE_PCM
+  char           data_out[MULAW_BYTES*2];
+#endif
+  
+  printf("Sending and listening to ");
+  printf("%s port %d (local SSRC = 0x%08x)\n", 
+	 rtp_get_addr(ca->rtp_session), 
+	 rtp_get_rx_port(ca->rtp_session),
+	 rtp_my_ssrc(ca->rtp_session));
+    
+  round = 0;
+  
+  while (ca->enable_audio != -1)
+    {
+      struct timeval t_beg;
+      struct timeval t_end;
+      struct timeval interval;
+
+      gettimeofday(&t_beg, NULL);
+
+      round++;
+      /* original line rtp_ts = round * MULAW_MS; */
+      rtp_ts = round * MULAW_BYTES;
+
+      
+      /* Send control packets */
+      rtp_send_ctrl(ca->rtp_session, rtp_ts, NULL);
+
+      /* Send data packets */
+
+#ifdef USE_PCM
+      memset(data_out, 0, MULAW_BYTES*2);
+      memset(mulaw_buffer, 0, MULAW_BYTES);
+      i=read(fd, data_out, MULAW_BYTES*2);
+      if (ca->payload==8) /* A-Law */
+	alaw_enc(data_out, mulaw_buffer, i);
+      if (ca->payload==0) /* Mu-Law */
+	mulaw_enc(data_out, mulaw_buffer, i);
+      i = i/2;
+#else
+      memset(mulaw_buffer, 0, MULAW_BYTES);
+      i=read(fd, mulaw_buffer, MULAW_BYTES); /* ?? */
+#endif
+
+      printf("reading %i stream from sound card\n", i);
+      if (i>0)
+        {
+	  rtp_send_data(ca->rtp_session, rtp_ts, MULAW_PAYLOAD, 
+			0, 0, 0,
+			(char*)mulaw_buffer, MULAW_BYTES,
+			0, 0, 0);
+	}
+      
+      /* Receive control and data packets */
+      timeout.tv_sec  = 0;
+      timeout.tv_usec = 0;
+      rtp_recv(ca->rtp_session, &timeout, rtp_ts);
+      
+      /* State maintenance */
+      rtp_update(ca->rtp_session);
+      
+      gettimeofday(&t_end, NULL);
+
+      /* make a diff between t_beg and t_end */
+      interval.tv_sec = t_end.tv_sec - t_beg.tv_sec;
+      interval.tv_usec = t_end.tv_usec - t_beg.tv_usec;
+
+      if (interval.tv_usec < 0)
+	{
+	  interval.tv_usec += 1000000L;
+	  --interval.tv_sec;
+	}
+      interval.tv_usec = (MULAW_MS * 1000 - interval.tv_usec);
+      if (interval.tv_usec < 0)
+	{
+	  interval.tv_usec += 1000000L;
+	  --interval.tv_sec;
+	}
+
+      select(0, NULL, NULL, NULL, &interval);
+    }
+  return NULL;
+}
+
+#else
+
+void
+*os_sound_start_thread(void *_ca)
+{
+  int i;
+  jcall_t *ca = (jcall_t*)_ca;
+  struct timeval timeout;
+  uint32_t       rtp_ts, round;
+  uint8_t        mulaw_buffer[MULAW_BYTES*8];
+  int            mulaw_buffer_pos;
+#ifdef USE_PCM
+  char           data_out[MULAW_BYTES*2*8];
+#endif
+  
+  printf("Sending and listening to ");
+  printf("%s port %d (local SSRC = 0x%08x)\n", 
+	 rtp_get_addr(ca->rtp_session), 
+	 rtp_get_rx_port(ca->rtp_session),
+	 rtp_my_ssrc(ca->rtp_session));
+    
+  round = 0;
+  mulaw_buffer_pos = 0;
+  
+  while (ca->enable_audio != -1)
+    {
+      struct timeval t_beg;
+      struct timeval t_end;
+      struct timeval interval;
+
+      gettimeofday(&t_beg, NULL);
+
+      round++;
+      /* original line rtp_ts = round * MULAW_MS; */
+      rtp_ts = round * MULAW_BYTES;
+
+
+      if (mulaw_buffer_pos<MULAW_BYTES*4)
+	{
+	  /* Send control packets */
+	  rtp_send_ctrl(ca->rtp_session, rtp_ts, NULL);
+
+      /* Send data packets */
+#ifdef USE_PCM
+	  memset(data_out, 0, MULAW_BYTES*2);
+	  memset(mulaw_buffer, 0, MULAW_BYTES);
+	  i=read(fd, data_out, MULAW_BYTES*2);
+	  if (ca->payload==8) /* A-Law */
+	    alaw_enc(data_out, mulaw_buffer, i);
+	  if (ca->payload==0) /* Mu-Law */
+	    mulaw_enc(data_out, mulaw_buffer, i);
+	  i = i/2;
+#else
+	  memset(mulaw_buffer+mulaw_buffer_pos, 0, MULAW_BYTES*4);
+	  i=read(fd, mulaw_buffer+mulaw_buffer_pos, MULAW_BYTES*4); /* ?? */
+	  mulaw_buffer_pos = mulaw_buffer_pos + i;
+#endif
+	}
+
+      printf("reading %i stream from sound card\n", i);
+      if (mulaw_buffer_pos > MULAW_BYTES )
+        {
+	  rtp_send_data(ca->rtp_session, rtp_ts, MULAW_PAYLOAD, 
+			0, 0, 0,
+			(char*)mulaw_buffer, MULAW_BYTES,
+			0, 0, 0);
+	  memmove(mulaw_buffer, mulaw_buffer+MULAW_BYTES, MULAW_BYTES*7 );
+	  mulaw_buffer_pos = mulaw_buffer_pos - MULAW_BYTES;
+	}
+      
+      /* Receive control and data packets */
+      timeout.tv_sec  = 0;
+      timeout.tv_usec = 0;
+      rtp_recv(ca->rtp_session, &timeout, rtp_ts);
+      
+      /* State maintenance */
+      rtp_update(ca->rtp_session);
+      
+      gettimeofday(&t_end, NULL);
+
+      /* make a diff between t_beg and t_end */
+      interval.tv_sec = t_end.tv_sec - t_beg.tv_sec;
+      interval.tv_usec = t_end.tv_usec - t_beg.tv_usec;
+
+      if (interval.tv_usec < 0)
+	{
+	  interval.tv_usec += 1000000L;
+	  --interval.tv_sec;
+	}
+      interval.tv_usec = (MULAW_MS * 1000 - interval.tv_usec);
+      if (interval.tv_usec < 0)
+	{
+	  interval.tv_usec += 1000000L;
+	  --interval.tv_sec;
+	}
+
+      select(0, NULL, NULL, NULL, &interval);
+    }
+  return NULL;
+}
+#endif
+
+int os_sound_init()
+{
+  return 0;
+}
+
+int os_sound_start(jcall_t *ca)
+{
+  int p,cond;
+  int bits = 16;
+  int stereo = 0; /* 0 is mono */
+  int rate = 8000;
+  int blocksize = 512;
+
+  fd=open(AUDIO_DEVICE, O_RDWR|O_NONBLOCK);
+  if (fd<0) return -EWOULDBLOCK;
+  fcntl(fd, F_SETFL, fcntl(fd, F_GETFL)&~O_NONBLOCK);
+
+  ioctl(fd, SNDCTL_DSP_RESET, 0);
+  
+  p =  bits;  /* 16 bits */
+  ioctl(fd, SNDCTL_DSP_SAMPLESIZE, &p);
+  
+  p =  stereo;  /* number of channels */
+  ioctl(fd, SNDCTL_DSP_CHANNELS, &p);
+  
+#ifdef USE_PCM
+  p = AFMT_S16_NE; /* choose LE or BE (endian) */
+  ioctl(fd, SNDCTL_DSP_SETFMT, &p);
+#else
+  if (ca->payload==0)
+    p =  AFMT_MU_LAW;
+  else if (ca->payload==8)
+    p = AFMT_A_LAW;
+  else if (ca->payload==110||ca->payload==111)
+    p = AFMT_S16_NE; /* choose LE or BE (endian) */
+  ioctl(fd, SNDCTL_DSP_SETFMT, &p);
+#endif
+
+  p =  rate;  /* rate in khz*/
+  ioctl(fd, SNDCTL_DSP_SPEED, &p);
+  
+  ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &min_size);
+  if (min_size>blocksize)
+    {
+      cond=1;
+      p=min_size/blocksize;
+      while(cond)
+	{
+	  int i=ioctl(fd, SNDCTL_DSP_SUBDIVIDE, &p);
+	  /* printf("SUB_DIVIDE said error=%i,errno=%i\n",i,errno); */
+	  if ((i==0) || (p==1)) cond=0;
+	  else p=p/2;
+	}
+    }
+  ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &min_size);
+  if (min_size>blocksize)
+    {
+      printf("dsp block size set to %i.",min_size);
+      exit(0);
+    }else{
+      /* no need to access the card with less latency than needed*/
+      min_size=blocksize;
+    }
+
+  printf("blocksize = %i\n", min_size);
+  
+#ifdef SPEEX_SUPPORT
+  {
+    float vbr_qual;
+    int value;
+    int quality;
+    ca->speex_enc  = speex_encoder_init(&speex_nb_mode); /* 8kHz */
+    /* 16kHz speex_enc = speex_encoder_init(&speex_wb_mode);   */
+    /* 32kHz speex_enc = speex_encoder_init(&speex_uwb_mode);  */
+    ca->speex_dec  = speex_decoder_init(&speex_nb_mode);
+    value = 1;
+    speex_decoder_ctl(ca->speex_dec, SPEEX_SET_ENH, &value);
+    quality = 8; /* 15kb */
+    speex_encoder_ctl(ca->speex_enc, SPEEX_SET_QUALITY, &quality);
+    /* ou bien le bit rate:
+       value = 15000; // 15kb
+       speex_encoder_ctl(ca->speex_enc, SPEEX_SET_BITRATE, &value);
+    */
+    /* silence suppression (VAD)
+       value = 1; // 15kb
+       speex_encoder_ctl(ca->speex_enc, SPEEX_SET_VAD, &value);
+       Discontinuous transmission (DTX)
+       value = 1; // 15kb
+       speex_encoder_ctl(ca->speex_enc, SPEEX_SET_DTX, &value);
+       
+       Variable Bit Rate (VBR)
+       value = 1; // 15kb
+       speex_encoder_ctl(ca->speex_enc, SPEEX_SET_VBR, &value);
+       vbr_qual = 5,0; // between 0 and 10
+       speex_encoder_ctl(ca->speex_enc, SPEEX_SET_VBR_QUALITY, &vbr_qual);
+       
+       Average bit rate: (ABR)
+       value = 15000; // 15kb
+       speex_encoder_ctl(ca->speex_enc, SPEEX_SET_ABR, &value);
+    */
+    speex_encoder_ctl(ca->speex_enc, SPEEX_GET_FRAME_SIZE,
+		      &ca->speex_fsize);
+    
+    ca->speex_nb_packet = 1;
+    speex_bits_init(&(ca->speex_bits));
+    speex_bits_init(&(ca->dec_speex_bits));
+  }
+#endif
+
+  ca->rtp_session = rtp_init(ca->remote_sdp_audio_ip,
+			     10500,
+			     ca->remote_sdp_audio_port,
+			     16,
+			     64000,
+			     rtp_event_handler,
+			     NULL);
+
+  if (ca->rtp_session)
+    {
+      const char *username  = "jack";             /* should be taken from the SDP */
+      const char *telephone = "0033-MY-NUMBER";
+      const char *app_name  = "josua";
+      uint32_t    my_ssrc   = rtp_my_ssrc(ca->rtp_session);
+      
+      /* set local participant info */
+      rtp_set_sdes(ca->rtp_session, my_ssrc, RTCP_SDES_NAME,
+		   username, strlen(username));
+      rtp_set_sdes(ca->rtp_session, my_ssrc, RTCP_SDES_PHONE,
+		   telephone, strlen(telephone));
+      rtp_set_sdes(ca->rtp_session, my_ssrc, RTCP_SDES_TOOL,
+		   app_name, strlen(app_name));
+      
+      /* Filter out local packets if requested */
+      /* rtp_set_option(ca->rtp_session, RTP_OPT_FILTER_MY_PACKETS, filter_me); */
+      
+    }
+  else {
+    fprintf(stderr, "Could not initialize session for %s port %d\n",
+	    ca->remote_sdp_audio_ip,
+	    ca->remote_sdp_audio_port);
+  }
+  
+  ca->audio_thread = osip_thread_create(20000,
+					os_sound_start_thread, ca);
+  return 0;
+}
+
+void os_sound_close(jcall_t *ca)
+{
+  osip_thread_join(ca->audio_thread);
+  osip_free(ca->audio_thread);
+  /* Say bye-bye */
+  rtp_send_bye(ca->rtp_session);
+  rtp_done(ca->rtp_session);
+
+#ifdef SPEEX_SUPPORT
+  speex_bits_destroy(&ca->speex_bits);
+  speex_bits_destroy(&ca->dec_speex_bits);
+  speex_encoder_destroy(&ca->speex_enc);
+  speex_decoder_destroy(&ca->speex_dec);
+#endif
+  
+  close(fd); /* close the sound card */
+}
+
+#endif
