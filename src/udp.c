@@ -1981,7 +1981,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	  slen = sizeof(struct sockaddr_in);
 	  i = recvfrom (eXosip.j_socket, buf, SIP_MESSAGE_MAX_LENGTH, 0,
 			(struct sockaddr *) &sa, &slen);
-	  if( i > 0 )
+	  if( i > 5 ) /* we expect at least one byte, otherwise there's no doubt that it is not a sip message !*/
 	    {
 	      /* Message might not end with a "\0" but we know the number of */
 	      /* char received! */
@@ -2028,10 +2028,15 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 		  osip_event_free(sipevent);
 		}
 	    }
-	  else
+	  else if (i<0)
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
 			  "Could not read socket\n"));
+	    }
+	  else 
+	    {
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+			  "Dummy SIP message received\n"));
 	    }
 	}
       max_message_nb--;
@@ -2547,6 +2552,7 @@ void eXosip_release_terminated_calls ( void )
       osip_transaction_t *tr = (osip_transaction_t*) osip_list_get(eXosip.j_transactions, pos);
       if (tr->state==IST_TERMINATED || tr->state==ICT_TERMINATED
 	  || tr->state== NICT_TERMINATED || tr->state==NIST_TERMINATED)
+
 	{ /* free (transaction is already removed from the oSIP stack) */
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 		      "Release a terminated transaction\n"));

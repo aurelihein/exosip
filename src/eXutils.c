@@ -502,7 +502,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
  {
    /* hostname must be resolved */
    hints.ai_flags = AI_CANONNAME;
-   hints.ai_family = PF_UNSPEC;
+   hints.ai_family = (eXosip.ip_family==AF_INET) ? PF_INET:PF_INET6;
    OSIP_TRACE (osip_trace
 	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
 		"Not an IPv4 or IPv6 address: %s\n", hostname));

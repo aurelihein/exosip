@@ -49,6 +49,7 @@ static int eXosip_add_authentication_information(osip_message_t *req,
 						 osip_message_t *last_response);
 static void *eXosip_thread(void *arg);
 static int eXosip_execute(void);
+static osip_message_t *eXosip_prepare_request_for_auth(osip_message_t *msg);
 
 eXosip_t eXosip;
 
@@ -495,10 +496,6 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_events = (osip_fifo_t*) osip_malloc(sizeof(osip_fifo_t));
   osip_fifo_init(eXosip.j_events);
 
-  eXosip_add_authentication_info("jack", "jack",
-				 "jack", NULL,
-				 "atosc.org");
-
   jfriend_load();
   jidentity_load();
   jsubscriber_load();
@@ -778,6 +775,109 @@ int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, 
   __eXosip_wakeup();
   return jc->c_id;
 }
+
+osip_message_t *eXosip_prepare_request_for_auth(osip_message_t *msg)
+{
+#ifdef SM
+  char *locip;
+#else
+  char locip[50];
+#endif
+  osip_message_t *newmsg;
+  int  cseq;
+  char tmp[90];
+  osip_via_t *via;
+  
+  osip_message_clone(msg,&newmsg);
+  if (newmsg==NULL){
+    eXosip_trace(OSIP_INFO1,("eXosip_prepare_request_for_auth: could not clone msg."));
+    return NULL;
+  }
+  via = (osip_via_t *) osip_list_get (newmsg->vias, 0);
+  if (via==NULL || newmsg->cseq==NULL || newmsg->cseq->number==NULL) {
+    osip_message_free(newmsg);
+    eXosip_trace(OSIP_INFO1,("eXosip_prepare_request_for_auth: Bad headers in previous request."));
+    return NULL;
+  }
+  /* increment cseq */
+  cseq=atoi(newmsg->cseq->number);
+  osip_free(newmsg->cseq->number);
+  newmsg->cseq->number=strdup_printf("%i",cseq+1);
+
+  osip_list_remove(newmsg->vias, 0);
+  osip_via_free(via);
+#ifdef SM
+  eXosip_get_localip_for(newmsg->req_uri->host,&locip);
+#else
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
+#endif
+  if (eXosip.ip_family==AF_INET6)
+    sprintf(tmp, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
+	    locip,
+	    eXosip.localport,
+	    via_branch_new_random());
+  else
+    sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
+	    locip,
+	    eXosip.localport,
+	    via_branch_new_random());
+  
+#ifdef SM
+  osip_free(locip);
+#endif
+  osip_via_init(&via);
+  osip_via_parse(via, tmp);
+  osip_list_add(newmsg->vias, via, 0);
+
+  return newmsg;
+}
+
+int eXosip_retry_call(int cid)
+{
+  eXosip_call_t *jc=NULL;
+  osip_transaction_t *tr,*newtr=NULL;
+  osip_message_t *inv=NULL;
+  int i;
+  osip_event_t *sipevent;
+  eXosip_call_find(cid,&jc);
+  if (jc==NULL) {
+    eXosip_trace(OSIP_INFO1,("eXosip_retry_last_invite: No such call."));
+    return -1;
+  }
+  tr=eXosip_find_last_out_invite(jc,NULL);
+  if (tr==NULL){
+    eXosip_trace(OSIP_INFO1,("eXosip_retry_last_invite: No such transaction."));
+    return -1;
+  }
+  if (tr->last_response==NULL){
+    eXosip_trace(OSIP_INFO1,("eXosip_retry_last_invite: transaction has not been answered."));
+    return -1;
+  }
+  inv=eXosip_prepare_request_for_auth(tr->orig_request);
+  if (inv==NULL) return -1;
+  eXosip_add_authentication_information(inv,tr->last_response);
+  osip_message_force_update(inv);
+  i = osip_transaction_init(&newtr,
+		       ICT,
+		       eXosip.j_osip,
+		       inv);
+  if (i!=0)
+    {
+      osip_message_free(inv);
+      return -1;
+    }
+  jc->c_out_tr = newtr;
+  
+  sipevent = osip_new_outgoing_sipmessage(inv);
+  
+  osip_transaction_set_your_instance(newtr, tr->your_instance);
+  osip_transaction_add_event(newtr, sipevent);
+
+  eXosip_update(); /* fixed? */
+  __eXosip_wakeup();
+  return jc->c_id;
+}
+
 
 extern osip_list_t *supported_codec;
 
@@ -1828,13 +1928,24 @@ eXosip_find_authentication_info(const char *username, const char *realm)
 	    {
 	      fallback = authinfo;
 	    }
-	  else if (0==strncmp(realm+1, authinfo->realm, strlen(realm)-2))
+	  else if (strcmp(realm,authinfo->realm)==0 || 0==strncmp(realm+1, authinfo->realm, strlen(realm)-2))
 	    {
 	      return authinfo;
 	    }
 	}
     }
   return fallback;
+}
+
+int eXosip_clear_authentication_info(){
+  jauthinfo_t *jauthinfo;
+  for (jauthinfo = eXosip.authinfos; jauthinfo!=NULL;
+       jauthinfo = eXosip.authinfos)
+    {
+      REMOVE_ELEMENT(eXosip.authinfos, jauthinfo);
+      osip_free(jauthinfo);
+    }
+  return 0;
 }
 
 int
@@ -2020,7 +2131,6 @@ int eXosip_register      (int rid, int registration_period)
 
 	    osip_authorization_t *aut;
 	    osip_proxy_authorization_t *proxy_aut;
-	      (osip_proxy_authorization_t*)osip_list_get(reg->proxy_authorizations, 0);
 	    
 	    aut = (osip_authorization_t *)osip_list_get(reg->authorizations, 0);
 	    while (aut!=NULL)
