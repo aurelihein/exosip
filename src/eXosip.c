@@ -264,6 +264,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
 #endif
     }
 
+  eXosip_set_mode(EVENT_MODE);
   eXosip.j_input = input;
   eXosip.j_output = output;
   eXosip.j_calls = NULL;

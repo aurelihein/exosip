@@ -22,6 +22,8 @@
 
 #ifdef ORTP_SUPPORT
 
+#define USE_PCM
+
 extern char _localip[30];
 
 #include <osip2/osip_mt.h>
@@ -91,6 +93,9 @@ void
 {
   jcall_t *ca = (jcall_t*)_ca;
   char data_in[160];
+#ifdef USE_PCM
+  char data_in_dec[320];
+#endif
   int have_more;
   int timestamp = 0;
   int i;
@@ -99,7 +104,17 @@ void
       memset(data_in, 0, 160);
       i = rtp_session_recv_with_ts(ca->rtp_session, data_in, 160, timestamp, &have_more);
       if (i>0) {
+
+#ifdef USE_PCM
+	if (ca->payload==8) /* A-Law */
+	  alaw_dec(data_in, data_in_dec);
+	if (ca->payload==0) /* Mu-Law */
+	  mulaw_dec(data_in, data_in_dec);
+
+	write(fd, data_in_dec, i*2);
+#else
 	write(fd, data_in, i);
+#endif
       }
       timestamp += 160;
     }
@@ -153,17 +168,35 @@ void
 {
   jcall_t *ca = (jcall_t*)_ca;
   char data_out[10000];
+#ifdef USE_PCM
+  char data_out_enc[10000];
+#endif
   int timestamp = 0;
   int i;
   while (ca->enable_audio != -1)
     {
+#ifdef USE_PCM
       memset(data_out, 0, min_size);
       i=read(fd, data_out, min_size);
+#else
+      memset(data_out, 0, min_size);
+      i=read(fd, data_out, min_size);
+#endif
       if (i>0)
         {
 	  
+#ifdef USE_PCM
+	  if (ca->payload==8) /* A-Law */
+	    alaw_enc(data_out, data_out_enc, i);
+	  if (ca->payload==0) /* Mu-Law */
+	    mulaw_enc(data_out, data_out_enc, i);
+	  
+	  rtp_session_send_with_ts(ca->rtp_session, data_out_enc, i/2,timestamp);
+	  timestamp=timestamp+(i/2);
+#else
 	  rtp_session_send_with_ts(ca->rtp_session, data_out, i,timestamp);
 	  timestamp+=i;
+#endif
         }
     }
   return NULL;
@@ -187,7 +220,7 @@ int os_sound_start(jcall_t *ca)
 {
   int p,cond;
   int bits = 16;
-  int stereo = 0;
+  int stereo = 0; /* 0 is mono */
   int rate = 8000;
   int blocksize = 512;
 
@@ -203,6 +236,19 @@ int os_sound_start(jcall_t *ca)
   p =  stereo;  /* number of channels */
   ioctl(fd, SNDCTL_DSP_CHANNELS, &p);
   
+#ifdef USE_PCM
+  p = AFMT_S16_NE; /* choose LE or BE (endian) */
+  ioctl(fd, SNDCTL_DSP_SETFMT, &p);
+#else
+  if (ca->payload==0)
+    p =  AFMT_MU_LAW;
+  else if (ca->payload==8)
+    p = AFMT_A_LAW;
+  else if (ca->payload==110||ca->payload==111)
+    p = AFMT_S16_NE; /* choose LE or BE (endian) */
+  ioctl(fd, SNDCTL_DSP_SETFMT, &p);
+#endif
+
   p =  rate;  /* rate in khz*/
   ioctl(fd, SNDCTL_DSP_SPEED, &p);
   
@@ -230,14 +276,6 @@ int os_sound_start(jcall_t *ca)
     }
 
   printf("blocksize = %i\n", min_size);
-
-  if (ca->payload==0)
-    p =  AFMT_MU_LAW;  /* rate in khz*/
-  else if (ca->payload==8)
-    p = AFMT_A_LAW;
-  else if (ca->payload==110||ca->payload==111)
-    p = AFMT_S16_NE; /* choose LE or BE (endian) */
-  ioctl(fd, SNDCTL_DSP_SETFMT, &p);
   
 #ifdef SPEEX_SUPPORT
   {

@@ -25,7 +25,7 @@ gui_icon.c                  gui_setup.c              pplgetopt.c            \
 gui_insubscriptions_list.c  gui_subscriptions_list.c sound-mediastreamer.c  \
 gui_loglines.c              gui_topline.c            sound-ortp.c           \
 gui_menu.c                  jcalls.c                 sound-win32.c          \
-gui_new_call.c              jconfig.c                                       \
+gui_new_call.c              jconfig.c                sound_conv.c           \
 commands.h                  gui_menu.h               gui_subscriptions_list.h \
 gui.h                       gui_new_call.h           gui_topline.h          \
 gui_address_book_browse.h   gui_new_identity.h       jcalls.h               \

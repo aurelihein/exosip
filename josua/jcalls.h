@@ -31,6 +31,19 @@
 #endif
 
 #ifdef ORTP_SUPPORT
+
+void mulaw_dec(char *mulaw_data /* contains 160 char */,
+	       char *s16_data    /* contains 320 char */ );
+void mulaw_enc(char *s16_data    /* contains 320 char */,
+	       char *mulaw_data  /* contains 160 char */,
+	       int pcm_size);
+void alaw_dec(char *alaw_data   /* contains 160 char */,
+	      char *s16_data    /* contains 320 char */ );
+void alaw_enc(char *s16_data   /* contains 320 char */,
+	      char *alaw_data  /* contains 160 char */,
+	      int pcm_size);
+	      
+
 #undef PACKAGE
 #undef VERSION
 #include <ortp.h>

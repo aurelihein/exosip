@@ -1194,8 +1194,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
   else if (MSG_IS_ACK(evt->sip))
     { /* this should be a ACK for 2xx (but could be a late ACK!) */
       ctx_type = -1;
-      osip_message_free(evt->sip);
-      osip_free(evt);
+      osip_event_free(evt);
       return ;	
     }
   else if (MSG_IS_REQUEST(evt->sip))
@@ -1205,8 +1204,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
   else
     { /* We should handle late response and 200 OK before coming here. */
       ctx_type = -1;
-      osip_message_free(evt->sip);
-      osip_free(evt);
+      osip_event_free(evt);
       return ;	
     }
 
@@ -1219,8 +1217,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 			   evt->sip);
       if (i!=0)
 	{
-	  osip_message_free(evt->sip);
-	  osip_free(evt);
+	  osip_event_free(evt);
 	  return ;
 	}
 
@@ -1232,8 +1229,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	{
 	  __eXosip_delete_jinfo(transaction);
 	  osip_transaction_free(transaction);
-	  osip_message_free(evt->sip);
-	  osip_free(evt);
+	  osip_event_free(evt);
 	  return ;
 	}
 	
@@ -1525,8 +1521,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 
 void eXosip_process_response_out_of_transaction (osip_event_t *evt)
 {
-  osip_message_free(evt->sip);
-  osip_free(evt);
+  osip_event_free(evt);
 }
 
 /* if second==-1 && useconds==-1  -> wait for ever 
@@ -1607,8 +1602,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 		{
 		  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
 			      "Could not parse SIP message\n"));
-		  osip_message_free(sipevent->sip);
-		  osip_free(sipevent);
+		  osip_event_free(sipevent);
 		}
 	    }
 	  else
