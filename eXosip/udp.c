@@ -275,34 +275,34 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
   /* We must negociate... */
   local_sdp = NULL;
   if (remote_sdp!=NULL) {
-    sdp_message_t *old_remote_sdp = sdp_negotiation_ctx_get_remote_sdp(jc->c_ctx);
+    sdp_message_t *old_remote_sdp = osip_negotiation_ctx_get_remote_sdp(jc->c_ctx);
     if (old_remote_sdp!=NULL)
       {
 	sdp_message_free(old_remote_sdp);
       }
-    sdp_negotiation_ctx_set_remote_sdp(jc->c_ctx, remote_sdp);
-    local_sdp = sdp_negotiation_ctx_get_local_sdp(jc->c_ctx);
+    osip_negotiation_ctx_set_remote_sdp(jc->c_ctx, remote_sdp);
+    local_sdp = osip_negotiation_ctx_get_local_sdp(jc->c_ctx);
     if (local_sdp!=NULL)
       {
 	sdp_message_free(local_sdp);
-	sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, NULL);
+	osip_negotiation_ctx_set_local_sdp(jc->c_ctx, NULL);
       }
     local_sdp = NULL;
-    i = sdp_negotiation_ctx_execute_negotiation(eXosip.sdp_negotiation, jc->c_ctx);
+    i = osip_negotiation_ctx_execute_negotiation(eXosip.osip_negotiation, jc->c_ctx);
 
     if (i!=200)
       {
 	eXosip_send_default_answer(jd, transaction, evt, i);
 	return;
       }
-    local_sdp = sdp_negotiation_ctx_get_local_sdp(jc->c_ctx);
+    local_sdp = osip_negotiation_ctx_get_local_sdp(jc->c_ctx);
   }
 
   if (remote_sdp==NULL)
     {
       sdp_message_t *local_sdp;
-      sdp_build_offer(eXosip.sdp_negotiation, NULL, &local_sdp, "25563", NULL);
-      sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);
+      osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &local_sdp, "25563", NULL);
+      osip_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);
 
       if (local_sdp==NULL)
 	{
@@ -323,7 +323,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       char *local_body;
       char *size;
 
-      sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, NULL);
+      osip_negotiation_ctx_set_local_sdp(jc->c_ctx, NULL);
       i = sdp_message_to_str(local_sdp, &local_body);
       sdp_message_free(local_sdp);
       if (i!=0) {

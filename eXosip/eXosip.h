@@ -158,7 +158,7 @@ struct eXosip_call_t {
   osip_transaction_t      *c_inc_tr;
   osip_transaction_t      *c_out_tr;
 
-  sdp_negotiation_ctx_t   *c_ctx;
+  osip_negotiation_ctx_t   *c_ctx;
 
   eXosip_call_t           *next;
   eXosip_call_t           *parent;
@@ -346,7 +346,7 @@ struct eXosip_t {
   eXosip_callback_t   j_call_callbacks[EXOSIP_CALLBACK_COUNT];
   osip_fifo_t        *j_events;
 
-  sdp_negotiation_t  *sdp_negotiation;
+  osip_negotiation_t  *osip_negotiation;
 };
 
 typedef struct jinfo_t jinfo_t;

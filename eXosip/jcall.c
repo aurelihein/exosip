@@ -201,7 +201,7 @@ eXosip_call_init(eXosip_call_t **jc)
   *jc = (eXosip_call_t *)osip_malloc(sizeof(eXosip_call_t));
   if (*jc == NULL) return -1;
   memset(*jc, 0, sizeof(eXosip_call_t));
-  sdp_negotiation_ctx_init(&(*jc)->c_ctx);
+  osip_negotiation_ctx_init(&(*jc)->c_ctx);
   return 0;
 }
 
@@ -223,7 +223,7 @@ eXosip_call_free(eXosip_call_t *jc)
   osip_transaction_free(jc->c_inc_tr);
   osip_transaction_free(jc->c_out_tr);
 
-  sdp_negotiation_ctx_free(jc->c_ctx);
+  osip_negotiation_ctx_free(jc->c_ctx);
   osip_free(jc);
 
 }

@@ -106,7 +106,7 @@ void eXosip_quit()
   
   osip_mutex_destroy((struct osip_mutex*)eXosip.j_mutexlock);
 
-  sdp_negotiation_free(eXosip.sdp_negotiation);  
+  osip_negotiation_free(eXosip.osip_negotiation);  
 
   if (eXosip.j_input)
     fclose(eXosip.j_input);
@@ -426,7 +426,7 @@ void eXosip_start_call    (osip_message_t *invite)
   char *body;
   char *size;
   
-  sdp_build_offer(eXosip.sdp_negotiation, NULL, &sdp, "10500", NULL);
+  osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, "10500", NULL);
 
   i = sdp_message_to_str(sdp, &body);
   if (body!=NULL)
@@ -447,8 +447,8 @@ void eXosip_start_call    (osip_message_t *invite)
   i = osip_parser_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
   
-  sdp_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
-  sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
+  osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
+  osip_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -536,7 +536,7 @@ void eXosip_on_hold_call  (int jid)
   sdp = eXosip_get_local_sdp_info(transaction);
   if (sdp==NULL)
     return;
-  i = sdp_message_put_on_hold(sdp);
+  i = osip_negotiation_sdp_message_put_on_hold(sdp);
   if (i!=0)
     {
       sdp_message_free(sdp);
@@ -582,9 +582,9 @@ void eXosip_on_hold_call  (int jid)
   
   
   {
-    sdp_message_t *old_sdp = sdp_negotiation_ctx_get_local_sdp(jc->c_ctx);
+    sdp_message_t *old_sdp = osip_negotiation_ctx_get_local_sdp(jc->c_ctx);
     sdp_message_free(old_sdp);
-    sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
+    osip_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
   }
 
   osip_list_add(jd->d_out_trs, transaction, 0);

@@ -164,7 +164,7 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 char *
 generating_sdp_answer(osip_message_t *request)
 {
-  sdp_negotiation_ctx_t *context;
+  osip_negotiation_ctx_t *context;
   sdp_message_t *remote_sdp;
   sdp_message_t *local_sdp = NULL;
   int i;
@@ -185,21 +185,21 @@ generating_sdp_answer(osip_message_t *request)
       i = sdp_message_parse(remote_sdp,body->body);
       if (i!=0) return NULL;      
 
-      i = sdp_negotiation_ctx_init(&context);
+      i = osip_negotiation_ctx_init(&context);
       if (i!=0)
 	{
 	  sdp_message_free(remote_sdp);
 	  return NULL;
 	}
-      i = sdp_negotiation_ctx_set_remote_sdp(context, remote_sdp);
+      i = osip_negotiation_ctx_set_remote_sdp(context, remote_sdp);
 
-      i = sdp_negotiation_ctx_execute_negotiation(eXosip.sdp_negotiation, context);
+      i = osip_negotiation_ctx_execute_negotiation(eXosip.osip_negotiation, context);
       if (i==200)
 	{
-	  local_sdp = sdp_negotiation_ctx_get_local_sdp(context);
+	  local_sdp = osip_negotiation_ctx_get_local_sdp(context);
 	  i = sdp_message_to_str(local_sdp, &local_body);
 
-	  sdp_negotiation_ctx_free(context);
+	  osip_negotiation_ctx_free(context);
 	  if (i!=0) {
 	    OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not parse local SDP answer %i\n",i));
 	    return NULL;
@@ -214,7 +214,7 @@ generating_sdp_answer(osip_message_t *request)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: while building answer to SDP (%i)\n",i));
 	}
-      sdp_negotiation_ctx_free(context);
+      osip_negotiation_ctx_free(context);
     } 
   return NULL;
 }
