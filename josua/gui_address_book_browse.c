@@ -69,7 +69,7 @@ int window_address_book_browse_print()
   int pos;
   int pos_fr;
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
-
+  
   getmaxyx(stdscr,y,x);
   pos_fr = 0;
 
@@ -102,8 +102,7 @@ int window_address_book_browse_print()
 		   (cursor_address_book_browse==pos) ? '>' : ' ',
 		   fr->f_nick, fr->f_email);
 	}
-      attrset(COLOR_PAIR(5));
-      attrset((pos==cursor_address_book_browse) ? A_REVERSE : A_NORMAL);
+      attrset((pos==cursor_address_book_browse) ? A_REVERSE : COLOR_PAIR(1));
       mvaddnstr(pos+gui_window_address_book_browse.y0,
 		gui_window_address_book_browse.x0,
 		buf,

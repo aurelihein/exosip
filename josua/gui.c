@@ -51,16 +51,37 @@ struct colordata {
        int attr;
 };
 
+/*
+struct colordata color[]= {
+  // fore              back            attr
+  {COLOR_WHITE,        COLOR_BLACK,    0	},  0 default 
+  {COLOR_WHITE,        COLOR_GREEN,    A_BOLD	},  1 title 
+  {COLOR_WHITE,        COLOR_BLACK,    0	},  2 list 
+  {COLOR_WHITE,        COLOR_YELLOW,   A_REVERSE},  3 listsel 
+  {COLOR_WHITE,        COLOR_BLUE,     0	},  4 calls 
+  {COLOR_WHITE,        COLOR_RED,      0	},  5 query 
+  {COLOR_BLACK,        COLOR_CYAN,     0	},  6 info 
+  {COLOR_WHITE,        COLOR_BLACK,    0	},  7 help 
+};
+*/
+
 struct colordata color[]= {
   /* fore              back            attr */
   {COLOR_WHITE,        COLOR_BLACK,    0	}, /* 0 default */
-  {COLOR_WHITE,        COLOR_GREEN,    A_BOLD	}, /* 1 title */
-  {COLOR_WHITE,        COLOR_BLACK,    0	}, /* 2 list */
+  {COLOR_WHITE,        COLOR_RED,      A_BOLD	}, /* 1 title */
+  {COLOR_WHITE,        COLOR_GREEN,    0	}, /* 2 list */
   {COLOR_WHITE,        COLOR_YELLOW,   A_REVERSE}, /* 3 listsel */
   {COLOR_WHITE,        COLOR_BLUE,     0	}, /* 4 calls */
-  {COLOR_WHITE,        COLOR_RED,      0	}, /* 5 query */
-  {COLOR_BLACK,        COLOR_CYAN,     0	}, /* 6 info */
-  {COLOR_WHITE,        COLOR_BLACK,    0	}, /* 7 help */
+  {COLOR_WHITE,        COLOR_MAGENTA,  0	}, /* 5 query */
+  {COLOR_WHITE,        COLOR_CYAN,     0	}, /* 6 info */
+  {COLOR_BLACK,        COLOR_BLACK,    0	}, /* 7 help */
+  {COLOR_BLACK,        COLOR_RED,      0	}, /* 7 help */
+  {COLOR_BLACK,        COLOR_GREEN,    0	}, /* 7 help */
+  {COLOR_BLACK,        COLOR_YELLOW,   0	}, /* 7 help */
+  {COLOR_BLACK,        COLOR_BLUE,     0	}, /* 7 help */
+  {COLOR_BLACK,        COLOR_MAGENTA,  0	}, /* 7 help */
+  {COLOR_BLACK,        COLOR_CYAN,     0	}, /* 7 help */
+  {COLOR_BLACK,        COLOR_WHITE,    0	}, /* 7 help */
 };
 
 int use_color = 0; /* 0: yes,      1: no */
@@ -80,7 +101,7 @@ void curseson() {
     if (has_colors() && start_color()==OK && COLOR_PAIRS >= 9) {
       int i;
       use_color = 0;
-      for (i = 1; i < 9; i++) {
+      for (i = 1; i < 15; i++) {
 	if (init_pair(i, color[i].fore, color[i].back) != OK)
 	  fprintf(stderr, "failed to allocate colour pair");
       }
