@@ -44,6 +44,11 @@ char    *localport;
 extern char *register_callid_number;
 
 
+void eXosip_get_localip(char *ip)
+{
+	eXosip_guess_ip_for_via(ip);
+}
+
 int
 eXosip_lock()
 {
