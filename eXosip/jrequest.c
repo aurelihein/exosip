@@ -248,6 +248,17 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  osip_free(contact);
 	}
       osip_from_free(a_from);
+
+      /* This is probably useless for other messages */
+      osip_parser_set_allow(request, "INVITE");
+      osip_parser_set_allow(request, "ACK");
+      osip_parser_set_allow(request, "CANCEL");
+      osip_parser_set_allow(request, "BYE");
+      osip_parser_set_allow(request, "OPTIONS");
+      osip_parser_set_allow(request, "REFER");
+      osip_parser_set_allow(request, "SUBSCRIBE");
+      osip_parser_set_allow(request, "NOTIFY");
+      osip_parser_set_allow(request, "MESSAGE");
     }
 
   if (0==strcmp("SUBSCRIBE", method_name))
@@ -348,15 +359,6 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
   
   osip_parser_set_subject(*invite, subject);
 
-  osip_parser_set_allow(*invite, "INVITE");
-  osip_parser_set_allow(*invite, "ACK");
-  osip_parser_set_allow(*invite, "CANCEL");
-  osip_parser_set_allow(*invite, "BYE");
-  /*  osip_parser_set_allow(*invite, "OPTIONS"); */
-  /* osip_parser_set_allow(*invite, "REFER"); */
-  osip_parser_set_allow(*invite, "SUBSCRIBE");
-  osip_parser_set_allow(*invite, "NOTIFY");
-
   /* after this delay, we should send a CANCEL */
   osip_parser_set_expires(*invite, "120");
 
@@ -384,15 +386,6 @@ int generating_initial_subscribe(osip_message_t **subscribe, char *to,
 				       route);
   if (i!=0) return -1;
   
-  osip_parser_set_allow(*subscribe, "INVITE");
-  osip_parser_set_allow(*subscribe, "ACK");
-  osip_parser_set_allow(*subscribe, "CANCEL");
-  osip_parser_set_allow(*subscribe, "BYE");
-  /*  osip_parser_set_allow(*invite, "OPTIONS"); */
-  /* osip_parser_set_allow(*subscribe, "REFER"); */
-  osip_parser_set_allow(*subscribe, "SUBSCRIBE");
-  osip_parser_set_allow(*subscribe, "NOTIFY");
-
   /* after this delay, we should send a CANCEL */
   osip_parser_set_expires(*subscribe, "600");
 

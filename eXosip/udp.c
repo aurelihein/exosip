@@ -555,11 +555,12 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
 				  osip_event_t *evt)
 {
   osip_event_t *evt_answer;
-  int i;
   eXosip_notify_t *jn;
   eXosip_dialog_t *jd;
   osip_message_t *answer;
   char *contact;
+  int code;
+  int i;
 
   eXosip_notify_init(&jn);
 
@@ -608,7 +609,14 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
 
   ADD_ELEMENT(eXosip.j_notifies, jn);
 
-  i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
+  /* There should be a list of already accepted freinds for which we
+     have already accepted the subscription. */
+  if (0==_eXosip_notify_is_a_known_subscriber(evt->sip))
+    code = 200;
+  else
+    code = 202;
+
+  i = _eXosip_build_response_default(&answer, jd->d_dialog, code, evt->sip);
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for subscribe\n"));
@@ -630,14 +638,6 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
 	return;
       }
   }
-  osip_parser_set_allow(answer, "INVITE");
-  osip_parser_set_allow(answer, "ACK");
-  osip_parser_set_allow(answer, "OPTIONS");
-  osip_parser_set_allow(answer, "CANCEL");
-  osip_parser_set_allow(answer, "BYE");
-  osip_parser_set_allow(answer, "SUBSCRIBE");
-  osip_parser_set_allow(answer, "NOTIFY");
-  osip_parser_set_allow(answer, "MESSAGE");
 
   eXosip_dialog_set_200ok(jd, answer);
   evt_answer = osip_new_outgoing_sipmessage(answer);

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.13 2003-04-01 22:24:57 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.14 2003-04-02 18:06:20 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -714,10 +714,11 @@ nctab_get_values(nctab_t (*nctab)[],
   return c;
 }
 
+static int cur_pos = 0;
+
 void print_calls()
 {
   char buf[256];
-  int yline;
   int y,x;
   eXosip_call_t *jc;
   eXosip_dialog_t *jd;
@@ -725,10 +726,14 @@ void print_calls()
   cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
   getmaxyx(stdscr,y,x);
   
+  /* cur_pos start a 0 in print_calls()
+   and is used to print notifies and subscribes
+   on the correct lines.
+  */
+  cur_pos = 12;
 
   attrset(COLOR_PAIR(4));
   eXosip_update();
-  yline = 12;
   
   eXosip_lock();
   for (jc = eXosip.j_calls; jc!=NULL; jc = jc->next)
@@ -760,8 +765,8 @@ void print_calls()
 	      sprintf(buf,"C%i D%i: Connection closed.\n",
 		      jc->c_id, jd->d_id);
 	    }
-	  mvaddnstr(yline,0,buf,x-1);
-	  yline++;
+	  mvaddnstr(cur_pos,0,buf,x-1);
+	  cur_pos++;
 	}
       if (jc->c_dialogs==NULL)
 	{
@@ -786,8 +791,8 @@ void print_calls()
 	  else
 	    sprintf(buf,"C%i D-1: Waiting for status.\n", jc->c_id);
 	  osip_free(tmp);
-	  mvaddnstr(yline,0,buf,x-1);
-	  yline++;
+	  mvaddnstr(cur_pos,0,buf,x-1);
+	  cur_pos++;
 	}
     }
 
@@ -806,7 +811,6 @@ void print_calls()
 void print_subscribes()
 {
   char buf[256];
-  int yline;
   int y,x;
   eXosip_subscribe_t *js;
   eXosip_dialog_t    *jd;
@@ -815,8 +819,7 @@ void print_subscribes()
   getmaxyx(stdscr,y,x);
   
 
-  attrset(COLOR_PAIR(4));
-  yline = 16;
+  attrset(COLOR_PAIR(3));
   
   eXosip_lock();
   for (js = eXosip.j_subscribes; js!=NULL; js = js->next)
@@ -848,8 +851,8 @@ void print_subscribes()
 	      sprintf(buf,"S%i D%i: Connection closed.\n",
 		      js->s_id, jd->d_id);
 	    }
-	  mvaddnstr(yline,0,buf,x-1);
-	  yline++;
+	  mvaddnstr(cur_pos,0,buf,x-1);
+	  cur_pos++;
 	}
       if (js->s_dialogs==NULL)
 	{
@@ -874,8 +877,8 @@ void print_subscribes()
 	  else
 	    sprintf(buf,"S%i D-1: Waiting for status.\n", js->s_id);
 	  osip_free(tmp);
-	  mvaddnstr(yline,0,buf,x-1);
-	  yline++;
+	  mvaddnstr(cur_pos,0,buf,x-1);
+	  cur_pos++;
 	}
     }
 
@@ -894,7 +897,6 @@ void print_subscribes()
 void print_notifies()
 {
   char buf[256];
-  int yline;
   int y,x;
   eXosip_notify_t *jn;
   eXosip_dialog_t    *jd;
@@ -903,8 +905,7 @@ void print_notifies()
   getmaxyx(stdscr,y,x);
   
 
-  attrset(COLOR_PAIR(4));
-  yline = 20;
+  attrset(COLOR_PAIR(6));
   
   eXosip_lock();
   for (jn = eXosip.j_notifies; jn!=NULL; jn = jn->next)
@@ -917,7 +918,7 @@ void print_notifies()
 	      if (jd->d_dialog->state==DIALOG_EARLY)
 		{
 		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"S%i D%i: Pending Subscribe To: %s\n",
+		  sprintf(buf,"N%i D%i: Pending Subscribe To: %s\n",
 			  jn->n_id, jd->d_id,
 			  tmp);
 		  osip_free(tmp);
@@ -935,7 +936,7 @@ void print_notifies()
 		      eXosip_notify(jd->d_id, EXOSIP_NOTIFY_ONLINE);
 		    }
 		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"S%i D%i: Established Subscribe To: %s.\n",
+		  sprintf(buf,"N%i D%i: Established Subscribe To: %s.\n",
 			  jn->n_id, jd->d_id,
 			  tmp);
 		  osip_free(tmp);
@@ -943,11 +944,11 @@ void print_notifies()
 	    }
 	  else 
 	    {
-	      sprintf(buf,"S%i D%i: Connection closed.\n",
+	      sprintf(buf,"N%i D%i: Connection closed.\n",
 		      jn->n_id, jd->d_id);
 	    }
-	  mvaddnstr(yline,0,buf,x-1);
-	  yline++;
+	  mvaddnstr(cur_pos,0,buf,x-1);
+	  cur_pos++;
 	}
       if (jn->n_dialogs==NULL)
 	{
@@ -968,12 +969,12 @@ void print_notifies()
 	    {}
 	  else osip_to_to_str(tr->orig_request->to, &tmp);
 	  if (tmp!=NULL)
-	    sprintf(buf,"S%i D-1: with: %s.\n", jn->n_id, tmp);
+	    sprintf(buf,"N%i D-1: with: %s.\n", jn->n_id, tmp);
 	  else
-	    sprintf(buf,"S%i D-1: Waiting for status.\n", jn->n_id);
+	    sprintf(buf,"N%i D-1: Waiting for status.\n", jn->n_id);
 	  osip_free(tmp);
-	  mvaddnstr(yline,0,buf,x-1);
-	  yline++;
+	  mvaddnstr(cur_pos,0,buf,x-1);
+	  cur_pos++;
 	}
     }
 

@@ -112,6 +112,15 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 	}
     }
     
+  osip_parser_set_allow(response, "INVITE");
+  osip_parser_set_allow(response, "ACK");
+  osip_parser_set_allow(response, "OPTIONS");
+  osip_parser_set_allow(response, "CANCEL");
+  osip_parser_set_allow(response, "BYE");
+  osip_parser_set_allow(response, "SUBSCRIBE");
+  osip_parser_set_allow(response, "NOTIFY");
+  osip_parser_set_allow(response, "MESSAGE");
+
   *dest = response;
   return 0;
 
@@ -260,13 +269,6 @@ generating_2xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
   if (i!=0) goto g2atii_error_1;
   i = osip_parser_set_header(response, "content-type", "application/sdp");
   if (i!=0) goto g2atii_error_1;
-
-  /* response should contains the allow and supported headers */
-  osip_parser_set_allow(response, "INVITE");
-  osip_parser_set_allow(response, "ACK");
-  osip_parser_set_allow(response, "OPTIONS");
-  osip_parser_set_allow(response, "CANCEL");
-  osip_parser_set_allow(response, "BYE");
 
 
   osip_free(body);
@@ -438,12 +440,6 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
     osip_free(contact);
     if (i!=0) goto g2atii_error_1;; /* ?? */
   }
-  /* response should contains the allow and supported headers */
-  osip_parser_set_allow(response, "INVITE");
-  osip_parser_set_allow(response, "ACK");
-  osip_parser_set_allow(response, "OPTIONS");
-  osip_parser_set_allow(response, "CANCEL");
-  osip_parser_set_allow(response, "BYE");
 
   osip_free(body);
   /* THIS RESPONSE MUST BE SENT RELIABILY until the final ACK is received !! */
@@ -614,15 +610,6 @@ eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
     osip_free(contact);
     if (i!=0) goto g2atii_error_1;; /* ?? */
   }
-  /* response should contains the allow and supported headers */
-  osip_parser_set_allow(response, "INVITE");
-  osip_parser_set_allow(response, "ACK");
-  osip_parser_set_allow(response, "OPTIONS");
-  osip_parser_set_allow(response, "CANCEL");
-  osip_parser_set_allow(response, "BYE");
-  osip_parser_set_allow(response, "SUBSCRIBE");
-  osip_parser_set_allow(response, "NOTIFY");
-  osip_parser_set_allow(response, "MESSAGE");
 
   /* THIS RESPONSE MUST BE SENT RELIABILY until the final ACK is received !! */
   /* this response must be stored at the upper layer!!! (it will be destroyed*/

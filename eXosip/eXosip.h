@@ -78,19 +78,36 @@ struct eXosip_dialog_t {
   eXosip_dialog_t *parent;
 };
 
-typedef enum eXosip_subscribe_state {
+typedef enum eXosip_ss {
+  EXOSIP_SUBCRSTATE_UNKNOWN,
+  EXOSIP_SUBCRSTATE_PENDING,
+  EXOSIP_SUBCRSTATE_ACTIVE,
+  EXOSIP_SUBCRSTATE_TERMINATED
+} eXosip_ss_t;
+
+typedef enum eXosip_ss_reason {
+  REJECTED,
+  TIMEOUT
+  
+} eXosip_ss_reason_t;
+
+
+typedef enum eXosip_ss_status {
   EXOSIP_NOTIFY_UNKNOWN,
   EXOSIP_NOTIFY_PENDING, /* subscription not yet accepted */
   EXOSIP_NOTIFY_ONLINE,
   EXOSIP_NOTIFY_AWAY
-} osip_subscribe_state_t;
+} eXosip_ss_status_t;
 
 typedef struct eXosip_subscribe_t eXosip_subscribe_t;
 
 struct eXosip_subscribe_t {
 
   int                 s_id;
-  int                 s_online_status; /* User Status */
+  int                 s_online_status;
+  int                 s_ss_status; /* User Status */
+  int                 s_ss_reason;
+  int                 s_ss_expires;
   eXosip_dialog_t    *s_dialogs;
 
   osip_transaction_t *s_inc_tr;
@@ -105,7 +122,10 @@ typedef struct eXosip_notify_t eXosip_notify_t;
 struct eXosip_notify_t {
 
   int                 n_id;
-  int                 n_online_status; /* User Status */
+  int                 n_online_status;
+  int                 n_ss_status; /* User Status */
+  int                 n_ss_reason;
+  int                 n_ss_expires;
   eXosip_dialog_t    *n_dialogs;
 
   osip_transaction_t *n_inc_tr;
