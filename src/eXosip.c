@@ -1824,9 +1824,7 @@ eXosip_register_init(char *from, char *proxy, char *contact)
   for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
     {
       if (strcmp(jr->r_aor, from) == 0
-	  && strcmp(jr->r_registrar, proxy) == 0
-	  && (jr->r_contact == NULL) == (contact == NULL)
-	  && (contact == NULL || strcmp(jr->r_contact, contact) == 0))
+	  && strcmp(jr->r_registrar, proxy) == 0)
 	{
 	  return jr->r_id;
 	}
