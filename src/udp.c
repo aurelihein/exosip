@@ -1203,7 +1203,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       if (ctype!=NULL && ctype->type!=NULL && ctype->subtype!=NULL)
 	{
 	  if (0==osip_strcasecmp(ctype->type, "application")
-	      && 0==osip_strcasecmp(ctype->subtype, "cpim-pidf+xml"))
+	      && 0==osip_strcasecmp(ctype->subtype, "pidf+xml"))
 	    osip_message_get_body(evt->sip, 0, &body);
 	  else
 	    {

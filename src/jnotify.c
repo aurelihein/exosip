@@ -374,7 +374,7 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
   if (jn->n_online_status==EXOSIP_NOTIFY_ONLINE)
     {
       sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\" entity=\"%s\">\n\
 <tuple id=\"sg89ae\">\n\
 <status>\n\
 <basic>open</basic>\n\
@@ -387,17 +387,37 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
   else
     {
       sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<presence xmlns=\"urn:ietf:params:xml:ns:cpim-pidf\" entity=\"%s\">\n\
-<tuple id=\"sg89ae\">\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+xmlns:et=\"urn:ietf:params:xml:ns:pidf:rpid-tuple\"\n\
+xmlns:ci=\"urn:ietf:params:xml:ns:pidf:cipid\"\n\
+entity=\"%s\">\n%s%s",
+	      jn->n_contact_info,
+"<tuple id=\"sg89ae\">\n\
 <status>\n\
 <basic>closed</basic>\n\
 </status>\n\
 </tuple>\n\
-</presence>",
-	      jn->n_contact_info);
+\n"
+,
+"<tuple id=\"c8dqui\">\n\
+<status>\n\
+<basic>open</basic>\n\
+</status>\n\
+<et:class>assistant</et:class>\n\
+<ci:homepage>http://partysip.org/</ci:homepage>\n\
+<ci:icon>http://partysip.org/</ci:icon>\n\
+<ci:card>http://partysip.org/</ci:card>\n\
+<et:relationship>assistant</et:relationship>\n\
+<et:contact-type>presentity</et:contact-type>\n\
+<contact>sip:secretary@partysip.org</contact>\n\
+<note>My secretary</note>\n\
+</tuple>\n\
+\
+</presence>");
     }
   osip_message_set_body(notify, buf, strlen(buf));
-  osip_message_set_content_type(notify, "application/cpim-pidf+xml");
+  osip_message_set_content_type(notify, "application/pidf+xml");
 
 #endif
 

@@ -102,6 +102,12 @@ static int jidentity_init(jidentity_t **fr, char *ch)
   (*fr)->i_pwd = osip_strdup(next);
   osip_clrspace ((*fr)->i_pwd);
 
+  if ((*fr)->i_pwd!=NULL && (*fr)->i_pwd[0]!='\0')
+    {
+      eXosip_add_authentication_info((*fr)->i_userid, (*fr)->i_userid,
+				     (*fr)->i_pwd, NULL,
+				     (*fr)->i_realm);
+    }
   return 0;
 
  ji_error4:

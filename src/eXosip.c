@@ -580,7 +580,6 @@ eXosip_update()
 	      if (eXosip_subscribe_need_refresh(js, now)==0)
 		{
 		  int i;
-#define LOW_EXPIRE
 #ifdef LOW_EXPIRE
 		  i = eXosip_subscribe_send_subscribe(js, jd, "60");
 #else
@@ -588,7 +587,8 @@ eXosip_update()
 #endif
 		}
 	    }
-	  else jd->d_id = -1;
+	  else
+	    jd->d_id = -1;
 	}
     }
 
@@ -2310,6 +2310,7 @@ int eXosip_subscribe    (char *to, char *from, char *route)
   osip_transaction_add_event(transaction, sipevent);
 
   ADD_ELEMENT(eXosip.j_subscribes, js);
+  eXosip_update(); /* fixed? */
   __eXosip_wakeup();
   return 0;
 }
@@ -2333,7 +2334,6 @@ int eXosip_subscribe_refresh  (int sid, char *expires)
       return -1;
     }
 
-#define LOW_EXPIRE
 #ifdef LOW_EXPIRE
   if (expires==NULL)
     i = eXosip_subscribe_send_subscribe(js, jd, "60");

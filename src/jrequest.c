@@ -437,7 +437,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 #ifdef SUPPORT_MSN
       osip_message_set_accept(request, "application/xpidf+xml");
 #else
-      osip_message_set_accept(request, "application/cpim-pidf+xml");
+      osip_message_set_accept(request, "application/pidf+xml");
 #endif
     }
   else if (0==strcmp("REGISTER", method_name))
@@ -675,7 +675,6 @@ int generating_initial_subscribe(osip_message_t **subscribe, char *to,
 				       route);
   if (i!=0) return -1;
   
-#define LOW_EXPIRE
 #ifdef LOW_EXPIRE
   osip_message_set_expires(*subscribe, "60");
 #else
@@ -1100,7 +1099,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 #ifdef SUPPORT_MSN
       osip_message_set_accept(request, "application/xpidf+xml");
 #else
-      osip_message_set_accept(request, "application/cpim-pidf+xml");
+      osip_message_set_accept(request, "application/pidf+xml");
 #endif
     }
   else if (0==strcmp("NOTIFY", method_name))

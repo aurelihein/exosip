@@ -423,9 +423,6 @@ int jcall_requestfailure(eXosip_event_t *je)
       static int oddnumber=0;
       if (oddnumber==0)
 	{
-	  eXosip_add_authentication_info("0123456789", "0123456789",
-					 "secret", NULL,
-					 "atosc.org");
 	  eXosip_retry_call(je->cid);
 	  eXosip_clear_authentication_info();
 	  oddnumber=1;
