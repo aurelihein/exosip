@@ -164,11 +164,15 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
   /* first, look for a Dialog in the map of element */
   for (jc = eXosip.j_calls; jc!= NULL ; jc=jc->next)
     {
-      i = cancel_match_invite(jc->c_inc_tr, evt->sip);
-      if (i==0) { 
-	tr = jc->c_inc_tr;
-	break;
-      }
+	  if (jc->c_inc_tr!=NULL)
+	  {
+		  i = cancel_match_invite(jc->c_inc_tr, evt->sip);
+		  if (i==0) { 
+		tr = jc->c_inc_tr;
+		break;
+		  }
+	  }
+	  tr=NULL;
       for (jd = jc->c_dialogs; jd!= NULL ; jd=jd->next)
 	{
 	  int pos=0;
