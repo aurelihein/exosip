@@ -254,10 +254,6 @@ int jcall_new(eXosip_event_t *je)
   osip_strncpy(ca->remote_uri, je->remote_uri, 255);
   osip_strncpy(ca->subject,    je->subject, 255);
 
-  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			  "remote ip: %s:%i:%s:%i",
-			  ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port,
-			  ca->payload_name, ca->payload));
   if (ca->remote_sdp_audio_ip[0]=='\0')
     {
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
@@ -267,10 +263,6 @@ int jcall_new(eXosip_event_t *je)
 
       os_sound_init();
     }
-  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			  "remote ip: %s:%i:%s:%i",
-			  ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port,
-			  ca->payload_name, ca->payload));
 
   if (je->reason_phrase[0]!='\0')
     {
@@ -316,11 +308,6 @@ int jcall_ack(eXosip_event_t *je)
     }
   if (ca->remote_sdp_audio_ip[0]!='\0')
     {
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			      "ACK remote ip: %s:%i:%s:%i:%i",
-			      ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port,
-			      ca->payload_name, ca->payload,
-			      atoi(je->jc->c_sdp_port)));
       if (0==os_sound_start(ca, atoi(je->jc->c_sdp_port)))
 	{
 	  ca->enable_audio=1; /* audio is started */
