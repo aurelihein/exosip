@@ -27,6 +27,7 @@
 
 #include <osipparser2/osip_parser.h>
 #include <osip2/osip_negotiation.h>
+#include <time.h>
 
 /**
  * @file eXosip.h
@@ -483,6 +484,35 @@ int   eXosip_register      (int rid, int expires);
  * @param rid .
  */
 int  eXosip_message    (char *to, char *from, char *route, char *buff);
+
+/**
+ * build publication for a user. (PUBLISH request)
+ * 
+ * @param message   returned published request.
+ * @param to        SIP url for callee.
+ * @param from      SIP url for caller.
+ * @param route     Route used for publication.
+ * @param event     SIP Event header.
+ * @param expires   SIP Expires header.
+ * @param ctype     Content-Type of body.
+ * @param body     body for publication.
+ */
+int eXosip_build_publish(osip_message_t **message,
+			 char *to,
+			 char *from,
+			 char *route,
+			 const char *event,
+			 const char *expires,
+			 const char *ctype,
+			 const char *body);
+
+/**
+ * Send an Publication Message (PUBLISH request).
+ * 
+ * @param message is a ready to be sent publish message .
+ * @param sip_if_match is the SIP-If-Match header. (NULL for initial publication)
+ */
+int eXosip_publish (osip_message_t *message, const char *sip_if_match);
 
 /**
  * Send initial subscription to a user. (SUBSCRIBE request)

@@ -107,8 +107,13 @@ void window_menu_draw_commands()
   char *menu_commands[] = {
     "<-",  "PrevWindow",
     "->",  "NextWindow",
-    "^i",  "Toggle Online status",
-    "^a",  "Apply Status" ,
+    "^o",  "online",
+    "^b",  "busy",
+    "^a",  "away",
+    "^e",  "berightback",
+    "^p",  "onthephone",
+    "^l",  "outtolunch" ,
+    "^x",  "offline",
     NULL
   };
   getmaxyx(stdscr,y,x);
@@ -117,30 +122,143 @@ void window_menu_draw_commands()
 
 int window_menu_run_command(int c)
 {
+  char buf[5000];
   int max = 7;
   switch (c)
     {
-    case 9:
-      josua_online_status++;
-      if (josua_online_status>EXOSIP_NOTIFY_CLOSED)
-	josua_online_status = EXOSIP_NOTIFY_ONLINE;
+    case 15: /* o */
+      josua_online_status = EXOSIP_NOTIFY_ONLINE;
+      josua_printf("Moving to online status");
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>online</note\n\
+</tuple>\n\
+</presence>",
+	      cfg.identity, cfg.identity);
       break;
-    case 1:
-      /* apply IM change status */
-      {
-	int k;
-	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
-	  {
-	    if (jinsubscriptions[k].state != NOT_USED)
-	      {
-		int i;
-		eXosip_lock();
-		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, josua_online_status);
-		if (i!=0) beep();
-		eXosip_unlock();
-	      }
-	  }
-      }
+    case 2: /* b */
+      josua_online_status = EXOSIP_NOTIFY_BUSY;
+      josua_printf("I'm busy now");
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>busy</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>busy</note\n\
+</tuple>\n\
+</presence>",
+	      cfg.identity, cfg.identity);
+      break;
+    case 5: /* e */
+      josua_online_status = EXOSIP_NOTIFY_BERIGHTBACK;
+      josua_printf("I'll be back soon");
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>in-transit</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>be right back</note\n\
+</tuple>\n\
+</presence>",
+	      cfg.identity, cfg.identity);
+      break;
+    case 1: /* a */
+      josua_online_status = EXOSIP_NOTIFY_AWAY;
+      josua_printf("I'm away");
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>away</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>away</note\n\
+</tuple>\n\
+</presence>",
+	      cfg.identity, cfg.identity);
+      break;
+    case 16: /* p */
+      josua_online_status = EXOSIP_NOTIFY_ONTHEPHONE;
+      josua_printf("I'm on the phone");
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>on-the-phone</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>on the phone</note\n\
+</tuple>\n\
+</presence>",
+	      cfg.identity, cfg.identity);
+      break;
+    case 12: /* l */
+      josua_online_status = EXOSIP_NOTIFY_OUTTOLUNCH;
+      josua_printf("I'm out to lunch");
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>open</basic>\n\
+<es:activities>\n\
+  <es:activity>meal</es:activity>\n\
+</es:activities>\n\
+</status>\n\
+<contact priority=\"0.8\">%s</contact>\n\
+<note>out to lunch</note\n\
+</tuple>\n\
+</presence>",
+	      cfg.identity, cfg.identity);
+      break;
+    case 22: /* x */
+      josua_online_status = EXOSIP_NOTIFY_CLOSED;
+      josua_printf("I'm offline");
+      sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+entity=\"%s\">\n%s",
+	      cfg.identity,
+"<tuple id=\"sg89ae\">\n\
+<status>\n\
+<basic>closed</basic>\n\
+<es:activities>\n\
+  <es:activity>permanent-absence</e:activity>\n\
+</es:activities>\n\
+</status>\n\
+</tuple>\n\
+\n</presence>\n");
       break;
     case KEY_DOWN:
       cursor_menu++;
@@ -190,6 +308,48 @@ int window_menu_run_command(int c)
     default:
       beep();
       return -1;
+    }
+
+  /* apply IM change status */
+  switch (c)
+    {
+    case 1:
+    case 2:
+    case 22:
+    case 5:
+    case 12:
+    case 15:
+    case 16:
+      {
+	int i;
+	int k;
+	osip_message_t *pub;
+	i = eXosip_build_publish(&pub, cfg.identity, cfg.identity, NULL, "presence", "1800", "application/pidf+xml", buf);
+	/* build a publish request to a presence server */
+	if (i<0)
+	  beep();
+	if (i>=0)
+	  {
+	    eXosip_lock();
+	    i = eXosip_publish(pub, cfg.identity);
+	    eXosip_unlock();
+	    if (i!=0)
+	      {
+		beep();
+	      }
+	  }
+
+	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
+	  {
+	    if (jinsubscriptions[k].state != NOT_USED)
+	      {
+		eXosip_lock();
+		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, josua_online_status);
+		if (i!=0) beep();
+		eXosip_unlock();
+	      }
+	  }
+      }
     }
 
   if (gui_window_menu.on_off==GUI_ON)

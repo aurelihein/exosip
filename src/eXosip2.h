@@ -201,6 +201,27 @@ struct eXosip_reg_t {
   eXosip_reg_t   *parent;
 };
 
+
+typedef struct eXosip_pub_t eXosip_pub_t;
+
+struct eXosip_pub_t {
+  int             p_id;
+
+  time_t          p_expires;        /* expiration date (started+period) */
+  int             p_period;         /* delay between registration */
+  char            p_aor[256];       /* sip identity */
+  char            p_sip_etag[64];   /* sip_etag from 200ok */
+
+  osip_transaction_t  *p_last_tr;
+  eXosip_pub_t   *next;
+  eXosip_pub_t   *parent;
+};
+
+int _eXosip_pub_update(eXosip_pub_t **pub, osip_transaction_t *tr, osip_message_t *answer);
+int _eXosip_pub_find_by_aor(eXosip_pub_t **pub, const char *aor);
+int _eXosip_pub_init(eXosip_pub_t **pub, const char *aor, const char *exp);
+void _eXosip_pub_free(eXosip_pub_t *pub);
+
 typedef struct jauthinfo_t jauthinfo_t;
 
 struct jauthinfo_t {
@@ -283,7 +304,8 @@ struct eXosip_t {
   eXosip_notify_t    *j_notifies;     /* my susbscribers */
   osip_list_t        *j_transactions;
 
-  eXosip_reg_t       *j_reg;
+  eXosip_reg_t       *j_reg;          /* my registrations */
+  eXosip_pub_t       *j_pub;          /* my publications  */
 
   void               *j_cond;
   void               *j_mutexlock;
@@ -365,6 +387,8 @@ int  generating_initial_subscribe(osip_message_t **message, char *to,
 				 char *from, char *route);
 int  generating_message(osip_message_t **message, char *to, char *from,
 		       char *route, char *buff);
+int  generating_publish(osip_message_t **message, char *to, char *from,
+			char *route);
 int  generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled);
 int  generating_options_within_dialog(osip_message_t **info, osip_dialog_t *dialog);
 int  generating_info_within_dialog(osip_message_t **info, osip_dialog_t *dialog);
@@ -379,6 +403,7 @@ int  generating_options(osip_message_t **options, char *from, char *to, char *pr
 int  generating_ack_for_2xx(osip_message_t **ack, osip_dialog_t *dialog);
 int  generating_info(osip_message_t **info, char *from, char *to, char *proxy);
 
+int  _eXosip_reg_find(eXosip_reg_t **reg, osip_transaction_t *tr);
 int  eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact);
 void eXosip_reg_free(eXosip_reg_t *jreg);
 int  generating_register(osip_message_t **reg, char *transport, char *from, char *proxy, int expires);

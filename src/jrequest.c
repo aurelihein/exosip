@@ -651,6 +651,32 @@ int generating_message(osip_message_t **message, char *to, char *from,
   return 0;
 }
 
+/* this method can't be called unless the previous
+   INVITE transaction is over. */
+int
+generating_publish(osip_message_t **message, char *to, char *from,
+		   char *route)
+{
+  int i;
+
+  if (to!=NULL && *to=='\0')
+    return -1;
+
+  osip_clrspace(to);
+  osip_clrspace(from);
+  osip_clrspace(route);
+  if (route!=NULL && *route=='\0')
+    route=NULL;
+  
+  i = generating_request_out_of_dialog(message, "PUBLISH", to, "UDP", from,
+				       route);
+  if (i!=0) return -1;
+  
+  /* osip_message_set_organization(*message, "Jack's Org"); */
+
+  return 0;
+}
+
 
 int
 generating_options(osip_message_t **options, char *from, char *to, char *proxy)
