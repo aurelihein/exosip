@@ -41,8 +41,8 @@ typedef char HASHHEX[HASHHEXLEN+1];
 #define IN
 #define OUT
 
-eXosip_t eXosip;
-char    *localip;
+extern eXosip_t eXosip;
+extern char    *localip;
 
 void CvtHex(IN HASH Bin,
 	    OUT HASHHEX Hex)

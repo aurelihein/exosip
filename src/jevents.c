@@ -26,7 +26,7 @@
 #include <eXosip/eXosip.h>
 #include <osip2/osip_condv.h>
 
-eXosip_t eXosip;
+extern eXosip_t eXosip;
 
 
 eXosip_event_t *
