@@ -90,7 +90,7 @@ void  eXosip_quit(void);
  * When you are behind a NAT. (EXPERIMENTAL)
  * 
  */
-void eXosip_set_firewallip(char *firewall_address);
+void eXosip_set_firewallip(const char *firewall_address);
 
 /**
  * Find the current localip (interface with default route).

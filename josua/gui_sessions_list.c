@@ -105,7 +105,7 @@ void window_sessions_list_draw_commands()
     "r",  "Reject",
     "b",  "AppearBusy",
     "o",  "SendOptions",
-    "i",  "SendInfo",
+    "digit",  "SendInfo",
     NULL
   };
   getmaxyx(stdscr,y,x);
@@ -219,13 +219,28 @@ int window_sessions_list_run_command(int c)
       eXosip_options_call(ca->did);
       eXosip_unlock();
       break;
-    case 'i':
+
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '#':
+    case '*':
       ca = jcall_find_call(cursor_sessions_list);
       if (ca==NULL) { beep(); break; }
+      char dtmf_body[1000];
+      snprintf(dtmf_body, 999, "Signal=%c\r\nDuration=250\r\n", c);
       eXosip_lock();
-      eXosip_info_call(ca->did, "application/text", "Just some Data");
+      eXosip_info_call(ca->did, "application/dtmf-relay", dtmf_body);
       eXosip_unlock();
       break;
+
     default:
       beep();
       return -1;

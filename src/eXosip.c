@@ -53,7 +53,7 @@ static int eXosip_execute(void);
 
 eXosip_t eXosip;
 
-void eXosip_set_firewallip(char *firewall_address)
+void eXosip_set_firewallip(const char *firewall_address)
 {
 	if (firewall_address==NULL) return;
 	snprintf(eXosip.j_firewall_ip,50, "%s", firewall_address);
