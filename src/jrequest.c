@@ -294,7 +294,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 
 int
 generating_register(osip_message_t **reg, char *from,
-		    char *proxy, char *contact)
+		    char *proxy, char *contact, int expires)
 {
   osip_from_t *a_from;
   int i;
@@ -331,7 +331,13 @@ generating_register(osip_message_t **reg, char *from,
     {
       osip_message_set_contact(*reg, contact);
     }
-  osip_message_set_header(*reg, "expires", "3600");
+
+  {
+    char exp[10]; /* MUST never be ouside 1 and 3600 */
+    snprintf(exp, 9, "%i", expires);
+    osip_message_set_expires(*reg, exp);
+  }
+
   osip_message_set_content_length(*reg, "0");
   
   return 0;

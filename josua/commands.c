@@ -139,7 +139,7 @@ _josua_register(int pos_id)
 	}
       last_id = pos_id;
     }
-  i = eXosip_register(-1);
+  i = eXosip_register(-1, 3600);
   eXosip_unlock();
   return i;
 }

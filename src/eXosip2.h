@@ -287,7 +287,7 @@ int  generating_info(osip_message_t **info, char *from, char *to, char *proxy);
 
 int  eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact);
 void eXosip_reg_free(eXosip_reg_t *jreg);
-int  generating_register(osip_message_t **reg, char *transport, char *from, char *proxy);
+int  generating_register(osip_message_t **reg, char *transport, char *from, char *proxy, int expires);
 
 int eXosip_call_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd);
 int eXosip_notify_dialog_find(int nid, eXosip_notify_t **jn, eXosip_dialog_t **jd);

@@ -257,8 +257,9 @@ int   eXosip_register_init (char *from, char *proxy, char *contact);
  * Update the registration. (REGISTER request)
  * 
  * @param rid .
+ * @param expires The expires value for registration.
  */
-int   eXosip_register      (int rid);
+int   eXosip_register      (int rid, int expires);
 
 /** @} */
 

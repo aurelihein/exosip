@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.5 2003-05-05 12:53:45 aymeric Exp $";
+static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.6 2003-08-14 12:16:43 aymeric Exp $";
 
 #ifndef NCURSES_SUPPORT
 
@@ -643,7 +643,7 @@ void __jmsip_register(char *command) {
     }
 
   jmsip_lock();
-  jmsip_register(-1);
+  jmsip_register(-1, 3600);
   jmsip_unlock();
 }
 

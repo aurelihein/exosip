@@ -1146,7 +1146,7 @@ int eXosip_terminate_call(int cid, int jid)
   return 0;
 }
 
-int eXosip_register      (int rid)
+int eXosip_register      (int rid, int registration_period)
 {
   osip_transaction_t *transaction;
   osip_event_t *sipevent;
@@ -1161,6 +1161,12 @@ int eXosip_register      (int rid)
       /* fprintf(stderr, "eXosip: no registration info saved!\n"); */
       return -1;
     }
+  jr->r_reg_period = registration_period;
+  if (jr->r_reg_period>3600)
+    jr->r_reg_period = 3600;
+  else if (jr->r_reg_period<200) /* too low */
+    jr->r_reg_period = 200;
+
   reg = NULL;
   if (jr->r_last_tr!=NULL)
     {
@@ -1198,13 +1204,22 @@ int eXosip_register      (int rid)
 	    osip_free(reg->cseq->number);
 	    reg->cseq->number = (char*)osip_malloc(length+2); /* +2 like for 9 to 10 */
 	    sprintf(reg->cseq->number, "%i", osip_cseq_num);
-	    
+
+	    {
+	      osip_header_t *exp;
+	      osip_message_header_get_byname(reg, "expires", 0, &exp);
+	      osip_free(exp->hvalue);
+	      exp->hvalue = (char*)malloc(10);
+	      snprintf(exp->hvalue, 9, "%i", jr->r_reg_period);
+	    }
+
+	    osip_message_force_update(reg);
 	  }
 	}
     }
   if (reg==NULL)
     {
-      i = generating_register(&reg, jr->r_aor, jr->r_registrar, jr->r_contact);
+      i = generating_register(&reg, jr->r_aor, jr->r_registrar, jr->r_contact, jr->r_reg_period);
       if (i!=0) 
 	{
 	  /* fprintf(stderr, "eXosip: cannot register (cannot build REGISTER)! "); */
