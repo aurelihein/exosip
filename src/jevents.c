@@ -766,6 +766,9 @@ eXosip_event_wait(int tv_s, int tv_ms)
 
   if (mlock==NULL) mlock = osip_mutex_init();
 
+  je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+  if(je) return je;
+
   interval.tv_sec = tot_ms / 1000;
   interval.tv_nsec = (tot_ms % 1000) * 1000000L;
   
