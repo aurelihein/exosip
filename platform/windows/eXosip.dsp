@@ -152,6 +152,10 @@ SOURCE=..\..\eXosip\jsubscribers.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\eXosip\misc.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\eXosip\sdp_offans.c
 # End Source File
 # Begin Source File
