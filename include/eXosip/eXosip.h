@@ -26,6 +26,7 @@
 #define __EXOSIP_H__
 
 #include <osipparser2/osip_parser.h>
+#include <osip2/osip_negotiation.h>
 
 /**
  * @file eXosip.h
@@ -98,6 +99,23 @@ void eXosip_sdp_negotiation_add_codec(char *payload, char *number_of_port,
 				      char *c_addr_multicast_ttl,
 				      char *c_addr_multicast_int,
 				      char *a_rtpmap);
+
+/**
+ * Replace the internal SDP negociator facility.
+ * 
+ * @param sn The new negociator context
+ */
+int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn);
+
+/**
+ * Set the reference element to be used in callback for the negociator.
+ * This must be done only if eXosip_sdp_negotiation_replace has been
+ * used and must not be done if this method has not been used.
+ * 
+ * @param jc The related call.
+ * @param sn The new negociator context.
+ */
+void eXosip_sdp_negotiation_ctx_set_mycontext(struct eXosip_call_t *jc, void *arg);
 
 #define DEFAULT_MODE  2
 #define CALLBACK_MODE 1

@@ -79,6 +79,12 @@ int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn)
   return 0;
 }
 
+void
+eXosip_sdp_negotiation_ctx_set_mycontext(struct eXosip_call_t *jc, void *arg)
+{
+	osip_negotiation_ctx_set_mycontext(jc->c_ctx, arg);
+}
+
 void eXosip_sdp_negotiation_remove_audio_payloads()
 {
   if (supported_codec==NULL)
