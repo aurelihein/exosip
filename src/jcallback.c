@@ -620,14 +620,39 @@ static void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       && !MSG_TEST_CODE(sip, 100))
     {
       int i;
+      /* for SUBSCRIBE, test if the dialog has been already created
+	 with a previous NOTIFY */
+      if (jd==NULL && js!=NULL && js->s_dialogs!=NULL && MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
+	{
+	  /* find if existing dialog match the to tag */
+	  osip_generic_param_t *tag;
+	  int i;
+	  i = osip_to_get_tag (sip->to, &tag);
+	  if (i==0 && tag!=NULL && tag->gvalue!=NULL )
+	    {
+	      for (jd = js->s_dialogs; jd!= NULL ; jd=jd->next)
+		{
+		  if (0==strcmp(jd->d_dialog->remote_tag, tag->gvalue))
+		    {
+		      OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				   "eXosip: found established early dialog for this subscribe\n"));
+		      jinfo->jd = jd;
+		      break;
+		    }
+		}
+	    }
+	}
+
       if (jd == NULL) /* This transaction initiate a dialog in the case of
 			 INVITE (else it would be attached to a "jd" element. */
 	{
 	  /* allocate a jd */
+
 	  i = eXosip_dialog_init_as_uac(&jd, sip);
 	  if (i!=0)
 	    {
-         OSIP_TRACE (osip_trace
+	      OSIP_TRACE (osip_trace
 		     (__FILE__, __LINE__, OSIP_ERROR, NULL,
 	         "eXosip: cannot establish a dialog\n"));
 	      return;
@@ -1096,6 +1121,32 @@ static void cb_rcv2xx_4subscribe(osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   js = jinfo->js;
   _eXosip_subscribe_set_refresh_interval(js, sip);
+
+
+  /* for SUBSCRIBE, test if the dialog has been already created
+     with a previous NOTIFY */
+  if (jd==NULL && js!=NULL && js->s_dialogs!=NULL && MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
+    {
+      /* find if existing dialog match the to tag */
+      osip_generic_param_t *tag;
+      int i;
+      i = osip_to_get_tag (sip->to, &tag);
+      if (i==0 && tag!=NULL && tag->gvalue!=NULL )
+	{
+	  for (jd = js->s_dialogs; jd!= NULL ; jd=jd->next)
+	    {
+	      if (0==strcmp(jd->d_dialog->remote_tag, tag->gvalue))
+		{
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+			       "eXosip: found established early dialog for this subscribe\n"));
+		  jinfo->jd = jd;
+		  break;
+		}
+	    }
+	}
+    }
+
   if (jd == NULL) /* This transaction initiate a dialog in the case of
 		     SUBSCRIBE (else it would be attached to a "jd" element. */
     {

@@ -1,6 +1,7 @@
 eXosip (0.9.0)
-	* This ChangeLog has not been updated seriously... Many changes have been
-	* done but they don't appear here. Sorry.
+	* Fix dialog establishement when receiving NOTIFYs.
+	* This ChangeLog has not been updated seriously... Many changes
+	* have been done but they don't appear here. Sorry.
 	* status of libexosip:
 	*   call transfer : OK
 	*   redirection of calls (3XX) : OK

@@ -1981,11 +1981,22 @@ static void eXosip_process_newrequest (osip_event_t *evt)
 	      i = eXosip_dialog_init_as_uac(&jd, evt->sip);
 	      if (i!=0)
 		{
-        OSIP_TRACE (osip_trace
-	       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		     "eXosip: cannot establish a dialog\n"));
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			       "eXosip: cannot establish a dialog\n"));
 		  return;
 		}
+
+	      /* update local cseq from subscribe request */
+	      if (js->s_out_tr!=NULL && js->s_out_tr->cseq!=NULL
+		  && js->s_out_tr->cseq->number!=NULL)
+		{
+		  jd->d_dialog->local_cseq = atoi(js->s_out_tr->cseq->number);
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+			       "eXosip: local cseq has been updated\n"));
+		}
+
 	      ADD_ELEMENT(js->s_dialogs, jd);
 	      eXosip_update();
 
