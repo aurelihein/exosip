@@ -211,9 +211,8 @@ int   eXosip_terminate_call(int cid, int jid);
 int   eXosip_options_call  (int jid);
 
 /**
- * Send an OPTIONS message within a call.
+ * Send an INFO message within a call.
  * 
- * @param cid           call id of call.
  * @param jid           dialog id of call.
  * @param content_type  content-type of body.
  * @param body          body to attach.
