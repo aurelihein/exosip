@@ -59,10 +59,10 @@ void eXosip_send_default_answer(eXosip_dialog_t *jd,
       return ;
     }
 
-  osip_parser_set_content_length(answer, "0");
+  osip_message_set_content_length(answer, "0");
   
   if (status==500)
-    osip_parser_set_retry_after(answer, "10");
+    osip_message_set_retry_after(answer, "10");
   
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
@@ -85,7 +85,7 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
     {
       return ;
     }
-  osip_parser_set_content_length(answer, "0");
+  osip_message_set_content_length(answer, "0");
     
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid =  transaction->transactionid;
@@ -183,7 +183,7 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
 	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
 	  return ;
 	}
-      osip_parser_set_content_length(answer, "0");
+      osip_message_set_content_length(answer, "0");
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  transaction->transactionid;
       osip_transaction_add_event(transaction,evt_answer);
@@ -209,7 +209,7 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
 	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
 	  return ;
 	}
-      osip_parser_set_content_length(answer, "0");
+      osip_message_set_content_length(answer, "0");
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  transaction->transactionid;
       osip_transaction_add_event(transaction,evt_answer);
@@ -232,7 +232,7 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
 	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
 	  return ;
 	}
-      osip_parser_set_content_length(answer, "0");
+      osip_message_set_content_length(answer, "0");
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  transaction->transactionid;
       osip_transaction_add_event(transaction,evt_answer);
@@ -255,7 +255,7 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
 	  fprintf(stderr, "eXosip: cannot cancel transaction.\n");
 	  return ;
 	}
-      osip_parser_set_content_length(answer, "0");
+      osip_message_set_content_length(answer, "0");
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid =  tr->transactionid;
       osip_transaction_add_event(tr,evt_answer);
@@ -331,7 +331,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	osip_message_free(answer);
 	return ;
       } 
-      i = osip_parser_set_body(answer, local_body);
+      i = osip_message_set_body(answer, local_body);
       if (i!=0) {
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	osip_free(local_body);
@@ -341,9 +341,9 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       size = (char *) osip_malloc(6*sizeof(char));
       sprintf(size,"%i",strlen(local_body));
       osip_free(local_body);
-      osip_parser_set_content_length(answer, size);
+      osip_message_set_content_length(answer, size);
       osip_free(size);
-      i = osip_parser_set_header(answer, "content-type", "application/sdp");
+      i = osip_message_set_header(answer, "content-type", "application/sdp");
       if (i!=0) {
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	osip_message_free(answer);
@@ -406,7 +406,7 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for invite\n"));
       return;
     }
-  osip_parser_set_content_length(answer, "0");
+  osip_message_set_content_length(answer, "0");
   contact = (char *) osip_malloc(30);
   sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
 	  localip,
@@ -454,7 +454,7 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
       return ;
     }
 
-  osip_parser_set_content_length(answer, "0");
+  osip_message_set_content_length(answer, "0");
   /*  send message to transaction layer */
 
   evt_answer = osip_new_outgoing_sipmessage(answer);
@@ -589,7 +589,7 @@ int eXosip_event_package_is_supported(osip_transaction_t *transaction,
   int code;
 
   /* get the event type and return "489 Bad Event". */
-  osip_parser_header_get_byname(evt->sip, "event", 0, &event_hdr);
+  osip_message_header_get_byname(evt->sip, "event", 0, &event_hdr);
   if (event_hdr==NULL || event_hdr->hvalue==NULL)
     {
 #ifdef SUPPORT_MSN
@@ -785,7 +785,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   /* if subscription-state has a reason state set to terminated,
      we close the dialog */
 #ifndef SUPPORT_MSN
-  osip_parser_header_get_byname(evt->sip, "subscription-state",
+  osip_message_header_get_byname(evt->sip, "subscription-state",
 				 0,
 				 &sub_state);
   if (sub_state==NULL||sub_state->hvalue==NULL)
@@ -803,7 +803,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
     }
 
 #ifdef SUPPORT_MSN
-  osip_parser_header_get_byname(evt->sip, "expires",
+  osip_message_header_get_byname(evt->sip, "expires",
 				 0,
 				 &expires);
   if (expires!=NULL||expires->hvalue!=NULL
@@ -821,12 +821,12 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       js->s_ss_status = EXOSIP_SUBCRSTATE_ACTIVE;
       js->s_online_status = EXOSIP_NOTIFY_UNKNOWN; /* default value */
 
-      ctype = osip_parser_get_content_type(evt->sip);
+      ctype = osip_message_get_content_type(evt->sip);
       if (ctype!=NULL && ctype->type!=NULL && ctype->subtype!=NULL)
 	{
 	  if (0==osip_strcasecmp(ctype->type, "application")
 	      && 0==osip_strcasecmp(ctype->subtype, "xpidf+xml"))
-	    osip_parser_get_body(evt->sip, 0, &body);
+	    osip_message_get_body(evt->sip, 0, &body);
 	  else
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
@@ -875,12 +875,12 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       js->s_online_status = EXOSIP_NOTIFY_UNKNOWN; /* default value */
 
       /* if there is a body which we understand, analyse it */
-      ctype = osip_parser_get_content_type(evt->sip);
+      ctype = osip_message_get_content_type(evt->sip);
       if (ctype!=NULL && ctype->type!=NULL && ctype->subtype!=NULL)
 	{
 	  if (0==osip_strcasecmp(ctype->type, "application")
 	      && 0==osip_strcasecmp(ctype->subtype, "cpim-pidf+xml"))
-	    osip_parser_get_body(evt->sip, 0, &body);
+	    osip_message_get_body(evt->sip, 0, &body);
 	  else
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
@@ -1005,7 +1005,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	  return ;
 	}
 	
-      osip_parser_set_content_length(answer, "0");
+      osip_message_set_content_length(answer, "0");
       /*  send message to transaction layer */
 	
       evt_answer = osip_new_outgoing_sipmessage(answer);
@@ -1310,7 +1310,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				    "Received message: \n%s\n", buf));
 	      sipevent = osip_parse(buf);
-	      osip_parser_fix_last_via_header(sipevent->sip, inet_ntoa (sa.sin_addr), ntohs (sa.sin_port));
+	      osip_message_fix_last_via_header(sipevent->sip, inet_ntoa (sa.sin_addr), ntohs (sa.sin_port));
 	      transaction = NULL;
 	      if (sipevent!=NULL&&sipevent->sip!=NULL)
 		{

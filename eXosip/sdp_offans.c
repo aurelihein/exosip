@@ -125,8 +125,8 @@ eXosip_get_local_sdp_info(osip_transaction_t *invite_tr)
   if (message==NULL) return NULL;
 
   /* get content-type info */
-  ctt = osip_parser_get_content_type(message);
-  mv  = osip_parser_get_mime_version(message);
+  ctt = osip_message_get_content_type(message);
+  mv  = osip_message_get_mime_version(message);
   if (mv==NULL && ctt==NULL)
     return NULL; /* previous message was not correct or empty */
   if (mv!=NULL)

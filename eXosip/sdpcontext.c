@@ -41,8 +41,8 @@ int sdp_context_gen_out_req(SdpContext *obj, osip_message_t *req)
 	  return 500;
 	}
 	sdp_message_to_str(obj->offer,&tmp);
-	osip_parser_set_body(req,tmp);
-	osip_parser_set_content_type(req,"application/sdp");
+	osip_message_set_body(req,tmp);
+	osip_message_set_content_type(req,"application/sdp");
 	obj->state=SDP_CONTEXT_STATE_NEGOCIATION_OPENED;
 	return 0;
 }	
@@ -89,8 +89,8 @@ int sdp_context_gen_out_resp(SdpContext *obj, osip_message_t *resp)
 	  return 500;
 	}
 	sdp_message_to_str(obj->answer,&p);
-	osip_parser_set_body(resp,p);
-	osip_parser_set_content_type(resp,"application/sdp");
+	osip_message_set_body(resp,p);
+	osip_message_set_content_type(resp,"application/sdp");
 	obj->state=SDP_CONTEXT_STATE_NEGOCIATION_CLOSED;
 	return 0;
 }

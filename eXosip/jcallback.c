@@ -228,7 +228,7 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
       && type==OSIP_NICT_KILL_TRANSACTION)
     {
       osip_header_t *expires;
-      osip_parser_get_expires(tr->orig_request, 0, &expires);
+      osip_message_get_expires(tr->orig_request, 0, &expires);
       if (expires==NULL || expires->hvalue==NULL)
 	{
 	}
@@ -695,7 +695,7 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
       return ;
     }
 
-    osip_parser_get_route(ack, 0, &route);
+    osip_message_get_route(ack, 0, &route);
     if (route!=NULL)
       {
 	port = 5060;
@@ -806,7 +806,7 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     {
 #ifdef SUPPORT_MSN
       osip_header_t  *expires;
-      osip_parser_header_get_byname(tr->orig_request, "expires",
+      osip_message_header_get_byname(tr->orig_request, "expires",
 				     0, &expires);
       if (expires==NULL || expires->hvalue==NULL)
 	{
@@ -820,7 +820,7 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	}
 #else
       osip_header_t  *sub_state;
-      osip_parser_header_get_byname(tr->orig_request, "subscription-state",
+      osip_message_header_get_byname(tr->orig_request, "subscription-state",
 				     0, &sub_state);
       if (sub_state==NULL || sub_state->hvalue==NULL)
 	{

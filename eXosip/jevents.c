@@ -73,7 +73,7 @@ eXosip_event_init_for_call(int type,
 	  tr = eXosip_find_last_invite(jc, jd);
 	  if (tr!=NULL && tr->orig_request!=NULL)
 	    {
-	      osip_parser_get_subject(tr->orig_request, 0, &subject);
+	      osip_message_get_subject(tr->orig_request, 0, &subject);
 	      if (subject!=NULL && subject->hvalue!=NULL)
 		snprintf(je->subject, 256, "%s", subject->hvalue);
 	    }

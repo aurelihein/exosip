@@ -59,7 +59,7 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
     }
   else
     {
-      response->reasonphrase = osip_parser_get_reason(status);
+      response->reasonphrase = osip_message_get_reason(status);
       if (response->reasonphrase==NULL)
 	{
 	  if (0==strcmp(response->statuscode, "101"))
@@ -110,8 +110,8 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   if (MSG_IS_SUBSCRIBE(request))
     {
       osip_header_t *exp;
-      osip_parser_set_header(response, "Event", "presence");
-      i = osip_parser_get_expires(request, 0, &exp);
+      osip_message_set_header(response, "Event", "presence");
+      i = osip_message_get_expires(request, 0, &exp);
       if (exp==NULL)
 	{
 	  osip_header_t *cp;
@@ -121,14 +121,14 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 	}
     }
     
-  osip_parser_set_allow(response, "INVITE");
-  osip_parser_set_allow(response, "ACK");
-  osip_parser_set_allow(response, "OPTIONS");
-  osip_parser_set_allow(response, "CANCEL");
-  osip_parser_set_allow(response, "BYE");
-  osip_parser_set_allow(response, "SUBSCRIBE");
-  osip_parser_set_allow(response, "NOTIFY");
-  osip_parser_set_allow(response, "MESSAGE");
+  osip_message_set_allow(response, "INVITE");
+  osip_message_set_allow(response, "ACK");
+  osip_message_set_allow(response, "OPTIONS");
+  osip_message_set_allow(response, "CANCEL");
+  osip_message_set_allow(response, "BYE");
+  osip_message_set_allow(response, "SUBSCRIBE");
+  osip_message_set_allow(response, "NOTIFY");
+  osip_message_set_allow(response, "MESSAGE");
 
   *dest = response;
   return 0;
@@ -157,7 +157,7 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
       osip_list_add(response->record_routes, rr2, -1);
       pos++;
     }
-  osip_parser_set_contact(response, contact);
+  osip_message_set_contact(response, contact);
   return 0;
 }
 
@@ -232,7 +232,7 @@ generating_1xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
       return;
     }
 
-  osip_parser_set_content_length(response, "0");
+  osip_message_set_content_length(response, "0");
 
   return ;
 }
@@ -261,22 +261,22 @@ generating_2xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
 
   if (code==488)
     {
-      osip_parser_set_content_length(response, "0");
+      osip_message_set_content_length(response, "0");
       /*  send message to transaction layer */
       osip_free(body);      
       return;
     }
 
-  i = osip_parser_set_body(response, body);
+  i = osip_message_set_body(response, body);
   if (i!=0) {
     goto g2atii_error_1;
   }
   size = (char *) osip_malloc(6*sizeof(char));
   sprintf(size,"%i",strlen(body));
-  i = osip_parser_set_content_length(response, size);
+  i = osip_message_set_content_length(response, size);
   osip_free(size);
   if (i!=0) goto g2atii_error_1;
-  i = osip_parser_set_header(response, "content-type", "application/sdp");
+  i = osip_message_set_header(response, "content-type", "application/sdp");
   if (i!=0) goto g2atii_error_1;
 
 
@@ -307,7 +307,7 @@ generating_3456xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction
       /* ... */
     }
 
-  osip_parser_set_content_length(response, "0");
+  osip_message_set_content_length(response, "0");
   /*  send message to transaction layer */
 
   return ;
@@ -338,7 +338,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       return;
     }
 
-  osip_parser_set_content_length(response, "0");
+  osip_message_set_content_length(response, "0");
   /*  send message to transaction layer */
 
   if (code>100)
@@ -415,7 +415,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 
   if (code==488)
     {
-      osip_parser_set_content_length(response, "0");
+      osip_message_set_content_length(response, "0");
       /*  TODO: send message to transaction layer */
       osip_free(body);      
       evt_answer = osip_new_outgoing_sipmessage(response);
@@ -424,16 +424,16 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       return;
     }
 
-  i = osip_parser_set_body(response, body);
+  i = osip_message_set_body(response, body);
   if (i!=0) {
     goto g2atii_error_1;
   }
   size = (char *) osip_malloc(6*sizeof(char));
   sprintf(size,"%i",strlen(body));
-  i = osip_parser_set_content_length(response, size);
+  i = osip_message_set_content_length(response, size);
   osip_free(size);
   if (i!=0) goto g2atii_error_1;
-  i = osip_parser_set_header(response, "content-type", "application/sdp");
+  i = osip_message_set_header(response, "content-type", "application/sdp");
   if (i!=0) goto g2atii_error_1;
 
   /* request that estabish a dialog: */
@@ -507,7 +507,7 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       /* ... */
     }
 
-  osip_parser_set_content_length(response, "0");
+  osip_message_set_content_length(response, "0");
   /*  send message to transaction layer */
 
   evt_answer = osip_new_outgoing_sipmessage(response);

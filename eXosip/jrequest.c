@@ -99,12 +99,12 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  osip_uri_free(request->rquri);
 	  goto brood_error_1;
 	}
-      osip_parser_set_to(request, from);
+      osip_message_set_to(request, from);
     }
   else
     {
       /* in any cases except REGISTER: */
-      i = osip_parser_set_to(request, to);
+      i = osip_message_set_to(request, to);
       if (i!=0)
 	{
 	  fprintf(stderr, "ERROR: callee address does not seems to be a sipurl: %s\n", to);
@@ -150,7 +150,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 		 The UAC MUST then place the remote target URI into
 		 the route header field as the last value
 	       */
-	      osip_parser_set_route(request, to);
+	      osip_message_set_route(request, to);
 	    }
 	}
       else /* No route set (outbound proxy) is used */
@@ -162,7 +162,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
     }
 
   /* set To and From */
-  osip_parser_set_from(request, from);
+  osip_message_set_from(request, from);
   /* add a tag */
   osip_from_set_tag(request->from, osip_from_tag_new_random());
   
@@ -209,7 +209,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
     }
 
   /* always add the Max-Forward header */
-  osip_parser_set_max_forwards(request, "5"); /* a UA should start a request with 70 */
+  osip_message_set_max_forwards(request, "5"); /* a UA should start a request with 70 */
 
   {
     char *tmp = (char *)osip_malloc(90*sizeof(char));
@@ -217,7 +217,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	    localip,
 	    localport,
 	    via_branch_new_random() );
-    osip_parser_set_via(request, tmp);
+    osip_message_set_via(request, tmp);
     osip_free(tmp);
   }
 
@@ -244,30 +244,30 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 		    localip,
 		    localport);
 	  
-	  osip_parser_set_contact(request, contact);
+	  osip_message_set_contact(request, contact);
 	  osip_free(contact);
 	}
       osip_from_free(a_from);
 
       /* This is probably useless for other messages */
-      osip_parser_set_allow(request, "INVITE");
-      osip_parser_set_allow(request, "ACK");
-      osip_parser_set_allow(request, "CANCEL");
-      osip_parser_set_allow(request, "BYE");
-      osip_parser_set_allow(request, "OPTIONS");
-      osip_parser_set_allow(request, "REFER");
-      osip_parser_set_allow(request, "SUBSCRIBE");
-      osip_parser_set_allow(request, "NOTIFY");
-      osip_parser_set_allow(request, "MESSAGE");
+      osip_message_set_allow(request, "INVITE");
+      osip_message_set_allow(request, "ACK");
+      osip_message_set_allow(request, "CANCEL");
+      osip_message_set_allow(request, "BYE");
+      osip_message_set_allow(request, "OPTIONS");
+      osip_message_set_allow(request, "REFER");
+      osip_message_set_allow(request, "SUBSCRIBE");
+      osip_message_set_allow(request, "NOTIFY");
+      osip_message_set_allow(request, "MESSAGE");
     }
 
   if (0==strcmp("SUBSCRIBE", method_name))
     {
-      osip_parser_set_header(request, "Event", "presence");
+      osip_message_set_header(request, "Event", "presence");
 #ifdef SUPPORT_MSN
-      osip_parser_set_accept(request, "application/xpidf+xml");
+      osip_message_set_accept(request, "application/xpidf+xml");
 #else
-      osip_parser_set_accept(request, "application/cpim-pidf+xml");
+      osip_message_set_accept(request, "application/cpim-pidf+xml");
 #endif
     }
   else if (0==strcmp("REGISTER", method_name))
@@ -282,7 +282,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 
     }
 
-  osip_parser_set_user_agent(request, "josua/0.6.2");
+  osip_message_set_user_agent(request, "josua/0.6.2");
   /*  else if ... */
   *dest = request;
   return 0;
@@ -323,17 +323,17 @@ generating_register(osip_message_t **reg, char *from,
 		    localip,
 		    localport);
 	  
-	  osip_parser_set_contact(*reg, contact);
+	  osip_message_set_contact(*reg, contact);
 	  osip_free(contact);
 	}
       osip_from_free(a_from);
     }
   else
     {
-      osip_parser_set_contact(*reg, contact);
+      osip_message_set_contact(*reg, contact);
     }
-  osip_parser_set_header(*reg, "expires", "3600");
-  osip_parser_set_content_length(*reg, "0");
+  osip_message_set_header(*reg, "expires", "3600");
+  osip_message_set_content_length(*reg, "0");
   
   return 0;
 }
@@ -361,12 +361,12 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 				       route);
   if (i!=0) return -1;
   
-  osip_parser_set_subject(*invite, subject);
+  osip_message_set_subject(*invite, subject);
 
   /* after this delay, we should send a CANCEL */
-  osip_parser_set_expires(*invite, "120");
+  osip_message_set_expires(*invite, "120");
 
-  /* osip_parser_set_organization(*invite, "Jack's Org"); */
+  /* osip_message_set_organization(*invite, "Jack's Org"); */
   return 0;
 }
 
@@ -392,12 +392,12 @@ int generating_initial_subscribe(osip_message_t **subscribe, char *to,
   
 #define LOW_EXPIRE
 #ifdef LOW_EXPIRE
-  osip_parser_set_expires(*subscribe, "60");
+  osip_message_set_expires(*subscribe, "60");
 #else
-  osip_parser_set_expires(*subscribe, "600");
+  osip_message_set_expires(*subscribe, "600");
 #endif
 
-  /* osip_parser_set_organization(*subscribe, "Jack's Org"); */
+  /* osip_message_set_organization(*subscribe, "Jack's Org"); */
   return 0;
 }
 
@@ -425,12 +425,12 @@ int generating_message(osip_message_t **message, char *to, char *from,
   if (i!=0) return -1;
   
   /* after this delay, we should send a CANCEL */
-  osip_parser_set_expires(*message, "120");
+  osip_message_set_expires(*message, "120");
 
-  osip_parser_set_body(*message, buff);
-  osip_parser_set_content_type(*message, "xxxx/yyyy");
+  osip_message_set_body(*message, buff);
+  osip_message_set_content_type(*message, "xxxx/yyyy");
 
-  /* osip_parser_set_organization(*message, "Jack's Org"); */
+  /* osip_message_set_organization(*message, "Jack's Org"); */
 
 
   return 0;
@@ -447,8 +447,8 @@ generating_options(osip_message_t **options, char *from, char *to, char *sdp, ch
 
   if (sdp!=NULL)
     {      
-      osip_parser_set_content_type(*options, "application/sdp");
-      osip_parser_set_body(*options, sdp);
+      osip_message_set_content_type(*options, "application/sdp");
+      osip_message_set_body(*options, sdp);
     }
   return 0;
 }
@@ -533,7 +533,7 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
 	 the route header field as the last value */
   i = osip_uri_to_str(dialog->remote_contact_uri->url, &last_route);
   if (i!=0) return -1;
-  i = osip_parser_set_route(request, last_route);
+  i = osip_message_set_route(request, last_route);
   if (i!=0) { osip_free(last_route); return -1; }
 
   
@@ -585,7 +585,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   if (i!=0) goto grwd_error_1;
 
   /* set the cseq and call_id header */
-  osip_parser_set_call_id(request, dialog->call_id);
+  osip_message_set_call_id(request, dialog->call_id);
 
   if (0==strcmp("ACK", method_name))
     {
@@ -614,7 +614,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
     }
   
   /* always add the Max-Forward header */
-  osip_parser_set_max_forwards(request, "5"); /* a UA should start a request with 70 */
+  osip_message_set_max_forwards(request, "5"); /* a UA should start a request with 70 */
 
 
   /* even for ACK for 2xx (ACK within a dialog), the branch ID MUST
@@ -624,7 +624,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
     sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 	    localip ,localport,
 	    via_branch_new_random());
-    osip_parser_set_via(request, tmp);
+    osip_message_set_via(request, tmp);
     osip_free(tmp);
   }
 
@@ -641,7 +641,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
 	      localip,
 	      localport);
-      osip_parser_set_contact(request, contact);
+      osip_message_set_contact(request, contact);
       osip_free(contact);
       /* Here we'll add the supported header if it's needed! */
       /* the require header must be added by the upper layer if needed */
@@ -649,8 +649,8 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 
   if (0==strcmp("SUBSCRIBE", method_name))
     {
-      osip_parser_set_header(request, "Event", "presence");
-      osip_parser_set_accept(request, "application/cpim-pidf+xml");
+      osip_message_set_header(request, "Event", "presence");
+      osip_message_set_accept(request, "application/cpim-pidf+xml");
     }
   else if (0==strcmp("NOTIFY", method_name))
     {
@@ -661,7 +661,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
     }
   else if (0==strcmp("OPTIONS", method_name))
     {
-      osip_parser_set_accept(request, "application/sdp");
+      osip_message_set_accept(request, "application/sdp");
     }
   else if (0==strcmp("ACK", method_name))
     {
@@ -669,7 +669,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       /* TODO... */
     }
 
-  osip_parser_set_user_agent(request, "josua/0.6.2");
+  osip_message_set_user_agent(request, "josua/0.6.2");
   /*  else if ... */
   *dest = request;
   return 0;
@@ -701,7 +701,7 @@ generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to)
   i = _eXosip_build_request_within_dialog(refer, "REFER", dialog, "UDP");
   if (i!=0) return -1;
 
-  osip_parser_set_header(*refer, "Refer-to", refer_to);
+  osip_message_set_header(*refer, "Refer-to", refer_to);
 
   return 0;
 }
@@ -716,8 +716,8 @@ generating_options_within_dialog(osip_message_t **options, osip_dialog_t *dialog
 
   if (sdp!=NULL)
     {      
-      osip_parser_set_content_type(*options, "application/sdp");
-      osip_parser_set_body(*options, sdp);
+      osip_message_set_content_type(*options, "application/sdp");
+      osip_message_set_body(*options, sdp);
     }
 
   return 0;
@@ -768,7 +768,7 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
   {
     osip_via_t *via;
     osip_via_t *via2;
-    i = osip_parser_get_via(request_cancelled, 0, &via);
+    i = osip_message_get_via(request_cancelled, 0, &via);
     if (i!=0) goto gc_error_1;
     i = osip_via_clone(via, &via2);
     if (i!=0) goto gc_error_1;
@@ -790,8 +790,8 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
       }
   }
 
-  osip_parser_set_max_forwards(request, "70"); /* a UA should start a request with 70 */
-  osip_parser_set_user_agent(request, "josua/0.6.2");
+  osip_message_set_max_forwards(request, "70"); /* a UA should start a request with 70 */
+  osip_message_set_user_agent(request, "josua/0.6.2");
 
   *dest = request;
   return 0;

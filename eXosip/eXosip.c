@@ -433,18 +433,18 @@ void eXosip_start_call    (osip_message_t *invite)
     {
       size= (char *)osip_malloc(7*sizeof(char));
       sprintf(size,"%i",strlen(body));
-      osip_parser_set_content_length(invite, size);
+      osip_message_set_content_length(invite, size);
       osip_free(size);
       
-      osip_parser_set_body(invite, body);
+      osip_message_set_body(invite, body);
       osip_free(body);
-      osip_parser_set_content_type(invite, "application/sdp");
+      osip_message_set_content_type(invite, "application/sdp");
     }
   else
-    osip_parser_set_content_length(invite, "0");
+    osip_message_set_content_length(invite, "0");
   
   eXosip_call_init(&jc);
-  i = osip_parser_get_subject(invite, 0, &subject);
+  i = osip_message_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
   
   osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
@@ -554,20 +554,20 @@ void eXosip_on_hold_call  (int jid)
     {
       size= (char *)osip_malloc(7*sizeof(char));
       sprintf(size,"%i",strlen(body));
-      osip_parser_set_content_length(invite, size);
+      osip_message_set_content_length(invite, size);
       osip_free(size);
       
-      osip_parser_set_body(invite, body);
+      osip_message_set_body(invite, body);
       osip_free(body);
-      osip_parser_set_content_type(invite, "application/sdp");
+      osip_message_set_content_type(invite, "application/sdp");
     }
   else
-    osip_parser_set_content_length(invite, "0");
+    osip_message_set_content_length(invite, "0");
 
   if (jc->c_subject!=NULL)
-    osip_parser_set_subject(invite, jc->c_subject);
+    osip_message_set_subject(invite, jc->c_subject);
   else
-    osip_parser_set_subject(invite, jc->c_subject);
+    osip_message_set_subject(invite, jc->c_subject);
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -997,7 +997,7 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
   tmp = subscription_state + strlen(subscription_state);
   if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_TERMINATED)
     sprintf(tmp, "%i", jn->n_ss_expires-now);
-  osip_parser_set_header(notify, "Subscription-State",
+  osip_message_set_header(notify, "Subscription-State",
 			 subscription_state);
 #endif
 

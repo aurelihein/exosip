@@ -184,7 +184,7 @@ _eXosip_notify_set_refresh_interval(eXosip_notify_t *jn,
   if (jn==NULL || inc_subscribe==NULL)
     return -1;
   
-  osip_parser_get_expires(inc_subscribe, 0, &exp);
+  osip_message_get_expires(inc_subscribe, 0, &exp);
   if (exp==NULL || exp->hvalue==NULL)
     jn->n_ss_expires = now + 600;
   else
@@ -258,8 +258,8 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
 </presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
 
     }
-  osip_parser_set_body(notify, buf);
-  osip_parser_set_content_type(notify, "application/xpidf+xml");
+  osip_message_set_body(notify, buf);
+  osip_message_set_content_type(notify, "application/xpidf+xml");
 #else
 
   if (jn->n_online_status==EXOSIP_NOTIFY_ONLINE)
@@ -287,8 +287,8 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
 </presence>",
 	      jn->n_contact_info);
     }
-  osip_parser_set_body(notify, buf);
-  osip_parser_set_content_type(notify, "application/cpim-pidf+xml");
+  osip_message_set_body(notify, buf);
+  osip_message_set_content_type(notify, "application/cpim-pidf+xml");
 
 #endif
 
@@ -311,5 +311,5 @@ _eXosip_notify_add_expires_in_2XX_for_subscribe(eXosip_notify_t *jn, osip_messag
     {
       sprintf(tmp, "%i", jn->n_ss_expires-now);
     }
-  osip_parser_set_expires(answer, tmp);
+  osip_message_set_expires(answer, tmp);
 }

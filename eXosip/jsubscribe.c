@@ -135,7 +135,7 @@ _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t *js,
   if (js==NULL || out_subscribe==NULL)
     return -1;
   
-  osip_parser_get_expires(out_subscribe, 0, &exp);
+  osip_message_get_expires(out_subscribe, 0, &exp);
   if (exp==NULL || exp->hvalue==NULL)
     js->s_ss_expires = now + 600;
   else
@@ -177,7 +177,7 @@ void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
   if (i!=0) {
     return;
   }
-  osip_parser_set_expires(subscribe, expires);
+  osip_message_set_expires(subscribe, expires);
 
   i = osip_transaction_init(&transaction,
 			    NICT,
