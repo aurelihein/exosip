@@ -172,6 +172,7 @@ int window_address_book_browse_run_command(int c)
       if (show_mail!=0)
 	show_mail=0;
       else show_mail=-1;
+      break;
     default:
       beep();
       return -1;
