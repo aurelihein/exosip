@@ -121,7 +121,6 @@ generating_request_out_of_dialog(sip_t **dest, char *method_name,
 	  i = route_parse(o_proxy, proxy);
 	  if (i!=0) {
 	    route_free(o_proxy);
-	    sfree(o_proxy);
 	    goto brood_error_1;
 	  }
 
@@ -141,7 +140,6 @@ generating_request_out_of_dialog(sip_t **dest, char *method_name,
 	      request->strtline->rquri = o_proxy->url;
 	      o_proxy->url = NULL;
 	      route_free(o_proxy);
-	      sfree(o_proxy);
 	      /* add the route set */
 	      /* "The UAC MUST add a route header field containing
 		 the remainder of the route set values in order.
@@ -260,7 +258,6 @@ generating_request_out_of_dialog(sip_t **dest, char *method_name,
 
  brood_error_1:
   msg_free(request);
-  sfree(request);
   *dest = NULL;
   return -1;
 }
@@ -518,7 +515,6 @@ _eXosip_build_request_within_dialog(sip_t **dest, char *method_name,
 	 is not compliant with the latest RFC
       */
       msg_free(request);
-      sfree(request);
       return -1;
     }
   /* prepare the request-line */
@@ -631,7 +627,6 @@ _eXosip_build_request_within_dialog(sip_t **dest, char *method_name,
   dialog->local_cseq--;
  grwd_error_1:
   msg_free(request);
-  sfree(request);
   *dest = NULL;
   return -1;
 }
@@ -764,7 +759,6 @@ generating_cancel(sip_t **dest, sip_t *request_cancelled)
 
  gc_error_1:
   msg_free(request);
-  sfree(request);
   *dest = NULL;
   return -1;
 }

@@ -183,7 +183,7 @@ jfreind_unload()
 {
   jfreind_t *fr;
   if (eXosip.j_freinds==NULL) return;
-  for (fr=eXosip.j_freinds; fr!=NULL; fr=fr->next)
+  for (fr=eXosip.j_freinds; fr!=NULL; fr=eXosip.j_freinds)
     {
     REMOVE_ELEMENT(eXosip.j_freinds,fr);
     sfree(fr->f_nick);

@@ -207,6 +207,7 @@ void
 eXosip_call_free(eXosip_call_t *jc)
 {
   /* ... */
+  sfree(jc);
 }
 
 void

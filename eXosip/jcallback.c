@@ -342,7 +342,6 @@ sdp_t *eXosip_get_remote_sdp(transaction_t *transaction)
       if (i==0)
 	return sdp;
       sdp_free(sdp);
-      sfree(sdp);
       sdp = NULL;
       pos++;
       body = (body_t *)list_get(message->bodies,pos);
@@ -375,7 +374,6 @@ sdp_t *eXosip_get_local_sdp(transaction_t *transaction)
       if (i==0)
 	return sdp;
       sdp_free(sdp);
-      sfree(sdp);
       sdp = NULL;
       pos++;
       body = (body_t *)list_get(message->bodies,pos);
@@ -402,7 +400,6 @@ void eXosip_update_audio_session(transaction_t *transaction)
   if (local_sdp==NULL)
     {
       sdp_free(remote_sdp);
-      sfree(remote_sdp);
       return ;
     }
   remaddr=sdp_c_addr_get(remote_sdp,-1,0);
@@ -440,9 +437,7 @@ void eXosip_update_audio_session(transaction_t *transaction)
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"Could not create audio session.\r\n"));
     }
   sdp_free(local_sdp);
-  sfree(local_sdp);
   sdp_free(remote_sdp);
-  sfree(remote_sdp);
 }
 
 void cb_rcv2xx_4invite(transaction_t *tr,sip_t *sip)
@@ -552,7 +547,6 @@ void eXosip_delete_early_dialog(eXosip_dialog_t *jd)
   if (jd->d_dialog!=NULL && jd->d_dialog->state==DIALOG_EARLY)
     {
       dialog_free(jd->d_dialog);
-      sfree(jd->d_dialog);
       jd->d_dialog = NULL;
       eXosip_dialog_set_state(jd, JD_TERMINATED);
     }    

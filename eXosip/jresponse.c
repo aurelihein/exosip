@@ -103,7 +103,6 @@ _eXosip_build_response_default(sip_t **dest, dialog_t *dialog,
 
  grd_error_1:
   msg_free(response);
-  sfree(response);
   return -1;
 }
 
@@ -158,7 +157,6 @@ generating_sdp_answer(sip_t *request)
       if (i!=0)
 	{
 	  sdp_free(remote_sdp);
-	  sfree(remote_sdp);
 	  return NULL;
 	}
       i = sdp_context_set_remote_sdp(context, remote_sdp);
@@ -170,7 +168,6 @@ generating_sdp_answer(sip_t *request)
 	  i = sdp_2char(local_sdp, &local_body);
 
 	  sdp_context_free(context);
-	  sfree(context);
 	  if (i!=0) {
 	    OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not parse local SDP answer %i\n",i));
 	    return NULL;
@@ -186,7 +183,6 @@ generating_sdp_answer(sip_t *request)
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: while building answer to SDP (%i)\n",i));
 	}
       sdp_context_free(context);
-      sfree(context);
     } 
   return NULL;
 }
@@ -265,7 +261,6 @@ generating_2xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
  g2atii_error_1:
   sfree(body);
   msg_free(response);
-  sfree(response);
   return ;
 }
 
@@ -464,7 +459,6 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
  g2atii_error_1:
   sfree(body);
   msg_free(response);
-  sfree(response);
   return ;
 }
 

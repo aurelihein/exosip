@@ -152,7 +152,6 @@ eXosip_get_local_sdp_info(transaction_t *invite_tr)
       i = sdp_parse(sdp,oldbody);
       if (i==0) return sdp;
       sdp_free(sdp);
-      sfree(sdp);
       sdp = NULL;
     }
   return NULL;

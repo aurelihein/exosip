@@ -55,7 +55,6 @@ int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, sip_t *_200Ok)
   i = msg_clone(_200Ok, &(jd->d_200Ok));
   if (i!=0) {
     eXosip_dialog_free(jd);
-    sfree(jd);
     return -1;
   }
   return 0;
@@ -131,12 +130,9 @@ void eXosip_dialog_free(eXosip_dialog_t *jd)
 {
   int i;
   msg_free(jd->d_200Ok);
-  sfree(jd->d_200Ok);
   msg_free(jd->d_ack);
-  sfree(jd->d_ack);
 
   dialog_free(jd->d_dialog);
-  sfree(jd->d_dialog);
 
   while (!list_eol(jd->media_lines, 0))
     {
@@ -153,7 +149,6 @@ void eXosip_dialog_free(eXosip_dialog_t *jd)
       if (i!=0)
 	osip_remove_ist(eXosip.j_osip, tr);
       transaction_free2(tr);
-      sfree(tr);
     }
 
   while (!list_eol(jd->d_out_trs, 0))
@@ -164,6 +159,6 @@ void eXosip_dialog_free(eXosip_dialog_t *jd)
       if (i!=0)
 	osip_remove_ict(eXosip.j_osip, tr);
       transaction_free2(tr);
-      sfree(tr);
     }
+  sfree(jd);
 }

@@ -41,3 +41,30 @@ int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
   (*jr)->parent = NULL;
   return 0;
 }
+
+void eXosip_reg_free(eXosip_reg_t *jreg)
+{
+
+  sfree(jreg->r_aor);
+  sfree(jreg->r_contact);
+  sfree(jreg->r_registrar);
+  sfree(jreg->r_realms);
+
+  if (jreg->r_last_tr->state==IST_TERMINATED ||
+      jreg->r_last_tr->state==ICT_TERMINATED ||
+      jreg->r_last_tr->state== NICT_TERMINATED ||
+      jreg->r_last_tr->state==NIST_TERMINATED)
+    {
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+			    "Release a terminated transaction\n"));
+      transaction_free2(jreg->r_last_tr);
+    }
+  else
+    {
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+			    "Release a non-terminated transaction\n"));
+      transaction_free(jreg->r_last_tr);
+    }
+  
+  sfree(jreg);
+}

@@ -194,7 +194,7 @@ jidentity_unload()
 {
   jidentity_t *fr;
   if (eXosip.j_identitys==NULL) return;
-  for (fr=eXosip.j_identitys; fr!=NULL; fr=fr->next)
+  for (fr=eXosip.j_identitys; fr!=NULL; fr=eXosip.j_identitys)
     {
     REMOVE_ELEMENT(eXosip.j_identitys,fr);
     sfree(fr->i_identity);

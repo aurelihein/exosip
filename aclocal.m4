@@ -4480,7 +4480,7 @@ dnl (with help from M. Frigo), as well as ac_pthread and hb_pthread
 dnl macros posted by AFC to the autoconf macro repository.  We are also
 dnl grateful for the helpful feedback of numerous users.
 dnl
-dnl @version $Id: aclocal.m4,v 1.1.1.1 2003-03-11 21:22:11 aymeric Exp $
+dnl @version $Id: aclocal.m4,v 1.2 2003-03-12 20:53:50 aymeric Exp $
 dnl @author Steven G. Johnson <stevenj@alum.mit.edu> and Alejandro Forero Cuervo <bachue@bachue.com>
 
 AC_DEFUN([ACX_PTHREAD], [
@@ -4683,7 +4683,7 @@ dnl in test.c can be used regardless of which gethostbyname_r
 dnl exists. These example files found at
 dnl http://www.csn.ul.ie/~caolan/publink/gethostbyname_r
 dnl
-dnl @version $Id: aclocal.m4,v 1.1.1.1 2003-03-11 21:22:11 aymeric Exp $
+dnl @version $Id: aclocal.m4,v 1.2 2003-03-12 20:53:50 aymeric Exp $
 dnl @author Caolan McNamara <caolan@skynet.ie>
 dnl
 dnl based on David Arnold's autoconf suggestion in the threads faq

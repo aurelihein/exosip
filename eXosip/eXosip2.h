@@ -30,7 +30,7 @@
 /* This is used to initiate the Extented/Open/Sip library */
 int   eXosip_init(FILE *input, FILE *output, int port);
 void  eXosip_update();
-int   eXosip_quit();
+void  eXosip_quit();
 int   eXosip_lock();
 int   eXosip_unlock();
 

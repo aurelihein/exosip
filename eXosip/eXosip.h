@@ -236,6 +236,7 @@ int  generating_options(sip_t **options, char *from, char *to,
 			char *sdp, char *proxy);
 
 int  eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact);
+void eXosip_reg_free(eXosip_reg_t *jreg);
 int  generating_register(sip_t **reg, char *transport, char *from, char *proxy);
 
 int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd);

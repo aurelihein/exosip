@@ -85,7 +85,6 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
   /* Release the eXosip_dialog */
   dialog_free(jd->d_dialog);
-  sfree(jd->d_dialog);
   jd->d_dialog = NULL;
 }
 
@@ -262,14 +261,12 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
     if (old_remote_sdp!=NULL)
       {
 	sdp_free(old_remote_sdp);
-	sfree(old_remote_sdp);
       }
     sdp_context_set_remote_sdp(jc->c_ctx, remote_sdp);
     local_sdp = sdp_context_get_local_sdp(jc->c_ctx);
     if (local_sdp!=NULL)
       {
 	sdp_free(local_sdp);
-	sfree(local_sdp);
 	sdp_context_set_local_sdp(jc->c_ctx, NULL);
       }
     local_sdp = NULL;
@@ -314,12 +311,10 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       sdp_context_set_local_sdp(jc->c_ctx, NULL);
       i = sdp_2char(local_sdp, &local_body);
       sdp_free(local_sdp);
-      sfree(local_sdp);
       if (i!=0) {
 	transaction_set_your_instance(transaction, new_jinfo(jc, jd));
 	eXosip_send_default_answer(jc, jd, transaction, evt, 500);
 	msg_free(answer);
-	sfree(answer);
 	return ;
       } 
       i = msg_setbody(answer, local_body);
@@ -328,7 +323,6 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	eXosip_send_default_answer(jc, jd, transaction, evt, 500);
 	sfree(local_body);
 	msg_free(answer);
-	sfree(answer);
 	return;
       }
       size = (char *) smalloc(6*sizeof(char));
@@ -341,7 +335,6 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	transaction_set_your_instance(transaction, new_jinfo(jc, jd));
 	eXosip_send_default_answer(jc, jd, transaction, evt, 500);
 	msg_free(answer);
-	sfree(answer);
 	return;
       }	
 
@@ -391,7 +384,6 @@ void eXosip_process_new_invite(transaction_t *transaction, sipevent_t *evt)
   if (i!=0)
     {
       msg_free(answer);
-      sfree(answer);
       sfree(contact);
       fprintf(stderr, "eXosip: cannot complete answer!\n");
       return ;
@@ -401,7 +393,6 @@ void eXosip_process_new_invite(transaction_t *transaction, sipevent_t *evt)
   if (i!=0)
     {
       msg_free(answer);
-      sfree(answer);
       fprintf(stderr, "eXosip: cannot create dialog!\n");
       sfree(contact);
       return ;
@@ -428,7 +419,6 @@ void eXosip_process_new_invite(transaction_t *transaction, sipevent_t *evt)
   if (i!=0)
     {
       msg_free(answer);
-      sfree(answer);
       fprintf(stderr, "eXosip: cannot complete answer!\n");
       return ;
     }
@@ -477,7 +467,6 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	  }
 	}
       sdp_free(sdp);
-      sfree(sdp);
       sdp = NULL;
     }
 
@@ -586,7 +575,6 @@ void eXosip_process_newrequest (sipevent_t *evt)
     { /* We should handle late response and 200 OK before coming here. */
       ctx_type = -1;
       msg_free(evt->sip);
-      sfree(evt->sip);
       sfree(evt);
       return ;	
     }
@@ -601,7 +589,6 @@ void eXosip_process_newrequest (sipevent_t *evt)
       if (i!=0)
 	{
 	  msg_free(evt->sip);
-	  sfree(evt->sip);
 	  sfree(evt);
 	  return ;
 	}
@@ -613,9 +600,7 @@ void eXosip_process_newrequest (sipevent_t *evt)
       if (i!=0)
 	{
 	  transaction_free(transaction);
-	  sfree(transaction);
 	  msg_free(evt->sip);
-	  sfree(evt->sip);
 	  sfree(evt);
 	  return ;
 	}
@@ -701,9 +686,7 @@ void eXosip_process_newrequest (sipevent_t *evt)
 		 two different BYE for one call! */
 	      eXosip_send_default_answer(jc, jd, transaction, evt, 500);
 	    }
-	  /*
-	    transaction_free2(old_trn);
-	    sfree(old_trn); */
+	  /* transaction_free2(old_trn); */
 	  eXosip_process_bye(jc, jd, transaction, evt);
 	}
       else if (MSG_IS_ACK(evt->sip))
@@ -814,7 +797,6 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 		  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
 			      "Could not parse SIP message\n"));
 		  msg_free(sipevent->sip);
-		  sfree(sipevent->sip);
 		  sfree(sipevent);
 		}
 	    }
@@ -935,7 +917,6 @@ int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 			    "eXosip: remove a dialog\n"));
       REMOVE_ELEMENT(jc->c_dialogs, jd);
       eXosip_dialog_free(jd);
-      sfree(jd);
       return 0;
     }
   return -1;
@@ -958,7 +939,6 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 				"eXosip: remove a dialog\n"));
 	  REMOVE_ELEMENT(jc->c_dialogs, jd);
 	  eXosip_dialog_free(jd);
-	  sfree(jd);
 	}
       
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
@@ -1006,7 +986,6 @@ void eXosip_free_terminated_calls ( void )
 				    "eXosip: remove a call\n"));
 	      REMOVE_ELEMENT(eXosip.j_calls, jc);
 	      eXosip_call_free(jc);
-	      sfree(jc);
 	      jc = eXosip.j_calls;
 	    }
 	}
@@ -1025,7 +1004,6 @@ void eXosip_free_terminated_calls ( void )
 		      "Release a terminated transaction\n"));
 	  list_remove(eXosip.j_transactions, pos);
 	  transaction_free2(tr);
-	  sfree(tr);
 	}
       else
 	pos++;

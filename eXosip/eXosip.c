@@ -23,6 +23,7 @@
 #endif
 
 #include <eXosip.h>
+#include <eXosip2.h>
 
 #include <osip2/thread.h>
 
@@ -30,6 +31,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 //#include <arpa/inet.h>
+
+#include <unistd.h>
 
 eXosip_t eXosip;
 char   *localip;
@@ -48,10 +51,34 @@ eXosip_unlock()
   return smutex_unlock((struct smutex_t*)eXosip.j_mutexlock);
 }
 
+void
+eXosip_kill_transaction (list_t * transactions)
+{
+  transaction_t *transaction;
+
+  if (!list_eol (transactions, 0))
+    {
+      /* some transaction are still used by osip,
+         transaction should be released by modules! */
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "module sfp: _osip_kill_transaction transaction should be released by modules!\n"));
+    }
+
+  while (!list_eol (transactions, 0))
+    {
+      transaction = list_get (transactions, 0);
+      transaction_free (transaction);
+      sfree (transaction);
+    }
+}
+
 void eXosip_quit()
 {
   eXosip_call_t *jc;
+  eXosip_reg_t  *jreg;
   int i;
+
   eXosip.j_stop_ua = 1; /* ask to quit the application */
   i = sthread_join((struct sthread_t*)eXosip.j_thread);
   if (i!=0)
@@ -65,13 +92,67 @@ void eXosip_quit()
     {
       REMOVE_ELEMENT(eXosip.j_calls, jc);
       eXosip_call_free(jc);
-      sfree(jc);
     }
   
   smutex_destroy((struct smutex_t*)eXosip.j_mutexlock);
-  sfree((struct smutex_t*)eXosip.j_mutexlock);
 
   sdp_config_free();  
+
+  if (eXosip.j_input)
+    fclose(eXosip.j_input);
+  if (eXosip.j_output)
+    sfree(eXosip.j_output);
+  if (eXosip.j_socket)
+    close(eXosip.j_socket);
+
+  for (jreg = eXosip.j_reg; jreg!=NULL; jreg = eXosip.j_reg)
+    {
+      REMOVE_ELEMENT(eXosip.j_reg, jreg);
+      eXosip_reg_free(jreg);
+    }
+
+  /* should be moved to method with an argument */
+  jfreind_unload();
+  jidentity_unload();
+
+  /*    
+  for (jid = eXosip.j_identitys; jid!=NULL; jid = eXosip.j_identitys)
+    {
+      REMOVE_ELEMENT(eXosip.j_identitys, jid);
+      eXosip_freind_free(jid);
+    }
+
+  for (jfr = eXosip.j_freinds; jfr!=NULL; jfr = eXosip.j_freinds)
+    {
+      REMOVE_ELEMENT(eXosip.j_freinds, jfr);
+      eXosip_reg_free(jfr);
+    }
+  */
+
+  while (!list_eol(eXosip.j_transactions, 0))
+    {
+      transaction_t *tr = (transaction_t*) list_get(eXosip.j_transactions, 0);
+      if (tr->state==IST_TERMINATED || tr->state==ICT_TERMINATED
+	  || tr->state== NICT_TERMINATED || tr->state==NIST_TERMINATED)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+		      "Release a terminated transaction\n"));
+	  list_remove(eXosip.j_transactions, 0);
+	  transaction_free2(tr);
+	}
+      else
+	{
+	  list_remove(eXosip.j_transactions, 0);
+	  transaction_free(tr);
+	}
+    }
+
+  eXosip_kill_transaction (eXosip.j_osip->ict_transactions);
+  eXosip_kill_transaction (eXosip.j_osip->nict_transactions);
+  eXosip_kill_transaction (eXosip.j_osip->ist_transactions);
+  eXosip_kill_transaction (eXosip.j_osip->nist_transactions);
+  osip_free (eXosip.j_osip);
+  osip_global_free ();
 
   return ;
 }
@@ -251,7 +332,6 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
       /* TODO: release the j_call.. */
 
       msg_free(message);
-      sfree(message);
       return ;
     }
   
@@ -320,7 +400,6 @@ void eXosip_start_call    (sip_t *invite)
       /* TODO: release the j_call.. */
 
       msg_free(invite);
-      sfree(invite);
       return ;
     }
   
@@ -403,14 +482,12 @@ void eXosip_on_hold_call  (int jid)
   if (i!=0)
     {
       sdp_free(sdp);
-      sfree(sdp);
       return ;
     }
 
   i = _eXosip_build_request_within_dialog(&invite, "INVITE", jd->d_dialog, "UDP");
   if (i!=0) {
     sdp_free(sdp);
-    sfree(sdp);
     return;
   }
 
@@ -442,7 +519,6 @@ void eXosip_on_hold_call  (int jid)
     {
       /* TODO: release the j_call.. */
       msg_free(invite);
-      sfree(invite);
       return ;
     }
   
@@ -450,7 +526,6 @@ void eXosip_on_hold_call  (int jid)
   {
     sdp_t *old_sdp = sdp_context_get_local_sdp(jc->c_ctx);
     sdp_free(old_sdp);
-    sfree(old_sdp);
     sdp_context_set_local_sdp(jc->c_ctx, sdp);  
   }
 
@@ -485,7 +560,6 @@ int eXosip_create_transaction(eXosip_call_t *jc,
       /* TODO: release the j_call.. */
 
       msg_free(request);
-      sfree(request);
       return -1;
     }
   
@@ -540,7 +614,6 @@ int eXosip_create_cancel_transaction(eXosip_call_t *jc,
       /* TODO: release the j_call.. */
 
       msg_free(request);
-      sfree(request);
       return -1;
     }
   
@@ -600,7 +673,6 @@ void eXosip_terminate_call(int cid, int jid)
     fprintf(stderr, "eXosip: cannot initiate SIP transaction! ");
 
   dialog_free(jd->d_dialog);
-  sfree(jd->d_dialog);
   jd->d_dialog = NULL;
 }
 
@@ -632,7 +704,6 @@ void eXosip_register      (int rid)
 	  reg = jr->r_last_tr->orig_request;
 	  jr->r_last_tr->orig_request = NULL;
 	  transaction_free2(jr->r_last_tr);
-	  sfree(jr->r_last_tr);
 	  jr->r_last_tr = NULL;
 
 	  /* modify the REGISTER request */
@@ -643,7 +714,6 @@ void eXosip_register      (int rid)
 	    via_t *via   = (via_t *) list_get (reg->vias, 0);
 	    list_remove(reg->vias, 0);
 	    via_free(via);
-	    sfree(via);
 	    sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
 		    localip,
 		    localport,
@@ -680,7 +750,6 @@ void eXosip_register      (int rid)
       /* TODO: release the j_call.. */
 
       msg_free(reg);
-      sfree(reg);
       return ;
     }
 
