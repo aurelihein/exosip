@@ -51,7 +51,7 @@ eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *jc)
 	  inc_tr = osip_list_get(jd->d_inc_trs, pos);
 	  if (inc_tr==tr)
 	    {
-	      osip_list_get(jd->d_inc_trs, pos);
+	      osip_list_remove(jd->d_inc_trs, pos);
 	      return 0;
 	    }
 	  pos++;
@@ -71,7 +71,7 @@ eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *jc)
 	  out_tr = osip_list_get(jd->d_out_trs, pos);
 	  if (out_tr==tr)
 	    {
-	      osip_list_get(jd->d_out_trs, pos);
+	      osip_list_remove(jd->d_out_trs, pos);
 	      return 0;
 	    }
 	  pos++;
