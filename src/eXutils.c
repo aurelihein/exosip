@@ -209,7 +209,6 @@ eXosip_guess_ip_for_via (char *alocalip)
 #include <arpa/inet.h>
 
 #include <sys/ioctl.h>
-#include <net/route.h>
 #include <net/if.h>
 #include <unistd.h>
 

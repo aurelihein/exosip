@@ -270,12 +270,13 @@ void eXosip_dialog_free(eXosip_dialog_t *jd);
 void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state);
 void eXosip_delete_early_dialog(eXosip_dialog_t *jd);
 
-int generating_initial_subscribe(osip_message_t **message, char *to,
+int  generating_initial_subscribe(osip_message_t **message, char *to,
 				 char *from, char *route);
-int generating_message(osip_message_t **message, char *to, char *from,
+int  generating_message(osip_message_t **message, char *to, char *from,
 		       char *route, char *buff);
 int  generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled);
 int  generating_options_within_dialog(osip_message_t **info, osip_dialog_t *dialog);
+int  generating_info_within_dialog(osip_message_t **info, osip_dialog_t *dialog);
 int  generating_bye(osip_message_t **bye, osip_dialog_t *dialog);
 int  generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to);
 int  generating_invite_on_hold(osip_message_t **invite, osip_dialog_t *dialog,
@@ -323,6 +324,9 @@ osip_transaction_t *eXosip_find_last_out_subscribe(eXosip_subscribe_t *js, eXosi
 osip_transaction_t *eXosip_find_last_out_options(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_inc_options(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_options(eXosip_call_t *jc, eXosip_dialog_t *jd );
+osip_transaction_t *eXosip_find_last_out_info(eXosip_call_t *jc, eXosip_dialog_t *jd );
+osip_transaction_t *eXosip_find_last_inc_info(eXosip_call_t *jc, eXosip_dialog_t *jd );
+osip_transaction_t *eXosip_find_last_info(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd);

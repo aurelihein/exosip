@@ -22,7 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip2.h>
+#include "eXosip2.h"
 #include <eXosip/eXosip.h>
 
 eXosip_t eXosip;
@@ -55,6 +55,25 @@ eXosip_event_init_for_call(int type,
       || type==EXOSIP_CALL_REQUESTFAILURE
       || type==EXOSIP_CALL_SERVERFAILURE
       || type==EXOSIP_CALL_GLOBALFAILURE
+
+      || type==EXOSIP_OPTIONS_NOANSWER
+      || type==EXOSIP_OPTIONS_PROCEEDING
+      || type==EXOSIP_OPTIONS_ANSWERED
+      || type==EXOSIP_OPTIONS_REDIRECTED
+      || type==EXOSIP_OPTIONS_REQUESTFAILURE
+      || type==EXOSIP_OPTIONS_SERVERFAILURE
+      || type==EXOSIP_OPTIONS_GLOBALFAILURE
+      || type==EXOSIP_OPTIONS_NEW
+
+      || type==EXOSIP_INFO_NOANSWER
+      || type==EXOSIP_INFO_PROCEEDING
+      || type==EXOSIP_INFO_ANSWERED
+      || type==EXOSIP_INFO_REDIRECTED
+      || type==EXOSIP_INFO_REQUESTFAILURE
+      || type==EXOSIP_INFO_SERVERFAILURE
+      || type==EXOSIP_INFO_GLOBALFAILURE
+      || type==EXOSIP_INFO_NEW
+
       || type==EXOSIP_CALL_CANCELLED
       || type==EXOSIP_CALL_TIMEOUT
       || type==EXOSIP_CALL_HOLD
@@ -86,7 +105,27 @@ eXosip_event_init_for_call(int type,
 		  osip_free(tmp);
 		}
 	    }
-	  tr = eXosip_find_last_invite(jc, jd);
+
+	  if (type==EXOSIP_OPTIONS_NOANSWER
+	      || type==EXOSIP_OPTIONS_PROCEEDING
+	      || type==EXOSIP_OPTIONS_ANSWERED
+	      || type==EXOSIP_OPTIONS_REDIRECTED
+	      || type==EXOSIP_OPTIONS_REQUESTFAILURE
+	      || type==EXOSIP_OPTIONS_SERVERFAILURE
+	      || type==EXOSIP_OPTIONS_GLOBALFAILURE
+	      || type==EXOSIP_OPTIONS_NEW)
+	    tr = eXosip_find_last_options(jc, jd);
+	  else if (type==EXOSIP_INFO_NOANSWER
+		   || type==EXOSIP_INFO_PROCEEDING
+		   || type==EXOSIP_INFO_ANSWERED
+		   || type==EXOSIP_INFO_REDIRECTED
+		   || type==EXOSIP_INFO_REQUESTFAILURE
+		   || type==EXOSIP_INFO_SERVERFAILURE
+		   || type==EXOSIP_INFO_GLOBALFAILURE
+		   || type==EXOSIP_INFO_NEW)
+	    tr = eXosip_find_last_info(jc, jd);
+	  else
+	    tr = eXosip_find_last_invite(jc, jd);
 	  if (tr!=NULL && tr->orig_request!=NULL)
 	    {
 	      osip_message_get_subject(tr->orig_request, 0, &subject);
@@ -525,6 +564,38 @@ eXosip_event_init(eXosip_event_t **je, int type)
   else if (type==EXOSIP_OPTIONS_GLOBALFAILURE)
     {
       sprintf((*je)->textinfo, "5xx received for OPTIONS!");
+    }
+  else if (type==EXOSIP_INFO_NEW)
+    {
+      sprintf((*je)->textinfo, "New INFO received!");
+    }
+  else if (type==EXOSIP_INFO_NOANSWER)
+    {
+      sprintf((*je)->textinfo, "No answer for this INFO!");
+    }
+  else if (type==EXOSIP_INFO_PROCEEDING)
+    {
+      sprintf((*je)->textinfo, "INFO is being processed!");
+    }
+  else if (type==EXOSIP_INFO_ANSWERED)
+    {
+      sprintf((*je)->textinfo, "2xx received for INFO!");
+    }
+  else if (type==EXOSIP_INFO_REDIRECTED)
+    {
+      sprintf((*je)->textinfo, "3xx received for INFO!");
+    }
+  else if (type==EXOSIP_INFO_REQUESTFAILURE)
+    {
+      sprintf((*je)->textinfo, "4xx received for INFO!");
+    }
+  else if (type==EXOSIP_INFO_SERVERFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for INFO!");
+    }
+  else if (type==EXOSIP_INFO_GLOBALFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for INFO!");
     }
   else if (type==EXOSIP_SUBSCRIPTION_NEW)
     {

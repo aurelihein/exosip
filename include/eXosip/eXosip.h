@@ -193,6 +193,16 @@ int   eXosip_terminate_call(int cid, int jid);
 int   eXosip_options_call  (int jid);
 
 /**
+ * Send an OPTIONS message within a call.
+ * 
+ * @param cid           call id of call.
+ * @param jid           dialog id of call.
+ * @param content_type  content-type of body.
+ * @param body          body to attach.
+ */
+int eXosip_info_call(int jid, char *content_type, char *body);
+
+/**
  * Answer an OPTIONS message.
  * 
  * @param cid          call id of call.
@@ -358,8 +368,17 @@ typedef enum eXosip_event_type_t {
   EXOSIP_OPTIONS_SERVERFAILURE,   /* announce a server failure             */
   EXOSIP_OPTIONS_GLOBALFAILURE,   /* announce a global failure             */
 
+  EXOSIP_INFO_NOANSWER,        /* announce no answer within the timeout */
+  EXOSIP_INFO_PROCEEDING,      /* announce processing by a remote app   */
+  EXOSIP_INFO_ANSWERED,        /* announce a 200ok                      */
+  EXOSIP_INFO_REDIRECTED,      /* announce a redirection                */
+  EXOSIP_INFO_REQUESTFAILURE,  /* announce a request failure            */
+  EXOSIP_INFO_SERVERFAILURE,   /* announce a server failure             */
+  EXOSIP_INFO_GLOBALFAILURE,   /* announce a global failure             */
+
   /* for UAS events */
   EXOSIP_OPTIONS_NEW,             /* announce a new options method         */
+  EXOSIP_INFO_NEW,               /* new info request received           */
 
   /* Presence and Instant Messaging */
   EXOSIP_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.  */
@@ -394,6 +413,8 @@ typedef struct eXosip_event {
   char                local_uri[256];
   char                remote_uri[256];
   char                subject[256];
+  osip_content_type_t *i_ctt;
+  osip_list_t         *i_bodies;
 
   char                remote_sdp_audio_ip[50];
   int                 remote_sdp_audio_port;

@@ -23,7 +23,7 @@
 #endif
 
 
-#include <eXosip/eXosip2.h>
+#include "eXosip2.h"
 
 extern eXosip_t eXosip;
 
@@ -152,6 +152,71 @@ eXosip_find_last_out_options(eXosip_call_t *jc, eXosip_dialog_t *jd )
 
   if (out_tr==NULL)
     return jc->c_out_options_tr; /* can be NULL */
+
+  return out_tr;
+}
+
+osip_transaction_t *
+eXosip_find_last_info(eXosip_call_t *jc, eXosip_dialog_t *jd )
+{
+  osip_transaction_t *inc_tr;
+  osip_transaction_t *out_tr;
+  inc_tr = eXosip_find_last_inc_info(jc, jd);
+  out_tr = eXosip_find_last_out_info(jc, jd);
+  if (inc_tr==NULL)
+    return out_tr;
+  if (out_tr==NULL)
+    return inc_tr;
+
+  if (inc_tr->birth_time>out_tr->birth_time)
+    return inc_tr;
+  return out_tr;
+}
+
+osip_transaction_t *
+eXosip_find_last_inc_info(eXosip_call_t *jc, eXosip_dialog_t *jd )
+{
+  osip_transaction_t *inc_tr;
+  int pos;
+  inc_tr = NULL;
+  pos=0;
+  if (jd!=NULL)
+    {
+      while (!osip_list_eol(jd->d_inc_trs, pos))
+	{
+	  inc_tr = osip_list_get(jd->d_inc_trs, pos);
+	  if (0==strcmp(inc_tr->cseq->method, "INFO"))
+	    break;
+	  else inc_tr = NULL;
+	  pos++;
+	}
+    }
+  else
+    inc_tr = NULL;
+
+  return inc_tr;
+}
+
+osip_transaction_t *
+eXosip_find_last_out_info(eXosip_call_t *jc, eXosip_dialog_t *jd )
+{
+  osip_transaction_t *out_tr;
+  int pos;
+  out_tr = NULL;
+  pos=0;
+  if (jd==NULL && jc==NULL) return NULL;
+
+  if (jd!=NULL)
+    {
+      while (!osip_list_eol(jd->d_out_trs, pos))
+	{
+	  out_tr = osip_list_get(jd->d_out_trs, pos);
+	  if (0==strcmp(out_tr->cseq->method, "INFO"))
+	    break;
+	  else out_tr = NULL;
+	  pos++;
+	}
+    }
 
   return out_tr;
 }

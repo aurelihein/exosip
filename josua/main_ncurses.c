@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.50 2003-07-20 21:22:33 aymeric Exp $"; */
+/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.51 2003-07-21 23:54:51 aymeric Exp $"; */
 
 #ifdef NCURSES_SUPPORT
 
@@ -641,7 +641,7 @@ int main(int argc, const char *const *argv) {
 				   osip_strdup("RTP/AVP"),
 				   NULL, NULL, NULL,
 				   NULL,NULL,
-				   osip_strdup("111 speex/8000"));
+				   osip_strdup("111 speex/16000"));
   /* Those attributes should be added for speex
      b=AS:110 20
      b=AS:111 20

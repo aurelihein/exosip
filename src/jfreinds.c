@@ -22,7 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip2.h>
+#include "eXosip2.h"
 #include <eXosip/eXosip_cfg.h>
 
 extern eXosip_t eXosip;

@@ -55,5 +55,5 @@ $(top_builddir)/src/libeXosip.la -lortp  -lm
 endif
 endif
 
-INCLUDES = -I$(top_srcdir) -I$(includedir) -I$(includedir)/ortp
+INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(includedir) -I$(includedir)/ortp
 

@@ -22,7 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip2.h>
+#include "eXosip2.h"
 #include <eXosip/eXosip.h>
 #include <eXosip/eXosip_cfg.h>
 
@@ -484,71 +484,68 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_add_event(transaction, sipevent);
 }
 
-#if 0
-int eXosip_start_info(osip_message_t *info, void *reference,
-		       void *sdp_context_reference,
-		       char *local_sdp_port)
+int eXosip_info_call(int jid, char *content_type, char *body)
 {
-  eXosip_call_t *jc;
   osip_transaction_t *transaction;
   osip_event_t *sipevent;
+  osip_message_t *info;
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
   int i;
-#if 0
-  sdp_message_t *sdp;
-  char *body;
-  char *size;
   
-  osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, local_sdp_port, NULL);
-
-  i = sdp_message_to_str(sdp, &body);
-  if (body!=NULL)
+  if (jid>0)
     {
-      size= (char *)osip_malloc(7*sizeof(char));
-      sprintf(size,"%i",strlen(body));
-      osip_message_set_content_length(info, size);
-      osip_free(size);
-      
-      osip_message_set_body(info, body);
-      osip_free(body);
-      osip_message_set_content_type(info, "application/sdp");
+      eXosip_call_dialog_find(jid, &jc, &jd);
     }
-  else
-    osip_message_set_content_length(info, "0");
-#endif
-  
-  eXosip_call_init(&jc);
-  
-  if (sdp_context_reference==NULL)
-    osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
-  else
-    osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return -1;
+    }
+  if (jd==NULL || jd->d_dialog==NULL)
+    {
+      fprintf(stderr, "eXosip: No established dialog!");
+      return -1;
+    }
 
-  i = osip_transaction_init(&transaction,
-		       NICT,
-		       eXosip.j_osip,
-		       info);
+  transaction = eXosip_find_last_options(jc, jd);
+  if (transaction!=NULL)
+    {
+      if (transaction->state!=NICT_TERMINATED &&
+	  transaction->state!=NIST_TERMINATED)
+	return -1;
+    }  
+ 
+  i = generating_info_within_dialog(&info, jd->d_dialog);
   if (i!=0)
     {
-      eXosip_call_free(jc);
+      fprintf(stderr, "eXosip: cannot send info message! ");
+      return -2;
+    }
+  
+  osip_message_set_content_type(info, content_type);
+  osip_message_set_body(info, body);
+  
+  i = osip_transaction_init(&transaction,
+			    NICT,
+			    eXosip.j_osip,
+			    info);
+  if (i!=0)
+    {
       osip_message_free(info);
       return -1;
     }
-  
-  jc->c_out_info_tr = transaction;
+
+  osip_list_add(jd->d_out_trs, transaction, 0);
   
   sipevent = osip_new_outgoing_sipmessage(info);
   sipevent->transactionid =  transaction->transactionid;
   
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
 
-  jc->external_reference = reference;
-  ADD_ELEMENT(eXosip.j_calls, jc);
-
-  eXosip_update();
   return 0;
 }
-#endif
 
 extern osip_list_t *supported_codec;
 

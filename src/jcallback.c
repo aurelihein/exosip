@@ -45,7 +45,7 @@
 #endif
 
 #include <eXosip/eXosip.h>
-#include <eXosip/eXosip2.h>
+#include "eXosip2.h"
 #include <eXosip/eXosip_cfg.h>
 
 extern eXosip_t eXosip;
@@ -424,7 +424,46 @@ void cb_rcvcancel  (int type, osip_transaction_t *tr,osip_message_t *sip)
 
 void cb_rcvinfo    (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
+  eXosip_event_t     *je;
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvinfo (id=%i)\r\n", tr->transactionid));
+  
+  if (jinfo==NULL)
+    return;
+  if (jinfo->jc==NULL)
+    return;
+
+  je = eXosip_event_init_for_call(EXOSIP_INFO_NEW, jinfo->jc, jinfo->jd);
+  if (je!=NULL)
+    {
+      char *tmp;
+      osip_uri_to_str(sip->req_uri, &tmp);
+      if (tmp!=NULL)
+ 	{
+ 	  snprintf(je->req_uri, 255, "%s", tmp);
+ 	  osip_free(tmp);
+ 	}
+      
+      if (sip!=NULL)
+	{
+	  int pos;
+	  /* get content-type info */
+	  osip_content_type_clone(osip_message_get_content_type(sip), &(je->i_ctt));
+	  /* get list of bodies */
+	  for (pos=0;!osip_list_eol(sip->bodies, pos);pos++)
+	    {
+	      osip_body_t *body;
+	      osip_body_t *_body;
+	      body = (osip_body_t *)osip_list_get(sip->bodies, pos);
+	      osip_body_clone(body, &_body);
+	      osip_list_add(je->i_bodies, _body, -1);
+	    }
+	}
+    }
+  if (eXosip.j_call_callbacks[EXOSIP_INFO_NEW]!=NULL)
+    eXosip.j_call_callbacks[EXOSIP_INFO_NEW](EXOSIP_INFO_NEW, je);
+  else if (eXosip.j_runtime_mode==EVENT_MODE)
+    eXosip_event_add(je);
 }
 
 void cb_rcvoptions (int type, osip_transaction_t *tr,osip_message_t *sip)

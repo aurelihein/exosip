@@ -105,6 +105,7 @@ void window_sessions_list_draw_commands()
     "r",  "Reject",
     "b",  "AppearBusy",
     "o",  "SendOptions",
+    "i",  "SendInfo",
     NULL
   };
   getmaxyx(stdscr,y,x);
@@ -216,6 +217,13 @@ int window_sessions_list_run_command(int c)
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
       eXosip_options_call(ca->did);
+      eXosip_unlock();
+      break;
+    case 'i':
+      ca = jcall_find_call(cursor_sessions_list);
+      if (ca==NULL) { beep(); break; }
+      eXosip_lock();
+      eXosip_info_call(ca->did, "application/text", "Just some Data");
       eXosip_unlock();
       break;
     default:

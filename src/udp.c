@@ -22,7 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip2.h>
+#include "eXosip2.h"
 #include <eXosip/eXosip.h>
 #include <eXosip/eXosip_cfg.h>
 
@@ -102,6 +102,36 @@ void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
   osip_transaction_add_event(transaction,evt_answer);
 }
+
+void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
+ 			 osip_transaction_t *transaction, osip_event_t *evt)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *answer;
+  int i;
+  
+  osip_transaction_set_your_instance(transaction,
+ 				     __eXosip_new_jinfo(jc,
+ 							jd,
+ 							NULL,
+ 							NULL));
+  /* for now, send default response of 200ok.  eventually, application should 
+      be deciding how to answer INFO messages */
+  i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
+  if (i!=0)
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+       return ;
+    }
+  
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid =  transaction->transactionid;
+  
+  osip_list_add(jd->d_inc_trs, transaction , 0);
+  
+  osip_transaction_add_event(transaction,evt_answer);
+}
+ 
 
 void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			osip_transaction_t *transaction, osip_event_t *evt)
@@ -1325,6 +1355,10 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	{
 	  eXosip_process_options(jc, jd, transaction, evt);
 	}
+      else if (MSG_IS_INFO(evt->sip))
+	{
+	  eXosip_process_info(jc, jd, transaction, evt);
+	}
       else
 	{
 	  osip_list_add(eXosip.j_transactions, transaction, 0);
@@ -1333,7 +1367,11 @@ void eXosip_process_newrequest (osip_event_t *evt)
       return ;
     }
 
-
+  if (MSG_IS_INFO(evt->sip))
+    {
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      eXosip_send_default_answer(jd, transaction, evt, 481);
+    }
   if (MSG_IS_OPTIONS(evt->sip))
     {
       eXosip_process_new_options(transaction, evt);
