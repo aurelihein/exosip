@@ -39,7 +39,6 @@
 
 #include <eXosip/eXosip.h>
 
-
 struct jcall {
   int cid;
   int did;

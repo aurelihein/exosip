@@ -22,6 +22,7 @@
 #include <osipparser2/osip_port.h>
 #include "jconfig.h"
 #include <eXosip/eXosip.h>
+#include <eXosip/eXosip_cfg.h>
 
 static josua_config_t *selected_config = NULL;
 static josua_config_t *josua_configs = NULL;

@@ -19,6 +19,7 @@
  */
 
 #include "commands.h"
+#include "eXosip/eXosip_cfg.h"
 
 int _josua_start_call(char *from, char *to, char *subject, char *route)
 {
@@ -34,11 +35,12 @@ int _josua_start_call(char *from, char *to, char *subject, char *route)
       return -1;
     }
   eXosip_lock();
-  i = eXosip_start_call(invite, NULL, NULL, "10500");
+  i = eXosip_initiate_call(invite, NULL, NULL, "10500");
   eXosip_unlock();  
   return i;
 }
 
+#if 0
 int _josua_start_options(char *from, char *to, char *route)
 {
   osip_message_t *options;
@@ -52,10 +54,11 @@ int _josua_start_options(char *from, char *to, char *route)
       return -1;
     }
   eXosip_lock();
-  i = eXosip_start_options(options, NULL, NULL, "10500");
-  eXosip_unlock();  
+  i = eXosip_options_call(options, NULL, NULL, "10500");
+  eXosip_unlock();
   return i;
 }
+#endif
 
 int _josua_start_subscribe(char *from, char *to, char *route)
 {

@@ -22,8 +22,9 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip.h>
 #include <eXosip/eXosip2.h>
+#include <eXosip/eXosip.h>
+#include <eXosip/eXosip_cfg.h>
 
 #ifndef WIN32
 #include <sys/types.h>

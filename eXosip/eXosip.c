@@ -22,8 +22,9 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip.h>
 #include <eXosip/eXosip2.h>
+#include <eXosip/eXosip.h>
+#include <eXosip/eXosip_cfg.h>
 
 #include <osip2/osip_mt.h>
 
@@ -53,6 +54,27 @@ int
 eXosip_unlock()
 {
   return osip_mutex_unlock((struct osip_mutex*)eXosip.j_mutexlock);
+}
+
+
+jfriend_t *jfriend_get()
+{
+  return eXosip.j_friends;
+}
+
+void jfriend_remove(jfriend_t *fr)
+{
+  REMOVE_ELEMENT(eXosip.j_friends, fr);
+}
+
+jsubscriber_t *jsubscriber_get()
+{
+  return eXosip.j_subscribers;
+}
+
+jidentity_t *jidentity_get()
+{
+  return eXosip.j_identitys;
 }
 
 void
@@ -254,7 +276,21 @@ int eXosip_init(FILE *input, FILE *output, int port)
       return -1;
     }
 
-  eXosip_sdp_negotiation_init();
+  eXosip_sdp_negotiation_init(&(eXosip.osip_negotiation));
+
+  eXosip_sdp_negotiation_add_codec(osip_strdup("0"),
+				   NULL,
+				   osip_strdup("RTP/AVP"),
+				   NULL, NULL, NULL,
+				   NULL,NULL,
+				   osip_strdup("0 PCMU/8000"));
+
+  eXosip_sdp_negotiation_add_codec(osip_strdup("8"),
+				   NULL,
+				   osip_strdup("RTP/AVP"),
+				   NULL, NULL, NULL,
+				   NULL,NULL,
+				   osip_strdup("8 PCMA/8000"));
 
   osip_set_application_context(osip, &eXosip);
   
@@ -448,9 +484,10 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_add_event(transaction, sipevent);
 }
 
-int eXosip_start_options(osip_message_t *options, void *reference,
-			 void *sdp_context_reference,
-			 char *local_sdp_port)
+#if 0
+int eXosip_start_info(osip_message_t *info, void *reference,
+		       void *sdp_context_reference,
+		       char *local_sdp_port)
 {
   eXosip_call_t *jc;
   osip_transaction_t *transaction;
@@ -468,15 +505,15 @@ int eXosip_start_options(osip_message_t *options, void *reference,
     {
       size= (char *)osip_malloc(7*sizeof(char));
       sprintf(size,"%i",strlen(body));
-      osip_message_set_content_length(options, size);
+      osip_message_set_content_length(info, size);
       osip_free(size);
       
-      osip_message_set_body(options, body);
+      osip_message_set_body(info, body);
       osip_free(body);
-      osip_message_set_content_type(options, "application/sdp");
+      osip_message_set_content_type(info, "application/sdp");
     }
   else
-    osip_message_set_content_length(options, "0");
+    osip_message_set_content_length(info, "0");
 #endif
   
   eXosip_call_init(&jc);
@@ -489,17 +526,17 @@ int eXosip_start_options(osip_message_t *options, void *reference,
   i = osip_transaction_init(&transaction,
 		       NICT,
 		       eXosip.j_osip,
-		       options);
+		       info);
   if (i!=0)
     {
       eXosip_call_free(jc);
-      osip_message_free(options);
+      osip_message_free(info);
       return -1;
     }
   
-  jc->c_out_options_tr = transaction;
+  jc->c_out_info_tr = transaction;
   
-  sipevent = osip_new_outgoing_sipmessage(options);
+  sipevent = osip_new_outgoing_sipmessage(info);
   sipevent->transactionid =  transaction->transactionid;
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
@@ -511,10 +548,13 @@ int eXosip_start_options(osip_message_t *options, void *reference,
   eXosip_update();
   return 0;
 }
+#endif
 
-int eXosip_start_call(osip_message_t *invite, void *reference,
-		      void *sdp_context_reference,
-		      char *local_sdp_port)
+extern osip_list_t *supported_codec;
+
+int eXosip_initiate_call(osip_message_t *invite, void *reference,
+			 void *sdp_context_reference,
+			 char *local_sdp_port)
 {
   eXosip_call_t *jc;
   osip_header_t *subject;
@@ -526,6 +566,47 @@ int eXosip_start_call(osip_message_t *invite, void *reference,
   char *size;
   
   osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, local_sdp_port, NULL);
+
+  /*
+    if speex codec is supported, add bandwith attribute:
+    b=AS:110 20
+    b=AS:111 20
+  */
+  if (sdp!=NULL)
+    {
+      int pos=0;
+      while (!sdp_message_endof_media (sdp, pos))
+	{
+	  int k = 0;
+	  char *tmp = sdp_message_m_media_get (sdp, pos);
+	  if (0 == strncmp (tmp, "audio", 5))
+	    {
+	      char *payload = NULL;
+	      do {
+		payload = sdp_message_m_payload_get (sdp, pos, k);
+		if (payload == NULL)
+		  {
+		  }
+		else if (0==strcmp("110",payload))
+		  {
+		    sdp_message_a_attribute_add (sdp,
+						 pos,
+						 osip_strdup ("AS"),
+						 osip_strdup ("110 20"));
+		  }
+		else if (0==strcmp("111",payload))
+		  {
+		    sdp_message_a_attribute_add (sdp,
+						 pos,
+						 osip_strdup ("AS"),
+						 osip_strdup ("111 20"));
+		  }
+		k++;
+	      } while (payload != NULL);
+	    }
+	  pos++;
+	}
+    }
 
   i = sdp_message_to_str(sdp, &body);
   if (body!=NULL)

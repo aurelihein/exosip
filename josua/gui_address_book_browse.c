@@ -24,7 +24,7 @@
 #include "gui_menu.h"
 #include "gui_new_call.h"
 
-extern eXosip_t eXosip;
+/*  extern eXosip_t eXosip; */
 
 gui_t gui_window_address_book_browse = {
   GUI_OFF,
@@ -78,7 +78,7 @@ int window_address_book_browse_print()
   getmaxyx(stdscr,y,x);
   pos_fr = 0;
 
-  for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+  for (fr = jfriend_get(); fr!=NULL ; fr=fr->next)
     {
       if (cursor_address_book_start==pos_fr)
 	break;
@@ -151,7 +151,7 @@ int window_address_book_browse_run_command(int c)
   getmaxyx(stdscr,y,x);
 
   max=0;
-  for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+  for (fr = jfriend_get(); fr!=NULL ; fr=fr->next)
     {
       max++;
     }
@@ -183,7 +183,7 @@ int window_address_book_browse_run_command(int c)
     case 24: /* ctrl-X */
       /* start call */
       pos=0;
-      for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+      for (fr = jfriend_get(); fr!=NULL ; fr=fr->next)
 	{
 	  if (cursor_address_book_browse+cursor_address_book_start==pos)
 	    break;
@@ -208,7 +208,7 @@ int window_address_book_browse_run_command(int c)
     case 'd':
       /* delete entry */
       pos=0;
-      for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+      for (fr = jfriend_get(); fr!=NULL ; fr=fr->next)
 	{
 	  if (cursor_address_book_browse+cursor_address_book_start==pos)
 	    break;
@@ -216,8 +216,7 @@ int window_address_book_browse_run_command(int c)
 	}
       if (fr!=NULL)
 	{
-	  REMOVE_ELEMENT(eXosip.j_friends, fr);
-	  
+	  jfriend_remove(fr);
 	}
       break;
     default:

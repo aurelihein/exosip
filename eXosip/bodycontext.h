@@ -22,7 +22,7 @@
 #ifndef BODYCONTEXT_H
 #define BODYCONTEXT_H
 
-#include <eXosip.h>
+#include <eXosip/eXosip2.h>
 
 struct _BodyContext
 {

@@ -228,6 +228,7 @@ int window_new_call_run_command(int c)
 	/* mvinnstr(ycur, xcur, tmp, 199); */
       }
       break;
+#if 0
     case 15: /* Ctrl-O */
       {
 	int ycur = gui_window_new_call.y0;
@@ -245,6 +246,7 @@ int window_new_call_run_command(int c)
 	/* mvinnstr(ycur, xcur, tmp, 199); */
       }
       break;
+#endif
     case 21: /* Ctrl-U */
       {
 	int ycur = gui_window_new_call.y0;

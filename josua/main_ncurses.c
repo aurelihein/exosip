@@ -18,14 +18,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.49 2003-07-01 17:07:11 aymeric Exp $";
+/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.50 2003-07-20 21:22:33 aymeric Exp $"; */
 
 #ifdef NCURSES_SUPPORT
 
 #include "gui.h"
 #include "gui_online.h"
 
-extern eXosip_t eXosip;
+/* extern eXosip_t eXosip; */
 
 main_config_t cfg = {
   "\0", "\0", "\0", "\0", 1, 5060, "\0", "\0", "\0", "\0", 60
@@ -605,6 +605,47 @@ int main(int argc, const char *const *argv) {
       fclose(log_file);
       exit(0);
     }
+  
+  /* reset all payload to fit application capabilities */
+  eXosip_sdp_negotiation_remove_audio_payloads();
+  eXosip_sdp_negotiation_add_codec(osip_strdup("0"),
+				   NULL,
+				   osip_strdup("RTP/AVP"),
+				   NULL, NULL, NULL,
+				   NULL,NULL,
+				   osip_strdup("0 PCMU/8000"));
+
+  eXosip_sdp_negotiation_add_codec(osip_strdup("8"),
+				   NULL,
+				   osip_strdup("RTP/AVP"),
+				   NULL, NULL, NULL,
+				   NULL,NULL,
+				   osip_strdup("8 PCMA/8000"));
+    
+  eXosip_sdp_negotiation_add_codec(osip_strdup("3"),
+				   NULL,
+				   osip_strdup("RTP/AVP"),
+				   NULL, NULL, NULL,
+				   NULL,NULL,
+				   osip_strdup("3 GSM/8000"));
+  
+  eXosip_sdp_negotiation_add_codec(osip_strdup("110"),
+				   NULL,
+				   osip_strdup("RTP/AVP"),
+				   NULL, NULL, NULL,
+				   NULL,NULL,
+				   osip_strdup("110 speex/8000"));
+  
+  eXosip_sdp_negotiation_add_codec(osip_strdup("111"),
+				   NULL,
+				   osip_strdup("RTP/AVP"),
+				   NULL, NULL, NULL,
+				   NULL,NULL,
+				   osip_strdup("111 speex/8000"));
+  /* Those attributes should be added for speex
+     b=AS:110 20
+     b=AS:111 20
+  */
 
   /* register callbacks? */
   eXosip_set_mode(EVENT_MODE);
@@ -625,7 +666,7 @@ int main(int argc, const char *const *argv) {
 	      exit(0);
 	    }
 	  eXosip_lock();
-	  eXosip_start_call(invite, NULL, NULL, "10500");
+	  eXosip_initiate_call(invite, NULL, NULL, "10500");
 	  eXosip_unlock();
 	}
       else

@@ -22,8 +22,8 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip.h>
 #include <eXosip/eXosip2.h>
+#include <eXosip/eXosip.h>
 
 eXosip_t eXosip;
 

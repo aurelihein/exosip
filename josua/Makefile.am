@@ -29,7 +29,8 @@ gui_subscriptions_list.c gui_subscriptions_list.h \
 gui_insubscriptions_list.c gui_insubscriptions_list.h \
 jsubscriptions.c jsubscriptions.h \
 jinsubscriptions.c jinsubscriptions.h \
-gui_online.c gui_online.h
+gui_online.c gui_online.h \
+gui_setup.c gui_setup.h
 
 
 josua_LDFLAGS = -O  -Wall

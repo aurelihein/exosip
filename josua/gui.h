@@ -42,7 +42,7 @@
 #include <osip2/osip_mt.h>
 
 #include <eXosip/eXosip.h>
-#include <eXosip/eXosip2.h>
+#include <eXosip/eXosip_cfg.h>
 #include "jcalls.h"
 #include "jsubscriptions.h"
 #include "jinsubscriptions.h"

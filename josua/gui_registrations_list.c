@@ -21,7 +21,7 @@
 #include "gui_registrations_list.h"
 #include "gui_new_identity.h"
 
-extern eXosip_t eXosip;
+/* extern eXosip_t eXosip; */
 
 gui_t gui_window_registrations_list = {
   GUI_OFF,
@@ -75,7 +75,7 @@ int window_registrations_list_print()
   getmaxyx(stdscr,y,x);
   pos_id = 0;
 
-  for (id = eXosip.j_identitys; id!=NULL ; id=id->next)
+  for (id = jidentity_get(); id!=NULL ; id=id->next)
     {
       if (cursor_registrations_start==pos_id)
 	break;
@@ -149,7 +149,7 @@ int window_registrations_list_run_command(int c)
   getmaxyx(stdscr,y,x);
 
   max=0;
-  for (id = eXosip.j_identitys; id!=NULL ; id=id->next)
+  for (id = jidentity_get(); id!=NULL ; id=id->next)
     {
       max++;
     }
@@ -180,7 +180,7 @@ int window_registrations_list_run_command(int c)
     case KEY_ENTER:
       /* registrations_list selected! */
       pos=0;
-      for (id = eXosip.j_identitys; id!=NULL ; id=id->next)
+      for (id = jidentity_get(); id!=NULL ; id=id->next)
 	{
 	  pos++;
 	  if (cursor_registrations_list==pos)

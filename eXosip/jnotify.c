@@ -23,7 +23,8 @@
 #endif
 
 
-#include <eXosip/eXosip.h>
+#include <eXosip/eXosip2.h>
+#include <eXosip/eXosip_cfg.h>
 
 extern eXosip_t eXosip;
 extern char    *localip;

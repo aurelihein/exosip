@@ -25,7 +25,6 @@
 #include <osip2/osip_mt.h>
 
 #include <eXosip/eXosip.h>
-#include <eXosip/eXosip2.h>
 #include "jcalls.h"
 
 typedef struct _main_config_t {

@@ -41,7 +41,9 @@ static int ___call_init = 0;
 
 int fd = -1;
 
+#ifdef ORTP_SUPPORT
 static int min_size = 0;
+#endif
 
 static int __call_init()
 {
@@ -241,7 +243,9 @@ int jcall_new(eXosip_event_t *je)
 
   if (ca->remote_sdp_audio_ip[0]=='\0')
     {
+#ifdef ORTP_SUPPORT
       int p;
+#endif
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
       ca->payload = je->payload;
@@ -487,7 +491,9 @@ int jcall_answered(eXosip_event_t *je)
 
   if (ca->remote_sdp_audio_ip[0]=='\0')
     {
+#ifdef ORTP_SUPPORT
       int p;
+#endif
       osip_strncpy(ca->remote_sdp_audio_ip, je->remote_sdp_audio_ip, 49);
       ca->remote_sdp_audio_port = je->remote_sdp_audio_port;
       ca->payload = je->payload;

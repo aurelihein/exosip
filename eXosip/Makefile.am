@@ -17,6 +17,6 @@ libeXosip_la_LIBADD = -losip2  @EXOSIP_LIB@ @PTHREAD_LIBS@
 
 libeXosip_includedir=$(includedir)/eXosip
 
-libeXosip_include_HEADERS= eXosip.h  eXosip2.h
+libeXosip_include_HEADERS= eXosip.h eXosip_cfg.h eXosip2.h
 
 INCLUDES = -I$(top_srcdir) -I$(includedir)

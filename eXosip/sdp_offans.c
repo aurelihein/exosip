@@ -22,24 +22,38 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip/eXosip.h>
+#include <eXosip/eXosip2.h>
 
 extern char *localip;
 extern eXosip_t eXosip;
 
+osip_list_t *supported_codec = NULL;
+
 int eXosip_sdp_accept_audio_codec(osip_negotiation_ctx_t *context,
-			      char *port, char *number_of_port,
-			      int audio_qty, char *payload)
-{    
-  if (0==strncmp(payload,"0",1)||0==strncmp(payload,"8",1))
-    /*      ||0==strncmp(payload,"3",1)) */
-    return 0;
+				  char *port, char *number_of_port,
+				  int audio_qty, char *payload)
+{
+  int pos;
+  for (pos=0;!osip_list_eol(supported_codec, pos);pos++)
+    {
+      char *_payload;
+      _payload = osip_list_get(supported_codec, pos);
+      if (0==strcmp(payload,_payload))
+	{
+	  /* 
+	     We have to look at the rtpmap attributes in context->remote
+	     to check if we support this stuff.
+	  */
+
+	  return 0;
+	}
+    }
   return -1;
 }
   
 int eXosip_sdp_accept_video_codec(osip_negotiation_ctx_t *context,
-			      char *port, char *number_of_port,
-			      int video_qty, char *payload)
+				  char *port, char *number_of_port,
+				  int video_qty, char *payload)
 {
   return -1;
 }
@@ -65,53 +79,70 @@ int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn)
   return 0;
 }
 
-int eXosip_sdp_negotiation_init()
+void eXosip_sdp_negotiation_remove_audio_payloads()
 {
-  osip_negotiation_t *sn;
-  int i = osip_negotiation_init(&(eXosip.osip_negotiation));
+  if (supported_codec==NULL)
+    return;
+  for (;!osip_list_eol(supported_codec, 0);)
+    {
+      char *p;
+      p = (char *) osip_list_get(supported_codec, 0);
+      osip_free(p);
+      osip_list_remove(supported_codec, 0);
+    }
+  osip_negotiation_remove_audio_payloads(eXosip.osip_negotiation);
+}
+
+void eXosip_sdp_negotiation_add_codec(char *payload, char *number_of_port,
+				      char *proto, char *c_nettype,
+				      char *c_addrtype, char *c_addr,
+				      char *c_addr_multicast_ttl,
+				      char *c_addr_multicast_int,
+				      char *a_rtpmap)
+{
+  osip_negotiation_add_support_for_audio_codec(eXosip.osip_negotiation,
+					       osip_strdup(payload),
+					       osip_strdup(number_of_port),
+					       osip_strdup(proto),
+					       osip_strdup(c_nettype),
+					       osip_strdup(c_addrtype),
+					       osip_strdup(c_addr),
+					       osip_strdup(c_addr_multicast_ttl),
+					       osip_strdup(c_addr_multicast_int),
+					       osip_strdup(a_rtpmap));
+  osip_list_add(supported_codec, osip_strdup(payload), -1);
+}
+
+int eXosip_sdp_negotiation_init(osip_negotiation_t **sn)
+{
+  int i = osip_negotiation_init(sn);
   if (i!=0) {
     return -1;
   }
-  sn = eXosip.osip_negotiation;
-  osip_negotiation_set_o_username(sn, osip_strdup("userX"));
-  osip_negotiation_set_o_session_id(sn, osip_strdup("20000001"));
-  osip_negotiation_set_o_session_version(sn, osip_strdup("20000001"));
-  osip_negotiation_set_o_nettype(sn, osip_strdup("IN"));
-  osip_negotiation_set_o_addrtype(sn, osip_strdup("IP4"));
-  osip_negotiation_set_o_addr(sn, osip_strdup(localip));
+  if (supported_codec==NULL)
+    {
+      supported_codec = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+      osip_list_init(supported_codec);
+    }
+  osip_negotiation_set_o_username(*sn, osip_strdup("userX"));
+  osip_negotiation_set_o_session_id(*sn, osip_strdup("20000001"));
+  osip_negotiation_set_o_session_version(*sn, osip_strdup("20000001"));
+  osip_negotiation_set_o_nettype(*sn, osip_strdup("IN"));
+  osip_negotiation_set_o_addrtype(*sn, osip_strdup("IP4"));
+  osip_negotiation_set_o_addr(*sn, osip_strdup(localip));
   
-  osip_negotiation_set_c_nettype(sn, osip_strdup("IN"));
-  osip_negotiation_set_c_addrtype(sn, osip_strdup("IP4"));
-  osip_negotiation_set_c_addr(sn, osip_strdup(localip));
+  osip_negotiation_set_c_nettype(*sn, osip_strdup("IN"));
+  osip_negotiation_set_c_addrtype(*sn, osip_strdup("IP4"));
+  osip_negotiation_set_c_addr(*sn, osip_strdup(localip));
   
   /* ALL CODEC MUST SHARE THE SAME "C=" line and proto as the media 
      will appear on the same "m" line... */
-  osip_negotiation_add_support_for_audio_codec(sn, osip_strdup("0"),
-					       NULL,
-					       osip_strdup("RTP/AVP"),
-					       NULL, NULL, NULL,
-					       NULL,NULL,
-					       osip_strdup("0 PCMU/8000"));
-  /*
-    osip_negotiation_add_support_for_audio_codec(sn, osip_strdup("3"),
-    NULL,
-    osip_strdup("RTP/AVP"),
-    NULL, NULL, NULL,
-    NULL,NULL,
-    osip_strdup("3 GSM/8000"));
-  */
-  osip_negotiation_add_support_for_audio_codec(sn, osip_strdup("8"),
-					       NULL,
-					       osip_strdup("RTP/AVP"),
-					       NULL, NULL, NULL,
-					       NULL,NULL,
-					       osip_strdup("8 PCMA/8000"));
+
+  osip_negotiation_set_fcn_accept_audio_codec(*sn, &eXosip_sdp_accept_audio_codec);
+  osip_negotiation_set_fcn_accept_video_codec(*sn, &eXosip_sdp_accept_video_codec);
   
-  osip_negotiation_set_fcn_accept_audio_codec(sn, &eXosip_sdp_accept_audio_codec);
-  osip_negotiation_set_fcn_accept_video_codec(sn, &eXosip_sdp_accept_video_codec);
-  
-  osip_negotiation_set_fcn_accept_other_codec(sn, &eXosip_sdp_accept_other_codec);
-  osip_negotiation_set_fcn_get_audio_port(sn, &eXosip_sdp_get_audio_port);
+  osip_negotiation_set_fcn_accept_other_codec(*sn, &eXosip_sdp_accept_other_codec);
+  osip_negotiation_set_fcn_get_audio_port(*sn, &eXosip_sdp_get_audio_port);
 
   return 0;
 }
