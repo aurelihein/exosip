@@ -65,22 +65,26 @@ static const menu_t josua_menu[]= {
   { 0 }
 };
 
-int cursor_menu = 0;
+static int cursor_menu = 0;
 
 int window_menu_print()
 {
-  int y,x;
+  int y,x, x1;
   char buf[250];
   int i;
   int pos;
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
 
   getmaxyx(stdscr,y,x);
+  if (gui_window_menu.x1<=0)
+    x1 = x;
+  else x1 = gui_window_menu.x1;
+
   pos = 0;
   for (i=gui_window_menu.y0; i<gui_window_menu.y1; i++)
     {
-      snprintf(buf, gui_window_menu.x1 - gui_window_menu.x0,
-	      "%c%c [%s] %-80.80s ",
+      snprintf(buf, x1 - gui_window_menu.x0,
+	      "%c%c [%s] %s ",
 	      (cursor_menu==pos) ? '-' : ' ',
 	      (cursor_menu==pos) ? '>' : ' ',
 	      josua_menu[i-gui_window_menu.y0].key,

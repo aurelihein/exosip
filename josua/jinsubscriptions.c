@@ -27,10 +27,14 @@ static int ___jinsubscription_init = 0;
 static void __jinsubscription_init()
 {
   int k;
-  for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
+  if (___jinsubscription_init==0)
     {
-      memset(&(jinsubscriptions[k]), 0, sizeof(jinsubscription_t));
-      jinsubscriptions[k].state = NOT_USED;
+      ___jinsubscription_init = -1;
+      for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
+	{
+	  memset(&(jinsubscriptions[k]), 0, sizeof(jinsubscription_t));
+	  jinsubscriptions[k].state = NOT_USED;
+	}
     }
 }
 
@@ -40,6 +44,7 @@ jinsubscription_get_number_of_pending_insubscriptions()
 {
   int pos=0;
   int k;
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED)
@@ -53,6 +58,8 @@ jinsubscription_get_number_of_pending_insubscriptions()
 jinsubscription_t *jinsubscription_find_insubscription(int pos)
 {
   int k;
+  __jinsubscription_init();
+
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED)
@@ -70,10 +77,26 @@ int jinsubscription_new(eXosip_event_t *je)
   jinsubscription_t *ca;
   int k;
 
-  if (___jinsubscription_init==0)
+  __jinsubscription_init();
+
+  for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
-      ___jinsubscription_init = -1;
-      __jinsubscription_init();
+      if (jinsubscriptions[k].state != NOT_USED
+	  && jinsubscriptions[k].nid==je->nid)
+	break;
+    }
+  if (k!=MAX_NUMBER_OF_INSUBSCRIPTIONS)
+    {
+      /* new subscrib for existing subscription */
+      ca = &(jinsubscriptions[k]);
+      
+      ca->online_status = je->online_status;
+      ca->ss_status = je->ss_status;
+      ca->ss_reason = je->ss_reason;
+      
+      if (ca->ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
+	ca->state = NOT_USED;
+      return 0;
     }
 
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
@@ -117,6 +140,7 @@ int jinsubscription_new(eXosip_event_t *je)
 
 int jinsubscription_remove(jinsubscription_t *ca)
 {
+  __jinsubscription_init();
   if (ca==NULL)
     return -1;
   ca->state = NOT_USED;
@@ -127,7 +151,7 @@ int jinsubscription_proceeding(eXosip_event_t *je)
 {
   jinsubscription_t *ca;
   int k;
-
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
@@ -183,7 +207,7 @@ int jinsubscription_answered(eXosip_event_t *je)
 {
   jinsubscription_t *ca;
   int k;
-
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
@@ -238,7 +262,7 @@ int jinsubscription_redirected(eXosip_event_t *je)
 {
   jinsubscription_t *ca;
   int k;
-
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
@@ -263,7 +287,7 @@ int jinsubscription_requestfailure(eXosip_event_t *je)
 {
   jinsubscription_t *ca;
   int k;
-
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
@@ -288,7 +312,7 @@ int jinsubscription_serverfailure(eXosip_event_t *je)
 {
   jinsubscription_t *ca;
   int k;
-
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
@@ -313,7 +337,7 @@ int jinsubscription_globalfailure(eXosip_event_t *je)
 {
   jinsubscription_t *ca;
   int k;
-
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
@@ -338,7 +362,7 @@ int jinsubscription_closed(eXosip_event_t *je)
 {
   jinsubscription_t *ca;
   int k;
-
+  __jinsubscription_init();
   for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
     {
       if (jinsubscriptions[k].state != NOT_USED
