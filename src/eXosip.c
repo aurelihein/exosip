@@ -143,6 +143,8 @@ void eXosip_quit(void)
 {
   jauthinfo_t   *jauthinfo;
   eXosip_call_t *jc;
+  eXosip_notify_t *jn;
+  eXosip_subscribe_t *js;
   eXosip_reg_t  *jreg;
   int i;
 
@@ -173,6 +175,18 @@ void eXosip_quit(void)
     {
       REMOVE_ELEMENT(eXosip.j_calls, jc);
       eXosip_call_free(jc);
+    }
+
+  for (js = eXosip.j_subscribes; js!=NULL;js = eXosip.j_subscribes)
+    {
+      REMOVE_ELEMENT(eXosip.j_subscribes, js);
+      eXosip_subscribe_free(js);
+    }
+
+  for (jn = eXosip.j_notifies; jn!=NULL;jn = eXosip.j_notifies)
+    {
+      REMOVE_ELEMENT(eXosip.j_notifies, jn);
+      eXosip_notify_free(jn);
     }
   
   osip_mutex_destroy((struct osip_mutex*)eXosip.j_mutexlock);
