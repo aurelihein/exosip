@@ -21,6 +21,7 @@
 #include "jcalls.h"
 
 #ifdef UCL_SUPPORT
+#ifndef __APPLE_CC__
 
 extern char _localip[30];
 
@@ -406,4 +407,5 @@ void os_sound_close(jcall_t *ca)
   close(fd); /* close the sound card */
 }
 
+#endif
 #endif
