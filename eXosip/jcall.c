@@ -46,7 +46,7 @@ eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
   osip_transaction_t *inc_tr;
   osip_transaction_t *out_tr;
   inc_tr = eXosip_find_last_inc_invite(jc, jd);
-  out_tr = eXosip_find_last_inc_invite(jc, jd);
+  out_tr = eXosip_find_last_out_invite(jc, jd);
   if (inc_tr==NULL)
     return out_tr;
   if (out_tr==NULL)
