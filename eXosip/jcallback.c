@@ -96,7 +96,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
       if (service==0)
 	((struct sockaddr_in*)_addrinfo->ai_addr)->sin_port   = htons (5060);
       else
-	((struct sockaddr_in*)_addrinfo->ai_addr)->sin_port   = htons (service);
+	((struct sockaddr_in*)_addrinfo->ai_addr)->sin_port   = htons ((unsigned short)service);
       _addrinfo->ai_canonname = NULL;
       _addrinfo->ai_next = NULL;
 

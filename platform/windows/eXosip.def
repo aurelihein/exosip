@@ -68,3 +68,4 @@ EXPORTS
 	jsubscriber_load @64
 	jsubscriber_unload @65
 	subscribers_add @66
+	eXosip_answer_options @67
