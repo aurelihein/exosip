@@ -59,9 +59,9 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 
   if (host==NULL)
     {
-      host = sip->rquri->host;
-      if (sip->rquri->port!=NULL)
-	port = osip_atoi(sip->rquri->port);
+      host = sip->req_uri->host;
+      if (sip->req_uri->port!=NULL)
+	port = osip_atoi(sip->req_uri->port);
       else
 	port = 5060;
     }
@@ -187,9 +187,7 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
   if (MSG_IS_NOTIFY(tr->orig_request)
       && type==OSIP_NICT_KILL_TRANSACTION
       && tr->last_response!=NULL
-      //&& 0==strncmp(tr->last_response->statuscode, "481", 3)
-      && 0!=strncmp(tr->last_response->statuscode, "1", 1)
-      && 0!=strncmp(tr->last_response->statuscode, "2", 1))
+      && tr->last_response->status_code > 299)
     {
       /* delete the dialog! */
       REMOVE_ELEMENT(eXosip.j_notifies, jn);
@@ -200,7 +198,8 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
   if (MSG_IS_NOTIFY(tr->orig_request)
       && type==OSIP_NICT_KILL_TRANSACTION
       && tr->last_response!=NULL
-      && 0==strncmp(tr->last_response->statuscode, "2", 1))
+      && tr->last_response->status_code > 199
+      && tr->last_response->status_code < 300)
     {
       if (jn->n_ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
 	{
@@ -412,8 +411,8 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jc = jinfo->jc;
   jn = jinfo->jn;
   js = jinfo->js;
-  if ((MSG_IS_RESPONSEFOR(sip, "INVITE")
-       || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if ((MSG_IS_RESPONSE_FOR(sip, "INVITE")
+       || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
       && !MSG_TEST_CODE(sip, 100))
     {
       int i;
@@ -455,8 +454,8 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 
       if ( jd!=NULL)
 	jd->d_STATE = JD_TRYING;
-      if ( jd!=NULL && MSG_IS_RESPONSEFOR(sip, "INVITE")
-	   && 0<strcmp(sip->statuscode, "179"))
+      if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "INVITE")
+	   && sip->status_code < 180)
 	{
 	  eXosip_event_t *je;
 	  je = eXosip_event_init_for_call(EXOSIP_CALL_PROCEEDING, jc, jd);
@@ -465,8 +464,8 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	  else if (eXosip.j_runtime_mode==EVENT_MODE)
 	    eXosip_event_add(je);
 	}
-      else if ( jd!=NULL && MSG_IS_RESPONSEFOR(sip, "INVITE")
-	   && 0>=strcmp(sip->statuscode, "180"))
+      else if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "INVITE")
+		&& sip->status_code >= 180)
 	{
 	  eXosip_event_t *je;
 	  je = eXosip_event_init_for_call(EXOSIP_CALL_RINGING, jc, jd);
@@ -706,9 +705,9 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
     else
       {
 	port = 5060;
-	if (ack->rquri->port!=NULL)
-	  port = osip_atoi(ack->rquri->port);
-	host = ack->rquri->host;
+	if (ack->req_uri->port!=NULL)
+	  port = osip_atoi(ack->req_uri->port);
+	host = ack->req_uri->host;
       }
 
     cb_udp_snd_message(NULL, ack, host, port, eXosip.j_socket);
@@ -789,20 +788,20 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jc = jinfo->jc;
   jn = jinfo->jn;
   js = jinfo->js;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
     {
       cb_rcv2xx_4invite(tr, sip);
     }
-  else if (MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  else if (MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       cb_rcv2xx_4subscribe(tr, sip);
     }
-  else if (MSG_IS_RESPONSEFOR(sip, "BYE"))
+  else if (MSG_IS_RESPONSE_FOR(sip, "BYE"))
     {
       if (jd!=NULL)
 	jd->d_STATE = JD_TERMINATED;
     }
-  else if (MSG_IS_RESPONSEFOR(sip, "NOTIFY"))
+  else if (MSG_IS_RESPONSE_FOR(sip, "NOTIFY"))
     {
 #ifdef SUPPORT_MSN
       osip_header_t  *expires;
@@ -860,15 +859,15 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       if (jd->d_dialog==NULL)
 	jd->d_STATE = JD_REDIRECTED;
     }
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -891,8 +890,8 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       if (MSG_TEST_CODE(sip, 401) || MSG_TEST_CODE(sip, 407))
@@ -901,7 +900,7 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	jd->d_STATE = JD_CLIENTERROR;
     }
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -924,14 +923,14 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       jd->d_STATE = JD_SERVERERROR;
     }
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -954,14 +953,14 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       jd->d_STATE = JD_GLOBALFAILURE;
     }
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -999,8 +998,8 @@ void cb_snd2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       jd->d_STATE = JD_ESTABLISHED;
       return;
@@ -1019,14 +1018,14 @@ void cb_snd3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_REDIRECTED;
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -1048,14 +1047,14 @@ void cb_snd4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_CLIENTERROR;
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -1078,14 +1077,14 @@ void cb_snd5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_SERVERERROR;
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -1108,14 +1107,14 @@ void cb_snd6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
-      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_GLOBALFAILURE;
 
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
@@ -1193,7 +1192,7 @@ void cb_transport_error(int type, osip_transaction_t *tr, int error)
 int
 eXosip_set_callbacks(osip_t *osip)
 {
-  // register all callbacks
+  /* register all callbacks */
 
   osip_set_cb_send_message(osip, &cb_udp_snd_message);
   

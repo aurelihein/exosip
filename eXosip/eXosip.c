@@ -30,7 +30,6 @@
 #if defined WIN32
 #include <winsock.h>
 #else
-// end andrea
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -193,7 +192,7 @@ int eXosip_execute ( void )
   osip_ist_execute(eXosip.j_osip);
   osip_nist_execute(eXosip.j_osip);
   
-  // free all Calls that are in the TERMINATED STATE? */
+  /* free all Calls that are in the TERMINATED STATE? */
   eXosip_release_terminated_calls();
 
   eXosip_unlock();
@@ -263,7 +262,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
   
   eXosip.j_osip = osip;
 
-  // open the UDP listener
+  /* open the UDP listener */
           
   eXosip.j_socket = (int)socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (eXosip.j_socket==-1)
@@ -415,8 +414,6 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
 
 void eXosip_start_call    (osip_message_t *invite)
 {
-  //  static int static_jcid = 0; /* This value is used as a unique id for call */
-
   eXosip_call_t *jc;
   osip_header_t *subject;
   osip_transaction_t *transaction;
@@ -708,7 +705,7 @@ void eXosip_terminate_call(int cid, int jid)
     {
       osip_transaction_t *tr;
       fprintf(stderr, "eXosip: No established dialog!");
-      //#warning TODO: choose the latest not the first one.
+      /* #warning TODO: choose the latest not the first one. */
       tr=jc->c_out_tr;
       if (tr!=NULL && tr->last_response!=NULL && MSG_IS_STATUS_1XX(tr->last_response))
 	{

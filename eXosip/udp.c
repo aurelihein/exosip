@@ -481,7 +481,7 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
   char *sndrcv;
   char *ipaddr;
 
-  // Is this a "on hold" message?
+  /* Is this a "on hold" message? */
   sdp = NULL;
   pos = 0;
   i = 500;
@@ -567,13 +567,13 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
       if (ipaddr!=NULL || (sndrcv!=NULL && (0==strcmp("inactive", sndrcv)
 					    || 0==strcmp("sendonly", sndrcv))))
 	{
-	  //  We received an INVITE to put on hold the other party.
+	  /*  We received an INVITE to put on hold the other party. */
 	  eXosip_process_invite_on_hold(jc, jd, transaction, evt, sdp);
 	  return;
 	}
       else
 	{
-	  // This is a call modification, probably for taking it of hold
+	  /* This is a call modification, probably for taking it of hold */
 	  eXosip_process_invite_off_hold(jc, jd, transaction, evt, sdp);
 	  return;
 	}
@@ -701,7 +701,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
       }
   }
 
-  //  eXosip_dialog_set_200ok(jd, answer);
+  /* eXosip_dialog_set_200ok(jd, answer); */
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid = transaction->transactionid;
 
@@ -741,8 +741,6 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
     osip_free(contact);
     if (i!=0)
       {
-	//osip_message_free(answer);
-	//return;
 	/* this info is yet known by the remote UA,
 	   so we don't have to exit here */
       }
@@ -1011,8 +1009,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
       evt_answer = osip_new_outgoing_sipmessage(answer);
       evt_answer->transactionid = transaction->transactionid;
 	
-      // add the REQUEST
-      // add the 100 Trying?
+      /* add the REQUEST & the 100 Trying */
       osip_transaction_add_event(transaction, evt);
       osip_transaction_add_event(transaction, evt_answer);
     }
@@ -1258,8 +1255,8 @@ void eXosip_process_response_out_of_transaction (osip_event_t *evt)
   osip_free(evt);
 }
 
-// if second==-1 && useconds==-1  -> wait for ever 
-// if max_message_nb<=0  -> infinite loop.... 
+/* if second==-1 && useconds==-1  -> wait for ever 
+   if max_message_nb<=0  -> infinite loop....  */
 int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 {
   fd_set osip_fdset;
@@ -1317,7 +1314,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 		  i = osip_find_transaction_and_add_event(eXosip.j_osip, sipevent);
 		  if (i!=0)
 		    {
-		      // this event has no transaction,
+		      /* this event has no transaction, */
 		      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				  "This is a request\n", buf));
 		      eXosip_lock();
@@ -1435,8 +1432,6 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
       else
 	return 0;
     }
-
-  // if (pCall->GetDialog()!=NULL) return 0;
 
   return -1;
 }

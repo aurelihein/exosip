@@ -87,16 +87,16 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   /* prepare the request-line */
   osip_message_set_method(request, osip_strdup(method_name));
   osip_message_set_version(request, osip_strdup("SIP/2.0"));
-  osip_message_set_statuscode(request, NULL);
-  osip_message_set_reasonphrase(request, NULL);
+  osip_message_set_status_code(request, 0);
+  osip_message_set_reason_phrase(request, NULL);
 
   if (0==strcmp("REGISTER", method_name))
     {
-      osip_uri_init(&(request->rquri));
-      i = osip_uri_parse(request->rquri, proxy);
+      osip_uri_init(&(request->req_uri));
+      i = osip_uri_parse(request->req_uri, proxy);
       if (i!=0)
 	{
-	  osip_uri_free(request->rquri);
+	  osip_uri_free(request->req_uri);
 	  goto brood_error_1;
 	}
       osip_message_set_to(request, from);
@@ -113,7 +113,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       if (proxy!=NULL)
 	{  /* equal to a pre-existing route set */
 	   /* if the pre-existing route set contains a "lr" (compliance
-	      with bis-08) then the rquri should contains the remote target
+	      with bis-08) then the req_uri should contains the remote target
 	      URI */
 	  osip_uri_param_t *lr_param;
 	  osip_route_t *o_proxy;
@@ -131,17 +131,17 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  osip_uri_uparam_get_byname(o_proxy->url, "lr", &lr_param);
 	  if (lr_param!=NULL) /* to is the remote target URI in this case! */
 	    {
-	      osip_uri_clone(request->to->url, &(request->rquri));
+	      osip_uri_clone(request->to->url, &(request->req_uri));
 	      /* "[request] MUST includes a Route header field containing
 	       the route set values in order." */
 	      osip_list_add(request->routes, o_proxy, 0);
 	    }
 	  else
-	    /* if the first URI of route set does not contain "lr", the rquri
+	    /* if the first URI of route set does not contain "lr", the req_uri
 	       is set to the first uri of route set */
 	    {
 	      osip_uri_uparam_get_byname(o_proxy->url, "lr", &lr_param);
-	      request->rquri = o_proxy->url;
+	      request->req_uri = o_proxy->url;
 	      o_proxy->url = NULL;
 	      osip_route_free(o_proxy);
 	      /* add the route set */
@@ -155,8 +155,8 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	}
       else /* No route set (outbound proxy) is used */
 	{
-	  /* The UAC must put the remote target URI (to field) in the rquri */
-	    i = osip_uri_clone(request->to->url, &(request->rquri));
+	  /* The UAC must put the remote target URI (to field) in the req_uri */
+	    i = osip_uri_clone(request->to->url, &(request->req_uri));
 	    if (i!=0) goto brood_error_1;
 	}
     }
@@ -458,7 +458,7 @@ int
 dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
 {
   /* if the pre-existing route set contains a "lr" (compliance
-     with bis-08) then the rquri should contains the remote target
+     with bis-08) then the req_uri should contains the remote target
      URI */
   int i;
   int pos=0;
@@ -476,10 +476,10 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
     route = (osip_route_t*)osip_list_get(dialog->route_set, 0);
     
   osip_uri_uparam_get_byname(route->url, "lr", &lr_param);
-  if (lr_param!=NULL) /* the remote target URI is the rquri! */
+  if (lr_param!=NULL) /* the remote target URI is the req_uri! */
     {
       i = osip_uri_clone(dialog->remote_contact_uri->url,
-		    &(request->rquri));
+		    &(request->req_uri));
       if (i!=0) return -1;
       /* "[request] MUST includes a Route header field containing
 	 the route set values in order." */
@@ -500,11 +500,11 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
       return 0;
     }
 
-  /* if the first URI of route set does not contain "lr", the rquri
+  /* if the first URI of route set does not contain "lr", the req_uri
      is set to the first uri of route set */
   
   
-  i = osip_uri_clone(route->url, &(request->rquri));
+  i = osip_uri_clone(route->url, &(request->req_uri));
   if (i!=0) return -1;
   /* add the route set */
   /* "The UAC MUST add a route header field containing
@@ -537,7 +537,7 @@ dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
   if (i!=0) { osip_free(last_route); return -1; }
 
   
-  /* route header and rquri set */
+  /* route header and req_uri set */
   return 0;
 }
 
@@ -560,16 +560,16 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       return -1;
     }
   /* prepare the request-line */
-  request->sipmethod  = osip_strdup(method_name);
-  request->sipversion = osip_strdup("SIP/2.0");
-  request->statuscode   = NULL;
-  request->reasonphrase = NULL;
+  request->sip_method  = osip_strdup(method_name);
+  request->sip_version = osip_strdup("SIP/2.0");
+  request->status_code   = 0;
+  request->reason_phrase = NULL;
 
   /* and the request uri???? */
   if (osip_list_eol(dialog->route_set, 0))
     {
-      /* The UAC must put the remote target URI (to field) in the rquri */
-      i = osip_uri_clone(dialog->remote_contact_uri->url, &(request->rquri));
+      /* The UAC must put the remote target URI (to field) in the req_uri */
+      i = osip_uri_clone(dialog->remote_contact_uri->url, &(request->req_uri));
       if (i!=0) goto grwd_error_1;
     }
   else
@@ -745,10 +745,10 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
   /* prepare the request-line */
   osip_message_set_method(request, osip_strdup("CANCEL"));
   osip_message_set_version(request, osip_strdup("SIP/2.0"));
-  osip_message_set_statuscode(request, NULL);
-  osip_message_set_reasonphrase(request, NULL);
+  osip_message_set_status_code(request, 0);
+  osip_message_set_reason_phrase(request, NULL);
 
-  i = osip_uri_clone(request_cancelled->rquri, &(request->rquri));
+  i = osip_uri_clone(request_cancelled->req_uri, &(request->req_uri));
   if (i!=0) goto gc_error_1;
   
   i = osip_to_clone(request_cancelled->to, &(request->to));

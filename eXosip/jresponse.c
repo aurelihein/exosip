@@ -47,28 +47,27 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   /* initialise osip_message_t structure */
   /* yet done... */
 
-  response->sipversion = (char *)osip_malloc(8*sizeof(char));
-  sprintf(response->sipversion,"SIP/2.0");
-  response->statuscode = (char *)osip_malloc(5*sizeof(char));
-  sprintf(response->statuscode,"%i",status);
+  response->sip_version = (char *)osip_malloc(8*sizeof(char));
+  sprintf(response->sip_version,"SIP/2.0");
+  osip_message_set_status_code(response, status);
 
   /* handle some internal reason definitions. */
   if (MSG_IS_NOTIFY(request) && status==481)
     {
-      response->reasonphrase = osip_strdup("Subcription Does Not Exist");
+      response->reason_phrase = osip_strdup("Subcription Does Not Exist");
     }
   else
     {
-      response->reasonphrase = osip_message_get_reason(status);
-      if (response->reasonphrase==NULL)
+      response->reason_phrase = osip_strdup(osip_message_get_reason(status));
+      if (response->reason_phrase==NULL)
 	{
-	  if (0==strcmp(response->statuscode, "101"))
-	    response->reasonphrase = osip_strdup("Dialog Establishement");
+	  if (response->status_code == 101)
+	    response->reason_phrase = osip_strdup("Dialog Establishement");
 	  else
-	    response->reasonphrase = osip_strdup("Unknown code");
+	    response->reason_phrase = osip_strdup("Unknown code");
 	}
-      response->rquri     = NULL;
-      response->sipmethod = NULL;
+      response->req_uri     = NULL;
+      response->sip_method = NULL;
     }
 
   i = osip_to_clone(request->to, &(response->to));

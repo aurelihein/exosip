@@ -22,11 +22,14 @@
 #include <mpatrol.h>
 #endif
 
+#include <osipparser2/osip_port.h>
+
 #ifdef WIN32
 
 /* You need the Platform SDK to compile this. */
 #include <Windows.h>
 #include <Iphlpapi.h>
+
 
 void
 eXosip_guess_ip_for_via (char *alocalip)
@@ -166,7 +169,7 @@ ppl_dns_get_local_fqdn (char **servername, char **serverip,
 						switch(ifrow->dwType)
 						{
 						case MIB_IF_TYPE_LOOPBACK:
-						//	break;
+						  /*	break; */
 						case MIB_IF_TYPE_ETHERNET:
 						default:
 							addr.s_addr = ipt->table[pos].dwAddr;
@@ -232,7 +235,7 @@ eXosip_guess_ip_for_via (char *alocalip)
   alocalip[0] = '\0';
   memset(&remote, 0, sizeof(struct sockaddr_in));
   remote.sin_family = AF_INET;
-  //  remote.sin_addr.s_addr = inet_addr("217.12.3.11");
+  /*  remote.sin_addr.s_addr = inet_addr("217.12.3.11"); */
   remote.sin_addr.s_addr = inet_addr("217.12.3.11");
   remote.sin_port = htons(11111);
   

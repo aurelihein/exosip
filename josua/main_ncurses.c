@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.25 2003-05-05 12:53:45 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.26 2003-05-26 11:41:16 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -529,14 +529,14 @@ struct colordata {
 
 struct colordata color[]= {
   /* fore              back            attr */
-  {COLOR_WHITE,        COLOR_BLACK,    0			}, // 0 default
-  {COLOR_WHITE,        COLOR_GREEN,      A_BOLD			}, // 1 title
-  {COLOR_WHITE,        COLOR_BLACK,    0			}, // 2 list
-  {COLOR_WHITE,        COLOR_YELLOW,   A_REVERSE		}, // 3 listsel
-  {COLOR_WHITE,        COLOR_BLUE,     0			}, // 4 calls
-  {COLOR_WHITE,        COLOR_RED,      0			}, // 5 query
-  {COLOR_BLACK,        COLOR_CYAN,     0			}, // 6 info
-  {COLOR_WHITE,        COLOR_BLACK,    0			}, // 7 help
+  {COLOR_WHITE,        COLOR_BLACK,    0	}, /* 0 default */
+  {COLOR_WHITE,        COLOR_GREEN,      A_BOLD	}, /* 1 title */
+  {COLOR_WHITE,        COLOR_BLACK,    0	}, /* 2 list */
+  {COLOR_WHITE,        COLOR_YELLOW,   A_REVERSE}, /* 3 listsel */
+  {COLOR_WHITE,        COLOR_BLUE,     0	}, /* 4 calls */
+  {COLOR_WHITE,        COLOR_RED,      0	}, /* 5 query */
+  {COLOR_BLACK,        COLOR_CYAN,     0	}, /* 6 info */
+  {COLOR_WHITE,        COLOR_BLACK,    0	}, /* 7 help */
 };
 
 int use_color = 0; /* 0: yes,      1: no */
@@ -667,7 +667,6 @@ nctab_print(nctab_t (*nctab)[],
       else
 	sprintf(buf, "%-80.80s\n", " ");
 
-      //sprintf(buf, "qsdqsdqdsq\n");
       mvaddnstr(vlength + (*nctab)[i].field_yoffset,
 		(*nctab)[i].field_xoffset,
 		buf , hlength - 1 - (*nctab)[i].field_xoffset);
@@ -822,7 +821,7 @@ void josua_printf(char *chfr, ...)
     }
 
   osip_mutex_lock(log_mutex);
-  // snprintf(log_buf1,199, "%80.80s\n", buf1);
+  /* snprintf(log_buf1,199, "%80.80s\n", buf1); */
   if (log_buf1=='\0')
     snprintf(log_buf1,255, "[%s]", buf1);
   else if (log_buf2=='\0')
@@ -1223,9 +1222,9 @@ void print_call(int i, eXosip_call_t *jc, int so)
 		  && tr->last_response!=NULL)
 		{
 		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  snprintf(buf, 255 ,"%s %s: // From: %s",
-			   tr->last_response->statuscode,
-			   tr->last_response->reasonphrase,
+		  snprintf(buf, 255 ,"%i %s: // From: %s",
+			   tr->last_response->status_code,
+			   tr->last_response->reason_phrase,
 			   tmp);
 		  osip_free(tmp);
 		}
@@ -1234,9 +1233,9 @@ void print_call(int i, eXosip_call_t *jc, int so)
 		  && tr->last_response!=NULL)
 		{
 		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  snprintf(buf, 255, "%s %s // To: %s",
-			  tr->last_response->statuscode,
-			  tr->last_response->reasonphrase,
+		  snprintf(buf, 255, "%i %s // To: %s",
+			  tr->last_response->status_code,
+			  tr->last_response->reason_phrase,
 			  tmp);
 		  osip_free(tmp);
 		}
@@ -1244,14 +1243,14 @@ void print_call(int i, eXosip_call_t *jc, int so)
 		{
 		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
 		  if (jd->d_dialog->type==CALLEE)
-		    snprintf(buf, 255,"%s %s // From: %s",
-			    tr->last_response->statuscode,
-			    tr->last_response->reasonphrase,
+		    snprintf(buf, 255,"%i %s // From: %s",
+			    tr->last_response->status_code,
+			    tr->last_response->reason_phrase,
 			    tmp);
 		  else
-		    snprintf(buf, 255, "%s %s // To: %s",
-			    tr->last_response->statuscode,
-			    tr->last_response->reasonphrase,
+		    snprintf(buf, 255, "%i %s // To: %s",
+			    tr->last_response->status_code,
+			    tr->last_response->reason_phrase,
 			    tmp);
 		  osip_free(tmp);
 		}
@@ -1369,18 +1368,18 @@ void print_menu(int menu)
       nctab_print(&nctab_transfercall,
 		  TABSIZE_TRANSFERCALL, 
 		  COLORPAIR_TRANSFERCALL);
-      //print_transfer_menu();
+      /* print_transfer_menu(); */
     }
   else if (menu==MENU_RG)
     {
-      // print_register_menu();
+      /* print_register_menu(); */
     }
   else if (menu==MENU_SETUP)
     {
       nctab_print(&nctab_josuasetup,
 		  TABSIZE_JOSUASETUP, 
 		  COLORPAIR_JOSUASETUP);
-      // print_set_up_menu();
+      /* print_set_up_menu(); */
     }
   else if (menu==MENU_MG)
     {
@@ -1393,7 +1392,7 @@ void print_menu(int menu)
       nctab_print(&nctab_answercall,
 		  TABSIZE_ANSWERCALL, 
 		  COLORPAIR_ANSWERCALL);
-	//print_answer_menu();
+      /* print_answer_menu(); */
     }
   else if (menu==MENU_TC)
     {
@@ -1898,7 +1897,7 @@ void __josua_menu() {
   int cursor=0;
   dme(0,1);
   for (;;) {
-    //refresh();
+    /* refresh(); */
     do
       {
 	print_calls();
@@ -1916,7 +1915,7 @@ void __josua_menu() {
       if(errno != 0)
 	{
 	  fprintf(stderr, "failed to getch in main menu\n");
-	  //perror("hello");
+	  /* perror("hello"); */
 	  exit(1);
 	}
       else {
@@ -2178,7 +2177,6 @@ int main(int argc, const char *const *argv) {
 }
 
 void __josua_message() {
-  //  osip_message_t *message;
   char buf[120];
 
   int c;

@@ -77,9 +77,8 @@ int sdp_context_gen_out_resp(SdpContext *obj, osip_message_t *resp)
 {
 	char *p;
 	/* if the response is not a 200 OK for invite, exit */
-	if (strcmp(osip_message_get_statuscode(resp),"200")!=0){
-		return 0;
-	}
+	if (osip_message_get_status_code(resp) == 200)
+	  return 0;
 	/* if in bad state exit too */
 	if (obj->state!=SDP_CONTEXT_STATE_NEGOCIATION_OPENED) return 0;
 	/* set the remote negociated sdp in the outgoing response */
