@@ -257,7 +257,7 @@ int   eXosip_initiate_call    (osip_message_t *invite, void *reference,
  * @param body_type		  body type (ex: "application/sdp")
  * @param body 			  The body.
  */
-int   eXosip_initiate_call_with_body    (osip_message_t *invite, const char *body_type, const char *body);
+int   eXosip_initiate_call_with_body    (osip_message_t *invite, const char *body_type, const char *body, void *reference);
 
 /**
  * Initiate a blind transfer outside of a call.
