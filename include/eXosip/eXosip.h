@@ -195,13 +195,13 @@ int eXosip_add_authentication_info(const char *username, const char *userid,
 int eXosip_clear_authentication_info(void);
 
 /**
- * Remove an audio payload.
+ * Remove all audio payload.
  * 
  */
 void eXosip_sdp_negotiation_remove_audio_payloads(void);
 
 /**
- * Remove an audio payload.
+ * Add an audio payload.
  * 
  * @param payload         The payload
  * @param number_of_port  The number of port
