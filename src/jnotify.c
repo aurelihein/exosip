@@ -203,13 +203,6 @@ eXosip_notify_free(eXosip_notify_t *jn)
 }
 
 int
-_eXosip_notify_set_contact_info(eXosip_notify_t *jn, char *uri)
-{
-  osip_strncpy(jn->n_contact_info, uri, 254);
-  return 0;
-}
-
-int
 _eXosip_notify_set_refresh_interval(eXosip_notify_t *jn,
 				    osip_message_t *inc_subscribe)
 {
@@ -257,7 +250,7 @@ _eXosip_notify_add_body(eXosip_notify_t *jn, osip_message_t *notify)
   int atom_id = 1000;
 #endif
   if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_ACTIVE
-      || jn->n_contact_info=='\0') /* mandatory! */
+      || jn->n_contact_info==NULL || jn->n_contact_info=='\0') /* mandatory! */
     return 0; /* don't need a body? */
 
 #ifdef SUPPORT_MSN

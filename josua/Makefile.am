@@ -25,7 +25,7 @@ josua_SOURCES = \
 commands.c                  gui_new_identity.c       jinsubscriptions.c     \
 gui.c                       gui_online.c             jsubscriptions.c       \
 gui_address_book_browse.c   gui_registrations_list.c main_ncurses.c         \
-gui_address_book_newentry.c gui_sessions_list.c      main_shell.c           \
+gui_address_book_newentry.c gui_sessions_list.c                 \
 gui_icon.c                  gui_setup.c              pplgetopt.c            \
 gui_insubscriptions_list.c  gui_subscriptions_list.c sound-mediastreamer.c  \
 gui_loglines.c              gui_topline.c            sound-ortp.c           \
