@@ -110,8 +110,6 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
     {
       osip_header_t *exp;
       osip_parser_set_header(response, "Event", "presence");
-#define LOW_EXPIRE
-#ifndef LOW_EXPIRE
       i = osip_parser_get_expires(request, 0, &exp);
       if (exp==NULL)
 	{
@@ -120,9 +118,6 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 	  if (cp!=NULL)
 	    osip_list_add(response->headers, cp, 0);
 	}
-#else
-      i = osip_parser_set_expires(response, "30");
-#endif
     }
     
   osip_parser_set_allow(response, "INVITE");

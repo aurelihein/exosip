@@ -390,8 +390,12 @@ int generating_initial_subscribe(osip_message_t **subscribe, char *to,
 				       route);
   if (i!=0) return -1;
   
-  /* after this delay, we should send a CANCEL */
+#define LOW_EXPIRE
+#ifdef LOW_EXPIRE
+  osip_parser_set_expires(*subscribe, "60");
+#else
   osip_parser_set_expires(*subscribe, "600");
+#endif
 
   /* osip_parser_set_organization(*subscribe, "Jack's Org"); */
   return 0;

@@ -639,6 +639,8 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
       return;
     }
 
+  _eXosip_notify_add_expires_in_2XX_for_subscribe(jn, answer);
+
   {
     char *contact;
     contact = (char *) osip_malloc(50);
@@ -682,6 +684,8 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
       return ;
     }
   
+  _eXosip_notify_add_expires_in_2XX_for_subscribe(jn, answer);
+
   {
     char *contact;
     contact = (char *) osip_malloc(50);
@@ -705,6 +709,16 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
   sipevent->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction, sipevent);
 
+  /* if subscribe request contains expires="0", close the subscription */
+  {
+    int now = time(NULL);
+    if (jn->n_ss_expires-now<=0)
+      {
+	jn->n_ss_status=EXOSIP_SUBCRSTATE_TERMINATED;
+	jn->n_ss_reason=TIMEOUT;
+      }
+  }
+
   eXosip_notify_send_notify(jn, jd, jn->n_ss_status,
 			    jn->n_online_status);
   return;
@@ -719,7 +733,9 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   osip_message_t *answer;
   osip_event_t   *sipevent;
   osip_header_t  *sub_state;
+#ifdef SUPPORT_MSN
   osip_header_t  *expires;
+#endif
   int i;
 
   /* if subscription-state has a reason state set to terminated,

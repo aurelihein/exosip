@@ -181,6 +181,34 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
       /* delete the dialog! */
       REMOVE_ELEMENT(eXosip.j_notifies, jn);
       eXosip_notify_free(jn);
+      return;
+    }
+
+  if (MSG_IS_NOTIFY(tr->orig_request)
+      && type==OSIP_NICT_KILL_TRANSACTION
+      && tr->last_response!=NULL
+      //&& 0==strncmp(tr->last_response->statuscode, "481", 3)
+      && 0!=strncmp(tr->last_response->statuscode, "1", 1)
+      && 0!=strncmp(tr->last_response->statuscode, "2", 1))
+    {
+      /* delete the dialog! */
+      REMOVE_ELEMENT(eXosip.j_notifies, jn);
+      eXosip_notify_free(jn);
+      return;
+    }
+
+  if (MSG_IS_NOTIFY(tr->orig_request)
+      && type==OSIP_NICT_KILL_TRANSACTION
+      && tr->last_response!=NULL
+      && 0==strncmp(tr->last_response->statuscode, "2", 1))
+    {
+      if (jn->n_ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
+	{
+	  /* delete the dialog! */
+	  REMOVE_ELEMENT(eXosip.j_notifies, jn);
+	  eXosip_notify_free(jn);
+	  return;
+	}
     }
 
   /* no answer to a SUBSCRIBE request! */
@@ -191,9 +219,11 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
       /* delete the dialog! */
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
+      return;
     }
 
-  /* no answer to a SUBSCRIBE request! */
+  /* detect SUBSCRIBE request that close the dialogs! */
+  /* expires=0 with MSN */
   if (MSG_IS_SUBSCRIBE(tr->orig_request)
       && type==OSIP_NICT_KILL_TRANSACTION)
     {
@@ -207,6 +237,7 @@ void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
 	  /* delete the dialog! */
 	  REMOVE_ELEMENT(eXosip.j_subscribes, js);
 	  eXosip_subscribe_free(js);
+	  return;
 	}
     }
 }

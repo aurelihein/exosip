@@ -196,3 +196,22 @@ _eXosip_notify_add_body(eXosip_notify_t *jn, osip_message_t *notify)
 
   return 0;
 }
+
+void
+_eXosip_notify_add_expires_in_2XX_for_subscribe(eXosip_notify_t *jn, osip_message_t *answer)
+{
+  char tmp[20];
+  int now;
+  now = time(NULL);
+
+  if (jn->n_ss_expires-now<0)
+    {
+      tmp[0] = '0';
+      tmp[1] = '\0';
+    }
+  else
+    {
+      sprintf(tmp, "%i", jn->n_ss_expires-now);
+    }
+  osip_parser_set_expires(answer, tmp);
+}

@@ -353,6 +353,9 @@ int  eXosip_notify_init(eXosip_notify_t **jn);
 void eXosip_notify_free(eXosip_notify_t *jn);
 int  _eXosip_notify_set_refresh_interval(eXosip_notify_t *jn,
 					 osip_message_t *inc_subscribe);
+void _eXosip_notify_add_expires_in_2XX_for_subscribe(eXosip_notify_t *jn,
+						     osip_message_t *answer);
+int  _eXosip_notify_add_body(eXosip_notify_t *jn, osip_message_t *notify);
 int  eXosip_notify_add_allowed_subscriber(char *sip_url);
 int  _eXosip_notify_is_a_known_subscriber(osip_message_t *sip);
 void eXosip_notify_send_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd,
