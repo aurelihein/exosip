@@ -673,6 +673,7 @@ eXosip_event_init(eXosip_event_t **je, int type)
 void
 eXosip_event_free(eXosip_event_t *je)
 {
+  if (je==NULL) return;
   if (je->i_ctt!=NULL)
     osip_content_type_free(je->i_ctt);
   if (je->i_bodies!=NULL)

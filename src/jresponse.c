@@ -1,17 +1,17 @@
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2002, 2003  Aymeric MOIZARD  - jack@atosc.org
-
+  
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-
+  
   eXosip is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-
+  
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -130,7 +130,7 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 	    osip_list_add(response->headers, cp, 0);
 	}
     }
-
+    
   osip_message_set_allow(response, "INVITE");
   osip_message_set_allow(response, "ACK");
   osip_message_set_allow(response, "OPTIONS");
@@ -229,7 +229,7 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 #endif
 
   osip_message_set_contact(response, contact);
-
+	
   return 0;
 }
 
@@ -241,11 +241,11 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
   char *local_body = NULL;
   char *size;
   int i;
-
+  
   jc->c_ack_sdp = 1;
   if(osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &local_sdp, local_sdp_port, NULL) != 0)
     return NULL;
-
+  
   if (local_sdp!=NULL)
     {
       int pos=0;
@@ -281,9 +281,9 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	  pos++;
 	}
     }
-
+  
   i = sdp_message_to_str(local_sdp, &local_body);
-
+  
   if (local_body!=NULL)
     {
       size= (char *)osip_malloc(7*sizeof(char));
@@ -294,17 +294,17 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
 #endif
       osip_message_set_content_length(orig_request, size);
       osip_free(size);
-
+  
       osip_message_set_body(orig_request, local_body);
       osip_message_set_content_type(orig_request, "application/sdp");
     }
   else
     osip_message_set_content_length(orig_request, "0");
-
+  
   osip_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);
-
+  
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO3,NULL,"200 OK w/ SDP (RESPONSE TO INVITE w/ NO SDP)=\n%s\n", local_body));
-
+  
   return local_body;
 }
 
@@ -325,11 +325,11 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
       body = (osip_body_t *)osip_list_get(request->bodies,0);
       if(body == NULL)
 	return NULL;
-
+      
       /* remote_sdp = (sdp_message_t *) osip_malloc(sizeof(sdp_message_t)); */
       i = sdp_message_init(&remote_sdp);
       if (i!=0) return NULL;
-
+      
       /* WE ASSUME IT IS A SDP BODY AND THAT    */
       /* IT IS THE ONLY ONE, OF COURSE, THIS IS */
       /* NOT TRUE */
@@ -634,7 +634,7 @@ _eXosip2_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osi
     {
       i = complete_answer_that_establish_a_dialog(*answer, tr->orig_request);
     }
-
+  
   return 0;
 }
 
@@ -671,7 +671,7 @@ _eXosip2_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osi
          "eXosip: transaction already answered\n"));
       return -1;
     }
-
+  
   if (jd==NULL)
     i = _eXosip_build_response_default(answer, NULL, code, tr->orig_request);
   else
@@ -804,7 +804,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 
   osip_transaction_add_event(tr, evt_answer);
   __eXosip_wakeup();
-
+  
   return 0;
 }
 
@@ -844,7 +844,7 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
          "eXosip: transaction already answered\n"));
       return -1;
     }
-
+  
   if (jd==NULL)
     i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
   else
@@ -971,7 +971,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
 	/* body is NULL (contains no SDP), generate a response to INVITE w/ no SDP */
 	body = generating_no_sdp_answer(jc, jd, tr->orig_request, local_sdp_port);
     }
-
+  
   if (jd==NULL)
     i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
   else
