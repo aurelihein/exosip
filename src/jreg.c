@@ -36,7 +36,9 @@ int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
   (*jr)->r_aor        = osip_strdup(from);      /* sip identity */
   (*jr)->r_contact    = osip_strdup(contact);   /* sip identity */
   (*jr)->r_registrar  = osip_strdup(proxy);     /* registrar */
+#if 0
   (*jr)->r_realms     = NULL;      /* list of realms */
+#endif
   (*jr)->r_last_tr    = NULL;
 
   (*jr)->next   = NULL;
@@ -50,7 +52,9 @@ void eXosip_reg_free(eXosip_reg_t *jreg)
   osip_free(jreg->r_aor);
   osip_free(jreg->r_contact);
   osip_free(jreg->r_registrar);
+#if 0
   osip_free(jreg->r_realms);
+#endif
 
   if (jreg->r_last_tr->state==IST_TERMINATED ||
       jreg->r_last_tr->state==ICT_TERMINATED ||

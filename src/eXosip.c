@@ -403,6 +403,12 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_events = (osip_fifo_t*) osip_malloc(sizeof(osip_fifo_t));
   osip_fifo_init(eXosip.j_events);
 
+#if 0
+  eXosip_add_authentication_info("jack", "jack",
+				 "jack", NULL,
+				 "atosc.org");
+#endif
+
   jfriend_load();
   jidentity_load();
   jsubscriber_load();
@@ -1245,6 +1251,132 @@ int eXosip_terminate_call(int cid, int jid)
   return 0;
 }
 
+jauthinfo_t *
+eXosip_find_authentication_info(char *username, char *realm)
+{
+  jauthinfo_t *authinfo;
+  for (authinfo = eXosip.authinfos;
+       authinfo!=NULL;
+       authinfo = authinfo->next)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "INFO: authinfo: %s %s\n", realm, authinfo->realm));
+      if (0==strcmp(authinfo->username, username)
+	  && 0==strncmp(realm+1, authinfo->realm, strlen(realm)-2))
+	return authinfo;
+    }
+  return NULL;
+}
+
+int
+eXosip_add_authentication_info(char *username, char *userid,
+			       char *passwd, char *ha1,
+			       char *realm)
+{
+  jauthinfo_t *authinfos;
+
+  if (username==NULL || username[0]=='\0') return -1;
+  if (userid==NULL || userid[0]=='\0')     return -1;
+  if (realm==NULL || realm[0]=='\0')       return -1;
+
+  if ( passwd!=NULL && passwd[0]!='\0')    {}
+  else if (ha1!=NULL && ha1[0]!='\0')      {}
+  else return -1;
+
+  authinfos = (jauthinfo_t *) osip_malloc(sizeof(jauthinfo_t));
+  if (authinfos==NULL)
+    return -1;
+  memset(authinfos, 0, sizeof(jauthinfo_t));
+
+  snprintf(authinfos->username, 50, username);
+  snprintf(authinfos->userid,   50, userid);
+  if ( passwd!=NULL && passwd[0]!='\0')
+    snprintf(authinfos->passwd,   50, passwd);
+  else if (ha1!=NULL && ha1[0]!='\0')
+    snprintf(authinfos->ha1,      50, ha1);
+  snprintf(authinfos->realm,    50, realm);
+
+  ADD_ELEMENT(eXosip.authinfos, authinfos);
+  return 0;
+}
+
+int
+eXosip_add_authentication_information(osip_message_t *req,
+				      osip_message_t *last_response)
+{
+  osip_authorization_t *aut = NULL;
+  osip_www_authenticate_t *wwwauth = NULL;
+  osip_proxy_authorization_t *proxy_aut = NULL;
+  osip_proxy_authenticate_t *proxyauth = NULL;
+  jauthinfo_t *authinfo = NULL;
+  int pos;
+  int i;
+
+  if (req==NULL
+      ||req->from==NULL
+      ||req->from->url==NULL
+      ||req->from->url->username==NULL)
+    return -1;
+
+  pos=0;
+  osip_message_get_www_authenticate(last_response, pos, &wwwauth);
+  osip_message_get_proxy_authenticate(last_response, pos, &proxyauth);
+  if (wwwauth==NULL && proxyauth==NULL) return -1;
+
+  while (wwwauth!=NULL)
+    {
+      char *uri;
+      authinfo = eXosip_find_authentication_info(req->from->url->username,
+						 wwwauth->realm);
+      if (authinfo==NULL) return -1;
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+		   "authinfo: %s %s\n", authinfo->username, authinfo->realm));
+      i = osip_uri_to_str (req->req_uri, &uri);
+      if (i!=0) return -1;
+      
+      i = osip_create_authorization_header(last_response, uri,
+					   authinfo->username,
+					   authinfo->passwd,
+					   &aut);
+      if (i!=0) { osip_free(uri); return -1; }
+
+      if (aut != NULL)
+	osip_list_add (req->authorizations, aut, -1);
+
+      pos++;
+      osip_message_get_www_authenticate(last_response, pos, &wwwauth);
+    }
+
+  pos=0;
+  while (proxyauth!=NULL)
+    {
+      char *uri;
+      authinfo = eXosip_find_authentication_info(req->from->url->username,
+						 proxyauth->realm);
+      if (authinfo==NULL) return -1;
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+		   "authinfo: %s %s\n", authinfo->username, authinfo->realm));
+      i = osip_uri_to_str (req->req_uri, &uri);
+      if (i!=0) return -1;
+      
+      i = osip_create_proxy_authorization_header(last_response, uri,
+						 authinfo->username,
+						 authinfo->passwd,
+						 &proxy_aut);
+      if (i!=0) { osip_free(uri); return -1; }
+
+      if (proxy_aut != NULL)
+	osip_list_add (req->proxy_authorizations, proxy_aut, -1);
+
+      pos++;
+      osip_message_get_proxy_authenticate (last_response, pos, &proxyauth);
+    }
+  return 0;
+}
+
 int eXosip_register      (int rid, int registration_period)
 {
   osip_transaction_t *transaction;
@@ -1261,7 +1393,9 @@ int eXosip_register      (int rid, int registration_period)
       return -1;
     }
   jr->r_reg_period = registration_period;
-  if (jr->r_reg_period>3600)
+  if (jr->r_reg_period==0)
+    {} /* unregistration */
+  else if (jr->r_reg_period>3600)
     jr->r_reg_period = 3600;
   else if (jr->r_reg_period<200) /* too low */
     jr->r_reg_period = 200;
@@ -1276,8 +1410,13 @@ int eXosip_register      (int rid, int registration_period)
 	}
       else
 	{
+	  osip_message_t *last_response;
+
 	  reg = jr->r_last_tr->orig_request;
+	  last_response = jr->r_last_tr->last_response;
+
 	  jr->r_last_tr->orig_request = NULL;
+	  jr->r_last_tr->last_response = NULL;
 	  __eXosip_delete_jinfo(jr->r_last_tr);
 	  osip_transaction_free(jr->r_last_tr);
 	  jr->r_last_tr = NULL;
@@ -1314,6 +1453,12 @@ int eXosip_register      (int rid, int registration_period)
 
 	    osip_message_force_update(reg);
 	  }
+
+	  if (MSG_IS_STATUS_4XX(last_response))
+	    {
+	      eXosip_add_authentication_information(reg, last_response);
+	    }
+	  osip_message_free(last_response);
 	}
     }
   if (reg==NULL)
@@ -1351,7 +1496,6 @@ int eXosip_register      (int rid, int registration_period)
 #endif
   return 0;
 }
-
 
 int
 eXosip_register_init(char *from, char *proxy, char *contact)

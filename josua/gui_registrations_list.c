@@ -199,7 +199,12 @@ int window_registrations_list_run_command(int c)
 	+cursor_registrations_start;
       break;
     case 'u':
-      /* start UN-registration */
+      /* start registration */
+      i = _josua_unregister(cursor_registrations_list
+			    +cursor_registrations_start);
+      if (i!=0) { beep(); return -1; }
+      last_reg_id = cursor_registrations_list
+	+cursor_registrations_start;
       break;
     case 'd':
       /* delete entry */

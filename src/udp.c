@@ -417,6 +417,7 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
     local_sdp = osip_negotiation_ctx_get_local_sdp(jc->c_ctx);
   }
 
+#if 0
   if (remote_sdp==NULL)
     {
       sdp_message_t *local_sdp;
@@ -430,6 +431,7 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	  return NULL;
 	}
     }
+#endif
 
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
@@ -757,7 +759,6 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	      pos_media++;
 	    }
 	}
-
 
       if (ipaddr!=NULL || (sndrcv!=NULL && (0==osip_strcasecmp("inactive", sndrcv)
 					    || 0==osip_strcasecmp("sendonly", sndrcv))))

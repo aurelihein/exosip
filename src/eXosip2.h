@@ -157,6 +157,7 @@ struct eXosip_call_t {
 };
 
 
+#if 0
 typedef struct eXosip_realm_t eXosip_realm_t;
 
 struct eXosip_realm_t {
@@ -170,6 +171,7 @@ struct eXosip_realm_t {
   eXosip_realm_t *next;
   eXosip_realm_t *parent;
 };
+#endif
 
 typedef struct eXosip_reg_t eXosip_reg_t;
 
@@ -180,12 +182,26 @@ struct eXosip_reg_t {
   int             r_reg_period;     /* delay between registration */
   char           *r_aor;            /* sip identity */
   char           *r_registrar;      /* registrar */
+#if 0
   eXosip_realm_t *r_realms;         /* list of realms */
+#endif
   char           *r_contact;        /* list of contacts string */
 
   osip_transaction_t  *r_last_tr;
   eXosip_reg_t   *next;
   eXosip_reg_t   *parent;
+};
+
+typedef struct jauthinfo_t jauthinfo_t;
+
+struct jauthinfo_t {
+  char username[50];
+  char userid[50];
+  char passwd[50];
+  char ha1[50];
+  char realm[50];
+  jauthinfo_t *parent;
+  jauthinfo_t *next;
 };
 
 
@@ -250,7 +266,9 @@ struct eXosip_t {
   eXosip_callback_t   j_call_callbacks[EXOSIP_CALLBACK_COUNT];
   osip_fifo_t        *j_events;
 
-  osip_negotiation_t  *osip_negotiation;
+  osip_negotiation_t *osip_negotiation;
+
+  jauthinfo_t        *authinfos;
 };
 
 typedef struct jinfo_t jinfo_t;
@@ -261,7 +279,6 @@ struct jinfo_t {
   eXosip_subscribe_t  *js;
   eXosip_notify_t     *jn;
 };
-
 
 
 char *eXosip_guess_ip_for_via ();
