@@ -24,7 +24,6 @@ EXPORTS
 	eXosip_event_get_subscribeinfo @20
 	eXosip_event_init @21
 	eXosip_event_wait @22
-	eXosip_execute @23
 	eXosip_init @24
 	eXosip_lock @25
 	eXosip_message @26

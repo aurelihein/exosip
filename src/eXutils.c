@@ -364,7 +364,11 @@ char *strdup_printf(const char *fmt, ...)
 	{
 		/* Try to print in the allocated space. */
 		va_start (ap, fmt);
+#ifdef WIN32
+		n = _vsnprintf (p, size, fmt, ap);
+#else
 		n = vsnprintf (p, size, fmt, ap);
+#endif
 		va_end (ap);
 		/* If that worked, return the string. */
 		if (n > -1 && n < size)
