@@ -279,6 +279,23 @@ int eXosip_transfer_call_out_of_dialog(char *refer_to, char *from, char *to, cha
 int   eXosip_answer_call   (int jid, int status, char *local_sdp_port);
 
 /**
+ * Answer call.
+ * 
+ * @param jid          dialog id of call.
+ * @param status       Status code to use.
+ * @param answer       The resulting sip answer to send.
+ */
+int   eXosip2_answer   (int jid, int status, osip_message_t **answer);
+
+/**
+ * Answer call.
+ * 
+ * @param jid          dialog id of call.
+ * @param answer       The sip answer to send.
+ */
+int eXosip2_answer_send(int jid, osip_message_t *answer);
+
+/**
  * Answer call with the specified body.
  * 
  * @param jid          dialog id of call.

@@ -37,10 +37,7 @@ extern eXosip_t eXosip;
 #endif
 
 
-int jfriend_get_and_set_next_token (char **dest, char *buf,
-					   char **next);
-
-int jsubscriber_init(jsubscriber_t **js, char *ch)
+static int jsubscriber_init(jsubscriber_t **js, char *ch)
 {
   char *next;
   int i;

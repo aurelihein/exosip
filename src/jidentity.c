@@ -36,6 +36,86 @@ extern eXosip_t eXosip;
 #define EXOSIP_ADDIDENTITYS_SH "eXosip_addidentity.sh"
 #endif
 
+static int
+jidentity_get_and_set_next_token (char **dest, char *buf, char **next)
+{
+  char *end;
+  char *start;
+
+  *next = NULL;
+
+  /* find first non space and tab element */
+  start = buf;
+  while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
+         && (*start != '\r') && (*start != '\n') )
+    start++;
+  end = start+1;
+  while ((*end != '\0') && (*end != '\r') && (*end != '\n')
+         && (*end != '\t') && (*end != '|'))
+    end++;
+  
+  if ((*end == '\r') || (*end == '\n'))
+    /* we should continue normally only if this is the separator asked! */
+    return -1;
+  if (end == start)
+    return -1;                  /* empty value (or several space!) */
+
+  *dest = osip_malloc (end - (start) + 1);
+  osip_strncpy (*dest, start, end - start);
+
+  *next = end + 1;   /* return the position right after the separator
+ */
+  return 0;
+}
+
+static int jidentity_init(jidentity_t **fr, char *ch)
+{
+  char *next;
+  int i;
+
+  *fr = (jidentity_t *)osip_malloc(sizeof(jidentity_t));
+  if (*fr==NULL) return -1;
+
+  i = jidentity_get_and_set_next_token(&((*fr)->i_identity), ch, &next);
+  if (i != 0)
+    goto ji_error1;
+  osip_clrspace ((*fr)->i_identity);
+  ch = next;
+
+  i = jidentity_get_and_set_next_token(&((*fr)->i_registrar), next, &next);
+  if (i != 0)
+    goto ji_error2;
+  osip_clrspace ((*fr)->i_registrar);
+  ch = next;
+
+  i = jidentity_get_and_set_next_token(&((*fr)->i_realm), ch, &next);
+  if (i != 0)
+    goto ji_error3;
+  osip_clrspace ((*fr)->i_realm);
+  ch = next;
+
+  i = jidentity_get_and_set_next_token(&((*fr)->i_userid), ch, &next);
+  if (i != 0)
+    goto ji_error4;
+  osip_clrspace ((*fr)->i_userid);
+
+  (*fr)->i_pwd = osip_strdup(next);
+  osip_clrspace ((*fr)->i_pwd);
+
+  return 0;
+
+ ji_error4:
+  osip_free((*fr)->i_realm);
+ ji_error3:
+  osip_free((*fr)->i_registrar);
+ ji_error2:
+  osip_free((*fr)->i_identity);
+ ji_error1:
+  osip_free(*fr);
+  *fr = NULL;
+  return -1;
+}
+
 void identitys_add(char *identity, char *registrar,
 		   char *realm, char *userid, char *pwd)
 {
@@ -105,90 +185,6 @@ void identitys_add(char *identity, char *registrar,
 
   system(command);
 }
-
-
-
-int
-jidentity_get_and_set_next_token (char **dest, char *buf, char **next)
-{
-  char *end;
-  char *start;
-
-  *next = NULL;
-
-  /* find first non space and tab element */
-  start = buf;
-  while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
-         && (*start != '\r') && (*start != '\n') )
-    start++;
-  end = start+1;
-  while ((*end != '\0') && (*end != '\r') && (*end != '\n')
-         && (*end != '\t') && (*end != '|'))
-    end++;
-  
-  if ((*end == '\r') || (*end == '\n'))
-    /* we should continue normally only if this is the separator asked! */
-    return -1;
-  if (end == start)
-    return -1;                  /* empty value (or several space!) */
-
-  *dest = osip_malloc (end - (start) + 1);
-  osip_strncpy (*dest, start, end - start);
-
-  *next = end + 1;   /* return the position right after the separator
- */
-  return 0;
-}
-
-
-int jidentity_init(jidentity_t **fr, char *ch)
-{
-  char *next;
-  int i;
-
-  *fr = (jidentity_t *)osip_malloc(sizeof(jidentity_t));
-  if (*fr==NULL) return -1;
-
-  i = jidentity_get_and_set_next_token(&((*fr)->i_identity), ch, &next);
-  if (i != 0)
-    goto ji_error1;
-  osip_clrspace ((*fr)->i_identity);
-  ch = next;
-
-  i = jidentity_get_and_set_next_token(&((*fr)->i_registrar), next, &next);
-  if (i != 0)
-    goto ji_error2;
-  osip_clrspace ((*fr)->i_registrar);
-  ch = next;
-
-  i = jidentity_get_and_set_next_token(&((*fr)->i_realm), ch, &next);
-  if (i != 0)
-    goto ji_error3;
-  osip_clrspace ((*fr)->i_realm);
-  ch = next;
-
-  i = jidentity_get_and_set_next_token(&((*fr)->i_userid), ch, &next);
-  if (i != 0)
-    goto ji_error4;
-  osip_clrspace ((*fr)->i_userid);
-
-  (*fr)->i_pwd = osip_strdup(next);
-  osip_clrspace ((*fr)->i_pwd);
-
-  return 0;
-
- ji_error4:
-  osip_free((*fr)->i_realm);
- ji_error3:
-  osip_free((*fr)->i_registrar);
- ji_error2:
-  osip_free((*fr)->i_identity);
- ji_error1:
-  osip_free(*fr);
-  *fr = NULL;
-  return -1;
-}
-
 
 void
 jidentity_unload()

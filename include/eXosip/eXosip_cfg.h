@@ -77,13 +77,13 @@ struct jsubscriber_t {
 };
 
 jfriend_t *jfriend_get(void);
-void jfriend_remove(jfriend_t *fr);
+void jfriend_remove(char *nickname, char *home);
 jsubscriber_t *jsubscriber_get(void);
 jidentity_t *jidentity_get(void);
 
 int   jfriend_load(void);
 void  jfriend_unload(void);
-void  friends_add(char *nickname, char *home,
+void  jfriend_add(char *nickname, char *home,
 		  char *work, char *email, char *e164);
 char *jfriend_get_home(int fid);
 

@@ -35,7 +35,88 @@ extern eXosip_t eXosip;
 #define EXOSIP_ADDFRIENDS_SH "eXosip_addfriend.sh"
 #endif
 
-void friends_remove(char *nickname, char *home)
+
+static int jfriend_init(jfriend_t **fr, char *ch)
+{
+  char *next;
+  int i;
+
+  *fr = (jfriend_t *)osip_malloc(sizeof(jfriend_t));
+  if (*fr==NULL) return -1;
+
+  i = jfriend_get_and_set_next_token(&((*fr)->f_nick), ch, &next);
+  if (i != 0)
+    goto jf_error1;
+  osip_clrspace ((*fr)->f_nick);
+  ch = next;
+
+  i = jfriend_get_and_set_next_token(&((*fr)->f_home), next, &next);
+  if (i != 0)
+    goto jf_error2;
+  osip_clrspace ((*fr)->f_home);
+  ch = next;
+
+  i = jfriend_get_and_set_next_token(&((*fr)->f_work), ch, &next);
+  if (i != 0)
+    goto jf_error3;
+  osip_clrspace ((*fr)->f_work);
+  ch = next;
+
+  i = jfriend_get_and_set_next_token(&((*fr)->f_email), ch, &next);
+  if (i != 0)
+    goto jf_error4;
+  osip_clrspace ((*fr)->f_email);
+
+  (*fr)->f_e164 = osip_strdup(next);
+  osip_clrspace ((*fr)->f_e164);
+
+  return 0;
+
+ jf_error4:
+  osip_free((*fr)->f_work);
+ jf_error3:
+  osip_free((*fr)->f_home);
+ jf_error2:
+  osip_free((*fr)->f_nick);
+ jf_error1:
+  osip_free(*fr);
+  *fr = NULL;
+  return -1;
+}
+
+int
+jfriend_get_and_set_next_token (char **dest, char *buf, char **next)
+{
+  char *end;
+  char *start;
+
+  *next = NULL;
+
+  /* find first non space and tab element */
+  start = buf;
+  while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
+         && (*start != '\r') && (*start != '\n') )
+    start++;
+  end = start+1;
+  while ((*end != '\0') && (*end != '\r') && (*end != '\n')
+         && (*end != '\t') && (*end != '|'))
+    end++;
+  
+  if ((*end == '\r') || (*end == '\n'))
+    /* we should continue normally only if this is the separator asked! */
+    return -1;
+  if (end == start)
+    return -1;                  /* empty value (or several space!) */
+
+  *dest = osip_malloc (end - (start) + 1);
+  osip_strncpy (*dest, start, end - start);
+
+  *next = end + 1;   /* return the position right after the separator
+ */
+  return 0;
+}
+
+void jfriend_remove(char *nickname, char *home)
 {
   char *Home;
   char command[256];
@@ -82,7 +163,7 @@ void friends_remove(char *nickname, char *home)
   system(command);
 }
 
-void friends_add(char *nickname, char *home,
+void jfriend_add(char *nickname, char *home,
 		 char *work, char *email, char *e164)
 {
   char *Home;
@@ -155,90 +236,6 @@ void friends_add(char *nickname, char *home,
   /*  fprintf(stderr, "%s", command); */
   system(command);  
 }
-
-
-
-int
-jfriend_get_and_set_next_token (char **dest, char *buf, char **next)
-{
-  char *end;
-  char *start;
-
-  *next = NULL;
-
-  /* find first non space and tab element */
-  start = buf;
-  while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
-         && (*start != '\r') && (*start != '\n') )
-    start++;
-  end = start+1;
-  while ((*end != '\0') && (*end != '\r') && (*end != '\n')
-         && (*end != '\t') && (*end != '|'))
-    end++;
-  
-  if ((*end == '\r') || (*end == '\n'))
-    /* we should continue normally only if this is the separator asked! */
-    return -1;
-  if (end == start)
-    return -1;                  /* empty value (or several space!) */
-
-  *dest = osip_malloc (end - (start) + 1);
-  osip_strncpy (*dest, start, end - start);
-
-  *next = end + 1;   /* return the position right after the separator
- */
-  return 0;
-}
-
-
-int jfriend_init(jfriend_t **fr, char *ch)
-{
-  char *next;
-  int i;
-
-  *fr = (jfriend_t *)osip_malloc(sizeof(jfriend_t));
-  if (*fr==NULL) return -1;
-
-  i = jfriend_get_and_set_next_token(&((*fr)->f_nick), ch, &next);
-  if (i != 0)
-    goto jf_error1;
-  osip_clrspace ((*fr)->f_nick);
-  ch = next;
-
-  i = jfriend_get_and_set_next_token(&((*fr)->f_home), next, &next);
-  if (i != 0)
-    goto jf_error2;
-  osip_clrspace ((*fr)->f_home);
-  ch = next;
-
-  i = jfriend_get_and_set_next_token(&((*fr)->f_work), ch, &next);
-  if (i != 0)
-    goto jf_error3;
-  osip_clrspace ((*fr)->f_work);
-  ch = next;
-
-  i = jfriend_get_and_set_next_token(&((*fr)->f_email), ch, &next);
-  if (i != 0)
-    goto jf_error4;
-  osip_clrspace ((*fr)->f_email);
-
-  (*fr)->f_e164 = osip_strdup(next);
-  osip_clrspace ((*fr)->f_e164);
-
-  return 0;
-
- jf_error4:
-  osip_free((*fr)->f_work);
- jf_error3:
-  osip_free((*fr)->f_home);
- jf_error2:
-  osip_free((*fr)->f_nick);
- jf_error1:
-  osip_free(*fr);
-  *fr = NULL;
-  return -1;
-}
-
 
 void
 jfriend_unload()

@@ -243,9 +243,10 @@ typedef void (* eXosip_callback_t) (int type, eXosip_event_t *);
 char *strdup_printf(const char *fmt, ...);
 
 jfriend_t *jfriend_get(void);
-void jfriend_remove(jfriend_t *fr);
 jsubscriber_t *jsubscriber_get(void);
 jidentity_t *jidentity_get(void);
+int jfriend_get_and_set_next_token (char **dest, char *buf,
+				    char **next);
 
 #define eXosip_trace(loglevel,args)  do        \
 {                       \
@@ -362,6 +363,9 @@ int eXosip_subscribe_dialog_find(int nid, eXosip_subscribe_t **js, eXosip_dialog
 int eXosip_call_find(int cid, eXosip_call_t **jc);
 int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, osip_message_t *_200Ok);
 
+int _eXosip2_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osip_message_t **answer);
+int _eXosip2_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osip_message_t **answer);
+int _eXosip2_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, osip_message_t **answer);
 int eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char *local_sdp_port);
 int eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int code,const char*, const char*);

@@ -100,11 +100,6 @@ jfriend_t *jfriend_get(void)
   return eXosip.j_friends;
 }
 
-void jfriend_remove(jfriend_t *fr)
-{
-  REMOVE_ELEMENT(eXosip.j_friends, fr);
-}
-
 jsubscriber_t *jsubscriber_get(void)
 {
   return eXosip.j_subscribers;
@@ -912,6 +907,126 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
   return 0;
 }
 
+
+int eXosip2_answer(int jid, int status, osip_message_t **answer){
+  int i = -1;
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return -1;
+    }
+  if (status>100 && status<200)
+    {
+      i = _eXosip2_answer_invite_1xx(jc, jd, status, answer);
+    }
+  else if (status>199 && status<300)
+    {
+      i = _eXosip2_answer_invite_2xx(jc, jd, status, answer);
+    }
+  else if (status>300 && status<699)
+    {
+      i = _eXosip2_answer_invite_3456xx(jc, jd, status, answer);
+    }
+  else
+    {
+      fprintf(stderr, "eXosip: wrong status code (101<status<699)\n");
+      return -1;
+    }
+  if (i!=0)
+    return -1;
+  return 0;
+}
+
+int eXosip2_answer_send(int jid, osip_message_t *answer){
+  int i = -1;
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  osip_transaction_t *tr;
+  osip_event_t *evt_answer;
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return -1;
+    }
+
+  tr = eXosip_find_last_inc_invite(jc, jd);
+  if (tr==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      return -1;
+    }
+  /* is the transaction already answered? */
+  if (tr->state==IST_COMPLETED
+      || tr->state==IST_CONFIRMED
+      || tr->state==IST_TERMINATED)
+    {
+      fprintf(stderr, "eXosip: transaction already answered\n");
+      return -1;
+    }
+
+  if (MSG_IS_STATUS_1XX(answer))
+    {
+      if (jd==NULL)
+	{
+	  i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, answer);
+	  if (i!=0)
+	    {
+	      fprintf(stderr, "eXosip: cannot create dialog!\n");
+	      i = 0;
+	    }
+	  else
+	    {
+	      ADD_ELEMENT(jc->c_dialogs, jd);
+	    }
+	}
+    }
+  else if (MSG_IS_STATUS_2XX(answer))
+    {
+      if (jd==NULL)
+	{
+	  i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, answer);
+	  if (i!=0)
+	    {
+	      fprintf(stderr, "eXosip: cannot create dialog!\n");
+	      return -1;
+	    }
+	  ADD_ELEMENT(jc->c_dialogs, jd);
+	}
+      else i = 0;
+      
+      eXosip_dialog_set_200ok(jd, answer);
+      osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
+    }
+  else if (answer->status_code>=300 && answer->status_code<=699)
+    {
+      i = 0;
+    }
+  else
+    {
+      fprintf(stderr, "eXosip: wrong status code (101<status<699)\n");
+      return -1;
+    }
+  if (i!=0)
+    return -1;
+
+  evt_answer = osip_new_outgoing_sipmessage(answer);
+  evt_answer->transactionid = tr->transactionid;
+  
+  osip_transaction_add_event(tr, evt_answer);
+  __eXosip_wakeup();
+  return 0;
+}
+
 int eXosip_answer_call_with_body(int jid, int status, const char *bodytype, const char *body){
   int i = -1;
   eXosip_dialog_t *jd = NULL;
@@ -931,8 +1046,6 @@ int eXosip_answer_call_with_body(int jid, int status, const char *bodytype, cons
     }
   else if (status>199 && status<300)
     {
-      
-
       i = eXosip_answer_invite_2xx_with_body(jc, jd, status,bodytype,body);
     }
   else if (status>300 && status<699)
