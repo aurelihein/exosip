@@ -3,57 +3,57 @@ if COMPILE_JOSUA
 bin_PROGRAMS = josua
 endif
 
-if COMPILE_MEDIASTREAMER
-AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@
-#AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ \
-#$(GLIB_CFLAGS)
+if GLIB_SUPPORT
+MORE_CFLAGS = -Wall @CFLAGS@ @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ @EXOSIP_FLAGS@ `pkg-config --cflags glib-2.0`
 else
-AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@
+MORE_CFLAGS = -Wall @CFLAGS@ @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ @EXOSIP_FLAGS@
 endif
 
-josua_SOURCES = jcalls.c \
-commands.c      gui_menu.c         jconfig.c          \
-gui.c           gui_new_call.c     main_ncurses.c     \
-gui_icon.c      gui_topline.c      pplgetopt.c        \
-gui_loglines.c  gui_sessions_list.c   \
-gui_address_book_newentry.c \
-gui_address_book_newentry.h        gui_address_book_browse.h \
-gui_address_book_browse.c \
-commands.h      gui_loglines.h     gui_topline.h     \
-gui.h           gui_menu.h         jcalls.h          \
-gui_icon.h      gui_new_call.h     jconfig.h         \
-ppl_getopt.h    gui_sessions_list.h \
-gui_registrations_list.c gui_registrations_list.h \
-gui_new_identity.c gui_new_identity.h \
-gui_subscriptions_list.c gui_subscriptions_list.h \
-gui_insubscriptions_list.c gui_insubscriptions_list.h \
-jsubscriptions.c jsubscriptions.h \
-jinsubscriptions.c jinsubscriptions.h \
-gui_online.c gui_online.h \
-gui_setup.c gui_setup.h
+if MEDIASTREAMER_SUPPORT
+AM_CFLAGS = $(MORE_CFLAGS) -DMEDIASTREAMER_SUPPORT
+endif
+if ORTP_SUPPORT
+AM_CFLAGS = $(MORE_CFLAGS) -DORTP_SUPPORT
+endif
 
+josua_SOURCES = \
+commands.c                  gui_new_identity.c       jinsubscriptions.c     \
+gui.c                       gui_online.c             jsubscriptions.c       \
+gui_address_book_browse.c   gui_registrations_list.c main_ncurses.c         \
+gui_address_book_newentry.c gui_sessions_list.c      main_shell.c           \
+gui_icon.c                  gui_setup.c              pplgetopt.c            \
+gui_insubscriptions_list.c  gui_subscriptions_list.c sound-mediastreamer.c  \
+gui_loglines.c              gui_topline.c            sound-ortp.c           \
+gui_menu.c                  jcalls.c                 sound-win32.c          \
+gui_new_call.c              jconfig.c                                       \
+commands.h                  gui_menu.h               gui_subscriptions_list.h \
+gui.h                       gui_new_call.h           gui_topline.h          \
+gui_address_book_browse.h   gui_new_identity.h       jcalls.h               \
+gui_address_book_newentry.h gui_online.h             jconfig.h              \
+gui_icon.h                  gui_registrations_list.h jinsubscriptions.h     \
+gui_insubscriptions_list.h  gui_sessions_list.h      jsubscriptions.h       \
+gui_loglines.h              gui_setup.h              ppl_getopt.h
 
-josua_LDFLAGS = -O  -Wall
-
-if COMPILE_MEDIASTREAMER
-
-josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
-$(top_builddir)/src/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex
-#$(top_builddir)/src/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex $(GLIB_LIBS)
-
+if GLIB_SUPPORT
+josua_LDFLAGS = -O -Wall -leXosip -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@  `pkg-config --libs glib-2.0`
 else
-if COMPILE_ORTP
+josua_LDFLAGS = -O  -Wall -leXosip -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ 
+endif
 
-josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
-$(top_builddir)/src/libeXosip.la -lortp  -lm -lortp
+if ORTP_SUPPORT
+MORE_MYADD = -lortp -lm
 
+MORE_INCLUDES = -I$(includedir)/ortp
 else
+if MEDIASTREAMER_SUPPORT
+MORE_MYADD = -lortp -lm -lmediastreamer -lmsspeex
 
-josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
-$(top_builddir)/src/libeXosip.la -lortp  -lm 
-
+MORE_INCLUDES = -I$(includedir)/mediastreamer -I$(includedir)/ortp
 endif
 endif
 
-INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(includedir) -I$(includedir)/ortp
+josua_LDADD = $(top_builddir)/src/libeXosip.la -losip2 $(MORE_MYADD)
+
+INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(includedir) $(MORE_INCLUDES)
+
 

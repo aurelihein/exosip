@@ -21,7 +21,6 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
-#include "config.h"
 #include <osip2/osip_mt.h>
 
 #include <eXosip/eXosip.h>
