@@ -37,7 +37,7 @@ extern eXosip_t eXosip;
 #endif
 
 
-int jfriend_get_and___osip_set_next_token (char **dest, char *buf,
+int jfriend_get_and_set_next_token (char **dest, char *buf,
 					   char **next);
 
 int jsubscriber_init(jsubscriber_t **js, char *ch)
@@ -48,13 +48,13 @@ int jsubscriber_init(jsubscriber_t **js, char *ch)
   *js = (jsubscriber_t *)osip_malloc(sizeof(jsubscriber_t));
   if (*js==NULL) return -1;
 
-  i = jfriend_get_and___osip_set_next_token(&((*js)->s_nick), ch, &next);
+  i = jfriend_get_and_set_next_token(&((*js)->s_nick), ch, &next);
   if (i != 0)
     goto js_error1;
   osip_clrspace ((*js)->s_nick);
   ch = next;
 
-  i = jfriend_get_and___osip_set_next_token(&((*js)->s_uri), ch, &next);
+  i = jfriend_get_and_set_next_token(&((*js)->s_uri), ch, &next);
   if (i != 0)
     goto js_error2;
   osip_clrspace ((*js)->s_uri);

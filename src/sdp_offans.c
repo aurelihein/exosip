@@ -30,6 +30,18 @@ osip_list_t *supported_codec = NULL;
 
 int eXosip_sdp_accept_audio_codec(osip_negotiation_ctx_t *context,
 				  char *port, char *number_of_port,
+				  int audio_qty, char *payload);
+int eXosip_sdp_accept_video_codec(osip_negotiation_ctx_t *context,
+				  char *port, char *number_of_port,
+				  int video_qty, char *payload);
+int eXosip_sdp_accept_other_codec(osip_negotiation_ctx_t *context,
+				  char *type, char *port,
+				  char *number_of_port, char *payload);
+
+char *eXosip_sdp_get_audio_port(osip_negotiation_ctx_t *context, int pos_media);
+
+int eXosip_sdp_accept_audio_codec(osip_negotiation_ctx_t *context,
+				  char *port, char *number_of_port,
 				  int audio_qty, char *payload)
 {
   int pos;
@@ -58,8 +70,8 @@ int eXosip_sdp_accept_video_codec(osip_negotiation_ctx_t *context,
 }
 
 int eXosip_sdp_accept_other_codec(osip_negotiation_ctx_t *context,
-			      char *type, char *port,
-			      char *number_of_port, char *payload)
+				  char *type, char *port,
+				  char *number_of_port, char *payload)
 {
   /* ... */
   return -1;

@@ -91,7 +91,6 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
      A valid request contains at a minimum "To, From, Call-iD, Cseq,
      Max-Forwards and Via
   */
-  static int register_osip_cseq_number = 1; /* always start registration with 1 */
   int i;
   osip_message_t *request;
 #ifdef SM
@@ -100,8 +99,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   char locip[50];
 #endif
 
-  if (eXosip.register_callid_number==NULL)
-    eXosip.register_callid_number = osip_call_id_new_random();
+  char *register_callid_number = NULL;
 
   i = osip_message_init(&request);
   if (i!=0) return -1;
@@ -202,19 +200,17 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       /* call-id is always the same for REGISTRATIONS */
       i = osip_call_id_init(&callid);
       if (i!=0) goto brood_error_1;
-      osip_call_id_set_number(callid, osip_strdup(eXosip.register_callid_number));
+      register_callid_number = osip_call_id_new_random();
+      osip_call_id_set_number(callid, register_callid_number);
       osip_call_id_set_host(callid, osip_strdup(locip));
       request->call_id = callid;
 
       i = osip_cseq_init(&cseq);
       if (i!=0) goto brood_error_1;
-      num = (char *)osip_malloc(20); /* should never be more than 10 chars... */
-      sprintf(num, "%i", register_osip_cseq_number);
+      num = osip_strdup("1");
       osip_cseq_set_number(cseq, num);
       osip_cseq_set_method(cseq, osip_strdup(method_name));
       request->cseq = cseq;
-
-      register_osip_cseq_number++;
     }
   else
     {
@@ -412,6 +408,7 @@ generating_register(osip_message_t **reg, char *from,
   i = generating_request_out_of_dialog(reg, "REGISTER", NULL, "UDP",
 				       from, proxy);
   if (i!=0) return -1;
+
 #ifdef SM
   eXosip_get_localip_for((*reg)->req_uri->host,&locip);
 #else

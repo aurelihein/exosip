@@ -80,7 +80,7 @@ extern "C"
 /**
  * Get New pipe pair.
  */
-    jpipe_t * jpipe ();
+    jpipe_t * jpipe (void);
 
 /**
  * Close pipe

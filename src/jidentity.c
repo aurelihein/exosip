@@ -109,7 +109,7 @@ void identitys_add(char *identity, char *registrar,
 
 
 int
-jidentity_get_and___osip_set_next_token (char **dest, char *buf, char **next)
+jidentity_get_and_set_next_token (char **dest, char *buf, char **next)
 {
   char *end;
   char *start;
@@ -149,25 +149,25 @@ int jidentity_init(jidentity_t **fr, char *ch)
   *fr = (jidentity_t *)osip_malloc(sizeof(jidentity_t));
   if (*fr==NULL) return -1;
 
-  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_identity), ch, &next);
+  i = jidentity_get_and_set_next_token(&((*fr)->i_identity), ch, &next);
   if (i != 0)
     goto ji_error1;
   osip_clrspace ((*fr)->i_identity);
   ch = next;
 
-  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_registrar), next, &next);
+  i = jidentity_get_and_set_next_token(&((*fr)->i_registrar), next, &next);
   if (i != 0)
     goto ji_error2;
   osip_clrspace ((*fr)->i_registrar);
   ch = next;
 
-  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_realm), ch, &next);
+  i = jidentity_get_and_set_next_token(&((*fr)->i_realm), ch, &next);
   if (i != 0)
     goto ji_error3;
   osip_clrspace ((*fr)->i_realm);
   ch = next;
 
-  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_userid), ch, &next);
+  i = jidentity_get_and_set_next_token(&((*fr)->i_userid), ch, &next);
   if (i != 0)
     goto ji_error4;
   osip_clrspace ((*fr)->i_userid);

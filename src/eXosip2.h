@@ -263,7 +263,6 @@ struct eXosip_t {
   char *localport;
 
   char *user_agent;
-  char *register_callid_number;
 
   FILE               *j_input;
   FILE               *j_output;

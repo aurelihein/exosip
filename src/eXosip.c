@@ -159,7 +159,6 @@ void eXosip_quit(void)
   osip_free(eXosip.localip);
   osip_free(eXosip.localport);
   osip_free(eXosip.user_agent);
-  osip_free(eXosip.register_callid_number);
 
   eXosip.j_input = 0;
   eXosip.j_output = 0;

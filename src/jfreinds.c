@@ -159,7 +159,7 @@ void friends_add(char *nickname, char *home,
 
 
 int
-jfriend_get_and___osip_set_next_token (char **dest, char *buf, char **next)
+jfriend_get_and_set_next_token (char **dest, char *buf, char **next)
 {
   char *end;
   char *start;
@@ -199,25 +199,25 @@ int jfriend_init(jfriend_t **fr, char *ch)
   *fr = (jfriend_t *)osip_malloc(sizeof(jfriend_t));
   if (*fr==NULL) return -1;
 
-  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_nick), ch, &next);
+  i = jfriend_get_and_set_next_token(&((*fr)->f_nick), ch, &next);
   if (i != 0)
     goto jf_error1;
   osip_clrspace ((*fr)->f_nick);
   ch = next;
 
-  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_home), next, &next);
+  i = jfriend_get_and_set_next_token(&((*fr)->f_home), next, &next);
   if (i != 0)
     goto jf_error2;
   osip_clrspace ((*fr)->f_home);
   ch = next;
 
-  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_work), ch, &next);
+  i = jfriend_get_and_set_next_token(&((*fr)->f_work), ch, &next);
   if (i != 0)
     goto jf_error3;
   osip_clrspace ((*fr)->f_work);
   ch = next;
 
-  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_email), ch, &next);
+  i = jfriend_get_and_set_next_token(&((*fr)->f_email), ch, &next);
   if (i != 0)
     goto jf_error4;
   osip_clrspace ((*fr)->f_email);
