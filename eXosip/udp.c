@@ -989,6 +989,9 @@ void eXosip_process_newrequest (osip_event_t *evt)
   else if (MSG_IS_ACK(evt->sip))
     { /* this should be a ACK for 2xx (but could be a late ACK!) */
       ctx_type = -1;
+      osip_message_free(evt->sip);
+      osip_free(evt);
+      return ;	
     }
   else if (MSG_IS_REQUEST(evt->sip))
     {
