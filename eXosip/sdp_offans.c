@@ -167,3 +167,56 @@ eXosip_get_local_sdp_info(osip_transaction_t *invite_tr)
   return NULL;
 }
 
+sdp_message_t *
+eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr)
+{
+  osip_content_type_t *ctt;
+  osip_mime_version_t *mv;
+  osip_message_t *message;
+  sdp_message_t *sdp;
+  char  *oldbody;
+  int pos;
+
+  if (invite_tr->ctx_type == IST)
+    message = invite_tr->orig_request;
+  else if (invite_tr->ctx_type == ICT)
+    message = invite_tr->last_response;
+  else return NULL; /* BUG -> NOT AN INVITE TRANSACTION!! */
+
+  if (message==NULL) return NULL;
+
+  /* get content-type info */
+  ctt = osip_message_get_content_type(message);
+  mv  = osip_message_get_mime_version(message);
+  if (mv==NULL && ctt==NULL)
+    return NULL; /* previous message was not correct or empty */
+  if (mv!=NULL)
+    {
+      /* look for the SDP body */
+      /* ... */
+    }
+  else if (ctt!=NULL)
+    {
+      if (ctt->type==NULL || ctt->subtype==NULL)
+	/* it can be application/sdp or mime... */
+	return NULL;
+      if (strcmp(ctt->type, "application")!=0 ||
+	  strcmp(ctt->subtype, "sdp")!=0 )
+	{ return NULL; }
+    }
+  
+  pos=0;
+  while (!osip_list_eol(invite_tr->last_response->bodies, pos))
+    {
+      int i;
+      oldbody = osip_list_get(invite_tr->last_response->bodies, pos);
+      pos++;
+      sdp_message_init(&sdp);
+      i = sdp_message_parse(sdp,oldbody);
+      if (i==0) return sdp;
+      sdp_message_free(sdp);
+      sdp = NULL;
+    }
+  return NULL;
+}
+

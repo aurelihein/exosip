@@ -282,6 +282,10 @@ typedef struct eXosip_event {
   char                local_uri[256];
   char                remote_uri[256];
   char                subject[256];
+
+  char                remote_sdp_audio_ip[50];
+  int                 remote_sdp_audio_port;
+
   /* For a high level usage of the eXosip stack? (API is enough?) */
   /* int did;
      int cid;
@@ -370,6 +374,7 @@ char *eXosip_guess_ip_for_via ();
 
 int    eXosip_sdp_negotiation_init();
 sdp_message_t *eXosip_get_local_sdp_info(osip_transaction_t *invite_tr);
+sdp_message_t *eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr);
 int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn);
 
 int    eXosip_set_callbacks(osip_t *osip);

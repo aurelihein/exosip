@@ -33,6 +33,7 @@ eXosip_event_init_for_call(int type,
 			   eXosip_call_t *jc,
 			   eXosip_dialog_t *jd)
 {
+  sdp_message_t *sdp;
   eXosip_event_t *je;
   eXosip_event_init(&je, type);
   if (je==NULL) return NULL;
@@ -84,9 +85,44 @@ eXosip_event_init_for_call(int type,
 		  osip_free(tmp);
 		}
 	    }
+
+	  /* search for remote_sdp_audio_port & remote_sdp_audio_ip
+	     in the last SIP message */
+	  tr = eXosip_find_last_invite(jc, jd);
+	  if (tr!=NULL)
+	    {
+	      sdp = eXosip_get_remote_sdp_info(tr);
+	      if (sdp!=NULL)
+		{
+		  int j=0;
+		  if (sdp->c_connection !=NULL
+		      && sdp->c_connection->c_addr !=NULL )
+			{
+			  snprintf(je->remote_sdp_audio_ip, 49, "%s",
+				   sdp->c_connection->c_addr);
+			}
+		  for (j=0; !osip_list_eol(sdp->m_medias, j); j++)
+		    {
+		      sdp_media_t *med = (sdp_media_t*) osip_list_eol(sdp->m_medias, j);
+		      if (med->m_media!=NULL &&
+			  0==strcmp(med->m_media, "audio"))
+			{
+			  sdp_connection_t *conn;
+			  je->remote_sdp_audio_port = osip_atoi(med->m_port);
+			  conn = (sdp_connection_t*) osip_list_get(med->c_connections, 0);
+			  if (conn!=NULL && conn->c_addr!=NULL)
+			    {
+			      snprintf(je->remote_sdp_audio_ip, 49, "%s",
+				       sdp->c_connection->c_addr);
+			    }
+			  break;
+			}
+		    }
+		}
+	    }
 	}
     }
-
+  
   return je;
 }
 
