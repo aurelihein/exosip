@@ -42,7 +42,7 @@ EXPORTS
 	eXosip_register_init @38
 	eXosip_sdp_negotiation_replace @39
 	eXosip_set_mode @40
-	eXosip_start_call @41
+	eXosip_initiate_call @41
 	eXosip_subscribe @42
 	eXosip_subscribe_close @43
 	eXosip_subscribe_need_refresh @44
