@@ -420,8 +420,8 @@ void eXosip_start_call    (osip_message_t *invite)
   
   osip_transaction_add_event(transaction, sipevent);
 
-  ADD_ELEMENT(eXosip.j_calls, jc);
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL));
+  ADD_ELEMENT(eXosip.j_calls, jc);
 }
 
 void eXosip_answer_call   (int jid, int status)

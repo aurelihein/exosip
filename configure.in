@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.1.1.1 $)dnl
+AC_REVISION($Revision: 1.2 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(eXosip/eXosip.h)
 
@@ -93,6 +93,8 @@ AC_ARG_ENABLE(ncurses,
 [  --disable-ncurses       turn off ncurses support.],
 disable_ncurses=$enableval,disable_ncurses="yes")
 
+JOSUA_FLAGS="-DOSIP_AT_OSIP_DOT_ORG"
+
 dnl compile with mt support
 if test "x$enable_mt" = "xyes"; then
   if test "x$enable_pth" = "xyes"; then
@@ -150,8 +152,8 @@ AC_CHECK_LIB(socket,sendto,[EXOSIP_LIB="$EXOSIP_LIB -lsocket"])
 
 
 if test "x$disable_ncurses" = "xyes"; then
-  EXOSIP_FLAGS="$EXOSIP_FLAGS -DNCURSES_SUPPORT"
-  AC_CHECK_LIB(ncurses,wgetch,[EXOSIP_LIB="$EXOSIP_LIB -lncurses"])
+  JOSUA_FLAGS="$JOSUA_FLAGS -DNCURSES_SUPPORT"
+  AC_CHECK_LIB(ncurses,wgetch,[JOSUA_LIB="-lncurses"])
   AC_CHECK_HEADERS(ncurses.h)
 else
   AC_MSG_NOTICE([Compiling without ncurses support.])
@@ -163,6 +165,8 @@ EXOSIP_FLAGS="$EXOSIP_FLAGS -DUSE_TMP_BUFFER"
 AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R()
 
 AC_SUBST(EXOSIP_FLAGS)
+AC_SUBST(JOSUA_FLAGS)
+AC_SUBST(JOSUA_LIB)
 AC_SUBST(EXOSIP_LIB)
 
 AC_SUBST(CFLAGS)

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.7 2003-03-25 21:38:19 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.8 2003-03-26 20:17:52 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -742,7 +742,7 @@ void print_calls()
 	      if (jd->d_dialog->state==DIALOG_EARLY)
 		{
 		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"C%i D%i: Pending Call To: %-80.80s\n",
+		  sprintf(buf,"C%i D%i: Pending Call To: %s\n",
 			  jc->c_id, jd->d_id,
 			  tmp);
 		  osip_free(tmp);
@@ -750,7 +750,7 @@ void print_calls()
 	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
 		{
 		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"C%i D%i: Established Call To: %-80.80s\n",
+		  sprintf(buf,"C%i D%i: Established Call To: %s.\n",
 			  jc->c_id, jd->d_id,
 			  tmp);
 		  osip_free(tmp);
@@ -758,8 +758,8 @@ void print_calls()
 	    }
 	  else 
 	    {
-	      sprintf(buf,"C%i D%i: Connection closed %-80.80s\n",
-		      jc->c_id, jd->d_id, " \0");
+	      sprintf(buf,"C%i D%i: Connection closed.\n",
+		      jc->c_id, jd->d_id);
 	    }
 	  mvaddnstr(yline,0,buf,x-1);
 	  yline++;
@@ -767,7 +767,7 @@ void print_calls()
       if (jc->c_dialogs==NULL)
 	{
 	  osip_transaction_t *tr = jc->c_out_tr;
-	  char *tmp;
+	  char *tmp = NULL;
 	  if (tr==NULL)
 	    {
 	      tr = jc->c_inc_tr;
@@ -776,13 +776,16 @@ void print_calls()
 		  eXosip_unlock();
 		  return;
 		}
-	      osip_from_to_str(tr->orig_request->from, &tmp);
+	      if (tr->orig_request!=NULL)
+		osip_from_to_str(tr->orig_request->from, &tmp);
 	    }
 	  if (tr->orig_request==NULL) /* info not yet available */
 	    {}
 	  else osip_to_to_str(tr->orig_request->to, &tmp);
-
-	  sprintf(buf,"C%i D-1: with: %-80.80s\n", jc->c_id, tmp);
+	  if (tmp!=NULL)
+	    sprintf(buf,"C%i D-1: with: %s.\n", jc->c_id, tmp);
+	  else
+	    sprintf(buf,"C%i D-1: Waiting for status.\n", jc->c_id);
 	  osip_free(tmp);
 	  mvaddnstr(yline,0,buf,x-1);
 	  yline++;
@@ -1089,11 +1092,11 @@ void __josua_menu() {
   int cursor=0;
   dme(0,1);
   for (;;) {
-    refresh();
+    //    refresh();
     do
       {	
 	print_calls();
-	refresh();
+	//refresh();
 	halfdelay(1);
 	c= getch();
       }
@@ -1116,7 +1119,7 @@ void __josua_menu() {
                c==KEY_BACKSPACE || c==KEY_DC || c=='k') {
       dme(cursor,0); cursor+= NBELEMENT_IN_MENU-1; cursor %= NBELEMENT_IN_MENU; dme(cursor,1);
     } else if (c=='\n' || c=='\r' || c==KEY_ENTER) {
-      clear(); refresh();
+      clear(); //refresh();
       if (cursor==NBELEMENT_IN_MENU)
 	return ;
       print_menu(josua_menu[cursor].menu_id); dme(cursor,1);
@@ -1483,7 +1486,7 @@ void __josua_start_call() {
   eXosip_start_call(invite);
   eXosip_unlock();
 
-  refresh();
+  //refresh();
   /* make a call */
 }
 
