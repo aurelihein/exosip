@@ -15,4 +15,4 @@ sdp_offans.c   misc.c
 libeXosip_la_LDFLAGS = -version-info $(LIBEXOSIP_SO_VERSION)
 libeXosip_la_LIBADD = -losip2  @EXOSIP_LIB@ @PTHREAD_LIBS@
 
-INCLUDES = -I$(top_srcdir)
+INCLUDES = -I$(top_srcdir) -I$(includedir)

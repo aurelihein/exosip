@@ -29,5 +29,5 @@ josua_LDFLAGS = -O  -Wall `pkg-config --libs glib-2.0`
 josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
 $(top_builddir)/eXosip/libeXosip.la -lortp  -lm
 
-INCLUDES = -I$(top_srcdir) -I$(includedir)/ortp
+INCLUDES = -I$(top_srcdir) -I$(includedir) -I$(includedir)/ortp
 
