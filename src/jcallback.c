@@ -113,47 +113,30 @@ static void cb_transport_error(int type, osip_transaction_t *tr, int error);
 static int
 eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
 {
+#ifndef WIN32
   struct in_addr one_inet_addr;
+#else
+  unsigned long int one_inet_addr;
+#endif
   struct addrinfo hints;
   int error;
   char portbuf[10];
   if (service!=0)
-    snprintf(portbuf, sizeof(portbuf), "%d", service);
+    snprintf(portbuf, sizeof(portbuf), "%i", service);
 
   memset (&hints, 0, sizeof (hints));
-  if (inet_aton(hostname, &one_inet_addr))
+#ifndef WIN32
+  if (inet_aton(hostname, &one_inet_addr)==0)
     hints.ai_flags = AI_CANONNAME;
   else
-    {
-      struct addrinfo *_addrinfo;
-      struct sockaddr_in *sin;
+    hints.ai_flags = AI_NUMERICHOST;
+#else
+  if ((int)(one_inet_addr = inet_addr(hostname)) == -1)
+    hints.ai_flags = AI_CANONNAME;
+  else
+    hints.ai_flags = AI_NUMERICHOST;
+#endif
 
-      _addrinfo = (struct addrinfo *)osip_malloc(sizeof(struct addrinfo)
-					     + sizeof (struct sockaddr_in)
-					     + 0); /* no cannonname */
-      memset(_addrinfo, 0, sizeof(struct addrinfo) + sizeof (struct sockaddr_in));
-      sin = (struct sockaddr_in *)((char *)_addrinfo + sizeof(struct addrinfo));
-      _addrinfo->ai_flags = AI_NUMERICHOST;
-      _addrinfo->ai_family = AF_INET;
-      _addrinfo->ai_socktype = SOCK_DGRAM;
-      _addrinfo->ai_protocol = IPPROTO_UDP;
-      _addrinfo->ai_addrlen = sizeof(struct sockaddr_in);
-      _addrinfo->ai_addr = (struct sockaddr*)sin;
-      sin->sin_family = AF_INET;
-      sin->sin_addr = one_inet_addr;
-      if (service==0)
-	sin->sin_port = htons (5060);
-      else
-	sin->sin_port = htons ((unsigned short)service);
-      _addrinfo->ai_canonname = NULL;
-      _addrinfo->ai_next = NULL;
-
-      OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		   "No DNS resolution needed for %s:%i\n", hostname, service));
-      *addrinfo = _addrinfo;
-      return 0;
-    }
 #ifdef IPV6_SUPPORT
   hints.ai_family = PF_UNSPEC; /* ipv6 support */
 #else
@@ -179,13 +162,9 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
     { 
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		   "getaddrinfo failure. %s:%i\n", hostname, service));
+		   "getaddrinfo failure. %s:%s (%s)\n", hostname, portbuf, gai_strerror(error)));
      return -1;
     }
-  /*
-    fprintf (stdout, "The canonnical name is: %s\n", (*addrinfo)->ai_canonname);
-    fprintf (stdout, "The ai_addrlen is: %i\n", (*addrinfo)->ai_addrlen);
-  */
 
   return 0;
 }
