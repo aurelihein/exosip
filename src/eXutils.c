@@ -23,6 +23,9 @@
 #endif
 
 #include <osipparser2/osip_port.h>
+#include "eXosip2.h"
+
+extern eXosip_t eXosip;
 
 #ifdef WIN32
 
@@ -207,10 +210,12 @@ eXosip_guess_ip_for_via (char *alocalip)
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <unistd.h>
+#include <sys/param.h>
 
 #include <stdio.h>
 
@@ -263,6 +268,113 @@ eXosip_guess_ip_for_via (char *alocalip)
 
   strcpy(alocalip, inet_ntoa(iface_out.sin_addr));
   return;
+}
+
+void eXosip_get_localip_for(char *address_to_reach,char **loc){
+	int err,tmp;
+	struct addrinfo hints;
+	struct addrinfo *res=NULL;
+	struct sockaddr_storage addr;
+	int sock;
+	socklen_t s;
+	
+	if (eXosip.forced_localip){
+		*loc=osip_strdup(eXosip.localip);
+		return;
+	}
+	
+	*loc=osip_malloc(MAXHOSTNAMELEN);
+	strcpy(*loc,"127.0.0.1");  /* always fallback to local loopback */
+	
+	memset(&hints,0,sizeof(hints));
+	hints.ai_family=PF_UNSPEC;
+	hints.ai_socktype=SOCK_DGRAM;
+	/*hints.ai_flags=AI_NUMERICHOST|AI_CANONNAME;*/
+	err=getaddrinfo(address_to_reach,"5060",&hints,&res);
+	if (err<0){
+		eXosip_trace(OSIP_ERROR,("Error in getaddrinfo for %s: %s\n",address_to_reach,gai_strerror(err)));
+		return ;
+	}
+	if (res==NULL){
+		eXosip_trace(OSIP_ERROR,("getaddrinfo reported nothing !"));
+		abort();
+		return ;
+	}
+	sock=socket(res->ai_family,SOCK_DGRAM,0);
+	tmp=1;
+	err=setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&tmp,sizeof(int));
+	if (err<0){
+		eXosip_trace(OSIP_ERROR,("Error in setsockopt: %s\n",strerror(errno)));
+		abort();
+		return ;
+	}
+	err=connect(sock,res->ai_addr,res->ai_addrlen);
+	if (err<0) {
+		eXosip_trace(OSIP_ERROR,("Error in connect: %s\n",strerror(errno)));
+		abort();
+		return ;
+	}
+	freeaddrinfo(res);
+	res=NULL;
+	s=sizeof(addr);
+	err=getsockname(sock,(struct sockaddr*)&addr,&s);
+	if (err<0) {
+		eXosip_trace(OSIP_ERROR,("Error in getsockname: %s\n",strerror(errno)));
+		close(sock);
+		return ;
+	}
+	
+	err=getnameinfo(&addr,s,*loc,MAXHOSTNAMELEN,NULL,0,NI_NUMERICHOST);
+	if (err<0){
+		eXosip_trace(OSIP_ERROR,("getnameinfo error:%s",strerror(errno)));
+		abort();
+		return ;
+	}
+	close(sock);
+	eXosip_trace(OSIP_INFO1,("Outgoing interface to reach %s is %s.\n",address_to_reach,*loc));
+	return ;
+}
+
+#ifdef SM
+
+void eXosip_get_localip_from_via(osip_message_t *mesg,char **locip){
+	osip_via_t *via=NULL;
+	char *host;
+	via=(osip_via_t*)osip_list_get(mesg->vias,0);
+	if (via==NULL) {
+		host="15.128.128.93";
+		eXosip_trace(OSIP_ERROR,("Could not get via:%s"));
+	}else host=via->host;
+	eXosip_get_localip_for(host,locip);
+	
+}
+#endif
+
+char *strdup_printf(const char *fmt, ...)
+{
+	/* Guess we need no more than 100 bytes. */
+	int n, size = 100;
+	char *p;
+	va_list ap;
+	if ((p = osip_malloc (size)) == NULL)
+		return NULL;
+	while (1)
+	{
+		/* Try to print in the allocated space. */
+		va_start (ap, fmt);
+		n = vsnprintf (p, size, fmt, ap);
+		va_end (ap);
+		/* If that worked, return the string. */
+		if (n > -1 && n < size)
+			return p;
+		/* Else try again with more space. */
+		if (n > -1)	/* glibc 2.1 */
+			size = n + 1;	/* precisely what is needed */
+		else		/* glibc 2.0 */
+			size *= 2;	/* twice the old size */
+		if ((p = realloc (p, size)) == NULL)
+			return NULL;
+	}
 }
 
 #endif

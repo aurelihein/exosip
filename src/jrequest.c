@@ -23,10 +23,7 @@
 
 #include "eXosip2.h"
 
-extern char *localip;
-extern char *localport;
-
-
+extern eXosip_t eXosip;
 char *register_callid_number = NULL;
 
 /* should use cryptographically random identifier is RECOMMENDED.... */
@@ -77,6 +74,11 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   static int register_osip_cseq_number = 1; /* always start registration with 1 */
   int i;
   osip_message_t *request;
+#ifdef SM
+  char *locip=NULL;
+#else
+  char locip[50];
+#endif
 
   if (register_callid_number==NULL)
     register_callid_number = osip_call_id_new_random();
@@ -160,7 +162,12 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	    if (i!=0) goto brood_error_1;
 	}
     }
-
+  /*guess the local ip since req uri is known */
+#ifdef SM
+  eXosip_get_localip_for(request->req_uri->host,&locip);
+#else
+  eXosip_guess_ip_for_via(locip);
+#endif
   /* set To and From */
   osip_message_set_from(request, from);
   /* add a tag */
@@ -177,7 +184,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       i = osip_call_id_init(&callid);
       if (i!=0) goto brood_error_1;
       osip_call_id_set_number(callid, osip_strdup(register_callid_number));
-      osip_call_id_set_host(callid, osip_strdup(localip));
+      osip_call_id_set_host(callid, osip_strdup(locip));
       request->call_id = callid;
 
       i = osip_cseq_init(&cseq);
@@ -198,7 +205,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       i = osip_call_id_init(&callid);
       if (i!=0) goto brood_error_1;
       osip_call_id_set_number(callid, osip_call_id_new_random());
-      osip_call_id_set_host(callid, osip_strdup(localip));
+      osip_call_id_set_host(callid, osip_strdup(locip));
       request->call_id = callid;
 
       i = osip_cseq_init(&cseq);
@@ -214,8 +221,8 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   {
     char *tmp = (char *)osip_malloc(90*sizeof(char));
     sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-	    localip,
-	    localport,
+	    locip,
+	    eXosip.localport,
 	    via_branch_new_random() );
     osip_message_set_via(request, tmp);
     osip_free(tmp);
@@ -236,13 +243,13 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  && a_from->url!=NULL && a_from->url->username!=NULL )
 	{
 	  contact = (char *) osip_malloc(50+strlen(a_from->url->username));
-	  if (localport==NULL)
+	  if (eXosip.localport==NULL)
 	    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
-		    localip);
+		    locip);
 	  else
 	    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
-		    localip,
-		    localport);
+		    locip,
+		    eXosip.localport);
 	  
 	  osip_message_set_contact(request, contact);
 	  osip_free(contact);
@@ -284,11 +291,17 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   osip_message_set_user_agent(request, "josua/0.6.2");
   /*  else if ... */
   *dest = request;
+#ifdef SM
+  osip_free(locip);
+#endif
   return 0;
 
  brood_error_1:
   osip_message_free(request);
   *dest = NULL;
+#ifdef SM
+  if (locip!=NULL) osip_free(locip);
+#endif
   return -1;
 }
 
@@ -298,10 +311,20 @@ generating_register(osip_message_t **reg, char *from,
 {
   osip_from_t *a_from;
   int i;
+#ifdef SM
+  char *locip=NULL;
+#else
+  char locip[50];
+#endif
+
   i = generating_request_out_of_dialog(reg, "REGISTER", NULL, "UDP",
 				       from, proxy);
+#ifdef SM
+  eXosip_get_localip_for((*reg)->req_uri->host,&locip);
   if (i!=0) return -1;
-
+#else
+  eXosip_guess_ip_for_via(locip);
+#endif
 
   if (contact==NULL)
     {
@@ -314,13 +337,13 @@ generating_register(osip_message_t **reg, char *from,
 	  && a_from->url!=NULL && a_from->url->username!=NULL )
 	{
 	  contact = (char *) osip_malloc(50+strlen(a_from->url->username));
-	  if (localport==NULL)
+	  if (eXosip.localport==NULL)
 	    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
-		    localip);
+		    locip);
 	  else
 	    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
-		    localip,
-		    localport);
+		    locip,
+		    eXosip.localport);
 	  
 	  osip_message_set_contact(*reg, contact);
 	  osip_free(contact);
@@ -595,7 +618,12 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 {
   int i;
   osip_message_t *request;
-
+#ifdef SM
+  char *locip=NULL;
+#else
+  char locip[50];
+#endif
+  
   i = osip_message_init(&request);
   if (i!=0) return -1;
 
@@ -607,6 +635,11 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       osip_message_free(request);
       return -1;
     }
+#ifdef SM
+  eXosip_get_localip_for(dialog->remote_contact_uri->url->host,&locip);
+#else
+  eXosip_guess_ip_for_via(locip);
+#endif
   /* prepare the request-line */
   request->sip_method  = osip_strdup(method_name);
   request->sip_version = osip_strdup("SIP/2.0");
@@ -670,7 +703,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   {
     char *tmp = (char *)osip_malloc(90*sizeof(char));
     sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-	    localip ,localport,
+	    locip ,eXosip.localport,
 	    via_branch_new_random());
     osip_message_set_via(request, tmp);
     osip_free(tmp);
@@ -686,8 +719,8 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 	 outside of a dialog! like sip:jack@atosc.org? */
       char contact[200];
       sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
-	      localip,
-	      localport);
+	      locip,
+	      eXosip.localport);
       osip_message_set_contact(request, contact);
       /* Here we'll add the supported header if it's needed! */
       /* the require header must be added by the upper layer if needed */

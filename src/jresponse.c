@@ -25,8 +25,7 @@
 #include "eXosip2.h"
 #include <eXosip/eXosip_cfg.h>
 
-extern char *localip;
-extern char *localport;
+
 
 extern eXosip_t eXosip;
 int
@@ -148,10 +147,16 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 }
 
 int
-complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t *request, char *contact)
+complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t *request)
 {
   int i;
   int pos=0;
+  char contact[1000];
+#ifdef SM
+  char *locip=NULL;
+#else
+  char locip[50];
+#endif
   /* 12.1.1:
      copy all record-route in response
      add a contact with global scope
@@ -166,6 +171,21 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
       osip_list_add(response->record_routes, rr2, -1);
       pos++;
     }
+
+#ifdef SM
+  eXosip_get_localip_from_via(response,&locip);
+#else
+  eXosip_guess_ip_for_via(locip);
+#endif
+  if (request->to->url->username==NULL)
+    snprintf(contact,1000, "<sip:%s:%s>", locip, eXosip.localport);
+  else
+    snprintf(contact,1000, "<sip:%s@%s:%s>", request->to->url->username,
+	     locip, eXosip.localport);
+
+#ifdef SM
+  osip_free(locip);
+#endif
   osip_message_set_contact(response, contact);
   return 0;
 }
@@ -509,11 +529,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
     {
       /* request that estabish a dialog: */
       /* 12.1.1 UAS Behavior */
-      char contact[200];
-      sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
-	      localip,
-	      localport);
-      i = complete_answer_that_establish_a_dialog(response, tr->orig_request, contact);
+      i = complete_answer_that_establish_a_dialog(response, tr->orig_request);
 
       if (jd==NULL)
 	{
@@ -535,6 +551,112 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 #endif
   
   return 0;
+}
+
+int
+eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int code,const char*bodytype, const char*body)
+{
+  osip_event_t *evt_answer;
+  osip_message_t *response;
+  int i;
+  char *size;
+  osip_transaction_t *tr;
+  tr = eXosip_find_last_inc_invite(jc, jd);
+
+  if (tr==NULL || tr->orig_request==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer\n");
+      return -1;
+    }
+
+  if (jd!=NULL && jd->d_dialog==NULL)
+    {  /* element previously removed */
+      fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
+      return -1;
+    }
+
+  /* is the transaction already answered? */
+  if (tr->state==IST_COMPLETED
+      || tr->state==IST_CONFIRMED
+      || tr->state==IST_TERMINATED)
+    {
+      fprintf(stderr, "eXosip: transaction already answered\n");
+      return -1;
+    }
+  
+  if (jd==NULL)
+    i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
+  else
+    i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
+
+  if (i!=0)
+    {
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for invite\n"));
+      code = 500; /* ? which code to use? */
+      return -1;
+    }
+
+  if (code==488)
+    {
+      osip_message_set_content_length(response, "0");
+      /*  TODO: send message to transaction layer */      
+      evt_answer = osip_new_outgoing_sipmessage(response);
+      evt_answer->transactionid = tr->transactionid;
+      osip_transaction_add_event(tr, evt_answer);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
+      return 0;
+    }
+
+  i = osip_message_set_body(response, body);
+  if (i!=0) {
+    goto g2atii_error_1;
+  }
+  size = (char *) osip_malloc(6*sizeof(char));
+  sprintf(size,"%i",strlen(body));
+  i = osip_message_set_content_length(response, size);
+  osip_free(size);
+  if (i!=0) goto g2atii_error_1;
+  i = osip_message_set_header(response, "content-type", bodytype);
+  if (i!=0) goto g2atii_error_1;
+
+  /* request that estabish a dialog: */
+  /* 12.1.1 UAS Behavior */
+  {
+    i = complete_answer_that_establish_a_dialog(response, tr->orig_request);
+    if (i!=0) goto g2atii_error_1;; /* ?? */
+  }
+  /* THIS RESPONSE MUST BE SENT RELIABILY until the final ACK is received !! */
+  /* this response must be stored at the upper layer!!! (it will be destroyed*/
+  /* right after being sent! */
+
+  if (jd==NULL)
+    {
+      i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
+      if (i!=0)
+	{
+	  fprintf(stderr, "eXosip: cannot create dialog!\n");
+	  return -1;
+	}
+      ADD_ELEMENT(jc->c_dialogs, jd);
+    }
+
+  eXosip_dialog_set_200ok(jd, response);
+  evt_answer = osip_new_outgoing_sipmessage(response);
+  evt_answer->transactionid = tr->transactionid;
+
+  osip_transaction_add_event(tr, evt_answer);
+
+  osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
+  return 0;
+
+ g2atii_error_1:
+  osip_message_free(response);
+  return -1;
 }
 
 int
@@ -631,12 +753,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
   {
-    char contact[200];
-    sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
-	    localip,
-	    localport);
-    i = complete_answer_that_establish_a_dialog(response, tr->orig_request,
-						contact);
+    i = complete_answer_that_establish_a_dialog(response, tr->orig_request);
     if (i!=0) goto g2atii_error_1;; /* ?? */
   }
 
@@ -752,11 +869,7 @@ eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
     {
       /* request that estabish a dialog: */
       /* 12.1.1 UAS Behavior */
-      char contact[200];
-      sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
-	      localip,
-	      localport);
-      i = complete_answer_that_establish_a_dialog(response, tr->orig_request, contact);
+      i = complete_answer_that_establish_a_dialog(response, tr->orig_request);
 
       if (jd==NULL)
 	{
@@ -815,12 +928,7 @@ eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
   {
-    char contact[200];
-    sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
-	    localip,
-	    localport);
-    i = complete_answer_that_establish_a_dialog(response, tr->orig_request,
-						contact);
+    i = complete_answer_that_establish_a_dialog(response, tr->orig_request);
     if (i!=0) goto g2atii_error_1;; /* ?? */
   }
 

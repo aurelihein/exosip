@@ -68,6 +68,17 @@ extern "C"
  */
 int   eXosip_init(FILE *input, FILE *output, int port);
 
+	
+/**
+ * Force eXosip to use a specific local ip address in all its SIP message.
+ *
+ * @param localip 	the ip address.
+ *
+ * If set to NULL, then the local ip address will be guessed 
+ * automatically (returns to default mode).
+ */
+int eXosip_force_localip(const char *localip); 
+
 /**
  * Release ressource used by the eXtented oSIP library.
  * 
@@ -80,6 +91,17 @@ void  eXosip_quit();
  * @param ip    a string containing the local IP address.
  */
 void eXosip_get_localip(char *ip);
+
+/**
+ * Find the interface to be used to reach the specified host.
+ * 
+ * @param ip    a string containing the local IP address.
+ * @param localip	the local ip address to be used to reach host.
+ *
+ * You usually don't need this function at all.
+ */
+void eXosip_get_localip_for(char *host, char **localip);
+
 
 /**
  * Remove an audio payload.
@@ -180,12 +202,33 @@ int   eXosip_initiate_call    (osip_message_t *invite, void *reference,
 			       void *sdp_context_reference, char *local_sdp_port);
 
 /**
+ * Initiate a call with the specified body-type and body
+ * 
+ * @param invite          SIP INVITE message to send.
+ * @param body_type		  body type (ex: "application/sdp")
+ * @param body 			  The body.
+ */
+int   eXosip_initiate_call_with_body    (osip_message_t *invite, const char *body_type, const char *body);
+
+
+/**
  * Answer call.
  * 
  * @param jid          dialog id of call.
  * @param status       Status code to use.
  */
 int   eXosip_answer_call   (int jid, int status, char *local_sdp_port);
+
+/**
+ * Answer call with the specified body.
+ * 
+ * @param jid          dialog id of call.
+ * @param status       Status code to use.
+ * @param body_type	   body type (ex: "application/sdp")
+ * @param body 		   The body.
+ */
+int   eXosip_answer_call_with_body   (int jid, int status,const char *body_type, const char*body);
+
 
 /**
  * Put a call on hold.

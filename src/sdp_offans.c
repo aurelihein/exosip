@@ -24,7 +24,6 @@
 
 #include "eXosip2.h"
 
-extern char *localip;
 extern eXosip_t eXosip;
 
 osip_list_t *supported_codec = NULL;
@@ -140,11 +139,11 @@ int eXosip_sdp_negotiation_init(osip_negotiation_t **sn)
   osip_negotiation_set_o_session_version(*sn, osip_strdup("20000001"));
   osip_negotiation_set_o_nettype(*sn, osip_strdup("IN"));
   osip_negotiation_set_o_addrtype(*sn, osip_strdup("IP4"));
-  osip_negotiation_set_o_addr(*sn, osip_strdup(localip));
+  osip_negotiation_set_o_addr(*sn, osip_strdup(eXosip.localip));
   
   osip_negotiation_set_c_nettype(*sn, osip_strdup("IN"));
   osip_negotiation_set_c_addrtype(*sn, osip_strdup("IP4"));
-  osip_negotiation_set_c_addr(*sn, osip_strdup(localip));
+  osip_negotiation_set_c_addr(*sn, osip_strdup(eXosip.localip));
   
   /* ALL CODEC MUST SHARE THE SAME "C=" line and proto as the media 
      will appear on the same "m" line... */
@@ -271,4 +270,3 @@ eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr)
     }
   return NULL;
 }
-

@@ -122,7 +122,7 @@ struct eXosip_notify_t {
   int                 n_id;
   char                n_uri[255];
   int                 n_online_status;
-  char                n_contact_info[255];
+  char                *n_contact_info;
 
   int                 n_ss_status;
   int                 n_ss_reason;
@@ -242,15 +242,22 @@ eXosip_event_t *eXosip_event_get();
 
 typedef void (* eXosip_callback_t) (int type, eXosip_event_t *);
 
-/*  typedef void (* eXosip_call_callback_t) (int type, eXosip_event_t *);
-    typedef void (* eXosip_subscribe_callback_t) (int type, eXosip_event_t *);
-    typedef void (* eXosip_notify_callback_t) (int type, eXosip_event_t *);
-    typedef void (* eXosip_reg_callback_t) (int type, eXosip_event_t *);
-*/
+char *strdup_printf(const char *fmt, ...);
+
+#define eXosip_trace(loglevel,args)  do        \
+{                       \
+	char *__strmsg;  \
+	__strmsg=strdup_printf args ;    \
+	OSIP_TRACE(osip_trace(__FILE__,__LINE__,(loglevel),NULL,"%s\n",__strmsg)); \
+	osip_free (__strmsg);        \
+}while (0);
 
 typedef struct eXosip_t eXosip_t;
 
 struct eXosip_t {
+  int forced_localip; /* set to 1 when we must always use the default local ip */
+  char *localip;	/* default local ip */
+  char *localport;
 
   FILE               *j_input;
   FILE               *j_output;
@@ -294,8 +301,7 @@ struct jinfo_t {
   eXosip_notify_t     *jn;
 };
 
-
-char *eXosip_guess_ip_for_via ();
+void eXosip_guess_ip_for_via (char *);
 
 int  eXosip_sdp_negotiation_init();
 void eXosip_sdp_negotiation_free(osip_negotiation_t *sn);
@@ -315,6 +321,8 @@ void eXosip_dialog_free(eXosip_dialog_t *jd);
 void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state);
 void eXosip_delete_early_dialog(eXosip_dialog_t *jd);
 
+
+void eXosip_get_localip_from_via(osip_message_t *,char**localip);
 int  generating_initial_subscribe(osip_message_t **message, char *to,
 				 char *from, char *route);
 int  generating_message(osip_message_t **message, char *to, char *from,
@@ -343,6 +351,7 @@ int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, osip_message_t *_200Ok);
 
 int eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char *local_sdp_port);
+int eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int code,const char*, const char*);
 int eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_options_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
@@ -356,7 +365,7 @@ void eXosip_notify_answer_subscribe_3456xx(eXosip_notify_t *jn,
 
 int _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 				  int status, osip_message_t *request);
-int complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t *request, char *contact);
+int complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t *request);
 int _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 				       osip_dialog_t *dialog, char *transport);
 

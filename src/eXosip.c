@@ -40,8 +40,6 @@
 
 
 eXosip_t eXosip;
-char    *localip;
-char    *localport;
 extern char *register_callid_number;
 
 
@@ -134,8 +132,8 @@ void eXosip_quit()
   jpipe_close(eXosip.j_socketctl);
 #endif
 
-  osip_free(localip);
-  osip_free(localport);
+  osip_free(eXosip.localip);
+  osip_free(eXosip.localport);
   osip_free(register_callid_number);
 
   eXosip.j_input = 0;
@@ -286,24 +284,21 @@ int eXosip_init(FILE *input, FILE *output, int port)
 {
   osip_t *osip;
   int i;
-  if (port<0)
+  if (port<=0)
     {
       fprintf(stderr, "eXosip: port must be higher than 0!\n");
       return -1;
     }
-  localip = (char *) osip_malloc(30);
-  memset(localip, '\0', 30);
-  eXosip_guess_ip_for_via(localip);
-  if (localip[0]=='\0')
+  eXosip.localip = (char *) osip_malloc(30);
+  memset(eXosip.localip, '\0', 30);
+  eXosip_guess_ip_for_via(eXosip.localip);
+  if (eXosip.localip[0]=='\0')
     {
-#ifdef ENABLE_DEBUG
       fprintf(stderr, "eXosip: No ethernet interface found!\n");
       fprintf(stderr, "eXosip: using 127.0.0.1 (debug mode)!\n");
-      strcpy(localip, "127.0.0.1");
-#else
-      fprintf(stderr, "eXosip: No ethernet interface found!\n");
-      return -1;
-#endif
+      strcpy(eXosip.localip, "127.0.0.1");
+		/* we should always fallback on something. The linphone user will surely
+		start linphone BEFORE setting its dial up connection.*/
     }
 
   eXosip_set_mode(EVENT_MODE);
@@ -389,8 +384,8 @@ int eXosip_init(FILE *input, FILE *output, int port)
     }
   }
 
-  localport = (char*)osip_malloc(10);
-  sprintf(localport, "%i", port);
+  eXosip.localport = (char*)osip_malloc(10);
+  sprintf(eXosip.localport, "%i", port);
 
   eXosip.j_thread = (void*) osip_thread_create(20000,eXosip_thread, NULL);
   if (eXosip.j_thread==NULL)
@@ -411,6 +406,17 @@ int eXosip_init(FILE *input, FILE *output, int port)
   jidentity_load();
   jsubscriber_load();
   return 0;
+}
+
+int eXosip_force_localip(const char *localip){
+	if (localip!=NULL){
+		strcpy(eXosip.localip,localip);
+		eXosip.forced_localip=1;
+	}else {
+		eXosip_guess_ip_for_via(eXosip.localip);
+		eXosip.forced_localip=0;
+	}
+	return 0;
 }
 
 void
@@ -612,6 +618,58 @@ int eXosip_info_call(int jid, char *content_type, char *body)
   return 0;
 }
 
+int eXosip_initiate_call_with_body(osip_message_t *invite,const char *bodytype, const char*body){
+	eXosip_call_t *jc;
+  osip_header_t *subject;
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  int i;
+  char *size;
+  
+  if (body!=NULL){
+    size= (char *)osip_malloc(7*sizeof(char));
+	sprintf(size,"%i",strlen(body));
+	osip_message_set_content_length(invite, size);
+	osip_free(size);
+	osip_message_set_body(invite, body);
+	osip_message_set_content_type(invite,bodytype);
+  }
+  else osip_message_set_content_length(invite, "0");
+
+  eXosip_call_init(&jc);
+  i = osip_message_get_subject(invite, 0, &subject);
+  snprintf(jc->c_subject, 99, "%s", subject->hvalue);
+
+  jc->c_ack_sdp = 1;
+
+  i = osip_transaction_init(&transaction,
+		       ICT,
+		       eXosip.j_osip,
+		       invite);
+  if (i!=0)
+    {
+      eXosip_call_free(jc);
+      osip_message_free(invite);
+      return -1;
+    }
+  
+  jc->c_out_tr = transaction;
+  
+  sipevent = osip_new_outgoing_sipmessage(invite);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
+  osip_transaction_add_event(transaction, sipevent);
+
+  ADD_ELEMENT(eXosip.j_calls, jc);
+
+  eXosip_update(); /* fixed? */
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif
+  return 0;
+}
+
 extern osip_list_t *supported_codec;
 
 int eXosip_initiate_call(osip_message_t *invite, void *reference,
@@ -737,6 +795,43 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 #ifdef NEW_TIMER
   __eXosip_wakeup();
 #endif
+  return 0;
+}
+
+int eXosip_answer_call_with_body(int jid, int status, const char *bodytype, const char *body){
+  int i = -1;
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No call here?\n");
+      return -1;
+    }
+  if (status>100 && status<200)
+    {
+      i = eXosip_answer_invite_1xx(jc, jd, status);
+    }
+  else if (status>199 && status<300)
+    {
+      
+
+      i = eXosip_answer_invite_2xx_with_body(jc, jd, status,bodytype,body);
+    }
+  else if (status>300 && status<699)
+    {
+      i = eXosip_answer_invite_3456xx(jc, jd, status);
+    }
+  else
+    {
+      fprintf(stderr, "eXosip: wrong status code (101<status<699)\n");
+      return -1;
+    }
+  if (i!=0)
+    return -1;
   return 0;
 }
 
@@ -1435,16 +1530,29 @@ int eXosip_register      (int rid, int registration_period)
 
 	  /* modify the REGISTER request */
 	  {
+#ifdef SM
+	    char *locip;
+#else
+	    char locip[50];
+#endif
 	    int osip_cseq_num = osip_atoi(reg->cseq->number);
 	    int length   = strlen(reg->cseq->number);
 	    char *tmp    = (char *)osip_malloc(90*sizeof(char));
 	    osip_via_t *via   = (osip_via_t *) osip_list_get (reg->vias, 0);
 	    osip_list_remove(reg->vias, 0);
 	    osip_via_free(via);
+#ifdef SM
+	    eXosip_get_localip_for(reg->req_uri->host,&locip);
+#else
+	    eXosip_guess_ip_for_via(locip);
+#endif
 	    sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
-		    localip,
-		    localport,
+		    locip,
+		    eXosip.localport,
 		    via_branch_new_random());
+#ifdef SM
+	    osip_free(locip);
+#endif
 	    osip_via_init(&via);
 	    osip_via_parse(via, tmp);
 	    osip_list_add(reg->vias, via, 0);

@@ -27,8 +27,7 @@
 #include <eXosip/eXosip_cfg.h>
 
 extern eXosip_t eXosip;
-extern char    *localip;
-extern char    *localport;
+
 
 int eXosip_notify_find(int sid, eXosip_notify_t **jn)
 {
@@ -96,7 +95,13 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
   osip_contact_t *co;
   char *uri;
   int i;
-
+#ifdef SM
+  char *locip;
+  eXosip_get_localip_from_via(inc_subscribe,&locip);
+#else
+  char locip[50];
+  eXosip_guess_ip_for_via(locip);
+#endif
   if (inc_subscribe==NULL
       ||inc_subscribe->to==NULL
       ||inc_subscribe->to->url==NULL)
@@ -120,22 +125,28 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
 
   if (inc_subscribe->to->url->username!=NULL)
     {
-      if (localport==NULL)
-	sprintf((*jn)->n_contact_info, "sip:%s@%s",
-		inc_subscribe->to->url->username, localip);
+      /* SM: allocate a string instead of risking a buffer overflow */
+      if (eXosip.localport==NULL)
+	(*jn)->n_contact_info=strdup_printf("sip:%s@%s",
+					    inc_subscribe->to->url->username,
+					    locip);
       else
-	sprintf((*jn)->n_contact_info, "sip:%s@%s:%s",
-		inc_subscribe->to->url->username,
-		localip, localport);
+	(*jn)->n_contact_info= strdup_printf("sip:%s@%s:%s",
+					     inc_subscribe->to->url->username,
+					     locip, eXosip.localport);
     }
   else
     {
-      if (localport==NULL)
-	sprintf((*jn)->n_contact_info, "sip:%s", localip);
+      if (eXosip.localport==NULL)
+	(*jn)->n_contact_info=strdup_printf("sip:%s", locip);
       else
-	sprintf((*jn)->n_contact_info, "sip:%s:%s", localip, localport);
+	(*jn)->n_contact_info=strdup_printf("sip:%s:%s", locip,
+					    eXosip.localport);
     }
-
+  
+#ifdef SM
+  osip_free(locip);
+#endif
   return 0;
 }
 
@@ -146,7 +157,6 @@ __eXosip_notify_remove_dialog_reference_in_notify(eXosip_notify_t *jn, eXosip_di
   jinfo_t *ji;
   if (jn==NULL) return;
   if (jd==NULL) return;
-
 
   for (_jd = jn->n_dialogs; _jd!=NULL; _jd=jn->n_dialogs)
     {
@@ -185,7 +195,7 @@ eXosip_notify_free(eXosip_notify_t *jn)
     osip_list_add(eXosip.j_transactions, jn->n_inc_tr, 0);
   if (jn->n_out_tr!=NULL)
     osip_list_add(eXosip.j_transactions, jn->n_out_tr, 0);
-
+  if (jn->n_contact_info!=NULL) osip_free(jn->n_contact_info);
   osip_free(jn);
 }
 
