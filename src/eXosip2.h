@@ -296,7 +296,7 @@ struct eXosip_t {
   osip_fifo_t        *j_events;
 
   osip_negotiation_t *osip_negotiation;
-
+  char                j_firewall_ip[50];
   jauthinfo_t        *authinfos;
 };
 

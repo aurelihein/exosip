@@ -133,7 +133,7 @@ eXosip_event_init_for_call(int type,
 	  if (tr!=NULL && tr->orig_request!=NULL)
 	    {
 	      osip_message_get_subject(tr->orig_request, 0, &subject);
-	      if (subject!=NULL && subject->hvalue!=NULL)
+	      if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
 		snprintf(je->subject, 255, "%s", subject->hvalue);
 
 	      osip_uri_to_str(tr->orig_request->req_uri, &tmp);

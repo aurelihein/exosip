@@ -690,7 +690,7 @@ static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_even
 	osip_header_t *subject;
 	char *tmp;
 	osip_message_get_subject(evt->sip, 0, &subject);
-	if (subject!=NULL && subject->hvalue!=NULL)
+	if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
 	  snprintf(je->subject, 255, "%s", subject->hvalue);
 	osip_uri_to_str(evt->sip->req_uri, &tmp);
 	if (tmp!=NULL)

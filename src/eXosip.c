@@ -53,6 +53,11 @@ static int eXosip_execute(void);
 
 eXosip_t eXosip;
 
+void eXosip_set_firewallip(char *firewall_address)
+{
+	if (firewall_address==NULL) return;
+	snprintf(eXosip.j_firewall_ip,50, "%s", firewall_address);
+}
 
 void eXosip_get_localip(char *ip)
 {
@@ -706,6 +711,8 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
   char *body;
   char *size;
   
+  if (invite==NULL || invite->req_uri==NULL || invite->req_uri->host==NULL  ) return -1;
+  
   if (local_sdp_port!=NULL)
     {
       osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, local_sdp_port, NULL);
@@ -751,6 +758,56 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 	    }
 	}
 
+	  if (eXosip.j_firewall_ip[0]!='\0')
+	  {
+		  char *c_address = invite->req_uri->host;
+		  int pos=0;
+
+		  /* If remote message contains a Public IP, we have to replace the SDP
+			connection address */
+		  if (0!=strncmp(c_address, "192.168",7)
+			  && 0!=strncmp(c_address, "10.",3)
+			  && 0!=strncmp(c_address, "172.16.",7)
+			  && 0!=strncmp(c_address, "172.17.",7)
+			  && 0!=strncmp(c_address, "172.18.",7)
+			  && 0!=strncmp(c_address, "172.19.",7)
+			  && 0!=strncmp(c_address, "172.20.",7)
+			  && 0!=strncmp(c_address, "172.21.",7)
+			  && 0!=strncmp(c_address, "172.22.",7)
+			  && 0!=strncmp(c_address, "172.23.",7)
+			  && 0!=strncmp(c_address, "172.24.",7)
+			  && 0!=strncmp(c_address, "172.25.",7)
+			  && 0!=strncmp(c_address, "172.26.",7)
+			  && 0!=strncmp(c_address, "172.27.",7)
+			  && 0!=strncmp(c_address, "172.28.",7)
+			  && 0!=strncmp(c_address, "172.29.",7)
+			  && 0!=strncmp(c_address, "172.30.",7)
+			  && 0!=strncmp(c_address, "172.31.",7)
+			  && 0!=strncmp(c_address, "169.254",7))
+		  {
+			  /* replace the IP with our firewall ip */
+			  sdp_connection_t *conn = sdp_message_connection_get(sdp, -1, 0);
+			  if (conn!=NULL && conn->c_addr!=NULL )
+			  {
+				  osip_free(conn->c_addr);
+				  conn->c_addr = osip_strdup(eXosip.j_firewall_ip);
+			  }
+			  pos=0;
+			  conn = sdp_message_connection_get(sdp, pos, 0);
+			  while (conn!=NULL)
+			  {
+				  if (conn!=NULL && conn->c_addr!=NULL )
+				  {
+					  osip_free(conn->c_addr);
+					  conn->c_addr = osip_strdup(eXosip.j_firewall_ip);
+				  }
+				  pos++;
+				  conn = sdp_message_connection_get(sdp, pos, 0);
+			  }
+		  }
+
+	  }
+
       i = sdp_message_to_str(sdp, &body);
       if (body!=NULL)
 	{
@@ -775,7 +832,8 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
   if (local_sdp_port!=NULL)
     snprintf(jc->c_sdp_port,9, "%s", local_sdp_port);
   i = osip_message_get_subject(invite, 0, &subject);
-  snprintf(jc->c_subject, 99, "%s", subject->hvalue);
+  if (subject!=NULL && subject->hvalue!=NULL && subject->hvalue[0]!='\0')
+	  snprintf(jc->c_subject, 99, "%s", subject->hvalue);
   
   if (sdp_context_reference==NULL)
     osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
@@ -1068,10 +1126,14 @@ int eXosip_on_hold_call  (int jid)
   else
     osip_message_set_content_length(invite, "0");
 
-  if (jc->c_subject!=NULL)
-    osip_message_set_subject(invite, jc->c_subject);
+  if (jc->c_subject==NULL || jc->c_subject[0]=='\0')
+  {
+#if 0
+	  osip_message_set_subject(invite, "New Call");
+#endif
+  }
   else
-    osip_message_set_subject(invite, "New Call");
+	  osip_message_set_subject(invite, jc->c_subject);
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -1167,10 +1229,14 @@ int eXosip_off_hold_call (int jid)
   else
     osip_message_set_content_length(invite, "0");
 
-  if (jc->c_subject!=NULL)
-    osip_message_set_subject(invite, jc->c_subject);
+  if (jc->c_subject==NULL || jc->c_subject[0]=='\0')
+  {
+#if 0
+	  osip_message_set_subject(invite, "New Call");
+#endif
+  }
   else
-    osip_message_set_subject(invite, "New Call");
+	  osip_message_set_subject(invite, jc->c_subject);
 
   i = osip_transaction_init(&transaction,
 		       ICT,

@@ -224,15 +224,69 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   /* always add the Max-Forward header */
   osip_message_set_max_forwards(request, "5"); /* a UA should start a request with 70 */
 
+#define MASQUERADE_VIA
+#ifdef MASQUERADE_VIA
+  /* should be useless with compliant UA */
+  if (eXosip.j_firewall_ip[0]!='\0')
   {
-    char tmp[90];
-
-    snprintf(tmp, sizeof(tmp), "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	  char *c_address = request->req_uri->host;
+	  if (0!=strncmp(c_address, "192.168",7)
+		  && 0!=strncmp(c_address, "10.",3)
+		  && 0!=strncmp(c_address, "172.16.",7)
+		  && 0!=strncmp(c_address, "172.17.",7)
+		  && 0!=strncmp(c_address, "172.18.",7)
+		  && 0!=strncmp(c_address, "172.19.",7)
+		  && 0!=strncmp(c_address, "172.20.",7)
+		  && 0!=strncmp(c_address, "172.21.",7)
+		  && 0!=strncmp(c_address, "172.22.",7)
+		  && 0!=strncmp(c_address, "172.23.",7)
+		  && 0!=strncmp(c_address, "172.24.",7)
+		  && 0!=strncmp(c_address, "172.25.",7)
+		  && 0!=strncmp(c_address, "172.26.",7)
+		  && 0!=strncmp(c_address, "172.27.",7)
+		  && 0!=strncmp(c_address, "172.28.",7)
+		  && 0!=strncmp(c_address, "172.29.",7)
+		  && 0!=strncmp(c_address, "172.30.",7)
+		  && 0!=strncmp(c_address, "172.31.",7)
+		  && 0!=strncmp(c_address, "169.254",7))
+	  {
+		    char tmp[200];
+			sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+				eXosip.j_firewall_ip,
+				eXosip.localport,
+				via_branch_new_random() );
+			osip_message_set_via(request, tmp);
+	  }
+	  else
+	  {
+	    char tmp[200];
+		sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+			locip,
+			eXosip.localport,
+			via_branch_new_random() );
+		osip_message_set_via(request, tmp);
+	  }
+  }
+  else
+  {
+    char tmp[200];
+    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 	    locip,
 	    eXosip.localport,
 	    via_branch_new_random() );
     osip_message_set_via(request, tmp);
   }
+
+#else
+  {
+    char tmp[200];
+    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	    locip,
+	    eXosip.localport,
+	    via_branch_new_random() );
+    osip_message_set_via(request, tmp);
+  }
+#endif
 
   /* add specific headers for each kind of request... */
 
@@ -395,10 +449,15 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 				       route);
   if (i!=0) return -1;
   
+#if 0
   if (subject==NULL)
 	  osip_message_set_subject(*invite, "New Call");
   else
 	  osip_message_set_subject(*invite, subject);
+#else
+  if (subject!=NULL)
+	  osip_message_set_subject(*invite, subject);
+#endif
 
   /* after this delay, we should send a CANCEL */
   osip_message_set_expires(*invite, "120");
@@ -706,14 +765,67 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 
   /* even for ACK for 2xx (ACK within a dialog), the branch ID MUST
      be a new ONE! */
+#ifdef MASQUERADE_VIA
+  /* should be useless with compliant UA */
+  if (eXosip.j_firewall_ip[0]!='\0')
   {
-    char tmp[90];
+	  char *c_address = request->req_uri->host;
+	  if (0!=strncmp(c_address, "192.168",7)
+		  && 0!=strncmp(c_address, "10.",3)
+		  && 0!=strncmp(c_address, "172.16.",7)
+		  && 0!=strncmp(c_address, "172.17.",7)
+		  && 0!=strncmp(c_address, "172.18.",7)
+		  && 0!=strncmp(c_address, "172.19.",7)
+		  && 0!=strncmp(c_address, "172.20.",7)
+		  && 0!=strncmp(c_address, "172.21.",7)
+		  && 0!=strncmp(c_address, "172.22.",7)
+		  && 0!=strncmp(c_address, "172.23.",7)
+		  && 0!=strncmp(c_address, "172.24.",7)
+		  && 0!=strncmp(c_address, "172.25.",7)
+		  && 0!=strncmp(c_address, "172.26.",7)
+		  && 0!=strncmp(c_address, "172.27.",7)
+		  && 0!=strncmp(c_address, "172.28.",7)
+		  && 0!=strncmp(c_address, "172.29.",7)
+		  && 0!=strncmp(c_address, "172.30.",7)
+		  && 0!=strncmp(c_address, "172.31.",7)
+		  && 0!=strncmp(c_address, "169.254",7))
+	  {
+		    char tmp[200];
+			sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+				eXosip.j_firewall_ip,
+				eXosip.localport,
+				via_branch_new_random() );
+			osip_message_set_via(request, tmp);
+	  }
+	  else
+	  {
+	    char tmp[200];
+		sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+			locip,
+			eXosip.localport,
+			via_branch_new_random() );
+		osip_message_set_via(request, tmp);
+	  }
+  }
+  else
+  {
+    char tmp[200];
+    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	    locip,
+	    eXosip.localport,
+	    via_branch_new_random() );
+    osip_message_set_via(request, tmp);
+  }
 
-    snprintf(tmp, sizeof(tmp), "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-	    locip ,eXosip.localport,
+#else
+  {
+    char tmp[200];
+    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	    locip, eXosip.localport,
 	    via_branch_new_random());
     osip_message_set_via(request, tmp);
   }
+#endif
 
   /* add specific headers for each kind of request... */
 

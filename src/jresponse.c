@@ -302,6 +302,66 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
       if (i==200)
 	{
 	  local_sdp = osip_negotiation_ctx_get_local_sdp(context);
+
+	  if (eXosip.j_firewall_ip[0]!='\0')
+	  {
+		  char *c_address = NULL;
+		  int pos=0;
+		  /* If remote message contains a Public IP, we have to replace the SDP
+			connection address */
+		  c_address = sdp_message_c_addr_get(remote_sdp, -1, 0);
+		  while (c_address==NULL)
+		  {
+			  c_address = sdp_message_c_addr_get(remote_sdp, pos, 0);
+			  pos++;
+			  if (pos>10)
+				  break;
+		  }
+		  if (c_address!=NULL) /* found a connection address: check if it is public */
+		  {
+			  if (0!=strncmp(c_address, "192.168",7)
+				  && 0!=strncmp(c_address, "10.",3)
+				  && 0!=strncmp(c_address, "172.16.",7)
+				  && 0!=strncmp(c_address, "172.17.",7)
+				  && 0!=strncmp(c_address, "172.18.",7)
+				  && 0!=strncmp(c_address, "172.19.",7)
+				  && 0!=strncmp(c_address, "172.20.",7)
+				  && 0!=strncmp(c_address, "172.21.",7)
+				  && 0!=strncmp(c_address, "172.22.",7)
+				  && 0!=strncmp(c_address, "172.23.",7)
+				  && 0!=strncmp(c_address, "172.24.",7)
+				  && 0!=strncmp(c_address, "172.25.",7)
+				  && 0!=strncmp(c_address, "172.26.",7)
+				  && 0!=strncmp(c_address, "172.27.",7)
+				  && 0!=strncmp(c_address, "172.28.",7)
+				  && 0!=strncmp(c_address, "172.29.",7)
+				  && 0!=strncmp(c_address, "172.30.",7)
+				  && 0!=strncmp(c_address, "172.31.",7)
+				  && 0!=strncmp(c_address, "169.254",7))
+			  {
+				  /* replace the IP with our firewall ip */
+				  sdp_connection_t *conn = sdp_message_connection_get(local_sdp, -1, 0);
+				  if (conn!=NULL && conn->c_addr!=NULL )
+				  {
+					  osip_free(conn->c_addr);
+					  conn->c_addr = osip_strdup(eXosip.j_firewall_ip);
+				  }
+				  pos=0;
+				  conn = sdp_message_connection_get(local_sdp, pos, 0);
+				  while (conn!=NULL)
+				  {
+					  if (conn!=NULL && conn->c_addr!=NULL )
+					  {
+						  osip_free(conn->c_addr);
+						  conn->c_addr = osip_strdup(eXosip.j_firewall_ip);
+					  }
+					  pos++;
+					  conn = sdp_message_connection_get(local_sdp, pos, 0);
+				  }
+			  }
+		  }
+	  }	  
+
 	  i = sdp_message_to_str(local_sdp, &local_body);
 
 	  remote_sdp = osip_negotiation_ctx_get_remote_sdp(context);

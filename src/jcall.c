@@ -114,7 +114,7 @@ eXosip_call_free(eXosip_call_t *jc)
 void
 eXosip_call_set_subject(eXosip_call_t *jc, char *subject)
 {
-  if (jc==NULL||subject==NULL) return;
+  if (jc==NULL||subject==NULL||subject[0]=='\0') return;
   snprintf(jc->c_subject, 99, "%s", subject);
 }
 
