@@ -98,7 +98,6 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       i = osip_uri_parse(request->req_uri, proxy);
       if (i!=0)
 	{
-	  osip_uri_free(request->req_uri);
 	  goto brood_error_1;
 	}
       osip_message_set_to(request, from);
