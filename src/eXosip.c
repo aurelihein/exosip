@@ -235,6 +235,13 @@ void eXosip_quit(void)
   eXosip_kill_transaction (eXosip.j_osip->osip_nist_transactions);
   osip_release (eXosip.j_osip);
 
+  {
+    eXosip_event_t *ev;
+    for(ev=osip_fifo_tryget(eXosip.j_events);ev!=NULL;
+	ev=osip_fifo_tryget(eXosip.j_events))
+      eXosip_event_free(ev);
+  }
+
   osip_fifo_free(eXosip.j_events);
 
   for (jauthinfo = eXosip.authinfos; jauthinfo!=NULL;

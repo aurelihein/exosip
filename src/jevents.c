@@ -673,7 +673,19 @@ eXosip_event_init(eXosip_event_t **je, int type)
 void
 eXosip_event_free(eXosip_event_t *je)
 {
-
+  if (je->i_ctt!=NULL)
+    osip_content_type_free(je->i_ctt);
+  if (je->i_bodies!=NULL)
+    {
+      int pos;
+      for (pos=0;!osip_list_eol(je->i_bodies, pos);)
+	{
+	  osip_body_t *body;
+	  body = (osip_body_t *)osip_list_get(je->i_bodies, pos);
+	  osip_list_remove(je->i_bodies, pos);
+	  osip_body_free(body);
+	}
+    }
   osip_free(je);
 }
 
