@@ -736,12 +736,9 @@ __eXosip_clock_gettime(unsigned int clock_id, struct timespec *time)
    if (clock_id != OSIP_CLOCK_REALTIME)
      return;
 
-   if (tp == NULL)
-     return;
-
    _ftime (&time_val);
-   tp->tv_sec = time_val.time;
-   tp->tv_nsec = time_val.millitm * 1000000;
+   time->tv_sec = time_val.time;
+   time->tv_nsec = time_val.millitm * 1000000;
    return;
 }
 #endif
