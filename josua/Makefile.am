@@ -1,6 +1,6 @@
-lib_LTLIBRARIES = libjosua.la
 
 if COMPILE_JOSUA
+lib_LTLIBRARIES = libjosua.la
 bin_PROGRAMS = josua
 endif
 
