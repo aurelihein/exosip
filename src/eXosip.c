@@ -662,13 +662,13 @@ eXosip_automatic_refresh()
 
     for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
       {
-	if (jr->r_id >=1 || jr->r_last_tr!=NULL)
+	if (jr->r_id >=1 && jr->r_last_tr!=NULL)
 	  {
 	    if (jr->r_reg_period==0)
 	      {
 		/* skip refresh! */
 	      }
-	    else if (now-jr->r_last_tr->birth_time>300)
+	    else if (now-jr->r_last_tr->birth_time>900)
 	      {
 		/* automatic refresh */
 		eXosip_register(jr->r_id, jr->r_reg_period);
