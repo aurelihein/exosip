@@ -175,6 +175,18 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
   osip_transaction_add_event(transaction,evt_answer);
 }
 
+void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_event_t *evt)
+{
+  eXosip_event_t *je;
+  je = eXosip_event_init_for_call(EXOSIP_CALL_ACK, jc, jd);
+  if (eXosip.j_call_callbacks[EXOSIP_CALL_ACK]!=NULL)
+    eXosip.j_call_callbacks[EXOSIP_CALL_ACK](EXOSIP_CALL_ACK, je);
+  else if (eXosip.j_runtime_mode==EVENT_MODE)
+    eXosip_event_add(je);
+
+  osip_event_free(evt);
+}
+
 int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
 {
   osip_generic_param_t *br;
@@ -1253,8 +1265,10 @@ void eXosip_process_newrequest (osip_event_t *evt)
   else if (MSG_IS_ACK(evt->sip))
     { /* this should be a ACK for 2xx (but could be a late ACK!) */
       ctx_type = -1;
+#if 0 /* ACK must be announced */
       osip_event_free(evt);
       return ;	
+#endif
     }
   else if (MSG_IS_REQUEST(evt->sip))
     {
@@ -1400,6 +1414,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	}
       else if (MSG_IS_ACK(evt->sip))
 	{
+	  eXosip_process_ack(jc, jd, evt);
 	}
       else if (MSG_IS_REFER(evt->sip))
 	{
@@ -1422,10 +1437,18 @@ void eXosip_process_newrequest (osip_event_t *evt)
       return ;
     }
 
+  if (MSG_IS_ACK(evt->sip))
+    {
+      /* no transaction has been found for this ACK! */
+      osip_event_free(evt);
+      return;
+    }
+
   if (MSG_IS_INFO(evt->sip))
     {
       osip_list_add(eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer(jd, transaction, evt, 481);
+      return; /* fixed */
     }
   if (MSG_IS_OPTIONS(evt->sip))
     {

@@ -510,6 +510,10 @@ eXosip_event_init(eXosip_event_t **je, int type)
     {
       sprintf((*je)->textinfo, "New call received!");
     }
+  else if (type==EXOSIP_CALL_ACK)
+    {
+      sprintf((*je)->textinfo, "ACK received!");
+    }
   else if (type==EXOSIP_CALL_CANCELLED)
     {
       sprintf((*je)->textinfo, "Call has been cancelled!");
@@ -723,12 +727,6 @@ __eXosip_clock_gettime(clockid_t cid, struct timespec *time)
 #include <sys/timeb.h>
 
 #define OSIP_CLOCK_REALTIME 4002
-
-struct timespec
-{
-  long   tv_sec;
-  long   tv_nsec;
-};
 
 void
 __eXosip_clock_gettime(unsigned int cid, struct timespec *time)

@@ -376,6 +376,7 @@ typedef enum eXosip_event_type_t {
 
   /* for UAS events */
   EXOSIP_CALL_NEW,             /* announce a new call                   */
+  EXOSIP_CALL_ACK,             /* ACK received for 200ok to INVITE      */
   EXOSIP_CALL_CANCELLED,       /* announce that call has been cancelled */
   EXOSIP_CALL_TIMEOUT,         /* announce that call has failed         */
   EXOSIP_CALL_HOLD,            /* audio must be stopped                 */
