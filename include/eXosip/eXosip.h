@@ -434,7 +434,7 @@ typedef enum eXosip_ss_status {
  * Accept a subscription and notify state (NOTIFY request).
  * 
  * @param nid            call id of call.
- * @param code           dialog id of call.
+ * @param code           code for answer to subscribe.
  * @param subscription_status  subscription status.
  * @param online_status  online status to send.
  */
