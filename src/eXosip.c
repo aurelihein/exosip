@@ -617,7 +617,7 @@ eXosip_update()
     }
 }
 
-void eXosip_message    (char *to, char *from, char *route, char *buff)
+int eXosip_message    (char *to, char *from, char *route, char *buff)
 {
   /* eXosip_call_t *jc;
      osip_header_t *subject; */
@@ -632,7 +632,7 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
          "eXosip: cannot send message (cannot build MESSAGE)! "));
-      return;
+      return -1;
     }
 
   i = osip_transaction_init(&transaction,
@@ -644,7 +644,7 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
       /* TODO: release the j_call.. */
 
       osip_message_free(message);
-      return ;
+      return -1;
     }
 
   osip_list_add(eXosip.j_transactions, transaction, 0);

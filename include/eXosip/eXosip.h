@@ -401,7 +401,7 @@ int   eXosip_register      (int rid, int expires);
  * 
  * @param rid .
  */
-void  eXosip_message    (char *to, char *from, char *route, char *buff);
+int  eXosip_message    (char *to, char *from, char *route, char *buff);
 
 /**
  * Send initial subscription to a user. (SUBSCRIBE request)
