@@ -757,6 +757,16 @@ void eXosip_terminate_call(int cid, int jid)
 	    fprintf(stderr, "eXosip: cannot initiate SIP transaction! ");
 	  return;
 	}
+      if (tr==NULL)
+	{
+	  tr = eXosip_find_last_inc_invite(jc, jd);
+	  if (tr!=NULL && tr->last_response!=NULL &&
+	      MSG_IS_STATUS_1XX(tr->last_response))
+	    { /* answer with 603 */
+	      eXosip_answer_call(jid, 603);
+	      return;
+	    }
+	}
     }
   i = generating_bye(&request, jd->d_dialog);
   if (i!=0)
