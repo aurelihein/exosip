@@ -298,6 +298,8 @@ struct eXosip_t {
   osip_negotiation_t *osip_negotiation;
   char                j_firewall_ip[50];
   jauthinfo_t        *authinfos;
+
+  int                 ip_family; /* AF_INET6 or AF_INET */
 };
 
 typedef struct jinfo_t jinfo_t;
@@ -309,7 +311,7 @@ struct jinfo_t {
   eXosip_notify_t     *jn;
 };
 
-void eXosip_guess_ip_for_via (char *);
+int eXosip_guess_ip_for_via (int family, char *address, int size);
 
 int  eXosip_sdp_negotiation_init(osip_negotiation_t **sn);
 void eXosip_sdp_negotiation_free(osip_negotiation_t *sn);
@@ -344,6 +346,7 @@ int  generating_options_within_dialog(osip_message_t **info, osip_dialog_t *dial
 int  generating_info_within_dialog(osip_message_t **info, osip_dialog_t *dialog);
 int  generating_bye(osip_message_t **bye, osip_dialog_t *dialog);
 int  generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to);
+int  generating_refer_outside_dialog(osip_message_t **refer, char *refer_to, char *from, char *to, char *proxy);
 int  generating_invite_on_hold(osip_message_t **invite, osip_dialog_t *dialog,
 				char *subject, char *sdp);
 int  generating_invite_off_hold(osip_message_t **invite, osip_dialog_t *dialog,

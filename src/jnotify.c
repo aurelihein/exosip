@@ -101,7 +101,7 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
   eXosip_get_localip_from_via(inc_subscribe,&locip);
 #else
   char locip[50];
-  eXosip_guess_ip_for_via(locip);
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
 #endif
   if (inc_subscribe==NULL
       ||inc_subscribe->to==NULL

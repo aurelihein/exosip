@@ -23,6 +23,18 @@
 
 #include "eXosip2.h"
 
+#ifndef WIN32
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#ifdef __APPLE_CC__
+#include <unistd.h>
+#endif
+#else
+#include <windows.h>
+#endif
+
 extern eXosip_t eXosip;
 
 /* Private functions */
@@ -172,7 +184,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 #ifdef SM
   eXosip_get_localip_for(request->req_uri->host,&locip);
 #else
-  eXosip_guess_ip_for_via(locip);
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
 #endif
   /* set To and From */
   osip_message_set_from(request, from);
@@ -249,41 +261,60 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 		  && 0!=strncmp(c_address, "172.30.",7)
 		  && 0!=strncmp(c_address, "172.31.",7)
 		  && 0!=strncmp(c_address, "169.254",7))
-	  {
-		    char tmp[200];
-			sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-				eXosip.j_firewall_ip,
-				eXosip.localport,
-				via_branch_new_random() );
-			osip_message_set_via(request, tmp);
+	    {
+	      char tmp[200];
+	      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+		      eXosip.j_firewall_ip,
+		      eXosip.localport,
+		      via_branch_new_random() );
+	      osip_message_set_via(request, tmp);
 	  }
 	  else
 	  {
 	    char tmp[200];
-		sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-			locip,
-			eXosip.localport,
-			via_branch_new_random() );
-		osip_message_set_via(request, tmp);
+	    if (eXosip.ip_family==AF_INET6)
+	      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+		      locip,
+		      eXosip.localport,
+		      via_branch_new_random() );
+	    else
+	      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+		      locip,
+		      eXosip.localport,
+		      via_branch_new_random() );
+	    osip_message_set_via(request, tmp);
 	  }
   }
   else
   {
     char tmp[200];
-    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-	    locip,
-	    eXosip.localport,
-	    via_branch_new_random() );
+    if (eXosip.ip_family==AF_INET6)
+      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+	      locip,
+	      eXosip.localport,
+	      via_branch_new_random() );
+    else
+      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      locip,
+	      eXosip.localport,
+	      via_branch_new_random() );
     osip_message_set_via(request, tmp);
   }
 
 #else
   {
     char tmp[200];
-    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-	    locip,
-	    eXosip.localport,
-	    via_branch_new_random() );
+    if (eXosip.ip_family==AF_INET6)
+      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+	      locip,
+	      eXosip.localport,
+	      via_branch_new_random() );
+    else
+      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      locip,
+	      eXosip.localport,
+	      via_branch_new_random() );
+
     osip_message_set_via(request, tmp);
   }
 #endif
@@ -383,7 +414,7 @@ generating_register(osip_message_t **reg, char *from,
 #ifdef SM
   eXosip_get_localip_for((*reg)->req_uri->host,&locip);
 #else
-  eXosip_guess_ip_for_via(locip);
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
 #endif
 
   if (contact==NULL)
@@ -703,7 +734,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 #ifdef SM
   eXosip_get_localip_for(dialog->remote_contact_uri->url->host,&locip);
 #else
-  eXosip_guess_ip_for_via(locip);
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
 #endif
   /* prepare the request-line */
   request->sip_method  = osip_strdup(method_name);
@@ -791,38 +822,58 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 		  && 0!=strncmp(c_address, "169.254",7))
 	  {
 		    char tmp[200];
-			sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-				eXosip.j_firewall_ip,
-				eXosip.localport,
-				via_branch_new_random() );
-			osip_message_set_via(request, tmp);
+		    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+			    eXosip.j_firewall_ip,
+			    eXosip.localport,
+			    via_branch_new_random() );
+		    osip_message_set_via(request, tmp);
 	  }
 	  else
 	  {
 	    char tmp[200];
-		sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-			locip,
-			eXosip.localport,
-			via_branch_new_random() );
-		osip_message_set_via(request, tmp);
+	    if (eXosip.ip_family==AF_INET6)
+	      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+		      locip,
+		      eXosip.localport,
+		      via_branch_new_random() );
+	    else
+	      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+		      locip,
+		      eXosip.localport,
+		      via_branch_new_random() );
+	      
+	    osip_message_set_via(request, tmp);
 	  }
   }
   else
   {
     char tmp[200];
-    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-	    locip,
-	    eXosip.localport,
-	    via_branch_new_random() );
+    if (eXosip.ip_family==AF_INET6)
+      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+	      locip,
+	      eXosip.localport,
+	      via_branch_new_random() );
+    else
+      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      locip,
+	      eXosip.localport,
+	      via_branch_new_random() );
+
     osip_message_set_via(request, tmp);
   }
 
 #else
   {
     char tmp[200];
-    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-	    locip, eXosip.localport,
-	    via_branch_new_random());
+    if (eXosip.ip_family==AF_INET6)
+      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+	      locip, eXosip.localport,
+	      via_branch_new_random());
+    else
+      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      locip, eXosip.localport,
+	      via_branch_new_random());
+
     osip_message_set_via(request, tmp);
   }
 #endif

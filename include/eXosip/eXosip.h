@@ -60,6 +60,13 @@ extern "C"
  */
 
 /**
+ * Use IPv6 instead of IPv4.
+ * 
+ * @param ipv6_enable  This paramter should be set to 1 to enable IPv6.
+ */
+void eXosip_enable_ipv6(int ipv6_enable);
+
+/**
  * Initiate the eXtented oSIP library.
  * 
  * @param input    command input (RESERVED FOR FUTUR USE).
@@ -94,10 +101,20 @@ void eXosip_set_firewallip(const char *firewall_address);
 
 /**
  * Find the current localip (interface with default route).
+ * ****DEPRECATED**** Use eXosip_guess_localip
  * 
  * @param ip    a string containing the local IP address.
  */
 void eXosip_get_localip(char *ip);
+
+/**
+ * Find the current localip (interface with default route).
+ * 
+ * @param family    AF_INET or AF_INET6
+ * @param address   a string containing the local IP address.
+ * @param size      The size of the string
+ */
+int eXosip_guess_localip(int family, char *address, int size);
 
 /**
  * Find the interface to be used to reach the specified host.
@@ -236,6 +253,16 @@ int   eXosip_initiate_call    (osip_message_t *invite, void *reference,
  */
 int   eXosip_initiate_call_with_body    (osip_message_t *invite, const char *body_type, const char *body);
 
+/**
+ * Initiate a blind transfer outside of a call.
+ * (probably not supported by many softphone...)
+ * 
+ * @param refer_to  SIP url for transfer.
+ * @param from      SIP url for caller.
+ * @param to        SIP url for callee.
+ * @param route     Route header for REFER. (optionnal)
+ */
+int eXosip_transfer_call_out_of_dialog(char *refer_to, char *from, char *to, char *route);
 
 /**
  * Answer call.

@@ -178,7 +178,7 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 #ifdef SM
   eXosip_get_localip_from_via(response,&locip);
 #else
-  eXosip_guess_ip_for_via(locip);
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
 #endif
   if (request->to->url->username==NULL)
     snprintf(contact,1000, "<sip:%s:%s>", locip, eXosip.localport);

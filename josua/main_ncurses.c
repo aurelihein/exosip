@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.53 2003-08-17 19:51:40 aymeric Exp $"; */
+/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.54 2004-03-18 17:55:16 aymeric Exp $"; */
 
 #ifdef NCURSES_SUPPORT
 
@@ -518,6 +518,7 @@ usage:\n\
 \n\
    josua args\n\
 \n\
+\t [-6] Use IPv6\n\
 \t [-f <config file>]\n\
 \t [-I <identity file>]\n\
 \t [-C <contact file>]\n\
@@ -557,11 +558,14 @@ int main(int argc, const char *const *argv) {
 
   ppl_getopt_init (&opt, argc, argv);
 
-#define __APP_BASEARGS "F:I:C:L:f:d:p:t:r:s:T:vVSh?X"
+#define __APP_BASEARGS "F:I:C:L:f:d:p:t:r:s:T:6vVSh?X"
   while ((rv = ppl_getopt (opt, __APP_BASEARGS, &c, &optarg)) == PPL_SUCCESS)
     {
       switch (c)
         {
+          case '6':
+	    eXosip_enable_ipv6(1); /* enable IPv6 */
+            break;
           case 'F':
             snprintf(cfg.config_file, 255, optarg);
             break;

@@ -1,3 +1,6 @@
+eXosip (0.7.6)
+	* support for IPv4 and IPv6.
+	
 eXosip (0.7.5)
 	* small improvements for josua.
 	* patch for IPv6 (uncomplete)

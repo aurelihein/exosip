@@ -59,9 +59,17 @@ void eXosip_set_firewallip(const char *firewall_address)
 	snprintf(eXosip.j_firewall_ip,50, "%s", firewall_address);
 }
 
+int eXosip_guess_localip(int family, char *address, int size)
+{
+  return eXosip_guess_ip_for_via(family, address, size);
+}
+
 void eXosip_get_localip(char *ip)
 {
-  eXosip_guess_ip_for_via(ip);
+  OSIP_TRACE (osip_trace
+	      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	       "eXosip_get_localip IS DEPRECATED. Use eXosip_guess_localip!\n"));
+  eXosip_guess_ip_for_via(AF_INET, ip, 15);
 }
 
 #ifdef NEW_TIMER
@@ -297,6 +305,13 @@ void *eXosip_thread        ( void *arg )
   return NULL;
 }
 
+static int ipv6_enable = 0; 
+
+void eXosip_enable_ipv6(int _ipv6_enable)
+{
+  ipv6_enable = _ipv6_enable;
+}
+
 int eXosip_init(FILE *input, FILE *output, int port)
 {
   osip_t *osip;
@@ -307,9 +322,20 @@ int eXosip_init(FILE *input, FILE *output, int port)
       return -1;
     }
   memset(&eXosip, 0, sizeof(eXosip));
-  eXosip.localip = (char *) osip_malloc(30);
-  memset(eXosip.localip, '\0', 30);
-  eXosip_guess_ip_for_via(eXosip.localip);
+  eXosip.localip = (char *) osip_malloc(50);
+  memset(eXosip.localip, '\0', 50);
+
+  if (ipv6_enable == 0)
+    eXosip.ip_family = AF_INET;
+  else
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		   "IPv6 is enabled. Pls report bugs\n"));
+      eXosip.ip_family = AF_INET6;
+    }
+
+  eXosip_guess_localip(eXosip.ip_family, eXosip.localip, 49);
   if (eXosip.localip[0]=='\0')
     {
       fprintf(stderr, "eXosip: No ethernet interface found!\n");
@@ -386,43 +412,46 @@ int eXosip_init(FILE *input, FILE *output, int port)
    
   /* open the UDP listener */
 
-#ifndef IPV6_SUPPORT
-  eXosip.j_socket = (int)socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  if (eXosip.j_socket==-1)
-    return -1;
-  
-  {
-    struct sockaddr_in  raddr;
-    raddr.sin_addr.s_addr = htons(INADDR_ANY);
-    raddr.sin_port = htons((short)port);
-    raddr.sin_family = AF_INET;
-    
-    i = bind(eXosip.j_socket, (struct sockaddr *)&raddr, sizeof(raddr));
-    if (i < 0)
+  if (ipv6_enable == 0)
     {
-      fprintf(stderr, "eXosip: Cannot bind on port: %i!\n", i);
-      return -1;
+      eXosip.j_socket = (int)socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+      if (eXosip.j_socket==-1)
+	return -1;
+      
+      {
+	struct sockaddr_in  raddr;
+	raddr.sin_addr.s_addr = htons(INADDR_ANY);
+	raddr.sin_port = htons((short)port);
+	raddr.sin_family = AF_INET;
+	
+	i = bind(eXosip.j_socket, (struct sockaddr *)&raddr, sizeof(raddr));
+	if (i < 0)
+	  {
+	    fprintf(stderr, "eXosip: Cannot bind on port: %i!\n", i);
+	    return -1;
+	  }
+      }
     }
-  }
-#else
-  eXosip.j_socket = (int)socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-  if (eXosip.j_socket==-1)
-    return -1;
-  
-  {
-    struct sockaddr_in6  raddr;
-    memset(&raddr, 0, sizeof(raddr));
-    raddr.sin_port = htons((short)port);
-    raddr.sin_family = AF_INET6;
-    
-    i = bind(eXosip.j_socket, (struct sockaddr *)&raddr, sizeof(raddr));
-    if (i < 0)
+  else
     {
-      fprintf(stderr, "eXosip: Cannot bind on port: %i!\n", i);
-      return -1;
+      eXosip.j_socket = (int)socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+      if (eXosip.j_socket==-1)
+	return -1;
+      
+      {
+	struct sockaddr_in6  raddr;
+	memset(&raddr, 0, sizeof(raddr));
+	raddr.sin6_port = htons((short)port);
+	raddr.sin6_family = AF_INET6;
+	
+	i = bind(eXosip.j_socket, (struct sockaddr *)&raddr, sizeof(raddr));
+	if (i < 0)
+	  {
+	    fprintf(stderr, "eXosip: Cannot bind on port: %i!\n", i);
+	    return -1;
+	  }
+      }
     }
-  }
-#endif
 
 
   eXosip.localport = (char*)osip_malloc(10);
@@ -454,7 +483,7 @@ int eXosip_force_localip(const char *localip){
 		strcpy(eXosip.localip,localip);
 		eXosip.forced_localip=1;
 	}else {
-		eXosip_guess_ip_for_via(eXosip.localip);
+		eXosip_guess_ip_for_via(eXosip.ip_family, eXosip.localip, 49);
 		eXosip.forced_localip=0;
 	}
 	return 0;
@@ -1732,12 +1761,19 @@ int eXosip_register      (int rid, int registration_period)
 #ifdef SM
 	    eXosip_get_localip_for(reg->req_uri->host,&locip);
 #else
-	    eXosip_guess_ip_for_via(locip);
+	    eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
 #endif
-	    sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
-		    locip,
-		    eXosip.localport,
-		    via_branch_new_random());
+	    if (eXosip.ip_family==AF_INET6)
+	      sprintf(tmp, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
+		      locip,
+		      eXosip.localport,
+		      via_branch_new_random());
+	    else
+	      sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
+		      locip,
+		      eXosip.localport,
+		      via_branch_new_random());
+	      
 #ifdef SM
 	    osip_free(locip);
 #endif

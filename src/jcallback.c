@@ -141,7 +141,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
    /* ipv6 address detected */
    /* Do the resolution anyway */
    hints.ai_flags = AI_CANONNAME;
-   hints.ai_family = PF_UNSPEC;
+   hints.ai_family = PF_INET6;
    OSIP_TRACE (osip_trace
 	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
 		"IPv6 address detected: %s\n", hostname));
@@ -199,6 +199,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
 int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 		       int port, int out_socket)
 {
+  int len = 0;
   static int num = 0;
   struct addrinfo *addrinfo;
   struct __eXosip_sockaddr addr;
@@ -222,6 +223,8 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
       return -1;
     }
   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+  len = addrinfo->ai_addrlen;
+
   freeaddrinfo (addrinfo);
 
   i = osip_message_to_str(sip, &message);
@@ -231,9 +234,10 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
   }
 
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-			"Message sent: \n%s\n", message));
+			"Message sent: \n%s (len=%i sizeof(addr)=%i %i)\n",
+			message, len, sizeof(addr), sizeof(struct sockaddr_in6)));
   if (0  > sendto (eXosip.j_socket, (const void*) message, strlen (message), 0,
-		   (struct sockaddr *) &addr,sizeof(addr))) 
+		   (struct sockaddr *) &addr, len /* sizeof(addr) */ )) 
     {
 #ifdef WIN32
       if (WSAECONNREFUSED==WSAGetLastError())

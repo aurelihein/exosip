@@ -219,21 +219,36 @@ eXosip_guess_ip_for_via (char *alocalip)
 
 #include <stdio.h>
 
+static int ppl_dns_default_gateway_ipv4 (char *address, int size);
+static int ppl_dns_default_gateway_ipv6 (char *address, int size);
+
+int
+eXosip_guess_ip_for_via (int familiy, char *address, int size)
+{
+  if (familiy==AF_INET6)
+    {
+      return ppl_dns_default_gateway_ipv6 (address, size);
+    }
+  else
+    {
+      return ppl_dns_default_gateway_ipv4 (address, size);
+    }
+}
+
 /* This is a portable way to find the default gateway.
  * The ip of the default interface is returned.
  */
-void
-eXosip_guess_ip_for_via (char *alocalip)
+static int
+ppl_dns_default_gateway_ipv4 (char *address, int size)
 {
   unsigned int len;
   int sock_rt, on=1;
   struct sockaddr_in iface_out;
   struct sockaddr_in remote;
   
-  alocalip[0] = '\0';
   memset(&remote, 0, sizeof(struct sockaddr_in));
+
   remote.sin_family = AF_INET;
-  /*  remote.sin_addr.s_addr = inet_addr("217.12.3.11"); */
   remote.sin_addr.s_addr = inet_addr("217.12.3.11");
   remote.sin_port = htons(11111);
   
@@ -244,30 +259,81 @@ eXosip_guess_ip_for_via (char *alocalip)
       == -1) {
     perror("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
     close(sock_rt);
-    return ;
+    return -1;
   }
   
   if (connect(sock_rt, (struct sockaddr*)&remote, sizeof(struct sockaddr_in))
       == -1 ) {
     perror("DEBUG: [get_output_if] connect");
     close(sock_rt);
-    return ;
+    return -1;
   }
   
   len = sizeof(iface_out);
   if (getsockname(sock_rt, (struct sockaddr *)&iface_out, &len) == -1 ) {
     perror("DEBUG: [get_output_if] getsockname");
     close(sock_rt);
-    return ;
+    return -1;
   }
   close(sock_rt);
   if (iface_out.sin_addr.s_addr == 0)
     { /* what is this case?? */
-      return ;
+      return -1;
     }
+  osip_strncpy(address, inet_ntoa(iface_out.sin_addr), size-1);
+  return 0;
+}
 
-  strcpy(alocalip, inet_ntoa(iface_out.sin_addr));
-  return;
+
+/* This is a portable way to find the default gateway.
+ * The ip of the default interface is returned.
+ */
+static int
+ppl_dns_default_gateway_ipv6 (char *address, int size)
+{
+  unsigned int len;
+  int sock_rt, on=1;
+  struct sockaddr_in6 iface_out;
+  struct sockaddr_in6 remote;
+  
+  memset(&remote, 0, sizeof(struct sockaddr_in));
+
+  remote.sin6_family = AF_INET6;
+  inet_pton(AF_INET6, "2001:638:500:101:2e0:81ff:fe24:37c6",
+	    &remote.sin6_addr);
+  remote.sin6_port = htons(11111);
+  
+  memset(&iface_out, 0, sizeof(iface_out));
+  sock_rt = socket(AF_INET6, SOCK_DGRAM, 0 );
+  
+  if (setsockopt(sock_rt, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on))
+      == -1) {
+    perror("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
+    close(sock_rt);
+    return -1;
+  }
+  
+  if (connect(sock_rt, (struct sockaddr*)&remote, sizeof(struct sockaddr_in6))
+      == -1 ) {
+    perror("DEBUG: [get_output_if] connect");
+    close(sock_rt);
+    return -1;
+  }
+  
+  len = sizeof(iface_out);
+  if (getsockname(sock_rt, (struct sockaddr *)&iface_out, &len) == -1 ) {
+    perror("DEBUG: [get_output_if] getsockname");
+    close(sock_rt);
+    return -1;
+  }
+  close(sock_rt);
+
+  if (iface_out.sin6_addr.s6_addr == 0)
+    { /* what is this case?? */
+      return -1;
+    }
+  inet_ntop(AF_INET6, (const void*) &iface_out.sin6_addr, address, size-1);
+  return 0;
 }
 
 void eXosip_get_localip_for(char *address_to_reach,char **loc){
