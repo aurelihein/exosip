@@ -192,8 +192,8 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
       if (ctt->type==NULL || ctt->subtype==NULL)
 	/* it can be application/sdp or mime... */
 	return -1;
-      if (strcmp(ctt->type, "application")!=0 ||
-	  strcmp(ctt->subtype, "sdp")!=0 )
+      if (osip_strcasecmp(ctt->type, "application")!=0 ||
+	  osip_strcasecmp(ctt->subtype, "sdp")!=0 )
 	{ return -1; }
     }
   
@@ -236,7 +236,7 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 	      snprintf(je->remote_sdp_audio_ip, 49, "Y a probleme!");
 	    }
 	  if (med->m_media!=NULL &&
-	      0==strcmp(med->m_media, "audio"))
+	      0==osip_strcasecmp(med->m_media, "audio"))
 	    {
 	      sdp_connection_t *conn;
 	      int pos_attr;

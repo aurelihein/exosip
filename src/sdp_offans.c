@@ -186,8 +186,8 @@ eXosip_get_local_sdp_info(osip_transaction_t *invite_tr)
       if (ctt->type==NULL || ctt->subtype==NULL)
 	/* it can be application/sdp or mime... */
 	return NULL;
-      if (strcmp(ctt->type, "application")!=0 ||
-	  strcmp(ctt->subtype, "sdp")!=0 )
+      if (osip_strcasecmp(ctt->type, "application")!=0 ||
+	  osip_strcasecmp(ctt->subtype, "sdp")!=0 )
 	{ return NULL; }
     }
   
@@ -239,8 +239,8 @@ eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr)
       if (ctt->type==NULL || ctt->subtype==NULL)
 	/* it can be application/sdp or mime... */
 	return NULL;
-      if (strcmp(ctt->type, "application")!=0 ||
-	  strcmp(ctt->subtype, "sdp")!=0 )
+      if (osip_strcasecmp(ctt->type, "application")!=0 ||
+	  osip_strcasecmp(ctt->subtype, "sdp")!=0 )
 	{ return NULL; }
     }
   

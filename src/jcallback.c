@@ -864,7 +864,7 @@ void eXosip_update_audio_session(osip_transaction_t *transaction)
   media_type = sdp_message_m_media_get(local_sdp,pos);
   while (local_port!=NULL && media_type!=NULL)
     { /* If we have refused some media lines, the port is set to 0 */
-      if (0!=strncmp(local_port,"0", 1)&&0==strcmp(media_type,"audio"))
+      if (0!=strncmp(local_port,"0", 1)&&0==osip_strcasecmp(media_type,"audio"))
 	break;
       pos++;
       media_type = sdp_message_m_media_get(local_sdp,pos);

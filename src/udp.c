@@ -687,7 +687,7 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	    {
 	      if (pos==1 && pos_media==-1)
 		break;
-	      if (0==strcmp("0.0.0.0", ipaddr))
+	      if (0==osip_strcasecmp("0.0.0.0", ipaddr))
 		break;
 	      pos++;
 	      ipaddr = sdp_message_c_addr_get(sdp, pos_media, pos);
@@ -710,7 +710,7 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	      sndrcv = sdp_message_a_att_field_get(sdp, pos_media, pos);
 	      while (sndrcv!=NULL)
 		{
-		  if (0==strcmp("inactive", sndrcv) || 0==strcmp("sendonly", sndrcv))
+		  if (0==osip_strcasecmp("inactive", sndrcv) || 0==osip_strcasecmp("sendonly", sndrcv))
 		    break;
 		  pos++;
 		  sndrcv = sdp_message_a_att_field_get(sdp, pos_media, pos);
@@ -723,8 +723,8 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
 	}
 
 
-      if (ipaddr!=NULL || (sndrcv!=NULL && (0==strcmp("inactive", sndrcv)
-					    || 0==strcmp("sendonly", sndrcv))))
+      if (ipaddr!=NULL || (sndrcv!=NULL && (0==osip_strcasecmp("inactive", sndrcv)
+					    || 0==osip_strcasecmp("sendonly", sndrcv))))
 	{
 	  /*  We received an INVITE to put on hold the other party. */
 	  eXosip_process_invite_on_hold(jc, jd, transaction, evt, sdp);
@@ -1680,7 +1680,15 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	      osip_strncpy(buf+i,"\0",1);
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 				    "Received message: \n%s\n", buf));
-	      sipevent = osip_parse(buf);
+#ifdef WIN32
+		  if (strlen(buf)>511)
+		  {
+		      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+					    "Message suite: \n%s\n", buf+511));
+		  }
+#endif
+
+		  sipevent = osip_parse(buf);
 	      transaction = NULL;
 	      if (sipevent!=NULL&&sipevent->sip!=NULL)
 		{
