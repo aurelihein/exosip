@@ -57,6 +57,13 @@ char *eXosip_sdp_get_audio_port(osip_negotiation_ctx_t *context, int pos_media)
   return osip_strdup("34954");
 }
 
+int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn)
+{
+  if (eXosip.osip_negotiation!=NULL)
+    osip_negotiation_free(eXosip.osip_negotiation);
+  eXosip.osip_negotiation = sn;
+}
+
 int eXosip_sdp_negotiation_init()
 {
   osip_negotiation_t *sn;

@@ -412,7 +412,7 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_add_event(transaction, sipevent);
 }
 
-void eXosip_start_call    (osip_message_t *invite)
+void eXosip_start_call    (osip_message_t *invite, void *reference)
 {
   eXosip_call_t *jc;
   osip_header_t *subject;
