@@ -51,10 +51,9 @@ EXPORTS
 	eXosip_transfer_call @48
 	eXosip_unlock @49
 	eXosip_update @50
-	friends_add @51
+	jfriend_add @51
 	identitys_add @52
 	jfriend_get_home @53
-	jfriend_init @54
 	jfriend_load @55
 	jfriend_unload @56
 	jidentity_get_identity @57
