@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.42 2003-06-17 13:16:19 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.43 2003-06-18 14:35:31 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -69,7 +69,7 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_ANSWERED)
 	{
-	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
 		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
@@ -88,7 +88,7 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_PROCEEDING)
 	{
-	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
 		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
@@ -108,7 +108,7 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_RINGING)
 	{
-	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
 		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
@@ -127,7 +127,7 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_REDIRECTED)
 	{
-	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
 		   je->cid, je->did,
 		   je->status_code,
 		   je->reason_phrase,
@@ -137,7 +137,7 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_REQUESTFAILURE)
 	{
-	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
 		   je->cid, je->did,
 		   je->status_code,
 		   je->reason_phrase,
@@ -147,7 +147,7 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_SERVERFAILURE)
 	{
-	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
 		   je->cid, je->did, 
 		   je->status_code,
 		   je->reason_phrase,
@@ -157,7 +157,7 @@ josua_event_get()
 	}
       else if (je->type==EXOSIP_CALL_GLOBALFAILURE)
 	{
-	  snprintf(buf, 99, "<- (%i %i) %i, %s %s",
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
 		   je->cid, je->did,
 		   je->status_code,
 		   je->reason_phrase,
@@ -186,11 +186,32 @@ josua_event_get()
 	  josua_printf(buf);
 	  jcall_offhold(je);
 	}
+      else if (je->type==EXOSIP_REGISTRATION_SUCCESS)
+	{
+	  snprintf(buf, 99, "<- (%i) [%i %s] %s for REGISTER %s",
+		   je->rid,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri,
+		   je->req_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_REGISTRATION_FAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i) [%i %s] %s for REGISTER %s",
+		   je->rid,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri,
+		   je->req_uri);
+	  josua_printf(buf);
+	}
       else if (je->textinfo[0]!='\0')
 	{
 	  snprintf(buf, 99, "(%i %i) %s", je->cid, je->did, je->textinfo);
 	  josua_printf(buf);
 	}
+
 	
       eXosip_event_free(je);
     }
@@ -310,17 +331,6 @@ int main(int argc, const char *const *argv) {
       usage (1);
     }
 
-  /*
-    if (cfg.identity[0]!='\0')
-    strncpy(nctab_newcall[1].value, cfg.identity, 99);
-    else
-    strncpy(nctab_newcall[1].value, from, 99);
-    
-    if (cfg.identity[0]!='\0')
-    strncpy(nctab_newmessage[1].value, cfg.identity, 99);
-    else
-    strncpy(nctab_newmessage[1].value, from, 99);
-  */
 
   if (cfg.debug_level > 0)
     {
@@ -410,247 +420,6 @@ int main(int argc, const char *const *argv) {
   exit(1);
   return(0);
 }
-
-#if 0
-
-void __josua_message() {
-  char buf[120];
-
-  int c;
-  int y,x;
-
-  int jid;
-  char *tmp;
-  jid = __josua_choose_friend_in_list();
-  if (jid==-1) tmp = NULL;
-  else
-    {
-      eXosip_lock();
-      tmp = jfriend_get_home(jid);
-      eXosip_unlock();
-    }
-
-  print_menu(0); dme(0,1);
-    
-  nctab_print(&nctab_newmessage,
-	      TABSIZE_NEWMESSAGE, 
-	      COLORPAIR_NEWMESSAGE);
-
-
-  getmaxyx(stdscr,y,x);
- 
-  if (jid!=-1)
-    {
-      cbreak(); echo(); nonl(); keypad(stdscr,TRUE);
-      attrset(COLOR_PAIR(COLORPAIR_NEWMESSAGE)); 
-      sprintf(buf,"  To            : %-80.80s\n", tmp);
-      mvaddnstr(y-7,0,buf,x-1);
-      snprintf(nctab_newmessage[2].value, 99, "%s", tmp);
-    }
-
-  c = nctab_get_values(&nctab_newmessage,
-		      TABSIZE_NEWMESSAGE,
-		      COLORPAIR_NEWMESSAGE);
-
-  if (c!='y')
-    return;
-  
-  eXosip_message(nctab_findvalue(&nctab_newmessage,
-				 TABSIZE_NEWMESSAGE,
-				 "to"),
-		 nctab_findvalue(&nctab_newmessage,
-				 TABSIZE_NEWMESSAGE,
-				 "from"),
-		 nctab_findvalue(&nctab_newmessage,
-				 TABSIZE_NEWMESSAGE,
-				 "route"),
-		 nctab_findvalue(&nctab_newmessage,
-				 TABSIZE_NEWMESSAGE,
-				 "message"));
-
-}
-
-void
-__josua_manage_call() {
-
-  /* print the list of calls */
-  __josua_manage_choose_call_in_list();
-  
-}
-
-void __josua_start_call() {
-  osip_message_t *invite;
-  int i;
-  char buf[120];
-
-  int c;
-  int y,x;
-
-  int jid;
-  char *tmp;
-  jid = __josua_choose_friend_in_list();
-  if (jid==-1) tmp = NULL;
-  else
-    {
-      eXosip_lock();
-      tmp = jfriend_get_home(jid);
-      eXosip_unlock();
-    }
-  
-  print_menu(MENU_INVITE); dme(1,1);
-
-  getmaxyx(stdscr,y,x);
-
-  if (jid!=-1)
-    {
-      cbreak(); echo(); nonl(); keypad(stdscr,TRUE);
-      attrset(COLOR_PAIR(COLORPAIR_NEWCALL)); 
-      sprintf(buf,"  To           :  %-80.80s\n", tmp);
-      mvaddnstr(y-8,0,buf,x-1);
-      snprintf(nctab_newcall[2].value, 99, "%s", tmp);
-    }
-
-  c = nctab_get_values(&nctab_newcall,
-		      TABSIZE_NEWCALL,
-		      COLORPAIR_NEWCALL);
-
-  if (c!='y')
-    return;
-  
-  i = eXosip_build_initial_invite(&invite,
-				  nctab_findvalue(&nctab_newcall,
-						  TABSIZE_NEWCALL,
-						  "to"),
-				  nctab_findvalue(&nctab_newcall,
-						  TABSIZE_NEWCALL,
-						  "from"),
-				  nctab_findvalue(&nctab_newcall,
-						  TABSIZE_NEWCALL,
-						  "route"),
-				  nctab_findvalue(&nctab_newcall,
-						  TABSIZE_NEWCALL,
-						  "subject"));
-
-  if (i!=0) return;
-  eXosip_lock();
-  eXosip_start_call(invite, NULL, NULL, "10500");
-  eXosip_unlock();
-
-  refresh();
-  /* make a call */
-}
-
-#if 0
-eXosip_transfer_call(cid, nctab_findvalue(&nctab_transfercall,
-					  TABSIZE_TRANSFERCALL,
-					  "refer-to"));
-#endif
-
-void __josua_register() {
-  char *tmp;
-  char *tmp2;
-  int jid;
-  static int previous_jid = -2;
-  jid = __josua_choose_identity_in_list();
-
-  if (jid==-1) return;
-
-  eXosip_lock();
-  tmp = jidentity_get_identity(jid);
-  tmp2 = jidentity_get_registrar(jid);
-  eXosip_unlock();
-  if (tmp==NULL||tmp2==NULL) return;
-
-  if (jid!=previous_jid)
-    {
-      eXosip_register_init(tmp,
-			  tmp2, NULL);
-      previous_jid = jid;
-    }
-
-  eXosip_lock();
-  eXosip_register(-1);
-  eXosip_unlock();
-}
-
-void __josua_set_up() {
-
-  osip_to_t *_to;
-  osip_uri_t *_url;
-  int c;
-  int i;
-
-  c = nctab_get_values(&nctab_josuasetup,
-		      TABSIZE_JOSUASETUP, 
-		      COLORPAIR_JOSUASETUP);
-  
-  if (c!='y') return;
-
-
-  i = osip_to_init(&_to);
-  if (i!=0) return;
-  i = osip_to_parse(_to, nctab_findvalue(&nctab_josuasetup,
-				    TABSIZE_JOSUASETUP,
-				    "identity"));
-  osip_to_free(_to);
-  _to = NULL;
-  if (i!=0) return;
-
-  i = osip_uri_init(&_url);
-  if (i!=0) return;
-  i = osip_uri_parse(_url, nctab_findvalue(&nctab_josuasetup,
-				    TABSIZE_JOSUASETUP,
-				    "registrar"));
-  osip_uri_free(_url);
-  _url = NULL;
-  if (i!=0) return;
-
-
-  if (nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "realm") !='\0'
-      || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "passwd") !='\0'
-      || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "userid") !='\0')
-    {
-      if (nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "realm") =='\0'
-	  || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "passwd")=='\0'
-	  || nctab_findvalue(&nctab_josuasetup, TABSIZE_JOSUASETUP, "userid") =='\0')
-	{
-	  fprintf(stderr, "josua: incomplete user informations.\n");
-	  return;
-	}
-    }  
-
-  identitys_add(nctab_findvalue(&nctab_josuasetup,
-				TABSIZE_JOSUASETUP,
-				"identity"),
-		nctab_findvalue(&nctab_josuasetup,
-				TABSIZE_JOSUASETUP,
-				"registrar"),
-		nctab_findvalue(&nctab_josuasetup,
-				TABSIZE_JOSUASETUP,
-				"realm"),
-		nctab_findvalue(&nctab_josuasetup,
-				TABSIZE_JOSUASETUP,
-				"userid"),
-		nctab_findvalue(&nctab_josuasetup,
-				TABSIZE_JOSUASETUP,
-				"password"));
-
-}
-
-void __josua_manage_subscribers()
-{
-  __josua_choose_subscriber_in_list();
-}
-
-void __josua_quit() {
-
-  eXosip_quit();
-
-  cursesoff();  
-  exit(1);
-}
-
-#endif
 
 #endif
 

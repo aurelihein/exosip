@@ -38,13 +38,12 @@ typedef struct menu_t {
 /* some external methods */
 
 
-void __show_new_call();
-void __show_new_message();
 void __show_address_book_menu();
-void __josua_manage_call();
-void __josua_manage_subscribers();
+void __show_initiate_session();
+void __show_sessions_list();
+void __show_subscriptions_list();
+void __show_registrations_list();
+void __show_setup();
 void __josua_quit();
-
-void __josua_register();
 
 #endif

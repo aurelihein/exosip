@@ -22,7 +22,7 @@
 
 gui_t gui_window_new_call = {
   GUI_OFF,
-  20,
+  2,
   -999,
   10,
   -6,
@@ -229,6 +229,7 @@ int window_new_call_run_command(int c)
       if (gui_window_new_call.xcursor<(x-gui_window_new_call.x0-1))
 	{
 	  gui_window_new_call.xcursor++;
+	  attrset(COLOR_PAIR(0));
 	  echochar(c);
 	}
       else

@@ -25,7 +25,7 @@ extern eXosip_t eXosip;
 
 gui_t gui_window_address_book_browse = {
   GUI_OFF,
-  20,
+  0,
   -999,
   10,
   -6,
@@ -89,7 +89,7 @@ int window_address_book_browse_print()
       if (show_mail!=0)
 	{
 	  snprintf(buf, gui_window_address_book_browse.x1 - gui_window_address_book_browse.x0,
-		   "%c%c %10.10s  %-80.80s",
+		   "%c%c %-15.15s %-80.80s",
 		   (cursor_address_book_browse==pos) ? '-' : ' ',
 		   (cursor_address_book_browse==pos) ? '>' : ' ',
 		   fr->f_nick, fr->f_home);
@@ -137,7 +137,7 @@ int window_address_book_browse_run_command(int c)
       /* cursor_address_book_browse++;
 	 cursor_address_book_browse %= max; */
       if (cursor_address_book_browse<y+gui_window_address_book_browse.y1
-	  -gui_window_address_book_browse.y0-1)
+	  -gui_window_address_book_browse.y0-1 && cursor_address_book_browse<max-1)
 	cursor_address_book_browse++;
       else if (cursor_address_book_start<max-(
 	       y+gui_window_address_book_browse.y1

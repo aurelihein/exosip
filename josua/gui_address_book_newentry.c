@@ -22,7 +22,7 @@
 
 gui_t gui_window_address_book_newentry = {
   GUI_OFF,
-  20,
+  2,
   -999,
   10,
   -6,
@@ -202,6 +202,7 @@ int window_address_book_newentry_run_command(int c)
       if (gui_window_address_book_newentry.xcursor<(x-gui_window_address_book_newentry.x0-1))
 	{
 	  gui_window_address_book_newentry.xcursor++;
+	  attrset(COLOR_PAIR(0));
 	  echochar(c);
 	}
       else

@@ -25,7 +25,7 @@
 #include "gui_icon.h"
 #include "gui_menu.h"
 #include "gui_new_call.h"
-#include "gui_manage_call.h"
+#include "gui_sessions_list.h"
 #include "gui_loglines.h"
 
 
@@ -235,7 +235,7 @@ josua_print_command(char **commands, int ypos, int xpos)
     }
 
   if (commands[0]!=NULL) /* erase with default background */
-    attrset(COLOR_PAIR(6));
+    attrset(COLOR_PAIR(10));
   else
     attrset(COLOR_PAIR(0));
   snprintf(buf, 199, "%199.199s", " ");
@@ -258,7 +258,7 @@ josua_print_command(char **commands, int ypos, int xpos)
 		xpos,
 		buf,
 		strlen(commands[i]));
-      attrset(COLOR_PAIR(6));
+      attrset(COLOR_PAIR(10));
       snprintf(buf,
 	       strlen(commands[i+1])+1,
 	       "%s", commands[i+1]);
@@ -277,7 +277,7 @@ josua_print_command(char **commands, int ypos, int xpos)
 		xpos,
 		buf,
 		strlen(commands[i]));
-      attrset(COLOR_PAIR(6));
+      attrset(COLOR_PAIR(10));
       snprintf(buf,
 	       strlen(commands[i+1])+1,
 	       "%s", commands[i+1]);
@@ -525,9 +525,9 @@ gui_start()
 	  josua_gui_run_command(key);
 	}
       i = josua_event_get();
-      if (i==0 && gui_windows[EXTRAGUI]==&gui_window_manage_call)
+      if (i==0 && gui_windows[EXTRAGUI]==&gui_window_sessions_list)
 	{
-	  window_manage_call_print();
+	  window_sessions_list_print();
 	}
       window_loglines_print();
     }

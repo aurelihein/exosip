@@ -20,8 +20,9 @@
 
 #include "gui_menu.h"
 #include "gui_new_call.h"
-#include "gui_manage_call.h"
 #include "gui_address_book_menu.h"
+#include "gui_sessions_list.h"
+#include "gui_registrations_list.h"
 
 gui_t gui_window_menu = {
   GUI_OFF,
@@ -40,13 +41,20 @@ gui_t gui_window_menu = {
 };
 
 static const menu_t josua_menu[]= {
-  { "v", " Start a Voice Conversation.",        &__show_new_call },
-  { "c", " Start a Chat Session.",              &__show_new_message },
-  { "m", " Manage Pending Calls.",              &__josua_manage_call },
-  { "r", " Manage Pending Registrations.",      &__josua_register  },
-  { "u", " Manage Pending Subscriptions.",      &__josua_manage_subscribers },
-  { "a", " Address Book Menu.",                 &__show_address_book_menu  },
-  { "q", " Quit jack' Open Sip User Agent.",    &__josua_quit  },
+  { "a", " ADDRESS BOOK       -    Update address book",
+    &__show_address_book_menu  },
+  { "i", " INITIATE SESSION   -    Initiate a session",
+    &__show_initiate_session },
+  { "u", " SUBSCRIPTIONS LIST -    View pending subscriptions",
+    &__show_subscriptions_list },
+  { "l", " SESSIONS LIST      -    View pending sessions",
+    &__show_sessions_list },
+  { "r", " REGISTRATIONS LIST -    View pending registrations",
+    &__show_registrations_list  },
+  { "s", " SETUP              -    Configure Josua options",
+    &__show_setup },
+  { "q", " QUIT               -    Quit the Josua program",
+    &__josua_quit  },
   { 0 }
 };
 
@@ -65,10 +73,10 @@ int window_menu_print()
   for (i=gui_window_menu.y0; i<gui_window_menu.y1; i++)
     {
       snprintf(buf, gui_window_menu.x1 - gui_window_menu.x0,
-	      "%c%c %d. %-80.80s ",
+	      "%c%c [%s] %-80.80s ",
 	      (cursor_menu==pos) ? '-' : ' ',
 	      (cursor_menu==pos) ? '>' : ' ',
-	      i-gui_window_menu.y0,
+	      josua_menu[i-gui_window_menu.y0].key,
 	      josua_menu[i-gui_window_menu.y0].text);
 
       attrset(COLOR_PAIR(5));
@@ -94,6 +102,27 @@ int window_menu_run_command(int c)
     case KEY_UP:
       cursor_menu += max-1;
       cursor_menu %= max;
+      break;
+    case 'a':
+      cursor_menu = 0;
+      break;
+    case 'i':
+      cursor_menu = 1;
+      break;
+    case 'u':
+      cursor_menu = 2;
+      break;
+    case 'l':
+      cursor_menu = 3;
+      break;
+    case 'r':
+      cursor_menu = 4;
+      break;
+    case 's':
+      cursor_menu = 5;
+      break;
+    case 'q':
+      cursor_menu = 6;
       break;
     case '0':
     case '1':
@@ -121,45 +150,6 @@ int window_menu_run_command(int c)
   return 0;
 }
 
-void
-__show_new_call()
-{
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI]==NULL)
-    gui_windows[EXTRAGUI]= &gui_window_new_call;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI]= &gui_window_new_call;
-    }
-
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
-
-  window_new_call_print();
-}
-
-
-void
-__josua_manage_call()
-{
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI]==NULL)
-    gui_windows[EXTRAGUI]= &gui_window_manage_call;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI]= &gui_window_manage_call;
-    }
-
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
-
-  window_manage_call_print();
-}
-
 void __show_address_book_menu()
 {
   active_gui->on_off = GUI_OFF;
@@ -184,17 +174,69 @@ void __show_address_book_menu()
   window_address_book_menu_print();
 }
 
-void __show_new_message()
+
+void
+__show_initiate_session()
+{
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_new_call;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_new_call;
+    }
+
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_new_call_print();
+}
+
+void
+__show_sessions_list()
+{
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_sessions_list;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_sessions_list;
+    }
+
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_sessions_list_print();
+}
+
+void __show_subscriptions_list()
 {
 
 }
 
-void __josua_register()
+void __show_registrations_list()
 {
+  active_gui->on_off = GUI_OFF;
+  if (gui_windows[EXTRAGUI]==NULL)
+    gui_windows[EXTRAGUI]= &gui_window_registrations_list;
+  else
+    {
+      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+      josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+      gui_windows[EXTRAGUI]= &gui_window_registrations_list;
+    }
 
+  active_gui = gui_windows[EXTRAGUI];
+  active_gui->on_off = GUI_ON;
+
+  window_registrations_list_print();
 }
 
-void __josua_manage_subscribers()
+void __show_setup()
 {
 
 }

@@ -84,3 +84,32 @@ int _josua_add_contact(char *sipurl, char *telurl, char *email, char *phone)
   jfriend_load();
   return 0;
 }
+
+int
+_josua_register(int pos_id)
+{
+  static int last_id = -2;
+  int i;
+  char *identity;
+  char *registrar;
+  /* start registration */
+  identity = jidentity_get_identity(pos_id);
+  registrar = jidentity_get_registrar(pos_id);
+  if (identity==NULL || registrar==NULL)
+    return -1;
+  
+  eXosip_lock();
+  if (pos_id!=last_id)
+    {
+      i = eXosip_register_init(identity, registrar, NULL);
+      if (i!=0)
+	{
+	  eXosip_unlock();
+	  return -1;
+	}
+      last_id = pos_id;
+    }
+  i = eXosip_register(-1);
+  eXosip_unlock();
+  return i;
+}
