@@ -491,6 +491,37 @@ int josua_gui_key_pressed()
   return -1;
 }
 
+WINDOW *
+gui_print_box(gui_t *box, int draw, int color)
+{
+  int y,x;
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+
+  getmaxyx(stdscr,y,x);
+
+  if (box->win==NULL)
+    {
+      if (box->x1==-999)
+	{}
+      else x = box->x1;
+      
+      if (box->y1<0)
+	y = y + box->y1;
+      else
+	y = box->y1;
+      
+      box->win = newwin(y-box->y0, x-box->x0, box->y0, box->x0);
+    }
+
+  if (draw==0)
+    {
+      wattrset(box->win, A_NORMAL);
+      wattrset(box->win, COLOR_PAIR(color));
+      box(box->win, 0, 0);
+    }
+  wrefresh(box->win);
+  return box->win;
+}
 
 int
 gui_start()

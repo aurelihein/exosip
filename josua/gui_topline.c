@@ -35,7 +35,8 @@ gui_t gui_window_topline = {
   NULL,
   -1,
   -1,
-  -1
+  -1,
+  NULL
 };
 
 int window_topline_print()

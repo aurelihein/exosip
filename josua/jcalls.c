@@ -22,9 +22,9 @@
 
 jcall_t jcalls[MAX_NUMBER_OF_CALLS];
 
-static int ___josua_init = 0;
+static int ___call_init = 0;
 
-static void __josua_init()
+static void __call_init()
 {
   int k;
   for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
@@ -70,10 +70,10 @@ int jcall_new(eXosip_event_t *je)
   jcall_t *ca;
   int k;
 
-  if (___josua_init==0)
+  if (___call_init==0)
     {
-      ___josua_init = -1;
-      __josua_init();
+      ___call_init = -1;
+      __call_init();
     }
 
   for (k=0;k<MAX_NUMBER_OF_CALLS;k++)

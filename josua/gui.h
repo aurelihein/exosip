@@ -67,6 +67,8 @@ typedef struct gui {
   int xcursor;
   int ycursor;
   int len;
+
+  WINDOW *win;
 } gui_t;
 
 
@@ -89,6 +91,7 @@ int   josua_gui_print();
 int   josua_gui_run_command(int c);
 int   josua_clear_box_and_commands(gui_t *box);
 int   josua_print_command(char **commands, int ypos, int xpos);
+WINDOW *gui_print_box(gui_t *box, int draw, int color);
 
 void curseson();
 void cursesoff();

@@ -39,7 +39,8 @@ gui_t gui_window_address_book_browse = {
   &window_address_book_browse_draw_commands,
   -1,
   -1,
-  -1
+  -1,
+  NULL
 };
 
 

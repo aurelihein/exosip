@@ -34,7 +34,8 @@ gui_t gui_window_new_call = {
   window_new_call_draw_commands,
   10,
   1,
-  -1
+  -1,
+  NULL
 };
 
 static char static_to[200] = { '\0' };

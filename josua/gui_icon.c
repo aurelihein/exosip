@@ -34,9 +34,9 @@ static const char *icons[]= {
 gui_t gui_window_icon = {
   GUI_DISABLED,
   0,
-  19,
-  2,
-  9,
+  20,
+  1,
+  10,
   NULL,
   &window_icon_print,
   NULL,
@@ -44,7 +44,8 @@ gui_t gui_window_icon = {
   NULL,
   -1,
   -1,
-  -1
+  -1,
+  NULL
 };
 
 int window_icon_print()
@@ -54,18 +55,20 @@ int window_icon_print()
   int i;
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
 
-  getmaxyx(stdscr,y,x);
-  attrset(A_NORMAL);
-  attrset(COLOR_PAIR(1));
+  gui_print_box(&gui_window_icon, -1, 1);
 
-  for (i=gui_window_icon.y0; i<gui_window_icon.y1; i++)
+  getmaxyx(gui_window_icon.win,y,x);
+  wattrset(gui_window_icon.win, A_NORMAL);
+  wattrset(gui_window_icon.win, COLOR_PAIR(1));
+
+  for (i=1; i<y-1; i++)
     {
-      snprintf(buf, gui_window_icon.x1 - gui_window_icon.x0,
-	       "%s",icons[i-gui_window_icon.y0]);
-      mvaddnstr(i,
-		gui_window_icon.x0,
+      snprintf(buf, x,
+	       "%s",icons[i-1]);
+      mvaddnstr(i+1,
+		0,
 		buf,
-		gui_window_icon.x1-1);
+		x-1);
     }
   return 0;
 }

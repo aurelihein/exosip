@@ -33,7 +33,8 @@ gui_t gui_window_address_book_newentry = {
   window_address_book_newentry_draw_commands,
   10,
   0,
-  -1
+  -1,
+  NULL
 };
 
 int window_address_book_newentry_print()

@@ -276,6 +276,10 @@ typedef enum eXosip_event_type_t {
   EXOSIP_CALL_OFFHOLD,         /* audio must be restarted               */
   EXOSIP_CALL_CLOSED,          /* a BYE was received for this call      */
 
+  /* for both UAS & UAC events */
+  EXOSIP_CALL_STARTAUDIO,         /* audio must be established           */
+  EXOSIP_CALL_RELEASED,           /* call context is cleared.            */
+
   /* for UAC events */
   EXOSIP_OPTIONS_NOANSWER,        /* announce no answer within the timeout */
   EXOSIP_OPTIONS_PROCEEDING,      /* announce processing by a remote app   */
@@ -288,18 +292,23 @@ typedef enum eXosip_event_type_t {
   /* for UAS events */
   EXOSIP_OPTIONS_NEW,             /* announce a new options method         */
 
-  /* for both UAS & UAC events */
-  EXOSIP_CALL_STARTAUDIO,         /* audio must be established           */
-  EXOSIP_CALL_RELEASED,           /* call context is cleared.            */
-
   /* Presence and Instant Messaging */
-  EXOSIP_IN_SUBSCRIPTION_NEW,           /* announce new incoming SUBSCRIBE.  */
-  EXOSIP_IN_SUBSCRIPTION_REFRESH,       /* subscription need to be refreshed.*/
-  EXOSIP_IN_SUBSCRIPTION_DISCONNECTED,  /* announce end of subscription.     */
+  EXOSIP_IN_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.  */
+  EXOSIP_IN_SUBSCRIPTION_UPDATE,       /* announce incoming SUBSCRIBE.      */
+  EXOSIP_IN_SUBSCRIPTION_CLOSED,       /* announce end of subscription.     */
 
-  EXOSIP_OUT_SUBSCRIPTION_NEW,          /* announce new outgoing SUBSCRIBE.*/
-  EXOSIP_OUT_SUBSCRIPTION_REFRESHED,    /* announce new NOTIFY.            */
-  EXOSIP_OUT_SUBSCRIPTION_DISCONNECTED, /* announce end of subscription.   */
+  EXOSIP_SUBSCRIPTION_NEW,             /* announce new outgoing SUBSCRIBE.*/
+
+  EXOSIP_SUBSCRIPTION_NOANSWER,        /* announce no answer              */
+  EXOSIP_SUBSCRIPTION_PROCEEDING,      /* announce a 1xx                  */
+  EXOSIP_SUBSCRIPTION_ANSWERED,        /* announce a 200ok                */
+  EXOSIP_SUBSCRIPTION_REDIRECTED,      /* announce a redirection          */
+  EXOSIP_SUBSCRIPTION_REQUESTFAILURE,  /* announce a request failure      */
+  EXOSIP_SUBSCRIPTION_SERVERFAILURE,   /* announce a server failure       */
+  EXOSIP_SUBSCRIPTION_GLOBALFAILURE,   /* announce a global failure       */
+  EXOSIP_SUBSCRIPTION_NOTIFY,
+
+  EXOSIP_SUBSCRIPTION_RELEASED,        /* call context is cleared.        */
 
   EXOSIP_CALLBACK_COUNT
 } eXosip_event_type_t;
@@ -473,6 +482,7 @@ int eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *j
 osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t *jn, eXosip_dialog_t *jd);
+osip_transaction_t *eXosip_find_last_out_subscribe(eXosip_subscribe_t *js, eXosip_dialog_t *jd );
 
 osip_transaction_t *eXosip_find_last_out_options(eXosip_call_t *jc, eXosip_dialog_t *jd );
 osip_transaction_t *eXosip_find_last_inc_options(eXosip_call_t *jc, eXosip_dialog_t *jd );

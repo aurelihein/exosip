@@ -211,11 +211,94 @@ eXosip_event_init_for_subscribe(int type,
 				eXosip_subscribe_t *js,
 				eXosip_dialog_t *jd)
 {
+  char *tmp;
   eXosip_event_t *je;
   eXosip_event_init(&je, type);
   if (je==NULL) return NULL;
   je->js = js;
   je->jd = jd;
+
+  je->sid = js->s_id;
+  if (jd!=NULL)
+    je->did = jd->d_id;
+
+  /* je->external_reference = js->external_reference; */
+
+  if (jd!=NULL&&jd->d_dialog!=NULL)
+    {
+      if (jd->d_dialog->remote_uri!=NULL)
+	{
+	  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+	  if (tmp!=NULL)
+	    {
+	      snprintf(je->remote_uri, 255, "%s", tmp);
+	      osip_free(tmp);
+	    }
+	}
+      if (jd->d_dialog->local_uri!=NULL)
+	{
+	  osip_to_to_str(jd->d_dialog->local_uri, &tmp);
+	  if (tmp!=NULL)
+	    {
+	      snprintf(je->local_uri, 255, "%s", tmp);
+	      osip_free(tmp);
+	    }
+	}
+    }
+
+  /* fill in usefull info */
+  if (type==EXOSIP_SUBSCRIPTION_NOANSWER
+      || type==EXOSIP_SUBSCRIPTION_PROCEEDING
+      || type==EXOSIP_SUBSCRIPTION_ANSWERED
+      || type==EXOSIP_SUBSCRIPTION_REDIRECTED
+      || type==EXOSIP_SUBSCRIPTION_REQUESTFAILURE
+      || type==EXOSIP_SUBSCRIPTION_SERVERFAILURE
+      || type==EXOSIP_SUBSCRIPTION_GLOBALFAILURE
+      || type==EXOSIP_SUBSCRIPTION_RELEASED)
+    {
+      if (jd!=NULL&&jd->d_dialog!=NULL)
+	{
+	  osip_transaction_t *tr;
+	  tr = eXosip_find_last_out_subscribe(js, jd);
+	  if (tr!=NULL && tr->orig_request!=NULL)
+	    {
+	      osip_uri_to_str(tr->orig_request->req_uri, &tmp);
+	      if (tmp!=NULL)
+		{
+		  snprintf(je->req_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  if (tr!=NULL && tr->last_response!=NULL)
+	    {
+	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      je->status_code = tr->last_response->status_code;
+	    }
+	}
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_NOTIFY)
+    {
+      if (jd!=NULL&&jd->d_dialog!=NULL)
+	{
+	  osip_transaction_t *tr;
+	  tr = eXosip_find_last_inc_notify(js, jd);
+	  if (tr!=NULL && tr->orig_request!=NULL)
+	    {
+	      osip_uri_to_str(tr->orig_request->req_uri, &tmp);
+	      if (tmp!=NULL)
+		{
+		  snprintf(je->req_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  if (tr!=NULL && tr->last_response!=NULL)
+	    {
+	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      je->status_code = tr->last_response->status_code;
+	    }
+	}
+    }
+  
   return je;
 }
 
@@ -229,6 +312,57 @@ eXosip_event_init_for_notify(int type,
   if (je==NULL) return NULL;
   je->jn = jn;
   je->jd = jd;
+
+  je->nid = jn->n_id;
+  if (jd!=NULL)
+    je->did = jd->d_id;
+
+  /*je->external_reference = jc->external_reference; */
+
+  /* fill in usefull info */
+  if (type==EXOSIP_SUBSCRIPTION_NEW
+      || type==EXOSIP_SUBSCRIPTION_RELEASED)
+    {
+      if (jd!=NULL&&jd->d_dialog!=NULL)
+	{
+	  osip_transaction_t *tr;
+	  char *tmp;
+	  if (jd->d_dialog->remote_uri!=NULL)
+	    {
+	      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+	      if (tmp!=NULL)
+		{
+		  snprintf(je->remote_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  if (jd->d_dialog->local_uri!=NULL)
+	    {
+	      osip_to_to_str(jd->d_dialog->local_uri, &tmp);
+	      if (tmp!=NULL)
+		{
+		  snprintf(je->local_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  tr = eXosip_find_last_inc_subscribe(jn, jd);
+	  if (tr!=NULL && tr->orig_request!=NULL)
+	    {
+	      osip_uri_to_str(tr->orig_request->req_uri, &tmp);
+	      if (tmp!=NULL)
+		{
+		  snprintf(je->req_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  if (tr!=NULL && tr->last_response!=NULL)
+	    {
+	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      je->status_code = tr->last_response->status_code;
+	    }
+	}
+    }
+  
   return je;
 }
 
@@ -354,6 +488,46 @@ eXosip_event_init(eXosip_event_t **je, int type)
   else if (type==EXOSIP_OPTIONS_GLOBALFAILURE)
     {
       sprintf((*je)->textinfo, "5xx received for OPTIONS!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_NEW)
+    {
+      sprintf((*je)->textinfo, "New SUBSCRIBE received!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_NOANSWER)
+    {
+      sprintf((*je)->textinfo, "No answer for this SUBSCRIBE!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_PROCEEDING)
+    {
+      sprintf((*je)->textinfo, "SUBSCRIBE is being processed!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_ANSWERED)
+    {
+      sprintf((*je)->textinfo, "2xx received for SUBSCRIBE!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_REDIRECTED)
+    {
+      sprintf((*je)->textinfo, "3xx received for SUBSCRIBE!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_REQUESTFAILURE)
+    {
+      sprintf((*je)->textinfo, "4xx received for SUBSCRIBE!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_SERVERFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for SUBSCRIBE!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_GLOBALFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for SUBSCRIBE!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_NOTIFY)
+    {
+      sprintf((*je)->textinfo, "NOTIFY request for subscription!");
+    }
+  else if (type==EXOSIP_SUBSCRIPTION_RELEASED)
+    {
+      sprintf((*je)->textinfo, "Subscription has terminate!");
     }
   else
     {

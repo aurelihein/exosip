@@ -34,7 +34,8 @@ gui_t gui_window_sessions_list = {
   window_sessions_list_draw_commands,
   -1,
   -1,
-  -1
+  -1,
+  NULL
 };
 
 int cursor_sessions_list = 0;

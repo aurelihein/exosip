@@ -36,7 +36,8 @@ gui_t gui_window_registrations_list = {
   &window_registrations_list_draw_commands,
   -1,
   -1,
-  -1
+  -1,
+  NULL
 };
 
 

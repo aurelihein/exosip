@@ -37,7 +37,8 @@ gui_t gui_window_menu = {
   NULL,
   -1,
   -1,
-  -1
+  -1,
+  NULL
 };
 
 static const menu_t josua_menu[]= {

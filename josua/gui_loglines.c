@@ -34,7 +34,8 @@ gui_t gui_window_loglines = {
   NULL,
   -1,
   -1,
-  -1
+  -1,
+  NULL
 };
 
 char log_buf3[200] = { '\0' };
