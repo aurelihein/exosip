@@ -1,3 +1,7 @@
+eXosip (0.8.0)
+	* fix processing of 180 Ringing?
+	* fix bug when BYE is processed before a 2xx for INVITE.
+	
 eXosip (0.7.7)
 	* memory leaks.
 	* tiny bugs, code clean-up.
