@@ -18,48 +18,23 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef _GUI_H_
-#define _GUI_H_
-
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <errno.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <limits.h>
-#include <ctype.h>
-#include <assert.h>
-
-#include <term.h>
-#include <ncurses.h>
-
-#include "config.h"
-#include <osip2/osip_mt.h>
-
-#include <eXosip/eXosip.h>
-#include <eXosip/eXosip2.h>
-#include "jcalls.h"
 #include "commands.h"
 
-#include "ppl_getopt.h"
-
-
-int gui_start();
-void josua_printf(char *chfr, ...);
-
-void __josua_message();
-void __josua_manage_call();
-void __show_new_call();
-void __josua_set_up();
-void __josua_manage_subscribers();
-void __josua_quit();
-
-void __josua_register();
-
-
-#endif
+int _josua_start_call(char *from, char *to, char *subject, char *route)
+{
+  osip_message_t *invite;
+  int i;
+  i = eXosip_build_initial_invite(&invite,
+				  to,
+				  from,
+				  route,
+				  subject);
+  if (i!=0)
+    {
+      return -1;
+    }
+  eXosip_lock();
+  i = eXosip_start_call(invite, NULL, NULL, "10500");
+  eXosip_unlock();  
+  return i;
+}

@@ -8,7 +8,8 @@ main_ncurses.c 	main_shell.c \
 jconfig.c 	jconfig.h    \
 pplgetopt.c 	ppl_getopt.h \
 jcalls.c        jcalls.h     \
-gui.c           gui.h
+gui.c           gui.h        \
+commands.c      commands.h
 
 josua_LDFLAGS = -O  -Wall
 josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
