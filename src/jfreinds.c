@@ -116,7 +116,7 @@ jfriend_get_and_set_next_token (char **dest, char *buf, char **next)
   return 0;
 }
 
-void jfriend_remove(char *nickname, char *home)
+void __jfriend_remove(char *nickname, char *home)
 {
   char *Home;
   char command[256];

@@ -100,6 +100,11 @@ jfriend_t *jfriend_get(void)
   return eXosip.j_friends;
 }
 
+void jfriend_remove(jfriend_t *fr)
+{
+  REMOVE_ELEMENT(eXosip.j_friends, fr);
+}
+
 jsubscriber_t *jsubscriber_get(void)
 {
   return eXosip.j_subscribers;

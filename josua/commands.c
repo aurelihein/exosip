@@ -21,7 +21,9 @@
 #include "commands.h"
 #include "eXosip/eXosip_cfg.h"
 
-int _check_url(char *url)
+static int _check_url(char *url);
+
+static int _check_url(char *url)
 {
   int i;
   osip_from_t *to;
@@ -128,11 +130,11 @@ int _josua_add_contact(char *sipurl, char *telurl, char *email, char *phone)
   if (i!=0)
     return -1;
   if (to->displayname==NULL && to->url->username==NULL)
-    friends_add("xxxx", sipurl, _telurl, _email, _phone);
+    jfriend_add("xxxx", sipurl, _telurl, _email, _phone);
   else if (to->displayname!=NULL)
-    friends_add(to->displayname, sipurl, _telurl, _email, _phone);
+    jfriend_add(to->displayname, sipurl, _telurl, _email, _phone);
   else if (to->url!=NULL && to->url->username!=NULL)
-    friends_add(to->url->username, sipurl, _telurl, _email, _phone);
+    jfriend_add(to->url->username, sipurl, _telurl, _email, _phone);
 
   osip_to_free(to);
   jfriend_unload();

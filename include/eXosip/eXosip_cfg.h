@@ -77,7 +77,8 @@ struct jsubscriber_t {
 };
 
 jfriend_t *jfriend_get(void);
-void jfriend_remove(char *nickname, char *home);
+void jfriend_remove(jfriend_t *fr);
+
 jsubscriber_t *jsubscriber_get(void);
 jidentity_t *jidentity_get(void);
 
