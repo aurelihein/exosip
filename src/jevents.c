@@ -729,20 +729,20 @@ __eXosip_clock_gettime(clockid_t cid, struct timespec *time)
 #define OSIP_CLOCK_REALTIME 4002
 
 void
-__eXosip_clock_gettime(unsigned int cid, struct timespec *time)
+__eXosip_clock_gettime(unsigned int clock_id, struct timespec *time)
 {
    struct _timeb time_val;
 
    if (clock_id != OSIP_CLOCK_REALTIME)
-     return -1;
+     return;
 
    if (tp == NULL)
-     return -1;
+     return;
 
    _ftime (&time_val);
    tp->tv_sec = time_val.time;
    tp->tv_nsec = time_val.millitm * 1000000;
-   return 0;
+   return;
 }
 #endif
 
