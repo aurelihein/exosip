@@ -26,18 +26,15 @@
 
 #include "jpipe.h"
 
-void *osip_malloc (int size);
-void osip_free (void *);
-
 #ifndef WIN32
 
 jpipe_t * jpipe ()
 {
-  jpipe_t *my_pipe = (jpipe_t *) osip_malloc (sizeof (jpipe_t));
+  jpipe_t *my_pipe = (jpipe_t *) malloc (sizeof (jpipe_t));
 
   if (0 != pipe (my_pipe->pipes))
     {
-      osip_free (my_pipe);
+      free (my_pipe);
       return NULL;
     }
   return my_pipe;
@@ -49,7 +46,7 @@ int jpipe_close (jpipe_t * apipe)
     return -1;
   close (apipe->pipes[0]);
   close (apipe->pipes[1]);
-  osip_free (apipe);
+  free (apipe);
   return 0;
 }
 
@@ -95,19 +92,21 @@ jpipe_t * jpipe ()
   struct sockaddr_in raddr;
   int j;
 
-  jpipe_t *my_pipe = (jpipe_t *) osip_malloc (sizeof (jpipe_t));
+  jpipe_t *my_pipe = (jpipe_t *) malloc (sizeof (jpipe_t));
+  if (my_pipe==NULL)
+    return NULL;
 
   s = (int) socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (0 > s)
     {
-      osip_free (my_pipe);
+      free (my_pipe);
       return NULL;
     }
   my_pipe->pipes[1] = (int) socket (PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (0 > my_pipe->pipes[1])
     {
       jsocket_close (s);
-      osip_free (my_pipe);
+      free (my_pipe);
       return NULL;
     }
 
@@ -135,7 +134,7 @@ jpipe_t * jpipe ()
 			      "Failed to bind a local socket, aborting!\n"));
       jsocket_close (s);
       jsocket_close (my_pipe->pipes[1]);
-      osip_free (my_pipe);
+      free (my_pipe);
       exit (0);
     }
 
@@ -146,7 +145,7 @@ jpipe_t * jpipe ()
 			      "Failed to listen on a local socket, aborting!\n"));
       jsocket_close (s);
       jsocket_close (my_pipe->pipes[1]);
-      osip_free (my_pipe);
+      free (my_pipe);
       exit (0);
     }
 
@@ -161,7 +160,7 @@ jpipe_t * jpipe ()
 		   "udp plugin; cannot set O_NONBLOCK to the file desciptor!\n"));
       jsocket_close (s);
       jsocket_close (my_pipe->pipes[1]);
-      osip_free (my_pipe);
+      free (my_pipe);
       exit (0);
     }
 
@@ -176,7 +175,7 @@ jpipe_t * jpipe ()
 		   "udp plugin; Failed to call accept!\n"));
       jsocket_close (s);
       jsocket_close (my_pipe->pipes[1]);
-      osip_free (my_pipe);
+      free (my_pipe);
       exit (0);
     }
 
@@ -189,7 +188,7 @@ int jpipe_close (jpipe_t * apipe)
     return -1;
   jsocket_close (apipe->pipes[0]);
   jsocket_close (apipe->pipes[1]);
-  osip_free (apipe);
+  free (apipe);
   return 0;
 }
 
