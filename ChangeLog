@@ -1,4 +1,6 @@
 eXosip (0.7.5)
+	* small improvements for josua.
+	* patch for IPv6 (uncomplete)
 	* patch for authentication
 	* improve configure.in file
 	* allow fancy reason phrase in SIP answer.

@@ -222,7 +222,9 @@ int window_new_call_run_command(int c)
 	mvinnstr(ycur, xcur, subject, x-gui_window_new_call.x0-10);
 	ycur++;
 	mvinnstr(ycur, xcur, route, x-gui_window_new_call.x0-10);
-
+	osip_clrspace(to);
+	osip_clrspace(subject);
+	osip_clrspace(route);
 	i = _josua_start_call(cfg.identity, to, subject, route);
 	if (i!=0) beep();
 	/* mvinnstr(ycur, xcur, tmp, 199); */

@@ -37,6 +37,9 @@ int _josua_start_call(char *from, char *to, char *subject, char *route)
   osip_message_t *invite;
   int i;
 
+  OSIP_TRACE (osip_trace
+	      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+	       "To: |%s|\n", to));
   if (0!=_check_url(from))
     return -1;
   if (0!=_check_url(to))

@@ -114,7 +114,8 @@ static int
 eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
 {
 #ifndef WIN32
-  struct in_addr one_inet_addr;
+  struct in_addr addr;
+  struct in6_addr addrv6;
 #else
   unsigned long int one_inet_addr;
 #endif
@@ -126,22 +127,48 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, char *hostname, int service)
 
   memset (&hints, 0, sizeof (hints));
 #ifndef WIN32
-  if (inet_aton(hostname, &one_inet_addr)==0)
-    hints.ai_flags = AI_CANONNAME;
-  else
-    hints.ai_flags = AI_NUMERICHOST;
+ if (inet_pton(AF_INET, hostname, &addr)>0)
+ {
+   /* ipv4 address detected */
+   hints.ai_flags = AI_NUMERICHOST;
+   hints.ai_family = PF_INET;
+   OSIP_TRACE (osip_trace
+	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		"IPv4 address detected: %s\n", hostname));
+ }
+ else if (inet_pton(AF_INET6, hostname, &addrv6)>0)
+ {
+   /* ipv6 address detected */
+   /* Do the resolution anyway */
+   hints.ai_flags = AI_CANONNAME;
+   hints.ai_family = PF_UNSPEC;
+   OSIP_TRACE (osip_trace
+	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		"IPv6 address detected: %s\n", hostname));
+ }
+ else
+ {
+   /* hostname must be resolved */
+   hints.ai_flags = AI_CANONNAME;
+   hints.ai_family = PF_UNSPEC;
+   OSIP_TRACE (osip_trace
+	       (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		"Not an IPv4 or IPv6 address: %s\n", hostname));
+ }
 #else
   if ((int)(one_inet_addr = inet_addr(hostname)) == -1)
     hints.ai_flags = AI_CANONNAME;
   else
     hints.ai_flags = AI_NUMERICHOST;
-#endif
 
 #ifdef IPV6_SUPPORT
   hints.ai_family = PF_UNSPEC; /* ipv6 support */
 #else
   hints.ai_family = PF_INET;   /* ipv4 only support */
 #endif
+
+#endif
+
   hints.ai_socktype = SOCK_DGRAM;
   hints.ai_protocol = IPPROTO_UDP;
   if (service==0)
