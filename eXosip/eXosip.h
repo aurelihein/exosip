@@ -465,6 +465,7 @@ osip_transaction_t *eXosip_find_last_out_refer(eXosip_call_t *jc, eXosip_dialog_
 
 int  eXosip_call_init(eXosip_call_t **jc);
 void eXosip_call_free(eXosip_call_t *jc);
+void __eXosip_call_remove_dialog_reference_in_call(eXosip_call_t *jc, eXosip_dialog_t *jd);
 void eXosip_call_set_subject(eXosip_call_t *jc, char *subject);
 int  eXosip_read_message(int max_message_nb, int sec_max, int usec_max);
 void eXosip_release_terminated_calls ( void );
