@@ -303,6 +303,9 @@ eXosip_update()
   eXosip_dialog_t    *jd;
   int counter=1;
   int counter2=1;
+  int now;
+
+  now = time(NULL);
   for (jc=eXosip.j_calls; jc!=NULL; jc=jc->next)
     {
       jc->c_id = counter2;
@@ -328,6 +331,8 @@ eXosip_update()
 	    {
 	      jd->d_id = counter;
 	      counter++;
+	      if (eXosip_subscribe_need_refresh(js, now)==0)
+		eXosip_subscribe_send_subscribe(js, jd);
 	    }
 	  else jd->d_id = -1;
 	}
@@ -845,7 +850,8 @@ void eXosip_subscribe    (char *to, char *from, char *route)
       msg_free(subscribe);
       return ;
     }
-  
+
+  _eXosip_subscribe_set_refresh_interval(js, subscribe);
   js->s_out_tr = transaction;
   
   sipevent = osip_new_outgoing_sipmessage(subscribe);
@@ -855,6 +861,25 @@ void eXosip_subscribe    (char *to, char *from, char *route)
 
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, js, NULL));
   ADD_ELEMENT(eXosip.j_subscribes, js);
+}
+
+
+void eXosip_subscribe_refresh  (int sid)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_subscribe_t *js = NULL;
+
+  if (sid>0)
+    {
+      eXosip_subscribe_dialog_find(sid, &js, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No subscribe dialog here?\n");
+      return;
+    }
+
+  eXosip_subscribe_send_subscribe(js, jd);
 }
 
 void eXosip_notify_send_notify(eXosip_notify_t *jn,

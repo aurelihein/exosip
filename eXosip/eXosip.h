@@ -327,9 +327,19 @@ void eXosip_release_terminated_calls ( void );
 
 int  eXosip_subscribe_init(eXosip_subscribe_t **js);
 void eXosip_subscribe_free(eXosip_subscribe_t *js);
+int  _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t *js, osip_message_t *inc_subscribe);
+int  eXosip_subscribe_need_refresh(eXosip_subscribe_t *js, int now);
+void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
+				     eXosip_dialog_t *jd);
 
 int  eXosip_notify_init(eXosip_notify_t **jn);
 void eXosip_notify_free(eXosip_notify_t *jn);
+int  _eXosip_notify_set_refresh_interval(eXosip_notify_t *jn,
+					 osip_message_t *inc_subscribe);
+int  eXosip_notify_add_allowed_subscriber(char *sip_url);
+int  _eXosip_notify_is_a_known_subscriber(osip_message_t *sip);
+void eXosip_notify_send_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd,
+			       int status);
 
 
 #define REMOVE_ELEMENT(first_element, element)   \

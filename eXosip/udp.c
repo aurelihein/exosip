@@ -563,6 +563,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   int i;
 
   eXosip_notify_init(&jn);
+  _eXosip_notify_set_refresh_interval(jn, evt->sip);
 
   i = _eXosip_build_response_default(&answer, NULL, 101, evt->sip);
   if (i!=0)
@@ -639,7 +640,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
       }
   }
 
-  eXosip_dialog_set_200ok(jd, answer);
+  //  eXosip_dialog_set_200ok(jd, answer);
   evt_answer = osip_new_outgoing_sipmessage(answer);
   evt_answer->transactionid = transaction->transactionid;
 
@@ -658,6 +659,7 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
   osip_event_t *sipevent;
   int i;
 
+  _eXosip_notify_set_refresh_interval(jn, evt->sip);
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
     {
@@ -666,10 +668,30 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
       return ;
     }
   
+  {
+    char *contact;
+    contact = (char *) osip_malloc(50);
+    sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
+	    localip,
+	    localport);
+    i = complete_answer_that_establish_a_dialog(answer, evt->sip,
+						contact);
+    osip_free(contact);
+    if (i!=0)
+      {
+	//msg_free(answer);
+	//return;
+	/* this info is yet known by the remote UA,
+	   so we don't have to exit here */
+      }
+  }
+
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, NULL, jn));
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction, sipevent);
+
+  eXosip_notify_send_notify(jn, jd, jn->n_online_status);
   return;
 }
 

@@ -622,6 +622,7 @@ void cb_rcv2xx_4subscribe(osip_transaction_t *tr,osip_message_t *sip)
     return;
   jd = jinfo->jd;
   js = jinfo->js;
+  _eXosip_subscribe_set_refresh_interval(js, sip);
   if (jd == NULL) /* This transaction initiate a dialog in the case of
 		     SUBSCRIBE (else it would be attached to a "jd" element. */
     {
