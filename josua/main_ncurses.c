@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.20 2003-04-17 21:48:02 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.21 2003-04-22 11:04:28 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -335,6 +335,7 @@ static const char *icons[]= {
     " |_\\    /_/ " ,
     "            " ,
     "            " ,
+    "            " ,
 
 #define JD_INITIALIZED    1
     "            " ,
@@ -346,6 +347,7 @@ static const char *icons[]= {
     "  ____O____ " ,
     " / ______ \\ " ,
     " |_\\     /_/" ,
+    "            " ,
     "            " ,
     "            " ,
 
@@ -361,6 +363,7 @@ static const char *icons[]= {
     " |_\\     /_/" ,
     "            " ,
     "            " ,
+    "            " ,
 
 #define JD_QUEUED         3
     "            " ,
@@ -372,6 +375,7 @@ static const char *icons[]= {
     "  _________ " ,
     " / ______ \\ " ,
     " |_\\    /_/ " ,
+    "            " ,
     "            " ,
     "            " ,
 
@@ -387,6 +391,7 @@ static const char *icons[]= {
     " |_\\    /_/ " ,
     "            " ,
     "            " ,
+    "            " ,
 
 #define JD_ESTABLISHED    5
     "            " ,
@@ -398,6 +403,7 @@ static const char *icons[]= {
     "   //       " ,
     "  / /_      " ,
     "  |__/      " ,
+    "            " ,
     "            " ,
     "            " ,
 
@@ -413,6 +419,7 @@ static const char *icons[]= {
     "  |__/      " ,
     "            " ,
     "            " ,
+    "            " ,
 
 #define JD_AUTH_REQUIRED  7
     "            " ,
@@ -424,6 +431,7 @@ static const char *icons[]= {
     "  CREDENTIAL" ,
     "  / /_      " ,
     "  |__/      " ,
+    "            " ,
     "            " ,
     "            " ,
 
@@ -439,6 +447,7 @@ static const char *icons[]= {
     "  |__/      " ,
     "            " ,
     "            " ,
+    "            " ,
 
 #define JD_SERVERERROR    9
     "            " ,
@@ -450,6 +459,7 @@ static const char *icons[]= {
     "   / /ERROR " ,
     "  / /_      " ,
     "  |__/      " ,
+    "            " ,
     "            " ,
     "            " ,
 
@@ -465,6 +475,7 @@ static const char *icons[]= {
     "  |__/      " ,
     "            " ,
     "            " ,
+    "            " ,
 
 #define JD_TERMINATED     11
     "            " ,
@@ -476,6 +487,7 @@ static const char *icons[]= {
     "  _________ " ,
     " / ______  \\" ,
     " |_\\    /_/ " ,
+    "            " ,
     "            " ,
     "            " ,
 

@@ -231,31 +231,79 @@ struct jsubscriber_t {
   jsubscriber_t   *parent;
 };
 
-typedef enum eXosip_msg_callback {
-  EXOSIP_CALL_NEW = 0,         /* announce a new call                 */
+typedef enum eXosip_event_type_t {
+
+  /* Registration Info */
+  EXOSIP_REGISTRATION_NEW,              /* announce new registration. */
+  EXOSIP_REGISTRATION_REFRESHED,        /* registration has been refreshed. */
+  EXOSIP_REGISTRATION_TERMINATED,       /* UA is not registred any more. */
+
+  EXOSIP_CALL_NEW,             /* announce a new call                 */
   EXOSIP_CALL_PROCEEDING,      /* announce processing by a remote app */
   EXOSIP_CALL_RINGING,         /* announce ringback                   */
   EXOSIP_CALL_ANSWERED,        /* announce start of call              */
   EXOSIP_CALL_STARTAUDIO,      /* audio must be established           */
   EXOSIP_CALL_HOLD,            /* audio must be stopped               */
   EXOSIP_CALL_OFFHOLD,         /* audio must be restarted             */
-  EXOSIP_CALL_DISCONNECTED,    /* announce end of call              */
+  EXOSIP_CALL_DISCONNECTED,    /* announce end of call                */
 
   /* Presence and Instant Messaging */
-  EXOSIP_IN_SUBSCRIPTION_NEW,          /* announce new incoming SUBSCRIBE.  */
-  EXOSIP_IN_SUBSCRIPTION_REFRESH,      /* subscription need to be refreshed.*/
-  EXOSIP_IN_SUBSCRIPTION_DISCONNECTED, /* announce end of subscription.     */
+  EXOSIP_IN_SUBSCRIPTION_NEW,           /* announce new incoming SUBSCRIBE.  */
+  EXOSIP_IN_SUBSCRIPTION_REFRESH,       /* subscription need to be refreshed.*/
+  EXOSIP_IN_SUBSCRIPTION_DISCONNECTED,  /* announce end of subscription.     */
 
   EXOSIP_OUT_SUBSCRIPTION_NEW,          /* announce new outgoing SUBSCRIBE.*/
   EXOSIP_OUT_SUBSCRIPTION_REFRESHED,    /* announce new NOTIFY.            */
   EXOSIP_OUT_SUBSCRIPTION_DISCONNECTED, /* announce end of subscription.   */
 
-  EXOSIP_REGISTRATION_NEW,              /* announce new registration. */
-  EXOSIP_REGISTRATION_REFRESHED,        /* registration has been refreshed. */
-  EXOSIP_REGISTRATION_TERMINATED,       /* UA is not registred any more. */
+  EXOSIP_CALLBACK_COUNT
+} eXosip_event_type_t;
 
-  EXOSIP_EMPTY
-} eXosip_msg_callback_t;
+typedef struct eXosip_event {
+  eXosip_event_type_t type;
+
+  char                *textinfo;
+  /* For a high level usage of the eXosip stack? (API is enough?) */
+  /* int did;
+     int cid;
+     int rid;
+     int sid;
+     int nid; */
+
+  /* For a low level usage of the eXosip stack */
+  eXosip_dialog_t     *jd;
+  eXosip_call_t       *jc;
+  eXosip_reg_t        *jr;
+  eXosip_subscribe_t  *js;
+  eXosip_notify_t     *jn;
+
+} eXosip_event_t;
+
+eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t *jc,
+					      eXosip_dialog_t *jd);
+eXosip_event_t *eXosip_event_init_for_subscribe(int type,
+						   eXosip_subscribe_t *js,
+						   eXosip_dialog_t *jd);
+eXosip_event_t *eXosip_event_init_for_notify(int type, eXosip_notify_t *jn,
+						eXosip_dialog_t *jd);
+eXosip_event_t *eXosip_event_init_for_reg(int type, eXosip_reg_t *jr);
+int eXosip_event_init(eXosip_event_t **je, int type);
+void eXosip_event_free(eXosip_event_t *je);
+eXosip_call_t *eXosip_event_get_callinfo(eXosip_event_t *je);
+eXosip_dialog_t *eXosip_event_get_dialoginfo(eXosip_event_t *je);
+eXosip_reg_t *eXosip_event_get_reginfo(eXosip_event_t *je);
+eXosip_notify_t *eXosip_event_get_notifyinfo(eXosip_event_t *je);
+eXosip_subscribe_t *eXosip_event_get_subscribeinfo(eXosip_event_t *je);
+int eXosip_event_add(eXosip_event_t *je);
+eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms, int event_type);
+
+typedef void (* eXosip_callback_t) (int type, eXosip_event_t *);
+
+/*  typedef void (* eXosip_call_callback_t) (int type, eXosip_event_t *);
+    typedef void (* eXosip_subscribe_callback_t) (int type, eXosip_event_t *);
+    typedef void (* eXosip_notify_callback_t) (int type, eXosip_event_t *);
+    typedef void (* eXosip_reg_callback_t) (int type, eXosip_event_t *);
+*/
 
 typedef struct eXosip_t eXosip_t;
 
@@ -280,8 +328,9 @@ struct eXosip_t {
   jfriend_t          *j_friends;
   jidentity_t        *j_identitys;
 
-  
+  eXosip_callback_t   j_call_callbacks[EXOSIP_CALLBACK_COUNT];
 
+  osip_fifo_t      *j_event;
 };
 
 typedef struct jinfo_t jinfo_t;

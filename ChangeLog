@@ -1,6 +1,12 @@
+eXosip (0.6.2)
+	* New Event oriented or Callback oriented interface with applications.
+	* support for both MSN or compliant UAs.
+	* SUBSCRIBE/NOTIFY for SIMPLE support.
+	* script for adding/updating subscribers. (eXosip_addsubscriber.sh)
+	
 eXosip (0.6.1)
 	* INVITE, CANCEL, BYE, REGISTER, MESSAGE, REFER
 	* script for adding/updating contact. (eXosip_addfreind.sh)
-	* script for adding/updating iedntity. (eXosip_addidentity.sh)
+	* script for adding/updating identity. (eXosip_addidentity.sh)
 	* NCURSES interface.
 	* options for current session.

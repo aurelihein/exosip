@@ -1,0 +1,163 @@
+/*
+  eXosip - This is the eXtended osip library.
+  Copyright (C) 2002, 2003  Aymeric MOIZARD  - jack@atosc.org
+  
+  eXosip is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+  
+  eXosip is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+
+#ifdef ENABLE_MPATROL
+#include <mpatrol.h>
+#endif
+
+#include <eXosip.h>
+#include <eXosip2.h>
+
+eXosip_t eXosip;
+
+
+eXosip_event_t *
+eXosip_event_init_for_call(int type,
+			   eXosip_call_t *jc,
+			   eXosip_dialog_t *jd)
+{
+  eXosip_event_t *je;
+  eXosip_event_init(&je, type);
+  if (je==NULL) return NULL;
+  je->jc = jc;
+  je->jd = jd;
+  return je;
+}
+
+eXosip_event_t *
+eXosip_event_init_for_subscribe(int type,
+				eXosip_subscribe_t *js,
+				eXosip_dialog_t *jd)
+{
+  eXosip_event_t *je;
+  eXosip_event_init(&je, type);
+  if (je==NULL) return NULL;
+  je->js = js;
+  je->jd = jd;
+  return je;
+}
+
+eXosip_event_t *
+eXosip_event_init_for_notify(int type,
+			     eXosip_notify_t *jn,
+			     eXosip_dialog_t *jd)
+{
+  eXosip_event_t *je;
+  eXosip_event_init(&je, type);
+  if (je==NULL) return NULL;
+  je->jn = jn;
+  je->jd = jd;
+  return je;
+}
+
+eXosip_event_t *
+eXosip_event_init_for_reg(int type,
+			  eXosip_reg_t *jr)
+{
+  eXosip_event_t *je;
+  eXosip_event_init(&je, type);
+  if (je==NULL) return NULL;
+  je->jr = jr;
+  return je;
+}
+
+int
+eXosip_event_init(eXosip_event_t **je, int type)
+{
+  *je = (eXosip_event_t *) osip_malloc(sizeof(eXosip_event_t));
+  if (*je==NULL) return -1;
+  
+  memset(*je, 0, sizeof(eXosip_event_t));
+  (*je)->type = type;
+
+  if (type==EXOSIP_CALL_NEW)
+    {
+      sprintf((*je)->textinfo, "New call received!");
+    }
+  else if (type==EXOSIP_CALL_PROCEEDING)
+    {
+      sprintf((*je)->textinfo, "Call is being processed!");
+    }
+  else if (type==EXOSIP_CALL_RINGING)
+    {
+      sprintf((*je)->textinfo, "Remote phone is ringing!");
+    }
+  else if (type==EXOSIP_CALL_ANSWERED)
+    {
+      sprintf((*je)->textinfo, "Remote phone has answered!");
+    }
+  else if (type==EXOSIP_CALL_DISCONNECTED)
+    {
+      sprintf((*je)->textinfo, "Call is over!");
+    }
+  return 0;
+}
+
+void
+eXosip_event_free(eXosip_event_t *je)
+{
+
+  osip_free(je);
+}
+
+eXosip_call_t *
+eXosip_event_get_callinfo(eXosip_event_t *je)
+{
+  return je->jc;
+}
+
+eXosip_dialog_t *
+eXosip_event_get_dialoginfo(eXosip_event_t *je)
+{
+  return je->jd;
+}
+
+eXosip_reg_t *
+eXosip_event_get_reginfo(eXosip_event_t *je)
+{
+  return je->jr;
+}
+
+eXosip_notify_t *
+eXosip_event_get_notifyinfo(eXosip_event_t *je)
+{
+  return je->jn;
+}
+
+eXosip_subscribe_t *
+eXosip_event_get_subscribeinfo(eXosip_event_t *je)
+{
+  return je->js;
+}
+
+int
+eXosip_event_add(eXosip_event_t *je)
+{
+  return osip_fifo_add(eXosip.j_event, (void *) je);
+}
+
+eXosip_event_t *
+eXosip_event_wait(int tv_s, int tv_ms, int event_type)
+{
+  eXosip_event_t *je;
+  je = (eXosip_event_t *) osip_fifo_get(eXosip.j_event);
+  return je;
+}
+

@@ -168,6 +168,8 @@ void eXosip_quit()
   eXosip_kill_transaction (eXosip.j_osip->osip_nist_transactions);
   osip_release (eXosip.j_osip);
 
+  osip_fifo_free(eXosip.j_event);
+
   return ;
 }
 
@@ -290,6 +292,10 @@ int eXosip_init(FILE *input, FILE *output, int port)
       fprintf(stderr, "eXosip: Cannot start thread!\n");
       return -1;
     }
+
+  /* To be changed in osip! */
+  eXosip.j_event = (osip_fifo_t*) osip_malloc(sizeof(osip_fifo_t));
+  osip_fifo_init(eXosip.j_event);
 
   jfriend_load();
   jidentity_load();

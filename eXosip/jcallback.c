@@ -271,7 +271,7 @@ void cb_rcvack2    (int type, osip_transaction_t *tr,osip_message_t *sip)
   
 void cb_rcvregister(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvbye (id=%i)\r\n", tr->transactionid));
+  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvregister (id=%i)\r\n", tr->transactionid));
 }
 
 void cb_rcvbye     (int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -453,7 +453,24 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 
       if ( jd!=NULL)
 	jd->d_STATE = JD_TRYING;
-
+      if ( jd!=NULL && MSG_IS_RESPONSEFOR(sip, "INVITE")
+	   && 0<strcmp(sip->statuscode, "179"))
+	{
+	  if (eXosip.j_call_callbacks[EXOSIP_CALL_PROCEEDING]!=NULL)
+	    {
+	      eXosip_event_t *je;
+	      je = eXosip_event_init_for_call(EXOSIP_CALL_PROCEEDING, jc, jd);
+	      eXosip.j_call_callbacks[EXOSIP_CALL_PROCEEDING](EXOSIP_CALL_PROCEEDING, je);
+	    }
+	}
+      else if ( jd!=NULL && MSG_IS_RESPONSEFOR(sip, "INVITE")
+	   && 0>=strcmp(sip->statuscode, "180"))
+	{
+	  eXosip_event_t *je;
+	  je = eXosip_event_init_for_call(EXOSIP_CALL_RINGING, jc, jd);
+	  if (eXosip.j_call_callbacks[EXOSIP_CALL_RINGING]!=NULL)
+	    eXosip.j_call_callbacks[EXOSIP_CALL_RINGING](EXOSIP_CALL_RINGING, je);
+	}
       if (MSG_TEST_CODE(sip, 180) && jd!=NULL)
 	{
 	  jd->d_STATE = JD_RINGING;
@@ -689,6 +706,15 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 
   }
 
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_ANSWERED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_ANSWERED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_ANSWERED](EXOSIP_CALL_ANSWERED, je);
+    je = eXosip_event_init_for_call(EXOSIP_CALL_STARTAUDIO, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_STARTAUDIO]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_STARTAUDIO](EXOSIP_CALL_STARTAUDIO, je);
+  }
 
   /* look for the SDP information and decide if this answer was for
      an initial INVITE, an HoldCall, or a RetreiveCall */
@@ -826,6 +852,15 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       if (jd->d_dialog==NULL)
 	jd->d_STATE = JD_REDIRECTED;
     }
+
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
+
 }
 
 void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -848,6 +883,15 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       else
 	jd->d_STATE = JD_CLIENTERROR;
     }
+
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
+
 }
 
 void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -868,6 +912,14 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       jd->d_STATE = JD_SERVERERROR;
     }
 
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
+
 }
 
 void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -887,6 +939,14 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_delete_early_dialog(jd);
       jd->d_STATE = JD_GLOBALFAILURE;
     }
+
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
 
 }
 
@@ -942,6 +1002,14 @@ void cb_snd3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_REDIRECTED;
+
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
 }
 
 void cb_snd4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -961,6 +1029,15 @@ void cb_snd4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_CLIENTERROR;
+
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
+
 }
 
 void cb_snd5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -980,6 +1057,15 @@ void cb_snd5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_SERVERERROR;
+
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
+
 }
 
 void cb_snd6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -999,6 +1085,15 @@ void cb_snd6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_delete_early_dialog(jd);
     }
   jd->d_STATE = JD_GLOBALFAILURE;
+
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
+
 }
 
 void cb_rcvresp_retransmission(int type, osip_transaction_t *tr, osip_message_t *sip)

@@ -94,6 +94,13 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
   /* Release the eXosip_dialog */
   osip_dialog_free(jd->d_dialog);
   jd->d_dialog = NULL;
+
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+  }
 }
 
 int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
@@ -251,6 +258,7 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
       evt_answer->transactionid =  tr->transactionid;
       osip_transaction_add_event(tr,evt_answer);
     }
+
 }
 
 void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
@@ -346,6 +354,13 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction, sipevent);
+
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_HOLD, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_HOLD]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_HOLD](EXOSIP_CALL_HOLD, je);
+  }
 }
 
 void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
@@ -353,6 +368,14 @@ void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 				  osip_event_t *evt, sdp_message_t *sdp)
 {
   eXosip_process_invite_on_hold(jc, jd, transaction, evt, sdp);
+
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_OFFHOLD, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD](EXOSIP_CALL_OFFHOLD, je);
+  }
+
 }
 
 void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *evt)
@@ -432,6 +455,12 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   evt_answer->transactionid = transaction->transactionid;
   osip_transaction_add_event(transaction, evt_answer);
 
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_call(EXOSIP_CALL_NEW, jc, jd);
+    if (eXosip.j_call_callbacks[EXOSIP_CALL_NEW]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_CALL_NEW](EXOSIP_CALL_NEW, je);
+  }
 }
 
 void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
