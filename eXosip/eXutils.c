@@ -28,9 +28,9 @@
 #include <Windows.h>
 #include <Iphlpapi.h>
 
-char *eXosip_guess_ip_for_via ()
+void
+eXosip_guess_ip_for_via (char *alocalip)
 {
-	static char def_gateway[30];
 	/* w2000 and W95/98 */
 	unsigned long  best_interface_index;
 	DWORD hr;
@@ -40,6 +40,7 @@ char *eXosip_guess_ip_for_via ()
 	DWORD siz_ipfwd_table = 0;
 	unsigned int ipf_cnt;
 
+	alocalip[0] = '\0';
 	best_interface_index = -1;
 	/* w2000 and W95/98 only */
 	hr = GetBestInterface(inet_addr("217.12.3.11"),&best_interface_index);
@@ -70,13 +71,13 @@ char *eXosip_guess_ip_for_via ()
 		if (0 == ppl_dns_get_local_fqdn(&servername, &serverip, &netmask,
 						best_interface_index))
 		{
-			osip_strncpy(def_gateway, serverip, strlen(serverip));
+			osip_strncpy(alocalip, serverip, strlen(serverip));
 			osip_free(servername);
 			osip_free(serverip);
 			osip_free(netmask);
-			return def_gateway;
+			return;
 		}
-		return NULL;
+		return;
 	}
 
 
@@ -85,7 +86,7 @@ char *eXosip_guess_ip_for_via ()
 	{
 		OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
 			"Allocation error\r\n"));
-		return NULL;
+		return ;
 	}
 
 
@@ -107,19 +108,19 @@ char *eXosip_guess_ip_for_via ()
 								 &netmask,
 								 ipfwdt->table[ipf_cnt].dwForwardIfIndex))
 				{
-					osip_strncpy(def_gateway, serverip, strlen(serverip));
+					osip_strncpy(alocalip, serverip, strlen(serverip));
 					osip_free(servername);
 					osip_free(serverip);
 					osip_free(netmask);
-					return def_gateway;
+					return ;
 				}
-				return NULL;
+				return ;
 			}
 		}
 
 	}
 	/* no default gateway interface found */
-	return NULL;
+	return ;
 }
 
 int
@@ -199,15 +200,10 @@ ppl_dns_get_local_fqdn (char **servername, char **serverip,
 #else /* sun, *BSD, linux, and other? */
 
 
-#if defined WIN32
-#include <winsock.h>
-#else 
-// end andrea
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif
 
 #include <sys/ioctl.h>
 #include <net/route.h>
@@ -225,14 +221,15 @@ char all_interface[16];
 /* This is a portable way to find the default gateway.
  * The ip of the default interface is returned.
  */
-char *
-eXosip_guess_ip_for_via ()
+void
+eXosip_guess_ip_for_via (char *alocalip)
 {
   unsigned int len;
   int sock_rt, on=1;
   struct sockaddr_in iface_out;
   struct sockaddr_in remote;
   
+  alocalip[0] = '\0';
   memset(&remote, 0, sizeof(struct sockaddr_in));
   remote.sin_family = AF_INET;
   //  remote.sin_addr.s_addr = inet_addr("217.12.3.11");
@@ -246,28 +243,30 @@ eXosip_guess_ip_for_via ()
       == -1) {
     perror("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
     close(sock_rt);
-    return NULL;
+    return ;
   }
   
   if (connect(sock_rt, (struct sockaddr*)&remote, sizeof(struct sockaddr_in))
       == -1 ) {
     perror("DEBUG: [get_output_if] connect");
     close(sock_rt);
-    return NULL;
+    return ;
   }
   
   len = sizeof(iface_out);
   if (getsockname(sock_rt, (struct sockaddr *)&iface_out, &len) == -1 ) {
     perror("DEBUG: [get_output_if] getsockname");
     close(sock_rt);
-    return NULL;
+    return ;
   }
   close(sock_rt);
   if (iface_out.sin_addr.s_addr == 0)
     { /* what is this case?? */
-      return NULL;
+      return ;
     }
-  return inet_ntoa(iface_out.sin_addr);
+
+  strcpy(alocalip, inet_ntoa(iface_out.sin_addr));
+  return;
 }
 
 #endif

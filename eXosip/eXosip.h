@@ -221,7 +221,8 @@ sdp_message_t *eXosip_get_local_sdp_info(osip_transaction_t *invite_tr);
 int    eXosip_set_callbacks(osip_t *osip);
 char  *osip_to_tag_new_random();
 unsigned int via_branch_new_random();
-jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_osip_dialog_t *jd);
+void __eXosip_delete_jinfo(osip_transaction_t *transaction);
+jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_osip_dialog_t *jd);
 
 int  eXosip_osip_dialog_init_as_uac(eXosip_osip_dialog_t **jd, osip_message_t *_200Ok);
 int  eXosip_osip_dialog_init_as_uas(eXosip_osip_dialog_t **jd, osip_message_t *_invite, osip_message_t *_200Ok);

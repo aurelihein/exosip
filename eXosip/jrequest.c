@@ -58,6 +58,7 @@ via_branch_new_random()
 {
   return osip_build_random_number();
 }
+
 /* prepare a minimal request (outside of a dialog) with required headers */
 /* 
    method_name is the type of request. ("INVITE", "REGISTER"...)
@@ -94,7 +95,10 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       osip_uri_init(&(request->strtline->rquri));
       i = osip_uri_parse(request->strtline->rquri, proxy);
       if (i!=0)
-	goto brood_error_1;
+	{
+	  osip_uri_free(request->strtline->rquri);
+	  goto brood_error_1;
+	}
       osip_parser_set_to(request, from);
     }
   else
@@ -224,20 +228,26 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       char *contact;
       osip_from_t *a_from;
       int i;
-      contact = (char *) osip_malloc(50);
       i = osip_from_init(&a_from);
-      i = osip_from_parse(a_from, from);
+      if (i==0)
+	i = osip_from_parse(a_from, from);
 
-      if (localport==NULL)
-	sprintf(contact, "<sip:%s@%s>", a_from->url->username,
-		localip);
-      else
-	sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
-		localip,
-		localport);
-
-      osip_parser_set_contact(request, contact);
-      osip_free(contact);
+      if (i==0 && a_from!=NULL
+	  && a_from->url!=NULL && a_from->url->username!=NULL )
+	{
+	  contact = (char *) osip_malloc(50+strlen(a_from->url->username));
+	  if (localport==NULL)
+	    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+		    localip);
+	  else
+	    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+		    localip,
+		    localport);
+	  
+	  osip_parser_set_contact(request, contact);
+	  osip_free(contact);
+	}
+      osip_from_free(a_from);
     }
   else if (0==strcmp("REGISTER", method_name))
     {
@@ -277,17 +287,25 @@ generating_register(osip_message_t **reg, char *from,
     {
       contact = (char *) osip_malloc(50);
       i = osip_from_init(&a_from);
-      i = osip_from_parse(a_from, from);
+      if (i==0)
+	i = osip_from_parse(a_from, from);
+
+      if (i==0 && a_from!=NULL
+	  && a_from->url!=NULL && a_from->url->username!=NULL )
+	{
+	  contact = (char *) osip_malloc(50+strlen(a_from->url->username));
+	  if (localport==NULL)
+	    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+		    localip);
+	  else
+	    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+		    localip,
+		    localport);
 	  
-      if (localport==NULL)
-	sprintf(contact, "<sip:%s@%s>", a_from->url->username,
-		localip);
-      else
-	sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
-		localip,
-		localport);
-      osip_parser_set_contact(*reg, contact);
-      osip_free(contact);
+	  osip_parser_set_contact(*reg, contact);
+	  osip_free(contact);
+	}
+      osip_from_free(a_from);
     }
   else
     {
@@ -322,13 +340,6 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 				       route);
   if (i!=0) return -1;
   
-  /* About content-length:
-     in case a body is added after this method has been called, the
-     application MUST take care of removing this header before
-     replacing it.
-     It should also take care of content-disposition and mime-type headers
-  */
-
   osip_parser_set_subject(*invite, subject);
 
   osip_parser_set_allow(*invite, "INVITE");
@@ -341,8 +352,6 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
   osip_parser_set_expires(*invite, "120");
 
   /* osip_parser_set_organization(*invite, "Jack's Org"); */
-
-
   return 0;
 }
 
@@ -352,7 +361,6 @@ int generating_message(osip_message_t **message, char *to, char *from,
 		       char *route, char *buff)
 {
   int i;
-  char *size;
 
   if (to!=NULL && *to=='\0')
     return -1;
@@ -373,10 +381,6 @@ int generating_message(osip_message_t **message, char *to, char *from,
   /* after this delay, we should send a CANCEL */
   osip_parser_set_expires(*message, "120");
 
-  size= (char *)osip_malloc(8*sizeof(char));
-  sprintf(size,"%i",strlen(buff));
-  osip_parser_set_content_length(*message, size);
-  osip_free(size);
   osip_parser_set_body(*message, buff);
   osip_parser_set_content_type(*message, "xxxx/yyyy");
 
@@ -396,18 +400,10 @@ generating_options(osip_message_t **options, char *from, char *to, char *sdp, ch
   if (i!=0) return -1;
 
   if (sdp!=NULL)
-    {
-      char *size;
-      size= (char *)osip_malloc(6*sizeof(char));
-      sprintf(size,"%i",strlen(sdp));
-      osip_parser_set_content_length(*options, size);
-      osip_free(size);
-      
+    {      
       osip_parser_set_content_type(*options, "application/sdp");
       osip_parser_set_body(*options, sdp);
     }
-  else
-    osip_parser_set_content_length(*options, "0");
   return 0;
 }
 
@@ -639,7 +635,6 @@ generating_bye(osip_message_t **bye, osip_dialog_t *dialog)
   i = _eXosip_build_request_within_dialog(bye, "BYE", dialog, "UDP");
   if (i!=0) return -1;
 
-  osip_parser_set_content_length(*bye, "0");
   return 0;
 }
 
@@ -651,7 +646,6 @@ generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to)
   i = _eXosip_build_request_within_dialog(refer, "REFER", dialog, "UDP");
   if (i!=0) return -1;
 
-  osip_parser_set_content_length(*refer, "0");
   osip_parser_set_header(*refer, "Refer-to", refer_to);
 
   return 0;
@@ -666,18 +660,10 @@ generating_options_within_dialog(osip_message_t **options, osip_dialog_t *dialog
   if (i!=0) return -1;
 
   if (sdp!=NULL)
-    {
-      char *size;
-      size= (char *)osip_malloc(6*sizeof(char));
-      sprintf(size,"%i",strlen(sdp));
-      osip_parser_set_content_length(*options, size);
-      osip_free(size);
-      
+    {      
       osip_parser_set_content_type(*options, "application/sdp");
       osip_parser_set_body(*options, sdp);
     }
-  else
-    osip_parser_set_content_length(*options, "0");
 
   return 0;
 }
@@ -688,7 +674,6 @@ generating_info(osip_message_t **info, osip_dialog_t *dialog)
   int i;
   i = _eXosip_build_request_within_dialog(info, "INFO", dialog, "UDP");
   if (i!=0) return -1;
-  osip_parser_set_content_length(*info, "0");
   return 0;
 }
 
@@ -750,7 +735,6 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
       }
   }
 
-  osip_parser_set_content_length(request, "0");
   osip_parser_set_max_forward(request, "70"); /* a UA should start a request with 70 */
   osip_parser_set_user_agent(request, "oSIP-ua/0.8.1");
 

@@ -266,7 +266,13 @@ void cb_sndunkrequest(int type, osip_transaction_t *tr,osip_message_t *sip)
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndunkrequest (id=%i)\r\n", tr->transactionid));
 }
 
-jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_osip_dialog_t *jd)
+void __eXosip_delete_jinfo(osip_transaction_t *transaction)
+{
+  jinfo_t *ji = osip_transaction_get_your_instance(transaction);
+  osip_free(ji);
+}
+
+jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_osip_dialog_t *jd)
 {
   jinfo_t *ji = (jinfo_t *) osip_malloc(sizeof(jinfo_t));
   if (ji==NULL) return NULL;

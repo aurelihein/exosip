@@ -39,8 +39,9 @@
 #include <unistd.h>
 
 eXosip_t eXosip;
-char   *localip;
-char   *localport;
+char    *localip;
+char    *localport;
+extern char *register_callid_number;
 
 
 int
@@ -72,6 +73,8 @@ eXosip_kill_transaction (osip_list_t * transactions)
   while (!osip_list_eol (transactions, 0))
     {
       transaction = osip_list_get (transactions, 0);
+
+      __eXosip_delete_jinfo(transaction);
       osip_transaction_free (transaction);
       osip_free (transaction);
     }
@@ -88,6 +91,10 @@ void eXosip_quit()
   if (i!=0)
     fprintf(stderr, "eXosip: can't terminate thread!");
   osip_free((struct osip_thread_t*)eXosip.j_thread);
+
+  osip_free(localip);
+  osip_free(localport);
+  osip_free(register_callid_number);
 
   eXosip.j_input = 0;
   eXosip.j_output = 0;
@@ -142,14 +149,18 @@ void eXosip_quit()
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 		      "Release a terminated transaction\n"));
 	  osip_list_remove(eXosip.j_transactions, 0);
+	  __eXosip_delete_jinfo(tr);
 	  osip_transaction_free2(tr);
 	}
       else
 	{
 	  osip_list_remove(eXosip.j_transactions, 0);
+	  __eXosip_delete_jinfo(tr);
 	  osip_transaction_free(tr);
 	}
     }
+
+  osip_free(eXosip.j_transactions);
 
   eXosip_kill_transaction (eXosip.j_osip->osip_ict_transactions);
   eXosip_kill_transaction (eXosip.j_osip->osip_nict_transactions);
@@ -211,13 +222,15 @@ int eXosip_init(FILE *input, FILE *output, int port)
       fprintf(stderr, "eXosip: port must be higher than 0!\n");
       return -1;
     }
-  eXosip_guess_ip_for_via(&localip);
-  if (localip==NULL)
+  localip = (char *) osip_malloc(30);
+  memset(localip, '\0', 30);
+  eXosip_guess_ip_for_via(localip);
+  if (localip[0]=='\0')
     {
 #ifdef ENABLE_DEBUG
       fprintf(stderr, "eXosip: No ethernet interface found!\n");
       fprintf(stderr, "eXosip: using 127.0.0.1 (debug mode)!\n");
-      localip = osip_strdup("127.0.0.1");
+      strcpy(localip, "127.0.0.1");
 #else
       fprintf(stderr, "eXosip: No ethernet interface found!\n");
       return -1;
@@ -341,7 +354,7 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_add_event(transaction, sipevent);
 
   //  ADD_ELEMENT(eXosip.j_calls, jc);
-  osip_transaction_set_your_instance(transaction, new_jinfo(NULL, NULL));
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL));
 }
 
 void eXosip_start_call    (osip_message_t *invite)
@@ -373,13 +386,12 @@ void eXosip_start_call    (osip_message_t *invite)
     }
   else
     osip_parser_set_content_length(invite, "0");
-
-  jc = (eXosip_call_t *) osip_malloc(sizeof(eXosip_call_t));
+  
+  eXosip_call_init(&jc);
   i = osip_parser_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
   jc->c_dialogs = NULL;
   
-  sdp_negotiation_ctx_init(&(jc->c_ctx));
   sdp_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
   sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
 
@@ -409,7 +421,7 @@ void eXosip_start_call    (osip_message_t *invite)
   osip_transaction_add_event(transaction, sipevent);
 
   ADD_ELEMENT(eXosip.j_calls, jc);
-  osip_transaction_set_your_instance(transaction, new_jinfo(jc, NULL));
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL));
 }
 
 void eXosip_answer_call   (int jid, int status)
@@ -534,7 +546,7 @@ void eXosip_on_hold_call  (int jid)
   
   osip_transaction_add_event(transaction, sipevent);
 
-  osip_transaction_set_your_instance(transaction, new_jinfo(jc, NULL));  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL));  
 }
 
 void eXosip_off_hold_call (int jid)
@@ -568,7 +580,7 @@ int eXosip_create_transaction(eXosip_call_t *jc,
   sipevent->transactionid =  tr->transactionid;
   
   osip_transaction_add_event(tr, sipevent);
-  osip_transaction_set_your_instance(tr, new_jinfo(jc, jd));
+  osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd));
   return 0;
 }
 
@@ -701,6 +713,7 @@ void eXosip_register      (int rid)
 	{
 	  reg = jr->r_last_tr->orig_request;
 	  jr->r_last_tr->orig_request = NULL;
+	  __eXosip_delete_jinfo(jr->r_last_tr);
 	  osip_transaction_free2(jr->r_last_tr);
 	  jr->r_last_tr = NULL;
 

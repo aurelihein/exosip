@@ -57,12 +57,14 @@ void eXosip_reg_free(eXosip_reg_t *jreg)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			    "Release a terminated transaction\n"));
+      __eXosip_delete_jinfo(jreg->r_last_tr);
       osip_transaction_free2(jreg->r_last_tr);
     }
   else
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			    "Release a non-terminated transaction\n"));
+      __eXosip_delete_jinfo(jreg->r_last_tr);
       osip_transaction_free(jreg->r_last_tr);
     }
   

@@ -148,6 +148,7 @@ void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd)
       i = osip_remove_nist(eXosip.j_osip, tr);
       if (i!=0)
 	osip_remove_ist(eXosip.j_osip, tr);
+      __eXosip_delete_jinfo(tr);
       osip_transaction_free2(tr);
     }
 
@@ -158,6 +159,7 @@ void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd)
       i = osip_remove_nict(eXosip.j_osip, tr);
       if (i!=0)
 	osip_remove_ict(eXosip.j_osip, tr);
+      __eXosip_delete_jinfo(tr);
       osip_transaction_free2(tr);
     }
   osip_free(jd);

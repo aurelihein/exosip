@@ -24,7 +24,7 @@
 
 #include <eXosip.h>
 
-char   *localip;
+extern char *localip;
 
 int eXosip_sdp_accept_audio_codec(sdp_negotiation_ctx_t *context,
 			      char *port, char *number_of_port,

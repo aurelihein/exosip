@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.5 2003-03-24 18:17:47 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.6 2003-03-25 00:17:52 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -1360,7 +1360,8 @@ int main(int argc, const char *const *argv) {
   __josua_menu();
   echo();
   cursesoff();
-  
+
+
   fclose(log_file);
   exit(1);
   return(0);
