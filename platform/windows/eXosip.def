@@ -75,3 +75,6 @@ EXPORTS
 	eXosip_guess_localip @76
 	__eXosip_wakeup_event @77
 	eXosip_force_localip @78
+	eXosip2_answer_send @79
+	eXosip2_answer @80
+
