@@ -48,6 +48,7 @@ eXosip_event_init_for_call(int type,
 
   /* fill in usefull info */
   if (type==EXOSIP_CALL_NEW
+      || type==EXOSIP_CALL_ACK
       || type==EXOSIP_CALL_NOANSWER
       || type==EXOSIP_CALL_PROCEEDING
       || type==EXOSIP_CALL_RINGING
@@ -83,6 +84,9 @@ eXosip_event_init_for_call(int type,
       || type==EXOSIP_CALL_STARTAUDIO
       || type==EXOSIP_CALL_RELEASED)
     {
+      if (jc->c_sdp_port[0]!='\0')
+	je->local_sdp_audio_port = osip_atoi(jc->c_sdp_port);
+
       if (jd!=NULL&&jd->d_dialog!=NULL)
 	{
 	  osip_transaction_t *tr;
@@ -274,13 +278,15 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 		  snprintf(je->remote_sdp_audio_ip, 49, "%s",
 			   conn->c_addr);
 		}
-	      break;
+	      sdp_message_free(sdp);
 	      return 0;
 	    }
 	}
+      sdp_message_free(sdp);
     }
   return -1;
 }
+
 
 eXosip_event_t *
 eXosip_event_init_for_subscribe(int type,
@@ -746,10 +752,11 @@ __eXosip_clock_gettime(unsigned int clock_id, struct timespec *time)
 eXosip_event_t *
 eXosip_event_wait(int tv_s, int tv_ms)
 {
-  int i;
   eXosip_event_t *je;
 
+#if 0 /* this does not seems to work. by now */
 #if defined (CLOCK_REALTIME) || defined (WIN32) || defined (_WIN32_WCE)
+  int i;
 
   struct timespec deadline;
   struct timespec interval;
@@ -779,7 +786,21 @@ eXosip_event_wait(int tv_s, int tv_ms)
 			   &deadline);
   
 #endif
-  je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+#else
+  /* basic replacement */
+  for (;;)
+    {
+      int i = 10;
+      je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+      if (je!=NULL) return je;
+      i--;
+      if (i==0) return NULL;
+      if (tv_s==0 && tv_ms<=500)
+	return NULL;
+      osip_usleep(50000);
+    }
+#endif
+
   return je;
 }
 

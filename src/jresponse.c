@@ -555,7 +555,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
     {
       body = generating_sdp_answer(tr->orig_request, jc->c_ctx);
       if (body==NULL)
-	code = 488; /* bad sdp */
+	code = 488; /* bad sdp */      
     }
   else
     {

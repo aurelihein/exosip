@@ -782,6 +782,11 @@ sdp_message_t *eXosip_get_remote_sdp(osip_transaction_t *transaction)
     /* remote sdp is in response */
     message = transaction->last_response;
 
+  if (message==NULL)
+    {
+      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"No remote sdp body found\r\n"));
+      return NULL;
+    }
   sdp=NULL;
   body = (osip_body_t *)osip_list_get(message->bodies,0);
   while (body!=NULL)
@@ -1062,7 +1067,7 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
      an initial INVITE, an HoldCall, or a RetreiveCall */
 
   /* don't handle hold/unhold by now... */
-  eXosip_update_audio_session(tr);
+  /* eXosip_update_audio_session(tr); */
 
 }
 

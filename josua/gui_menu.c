@@ -28,6 +28,8 @@
 #include "gui_online.h"
 #include "gui_setup.h"
 
+extern struct osip_mutex *log_mutex;
+
 gui_t gui_window_menu = {
   GUI_OFF,
   20,
@@ -328,6 +330,7 @@ void __show_setup()
 void __josua_quit() {
 
   eXosip_quit();
+  osip_mutex_destroy(log_mutex);
 
   cursesoff();  
   exit(1);

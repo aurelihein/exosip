@@ -68,7 +68,12 @@ int eXosip_sdp_accept_other_codec(osip_negotiation_ctx_t *context,
 
 char *eXosip_sdp_get_audio_port(osip_negotiation_ctx_t *context, int pos_media)
 {
-  return osip_strdup("10500");
+  eXosip_call_t *jc = (eXosip_call_t*)osip_negotiation_ctx_get_mycontext(context);
+  if (jc==NULL)
+    return osip_strdup("10500");
+  else if (jc->c_sdp_port[0]=='\0')
+    return osip_strdup("10500");
+  else return osip_strdup(jc->c_sdp_port);
 }
 
 int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn)
@@ -107,15 +112,15 @@ void eXosip_sdp_negotiation_add_codec(char *payload, char *number_of_port,
 				      char *a_rtpmap)
 {
   osip_negotiation_add_support_for_audio_codec(eXosip.osip_negotiation,
-					       osip_strdup(payload),
-					       osip_strdup(number_of_port),
-					       osip_strdup(proto),
-					       osip_strdup(c_nettype),
-					       osip_strdup(c_addrtype),
-					       osip_strdup(c_addr),
-					       osip_strdup(c_addr_multicast_ttl),
-					       osip_strdup(c_addr_multicast_int),
-					       osip_strdup(a_rtpmap));
+					       payload,
+					       number_of_port,
+					       proto,
+					       c_nettype,
+					       c_addrtype,
+					       c_addr,
+					       c_addr_multicast_ttl,
+					       c_addr_multicast_int,
+					       a_rtpmap);
   osip_list_add(supported_codec, osip_strdup(payload), -1);
 }
 
@@ -151,6 +156,14 @@ int eXosip_sdp_negotiation_init(osip_negotiation_t **sn)
   osip_negotiation_set_fcn_get_audio_port(*sn, &eXosip_sdp_get_audio_port);
 
   return 0;
+}
+
+void eXosip_sdp_negotiation_free(osip_negotiation_t *sn)
+{
+  if (sn==NULL)
+    return;
+  osip_list_ofchar_free(supported_codec);
+  osip_negotiation_free(sn);
 }
 
 sdp_message_t *

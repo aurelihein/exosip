@@ -282,9 +282,9 @@ void
 	  i=read(fd, mulaw_buffer+mulaw_buffer_pos, MULAW_BYTES*4); /* ?? */
 	  mulaw_buffer_pos = mulaw_buffer_pos + i;
 #endif
+	  fprintf(stderr, "reading %i stream from sound card\n", i);
 	}
 
-      fprintf(stderr, "reading %i stream from sound card\n", i);
       if (mulaw_buffer_pos > MULAW_BYTES )
         {
 	  rtp_send_data(ca->rtp_session, rtp_ts, ca->payload, 
@@ -462,6 +462,8 @@ int os_sound_start(jcall_t *ca)
       /* Filter out local packets if requested */
       /* rtp_set_option(ca->rtp_session, RTP_OPT_FILTER_MY_PACKETS, filter_me); */
       
+      ca->audio_thread = osip_thread_create(20000,
+					    os_sound_start_thread, ca);
     }
   else {
     fprintf(stderr, "Could not initialize session for %s port %d\n",
@@ -469,8 +471,6 @@ int os_sound_start(jcall_t *ca)
 	    ca->remote_sdp_audio_port);
   }
   
-  ca->audio_thread = osip_thread_create(20000,
-					os_sound_start_thread, ca);
   return 0;
 }
 

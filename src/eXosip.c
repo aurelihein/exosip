@@ -134,7 +134,7 @@ void eXosip_quit()
   osip_mutex_destroy((struct osip_mutex*)eXosip.j_mutexlock);
   osip_cond_destroy((struct osip_cond*)eXosip.j_cond);
 
-  osip_negotiation_free(eXosip.osip_negotiation);  
+  eXosip_sdp_negotiation_free(eXosip.osip_negotiation);
 
   if (eXosip.j_input)
     fclose(eXosip.j_input);
@@ -634,6 +634,8 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
     }
 
   eXosip_call_init(&jc);
+  if (local_sdp_port!=NULL)
+    snprintf(jc->c_sdp_port,9, "%s", local_sdp_port);
   i = osip_message_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
   
@@ -702,6 +704,11 @@ int eXosip_answer_call   (int jid, int status, char *local_sdp_port)
       else
 	osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
 #endif
+      if (local_sdp_port!=NULL)
+	{
+	  osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
+	  snprintf(jc->c_sdp_port,9, "%s", local_sdp_port);
+	}
 
       i = eXosip_answer_invite_2xx(jc, jd, status, local_sdp_port);
     }

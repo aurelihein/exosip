@@ -1,3 +1,9 @@
+eXosip (0.7.2)
+	* add RTP support with common ucl library.
+	* fix some memory leak.
+	* improve facility to change the local_sdp_port.
+	* add an event when ACK for 2xx is received.
+	
 eXosip (0.7.1)
 	* rewrite of header files and new directory architecture.
 	* support for INFO and OPTIONS within calls.

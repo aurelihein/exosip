@@ -144,7 +144,7 @@ struct eXosip_call_t {
   void                    *external_reference;
 
   osip_negotiation_ctx_t  *c_ctx;
-
+  char                     c_sdp_port[10];
   eXosip_call_t           *next;
   eXosip_call_t           *parent;
 };
@@ -185,6 +185,7 @@ struct eXosip_reg_t {
 eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t *jc,
 					      eXosip_dialog_t *jd);
 int eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message);
+
 int eXosip_event_add_status(eXosip_event_t *je, osip_message_t *response);
 eXosip_event_t *eXosip_event_init_for_subscribe(int type,
 						   eXosip_subscribe_t *js,
@@ -256,6 +257,7 @@ struct jinfo_t {
 char *eXosip_guess_ip_for_via ();
 
 int  eXosip_sdp_negotiation_init();
+void eXosip_sdp_negotiation_free(osip_negotiation_t *sn);
 sdp_message_t *eXosip_get_local_sdp_info(osip_transaction_t *invite_tr);
 sdp_message_t *eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr);
 
