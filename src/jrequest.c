@@ -331,14 +331,59 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  && a_from->url!=NULL && a_from->url->username!=NULL )
 	{
 	  contact = (char *) osip_malloc(50+strlen(a_from->url->username));
-	  if (eXosip.localport==NULL)
-	    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
-		    locip);
+
+	  if (eXosip.j_firewall_ip[0]!='\0')
+	    {
+	      char *c_address = request->req_uri->host;
+	      if (0!=strncmp(c_address, "192.168",7)
+		  && 0!=strncmp(c_address, "10.",3)
+		  && 0!=strncmp(c_address, "172.16.",7)
+		  && 0!=strncmp(c_address, "172.17.",7)
+		  && 0!=strncmp(c_address, "172.18.",7)
+		  && 0!=strncmp(c_address, "172.19.",7)
+		  && 0!=strncmp(c_address, "172.20.",7)
+		  && 0!=strncmp(c_address, "172.21.",7)
+		  && 0!=strncmp(c_address, "172.22.",7)
+		  && 0!=strncmp(c_address, "172.23.",7)
+		  && 0!=strncmp(c_address, "172.24.",7)
+		  && 0!=strncmp(c_address, "172.25.",7)
+		  && 0!=strncmp(c_address, "172.26.",7)
+		  && 0!=strncmp(c_address, "172.27.",7)
+		  && 0!=strncmp(c_address, "172.28.",7)
+		  && 0!=strncmp(c_address, "172.29.",7)
+		  && 0!=strncmp(c_address, "172.30.",7)
+		  && 0!=strncmp(c_address, "172.31.",7)
+		  && 0!=strncmp(c_address, "169.254",7))
+		{
+		  if (eXosip.localport==NULL)
+		    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+			    eXosip.j_firewall_ip);
+		  else
+		    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+			    eXosip.j_firewall_ip,
+			    eXosip.localport);
+		}
+	      else
+		{
+		  if (eXosip.localport==NULL)
+		    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+			    locip);
+		  else
+		    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+			    locip,
+			    eXosip.localport);
+		}
+	    }
 	  else
-	    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
-		    locip,
-		    eXosip.localport);
-	  
+	    {
+	      if (eXosip.localport==NULL)
+		sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+			locip);
+	      else
+		sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+			locip,
+			eXosip.localport);
+	    }
 	  osip_message_set_contact(request, contact);
 	  osip_free(contact);
 	}
@@ -417,7 +462,6 @@ generating_register(osip_message_t **reg, char *from,
 
   if (contact==NULL)
     {
-      contact = (char *) osip_malloc(50);
       i = osip_from_init(&a_from);
       if (i==0)
 	i = osip_from_parse(a_from, from);
@@ -426,13 +470,58 @@ generating_register(osip_message_t **reg, char *from,
 	  && a_from->url!=NULL && a_from->url->username!=NULL )
 	{
 	  contact = (char *) osip_malloc(50+strlen(a_from->url->username));
-	  if (eXosip.localport==NULL)
-	    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
-		    locip);
+	  if (eXosip.j_firewall_ip[0]!='\0')
+	    {
+	      char *c_address = (*reg)->req_uri->host;
+	      if (0!=strncmp(c_address, "192.168",7)
+		  && 0!=strncmp(c_address, "10.",3)
+		  && 0!=strncmp(c_address, "172.16.",7)
+		  && 0!=strncmp(c_address, "172.17.",7)
+		  && 0!=strncmp(c_address, "172.18.",7)
+		  && 0!=strncmp(c_address, "172.19.",7)
+		  && 0!=strncmp(c_address, "172.20.",7)
+		  && 0!=strncmp(c_address, "172.21.",7)
+		  && 0!=strncmp(c_address, "172.22.",7)
+		  && 0!=strncmp(c_address, "172.23.",7)
+		  && 0!=strncmp(c_address, "172.24.",7)
+		  && 0!=strncmp(c_address, "172.25.",7)
+		  && 0!=strncmp(c_address, "172.26.",7)
+		  && 0!=strncmp(c_address, "172.27.",7)
+		  && 0!=strncmp(c_address, "172.28.",7)
+		  && 0!=strncmp(c_address, "172.29.",7)
+		  && 0!=strncmp(c_address, "172.30.",7)
+		  && 0!=strncmp(c_address, "172.31.",7)
+		  && 0!=strncmp(c_address, "169.254",7))
+		{
+		  if (eXosip.localport==NULL)
+		    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+			    eXosip.j_firewall_ip);
+		  else
+		    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+			    eXosip.j_firewall_ip,
+			    eXosip.localport);
+		}
+	      else
+		{
+		  if (eXosip.localport==NULL)
+		    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+			    locip);
+		  else
+		    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+			    locip,
+			    eXosip.localport);
+		}
+	    }
 	  else
-	    sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
-		    locip,
-		    eXosip.localport);
+	    {
+	      if (eXosip.localport==NULL)
+		sprintf(contact, "<sip:%s@%s>", a_from->url->username,
+			locip);
+	      else
+		sprintf(contact, "<sip:%s@%s:%s>", a_from->url->username,
+			locip,
+			eXosip.localport);
+	    }
 	  
 	  osip_message_set_contact(*reg, contact);
 	  osip_free(contact);
@@ -885,9 +974,46 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       /* this Contact is the global location where to send request
 	 outside of a dialog! like sip:jack@atosc.org? */
       char contact[200];
-      sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
-	      locip,
-	      eXosip.localport);
+      if (eXosip.j_firewall_ip[0]!='\0')
+	{
+	  char *c_address = request->req_uri->host;
+	  if (0!=strncmp(c_address, "192.168",7)
+	      && 0!=strncmp(c_address, "10.",3)
+	      && 0!=strncmp(c_address, "172.16.",7)
+	      && 0!=strncmp(c_address, "172.17.",7)
+	      && 0!=strncmp(c_address, "172.18.",7)
+	      && 0!=strncmp(c_address, "172.19.",7)
+	      && 0!=strncmp(c_address, "172.20.",7)
+	      && 0!=strncmp(c_address, "172.21.",7)
+	      && 0!=strncmp(c_address, "172.22.",7)
+	      && 0!=strncmp(c_address, "172.23.",7)
+	      && 0!=strncmp(c_address, "172.24.",7)
+	      && 0!=strncmp(c_address, "172.25.",7)
+	      && 0!=strncmp(c_address, "172.26.",7)
+	      && 0!=strncmp(c_address, "172.27.",7)
+	      && 0!=strncmp(c_address, "172.28.",7)
+	      && 0!=strncmp(c_address, "172.29.",7)
+	      && 0!=strncmp(c_address, "172.30.",7)
+	      && 0!=strncmp(c_address, "172.31.",7)
+	      && 0!=strncmp(c_address, "169.254",7))
+	    {
+	      sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
+		      eXosip.j_firewall_ip,
+		      eXosip.localport);
+	    }
+	  else
+	    {
+	      sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
+		      locip,
+		      eXosip.localport);
+	    }
+	}
+      else
+	{
+	      sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
+		      locip,
+		      eXosip.localport);
+	}
       osip_message_set_contact(request, contact);
       /* Here we'll add the supported header if it's needed! */
       /* the require header must be added by the upper layer if needed */
