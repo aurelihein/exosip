@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "EXOSIP_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\osip\include" /I "..\.." /D "NDEBUG" /D "EXOSIP_EXPORTS" /D "ENABLE_TRACE" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "OSIP_MT" /D "USE_TMP_BUFFER" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\osip\include" /I "..\..\include" /D "NDEBUG" /D "EXOSIP_EXPORTS" /D "ENABLE_TRACE" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "OSIP_MT" /D "USE_TMP_BUFFER" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x40c /d "NDEBUG"
