@@ -532,10 +532,14 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
     {
       eXosip_event_t *je;
-      if (jc==NULL || jc->c_out_options_tr==NULL)
+      if (jc==NULL)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv1xx (id=%i) Error: no call or transaction info for OPTIONS transaction\r\n", tr->transactionid));
 	  return;
+	}
+      else if (jc->c_out_options_tr==NULL)
+	{
+	  /* options is within a call */
 	}
       je = eXosip_event_init_for_call(EXOSIP_OPTIONS_PROCEEDING, jc, jd);
       if (je!=NULL)
@@ -973,10 +977,14 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
     {
       eXosip_event_t *je;
-      if (jc==NULL || jc->c_out_options_tr==NULL)
+      if (jc==NULL)
 	{
-	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv2xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv2xx (id=%i) Error: no call or transaction info for OPTIONS transaction\r\n", tr->transactionid));
 	  return;
+	}
+      else if (jc->c_out_options_tr==NULL)
+	{
+	  /* options is within a call */
 	}
       je = eXosip_event_init_for_call(EXOSIP_OPTIONS_ANSWERED, jc, jd);
       if (je!=NULL)
@@ -1094,10 +1102,14 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
     {
       eXosip_event_t *je;
-      if (jc==NULL || jc->c_out_options_tr==NULL)
+      if (jc==NULL)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv3xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
 	  return;
+	}
+      else if (jc->c_out_options_tr==NULL)
+	{
+	  /* options is within a call */
 	}
       je = eXosip_event_init_for_call(EXOSIP_OPTIONS_REDIRECTED, jc, jd);
       if (je!=NULL)
@@ -1154,10 +1166,14 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
     {
       eXosip_event_t *je;
-      if (jc==NULL || jc->c_out_options_tr==NULL)
+      if (jc==NULL)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv4xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
 	  return;
+	}
+      else if (jc->c_out_options_tr==NULL)
+	{
+	  /* options is within a call */
 	}
       je = eXosip_event_init_for_call(EXOSIP_OPTIONS_REQUESTFAILURE, jc, jd);
       if (je!=NULL)
@@ -1216,10 +1232,14 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
     {
       eXosip_event_t *je;
-      if (jc==NULL || jc->c_out_options_tr==NULL)
+      if (jc==NULL)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv5xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
 	  return;
+	}
+      else if (jc->c_out_options_tr==NULL)
+	{
+	  /* options is within a call */
 	}
       je = eXosip_event_init_for_call(EXOSIP_OPTIONS_SERVERFAILURE, jc, jd);
       if (je!=NULL)
@@ -1275,10 +1295,14 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (MSG_IS_RESPONSE_FOR(sip, "OPTIONS"))
     {
       eXosip_event_t *je;
-      if (jc==NULL || jc->c_out_options_tr==NULL)
+      if (jc==NULL)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv6xx (id=%i) Error: no call or transaction info for INFO transaction\r\n", tr->transactionid));
 	  return;
+	}
+      else if (jc->c_out_options_tr==NULL)
+	{
+	  /* options is within a call */
 	}
       je = eXosip_event_init_for_call(EXOSIP_OPTIONS_GLOBALFAILURE, jc, jd);
       if (je!=NULL)

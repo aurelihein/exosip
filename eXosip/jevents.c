@@ -323,6 +323,38 @@ eXosip_event_init(eXosip_event_t **je, int type)
     {
       sprintf((*je)->textinfo, "Registration failed!");
     }
+  else if (type==EXOSIP_OPTIONS_NEW)
+    {
+      sprintf((*je)->textinfo, "New OPTIONS received!");
+    }
+  else if (type==EXOSIP_OPTIONS_NOANSWER)
+    {
+      sprintf((*je)->textinfo, "No answer for this OPTIONS!");
+    }
+  else if (type==EXOSIP_OPTIONS_PROCEEDING)
+    {
+      sprintf((*je)->textinfo, "OPTIONS is being processed!");
+    }
+  else if (type==EXOSIP_OPTIONS_ANSWERED)
+    {
+      sprintf((*je)->textinfo, "2xx received for OPTIONS!");
+    }
+  else if (type==EXOSIP_OPTIONS_REDIRECTED)
+    {
+      sprintf((*je)->textinfo, "3xx received for OPTIONS!");
+    }
+  else if (type==EXOSIP_OPTIONS_REQUESTFAILURE)
+    {
+      sprintf((*je)->textinfo, "4xx received for OPTIONS!");
+    }
+  else if (type==EXOSIP_OPTIONS_SERVERFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for OPTIONS!");
+    }
+  else if (type==EXOSIP_OPTIONS_GLOBALFAILURE)
+    {
+      sprintf((*je)->textinfo, "5xx received for OPTIONS!");
+    }
   else
     {
       (*je)->textinfo[0] = '\0';

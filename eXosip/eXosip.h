@@ -279,7 +279,6 @@ typedef enum eXosip_event_type_t {
   /* for UAC events */
   EXOSIP_OPTIONS_NOANSWER,        /* announce no answer within the timeout */
   EXOSIP_OPTIONS_PROCEEDING,      /* announce processing by a remote app   */
-  EXOSIP_OPTIONS_RINGING,         /* announce ringback                     */
   EXOSIP_OPTIONS_ANSWERED,        /* announce a 200ok                      */
   EXOSIP_OPTIONS_REDIRECTED,      /* announce a redirection                */
   EXOSIP_OPTIONS_REQUESTFAILURE,  /* announce a request failure            */
@@ -290,8 +289,8 @@ typedef enum eXosip_event_type_t {
   EXOSIP_OPTIONS_NEW,             /* announce a new info method            */
 
   /* for both UAS & UAC events */
-  EXOSIP_CALL_STARTAUDIO,      /* audio must be established           */
-  EXOSIP_CALL_RELEASED,        /* call context is cleared.            */
+  EXOSIP_CALL_STARTAUDIO,         /* audio must be established           */
+  EXOSIP_CALL_RELEASED,           /* call context is cleared.            */
 
   /* Presence and Instant Messaging */
   EXOSIP_IN_SUBSCRIPTION_NEW,           /* announce new incoming SUBSCRIBE.  */

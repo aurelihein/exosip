@@ -87,7 +87,6 @@ void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
 							NULL /*jd */,
 							NULL,
 							NULL));
-
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
     {
@@ -99,10 +98,6 @@ void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
   evt_answer->transactionid =  transaction->transactionid;
 
   osip_list_add(jd->d_inc_trs, transaction , 0);
-
-  /* Release the eXosip_dialog */
-  osip_dialog_free(jd->d_dialog);
-  jd->d_dialog = NULL;
 
   {
     eXosip_event_t *je;

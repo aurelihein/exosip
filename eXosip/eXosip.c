@@ -631,15 +631,16 @@ int eXosip_options_call  (int jid)
     }
 
   transaction = eXosip_find_last_options(jc, jd);
-  if (transaction==NULL) return -1;
-  if (transaction->state!=NICT_TERMINATED &&
-      transaction->state!=NIST_TERMINATED)
-    return -1;
+  if (transaction!=NULL)
+    {
+      if (transaction->state!=NICT_TERMINATED &&
+	  transaction->state!=NIST_TERMINATED)
+	return -1;
+    }
 
   i = _eXosip_build_request_within_dialog(&options, "OPTIONS", jd->d_dialog, "UDP");
   if (i!=0)
     return -2;
-
   i = osip_transaction_init(&transaction,
 		       NICT,
 		       eXosip.j_osip,
