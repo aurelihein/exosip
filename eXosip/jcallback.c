@@ -885,14 +885,6 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   if (jinfo==NULL) return;
   jd = jinfo->jd;
   jc = jinfo->jc;
-  if (jd==NULL) return;
-  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
-      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
-    {
-      eXosip_delete_early_dialog(jd);
-      if (jd->d_dialog==NULL)
-	jd->d_STATE = JD_REDIRECTED;
-    }
 
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
@@ -906,6 +898,15 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_event_add(je);
   }
 
+  if (jd==NULL) return;
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
+    {
+      eXosip_delete_early_dialog(jd);
+      if (jd->d_dialog==NULL)
+	jd->d_STATE = JD_REDIRECTED;
+    }
+
 }
 
 void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -918,16 +919,6 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     return;
   jd = jinfo->jd;
   jc = jinfo->jc;
-  if (jd==NULL) return;
-  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
-      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
-    {
-      eXosip_delete_early_dialog(jd);
-      if (MSG_TEST_CODE(sip, 401) || MSG_TEST_CODE(sip, 407))
-	jd->d_STATE = JD_AUTH_REQUIRED;
-      else
-	jd->d_STATE = JD_CLIENTERROR;
-    }
 
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
@@ -941,6 +932,17 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_event_add(je);
   }
 
+  if (jd==NULL) return;
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
+    {
+      eXosip_delete_early_dialog(jd);
+      if (MSG_TEST_CODE(sip, 401) || MSG_TEST_CODE(sip, 407))
+	jd->d_STATE = JD_AUTH_REQUIRED;
+      else
+	jd->d_STATE = JD_CLIENTERROR;
+    }
+
 }
 
 void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -953,13 +955,6 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     return;
   jd = jinfo->jd;
   jc = jinfo->jc;
-  if (jd==NULL) return;
-  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
-      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
-    {
-      eXosip_delete_early_dialog(jd);
-      jd->d_STATE = JD_SERVERERROR;
-    }
 
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
@@ -973,6 +968,14 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       eXosip_event_add(je);
   }
 
+  if (jd==NULL) return;
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
+    {
+      eXosip_delete_early_dialog(jd);
+      jd->d_STATE = JD_SERVERERROR;
+    }
+
 }
 
 void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
@@ -985,13 +988,6 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     return;
   jd = jinfo->jd;
   jc = jinfo->jc;
-  if (jd==NULL) return;
-  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
-      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
-    {
-      eXosip_delete_early_dialog(jd);
-      jd->d_STATE = JD_GLOBALFAILURE;
-    }
 
   if (MSG_IS_RESPONSE_FOR(sip, "INVITE"))
   {
@@ -1004,6 +1000,14 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);
   }
+
+  if (jd==NULL) return;
+  if (MSG_IS_RESPONSE_FOR(sip, "INVITE")
+      || MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
+    {
+      eXosip_delete_early_dialog(jd);
+      jd->d_STATE = JD_GLOBALFAILURE;
+    }
 
 }
 

@@ -62,7 +62,7 @@ eXosip_event_init_for_call(int type,
       || type==EXOSIP_CALL_CLOSED
       || type==EXOSIP_CALL_STARTAUDIO)
     {
-      if (jd->d_dialog!=NULL)
+      if (jd!=NULL&&jd->d_dialog!=NULL)
 	{
 	  osip_transaction_t *tr;
 	  osip_header_t *subject;
