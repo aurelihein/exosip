@@ -13,6 +13,6 @@ install-exec-local:
 	echo "Installing script file for Josua";
 	$(mkinstalldirs) $(DESTDIR)$(bindir)
 	@chmod 0755 $(DESTDIR)$(bindir)
-	$(INSTALL_SCRIPT) eXosip_addsubscriber.sh $(DESTDIR)$(bindir)/eXosip_addsubscriber.sh
-	$(INSTALL_SCRIPT) eXosip_addidentity.sh $(DESTDIR)$(bindir)/eXosip_addidentity.sh
-	$(INSTALL_SCRIPT) eXosip_addfriend.sh $(DESTDIR)$(bindir)/eXosip_addfriend.sh
+	$(INSTALL_SCRIPT) $(top_srcdir)/eXosip_addsubscriber.sh $(DESTDIR)$(bindir)/eXosip_addsubscriber.sh
+	$(INSTALL_SCRIPT) $(top_srcdir)/eXosip_addidentity.sh $(DESTDIR)$(bindir)/eXosip_addidentity.sh
+	$(INSTALL_SCRIPT) $(top_srcdir)/eXosip_addfriend.sh $(DESTDIR)$(bindir)/eXosip_addfriend.sh

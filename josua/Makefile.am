@@ -1,5 +1,7 @@
 
+if COMPILE_JOSUA
 bin_PROGRAMS = josua
+endif
 
 AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@ \
 `pkg-config --cflags glib-2.0`
