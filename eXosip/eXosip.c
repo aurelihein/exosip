@@ -432,7 +432,9 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   osip_transaction_add_event(transaction, sipevent);
 }
 
-void eXosip_start_call    (osip_message_t *invite, void *reference)
+void eXosip_start_call    (osip_message_t *invite,
+			   void *reference,
+			   void *sdp_context_reference)
 {
   eXosip_call_t *jc;
   osip_header_t *subject;
@@ -464,7 +466,11 @@ void eXosip_start_call    (osip_message_t *invite, void *reference)
   i = osip_message_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
   
-  osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
+  if (sdp_context_reference==NULL)
+    osip_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
+  else
+    osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
+
   osip_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
 
   i = osip_transaction_init(&transaction,

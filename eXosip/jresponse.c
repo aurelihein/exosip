@@ -161,13 +161,15 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 }
 
 char *
-generating_sdp_answer(osip_message_t *request)
+generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
 {
-  osip_negotiation_ctx_t *context;
   sdp_message_t *remote_sdp;
   sdp_message_t *local_sdp = NULL;
   int i;
   char *local_body;
+  if (context==NULL)
+    return NULL;
+
   local_body = NULL;
   if (MSG_IS_INVITE(request)||MSG_IS_OPTIONS(request))
     {
@@ -184,12 +186,6 @@ generating_sdp_answer(osip_message_t *request)
       i = sdp_message_parse(remote_sdp,body->body);
       if (i!=0) return NULL;      
 
-      i = osip_negotiation_ctx_init(&context);
-      if (i!=0)
-	{
-	  sdp_message_free(remote_sdp);
-	  return NULL;
-	}
       i = osip_negotiation_ctx_set_remote_sdp(context, remote_sdp);
 
       i = osip_negotiation_ctx_execute_negotiation(eXosip.osip_negotiation, context);
@@ -198,7 +194,10 @@ generating_sdp_answer(osip_message_t *request)
 	  local_sdp = osip_negotiation_ctx_get_local_sdp(context);
 	  i = sdp_message_to_str(local_sdp, &local_body);
 
-	  osip_negotiation_ctx_free(context);
+	  remote_sdp = osip_negotiation_ctx_get_remote_sdp(context);
+	  sdp_message_free(remote_sdp);
+	  osip_negotiation_ctx_set_remote_sdp(context, NULL);
+
 	  if (i!=0) {
 	    OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not parse local SDP answer %i\n",i));
 	    return NULL;
@@ -213,7 +212,9 @@ generating_sdp_answer(osip_message_t *request)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: while building answer to SDP (%i)\n",i));
 	}
-      osip_negotiation_ctx_free(context);
+      remote_sdp = osip_negotiation_ctx_get_remote_sdp(context);
+      sdp_message_free(remote_sdp);
+      osip_negotiation_ctx_set_remote_sdp(context, NULL);
     } 
   return NULL;
 }
@@ -243,7 +244,7 @@ generating_2xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
   int i;
   char *size;
   char *body;
-  body = generating_sdp_answer(tr->orig_request);
+  body = generating_sdp_answer(tr->orig_request, NULL);
   if (body==NULL)
     {
       code = 488;
@@ -394,7 +395,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       return ;
     }
 
-  body = generating_sdp_answer(tr->orig_request);
+  body = generating_sdp_answer(tr->orig_request, jc->c_ctx);
   if (body==NULL)
     {
       code = 488;
