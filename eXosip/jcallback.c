@@ -23,18 +23,18 @@
 #endif
 
 #include <stdlib.h>
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <unistd.h>
 
-#include <assert.h>
-
-#include <eXosip.h>
+#include <eXosip/eXosip.h>
 
 
 #ifdef WIN32
 #include <winsock.h>
 #else 
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <assert.h>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -443,7 +443,11 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	    }
 	  else
 	    {
+#ifndef WIN32
 	      assert(0==0);
+#else
+		  exit(0);
+#endif
 	    }
 	  osip_transaction_set_your_instance(tr, jinfo);
 	}

@@ -22,8 +22,8 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip.h>
-#include <eXosip2.h>
+#include <eXosip/eXosip.h>
+#include <eXosip/eXosip2.h>
 
 #include <osip2/osip_mt.h>
 
@@ -33,9 +33,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #endif
 
-#include <unistd.h>
 
 eXosip_t eXosip;
 char    *localip;

@@ -22,7 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip.h>
+#include <eXosip/eXosip.h>
 
 int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
 {

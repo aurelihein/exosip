@@ -30,6 +30,79 @@
 #include <Windows.h>
 #include <Iphlpapi.h>
 
+int
+ppl_dns_get_local_fqdn (char **servername, char **serverip,
+			char **netmask, unsigned int WIN32_interface)
+{
+	unsigned int pos;
+
+	*servername = NULL; /* no name on win32? */
+	*serverip   = NULL;
+	*netmask    = NULL;
+
+	/* First, try to get the interface where we should listen */
+	{
+		DWORD size_of_iptable = 0;
+		PMIB_IPADDRTABLE ipt;
+		PMIB_IFROW ifrow;
+
+		if (GetIpAddrTable(NULL, &size_of_iptable, TRUE) == ERROR_INSUFFICIENT_BUFFER)
+		{
+			ifrow = (PMIB_IFROW) _alloca (sizeof(MIB_IFROW));
+			ipt = (PMIB_IPADDRTABLE) _alloca (size_of_iptable);
+			if (ifrow==NULL || ipt==NULL)
+			{
+				/* not very usefull to continue */
+				OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
+					"ERROR alloca failed\r\n"));
+				return -1;
+			}
+
+			if (!GetIpAddrTable(ipt, &size_of_iptable, TRUE))
+			{
+				/* look for the best public interface */
+
+				for (pos=0; pos < ipt->dwNumEntries && *netmask==NULL ; ++pos)
+				{
+					/* index is */
+					struct in_addr addr;
+					struct in_addr mask;
+					ifrow->dwIndex = ipt->table[pos].dwIndex;
+					if (GetIfEntry(ifrow) == NO_ERROR)
+					{
+						switch(ifrow->dwType)
+						{
+						case MIB_IF_TYPE_LOOPBACK:
+						  /*	break; */
+						case MIB_IF_TYPE_ETHERNET:
+						default:
+							addr.s_addr = ipt->table[pos].dwAddr;
+							mask.s_addr = ipt->table[pos].dwMask;
+							if (ipt->table[pos].dwIndex == WIN32_interface)
+							{
+								*servername = NULL; /* no name on win32? */
+								*serverip   = osip_strdup(inet_ntoa(addr));
+								*netmask    = osip_strdup(inet_ntoa(mask));
+								OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
+									"Interface ethernet: %s/%s\r\n", *serverip, *netmask));
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (*serverip==NULL || *netmask==NULL)
+	{
+		OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
+			"ERROR No network interface found\r\n"));
+		return -1;
+	}
+
+	return 0;
+}
 
 void
 eXosip_guess_ip_for_via (char *alocalip)
@@ -126,79 +199,6 @@ eXosip_guess_ip_for_via (char *alocalip)
 	return ;
 }
 
-int
-ppl_dns_get_local_fqdn (char **servername, char **serverip,
-			char **netmask, unsigned int WIN32_interface)
-{
-	unsigned int pos;
-
-	*servername = NULL; /* no name on win32? */
-	*serverip   = NULL;
-	*netmask    = NULL;
-
-	/* First, try to get the interface where we should listen */
-	{
-		DWORD size_of_iptable = 0;
-		PMIB_IPADDRTABLE ipt;
-		PMIB_IFROW ifrow;
-
-		if (GetIpAddrTable(NULL, &size_of_iptable, TRUE) == ERROR_INSUFFICIENT_BUFFER)
-		{
-			ifrow = (PMIB_IFROW) _alloca (sizeof(MIB_IFROW));
-			ipt = (PMIB_IPADDRTABLE) _alloca (size_of_iptable);
-			if (ifrow==NULL || ipt==NULL)
-			{
-				/* not very usefull to continue */
-				OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
-					"ERROR alloca failed\r\n"));
-				return -1;
-			}
-
-			if (!GetIpAddrTable(ipt, &size_of_iptable, TRUE))
-			{
-				/* look for the best public interface */
-
-				for (pos=0; pos < ipt->dwNumEntries && *netmask==NULL ; ++pos)
-				{
-					/* index is */
-					struct in_addr addr;
-					struct in_addr mask;
-					ifrow->dwIndex = ipt->table[pos].dwIndex;
-					if (GetIfEntry(ifrow) == NO_ERROR)
-					{
-						switch(ifrow->dwType)
-						{
-						case MIB_IF_TYPE_LOOPBACK:
-						  /*	break; */
-						case MIB_IF_TYPE_ETHERNET:
-						default:
-							addr.s_addr = ipt->table[pos].dwAddr;
-							mask.s_addr = ipt->table[pos].dwMask;
-							if (ipt->table[pos].dwIndex == WIN32_interface)
-							{
-								*servername = NULL; /* no name on win32? */
-								*serverip   = osip_strdup(inet_ntoa(addr));
-								*netmask    = osip_strdup(inet_ntoa(mask));
-								OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
-									"Interface ethernet: %s/%s\r\n", *serverip, *netmask));
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if (*serverip==NULL || *netmask==NULL)
-	{
-		OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
-			"ERROR No network interface found\r\n"));
-		return -1;
-	}
-
-	return 0;
-}
 
 #else /* sun, *BSD, linux, and other? */
 

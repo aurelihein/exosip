@@ -22,7 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip.h>
+#include <eXosip/eXosip.h>
 
 extern char *localip;
 extern eXosip_t eXosip;
@@ -62,6 +62,7 @@ int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn)
   if (eXosip.osip_negotiation!=NULL)
     osip_negotiation_free(eXosip.osip_negotiation);
   eXosip.osip_negotiation = sn;
+  return 0;
 }
 
 int eXosip_sdp_negotiation_init()

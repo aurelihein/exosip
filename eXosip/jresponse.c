@@ -22,7 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-#include <eXosip.h>
+#include <eXosip/eXosip.h>
 
 extern char *localip;
 extern char *localport;
