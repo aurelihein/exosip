@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.9 2003-03-27 01:26:14 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.10 2003-03-29 17:00:20 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -1100,7 +1100,8 @@ void __josua_menu() {
 	halfdelay(1);
 	c= getch();
       }
-    while (c == ERR && errno == EINTR);
+    //    while (c == ERR && errno == EINTR);
+    while (c == ERR || errno == EINTR);
     if (c==ERR)  {
       if(errno != 0)
 	fprintf(stderr, "failed to getch in main menu\n");

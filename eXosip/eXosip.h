@@ -57,21 +57,51 @@
 
 #endif
 
+typedef struct eXosip_subscribe_t eXosip_subscribe_t;
+
+struct eXosip_subscribe_t {
+
+  int                 d_id;
+  int                 d_STATE;
+  osip_dialog_t      *d_dialog;      /* active dialog */
+
+  osip_list_t        *d_inc_trs;
+  osip_list_t        *d_out_trs;
+
+  eXosip_subscribe_t *next;
+  eXosip_subscribe_t *parent;
+};
+
+typedef struct eXosip_notify_t eXosip_notify_t;
+
+struct eXosip_notify_t {
+
+  int              d_id;
+  int              d_STATE;
+  osip_dialog_t   *d_dialog;      /* active dialog */
+
+  osip_list_t     *d_inc_trs;
+  osip_list_t     *d_out_trs;
+
+  eXosip_notify_t *next;
+  eXosip_notify_t *parent;
+};
+
 typedef struct eXosip_dialog_t eXosip_dialog_t;
 
 struct eXosip_dialog_t {
 
   int              d_id;
   int              d_STATE;
-  osip_dialog_t        *d_dialog;      /* active dialog */
+  osip_dialog_t   *d_dialog;      /* active dialog */
 
   int              d_timer;
-  osip_message_t           *d_200Ok;
-  osip_message_t           *d_ack;
-  osip_list_t          *media_lines;
+  osip_message_t  *d_200Ok;
+  osip_message_t  *d_ack;
+  osip_list_t     *media_lines;
 
-  osip_list_t          *d_inc_trs;
-  osip_list_t          *d_out_trs;
+  osip_list_t     *d_inc_trs;
+  osip_list_t     *d_out_trs;
 
   eXosip_dialog_t *next;
   eXosip_dialog_t *parent;
@@ -109,16 +139,16 @@ typedef struct eXosip_call_t eXosip_call_t;
 
 struct eXosip_call_t {
 
-  int              c_id;
-  char             c_subject[100];
-  eXosip_dialog_t *c_dialogs;
-  osip_transaction_t   *c_inc_tr;
-  osip_transaction_t   *c_out_tr;
+  int                      c_id;
+  char                     c_subject[100];
+  eXosip_dialog_t         *c_dialogs;
+  osip_transaction_t      *c_inc_tr;
+  osip_transaction_t      *c_out_tr;
 
   sdp_negotiation_ctx_t   *c_ctx;
 
-  eXosip_call_t   *next;
-  eXosip_call_t   *parent;
+  eXosip_call_t           *next;
+  eXosip_call_t           *parent;
 };
 
 
@@ -206,8 +236,10 @@ struct eXosip_t {
 typedef struct jinfo_t jinfo_t;
 
 struct jinfo_t {
-  eXosip_dialog_t *jd;
-  eXosip_call_t   *jc;
+  eXosip_dialog_t     *jd;
+  eXosip_call_t       *jc;
+  eXosip_subscribe_t  *js;
+  eXosip_notify_t     *jn;
 };
 
 
@@ -222,7 +254,8 @@ int    eXosip_set_callbacks(osip_t *osip);
 char  *osip_to_tag_new_random();
 unsigned int via_branch_new_random();
 void __eXosip_delete_jinfo(osip_transaction_t *transaction);
-jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd);
+jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd,
+			    eXosip_subscribe_t *js, eXosip_notify_t *jn);
 
 int  eXosip_dialog_init_as_uac(eXosip_dialog_t **jd, osip_message_t *_200Ok);
 int  eXosip_dialog_init_as_uas(eXosip_dialog_t **jd, osip_message_t *_invite, osip_message_t *_200Ok);

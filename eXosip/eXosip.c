@@ -173,8 +173,6 @@ void eXosip_quit()
 
 int eXosip_execute ( void )
 {
-  eXosip_call_t *jc;
-  eXosip_dialog_t *jd;
   int i;
   i = eXosip_read_message(1, 0, 500000);
   if (i==-2)
@@ -354,8 +352,7 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   
   osip_transaction_add_event(transaction, sipevent);
 
-  //  ADD_ELEMENT(eXosip.j_calls, jc);
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL));
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
 }
 
 void eXosip_start_call    (osip_message_t *invite)
@@ -421,7 +418,7 @@ void eXosip_start_call    (osip_message_t *invite)
   
   osip_transaction_add_event(transaction, sipevent);
 
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL));
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
   ADD_ELEMENT(eXosip.j_calls, jc);
 }
 
@@ -547,7 +544,7 @@ void eXosip_on_hold_call  (int jid)
   
   osip_transaction_add_event(transaction, sipevent);
 
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL));  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
 }
 
 void eXosip_off_hold_call (int jid)
@@ -581,7 +578,7 @@ int eXosip_create_transaction(eXosip_call_t *jc,
   sipevent->transactionid =  tr->transactionid;
   
   osip_transaction_add_event(tr, sipevent);
-  osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd));
+  osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   return 0;
 }
 

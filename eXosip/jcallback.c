@@ -298,12 +298,15 @@ void __eXosip_delete_jinfo(osip_transaction_t *transaction)
   osip_transaction_set_your_instance(transaction, NULL);
 }
 
-jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd)
+jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd,
+			    eXosip_subscribe_t *js, eXosip_notify_t *jn)
 {
   jinfo_t *ji = (jinfo_t *) osip_malloc(sizeof(jinfo_t));
   if (ji==NULL) return NULL;
   ji->jd = jd;
   ji->jc = jc;
+  ji->js = js;
+  ji->jn = jn;
   return ji;
 }
 
