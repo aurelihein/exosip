@@ -704,7 +704,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   _eXosip_notify_add_expires_in_2XX_for_subscribe(jn, answer);
 
   {
-    char *contact[200];
+    char contact[200];
     sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
 	    localip,
 	    localport);

@@ -349,13 +349,11 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
     {
       /* request that estabish a dialog: */
       /* 12.1.1 UAS Behavior */
-      char *contact;
-      contact = (char *) osip_malloc(50);
+      char contact[200];
       sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
 	      localip,
 	      localport);
       i = complete_answer_that_establish_a_dialog(response, tr->orig_request, contact);
-      osip_free(contact);
 
       if (jd==NULL)
 	{
@@ -443,14 +441,12 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
   {
-    char *contact;
-    contact = (char *) osip_malloc(50);
+    char contact[200];
     sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
 	    localip,
 	    localport);
     i = complete_answer_that_establish_a_dialog(response, tr->orig_request,
 						contact);
-    osip_free(contact);
     if (i!=0) goto g2atii_error_1;; /* ?? */
   }
 
@@ -551,13 +547,11 @@ eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
     {
       /* request that estabish a dialog: */
       /* 12.1.1 UAS Behavior */
-      char *contact;
-      contact = (char *) osip_malloc(50);
+      char contact[200];
       sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
 	      localip,
 	      localport);
       i = complete_answer_that_establish_a_dialog(response, tr->orig_request, contact);
-      osip_free(contact);
 
       if (jd==NULL)
 	{
@@ -613,14 +607,12 @@ eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
   {
-    char *contact;
-    contact = (char *) osip_malloc(50);
+    char contact[200];
     sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
 	    localip,
 	    localport);
     i = complete_answer_that_establish_a_dialog(response, tr->orig_request,
 						contact);
-    osip_free(contact);
     if (i!=0) goto g2atii_error_1;; /* ?? */
   }
 

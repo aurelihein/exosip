@@ -636,13 +636,11 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 	 (only "INVITE") */
       /* this Contact is the global location where to send request
 	 outside of a dialog! like sip:jack@atosc.org? */
-      char *contact;
-      contact = (char *) osip_malloc(50);
+      char contact[200];
       sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
 	      localip,
 	      localport);
       osip_message_set_contact(request, contact);
-      osip_free(contact);
       /* Here we'll add the supported header if it's needed! */
       /* the require header must be added by the upper layer if needed */
     }
