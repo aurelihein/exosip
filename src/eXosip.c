@@ -140,6 +140,7 @@ eXosip_kill_transaction (osip_list_t * transactions)
 
 void eXosip_quit(void)
 {
+  jauthinfo_t   *jauthinfo;
   eXosip_call_t *jc;
   eXosip_reg_t  *jreg;
   int i;
@@ -235,6 +236,13 @@ void eXosip_quit(void)
   osip_release (eXosip.j_osip);
 
   osip_fifo_free(eXosip.j_events);
+
+  for (jauthinfo = eXosip.authinfos; jauthinfo!=NULL;
+       jauthinfo = eXosip.authinfos)
+    {
+      REMOVE_ELEMENT(eXosip.authinfos, jauthinfo);
+      osip_free(jauthinfo);
+    }
 
   return ;
 }

@@ -304,6 +304,12 @@ __eXosip_create_authorization_header(osip_message_t *previous_answer,
       sprintf(resp,"\"%s\"",Response);
       osip_authorization_set_response(aut,resp);
     }
+    osip_free(pszAlg); /* xkd, 2004-5-13*/
+    osip_free(pszNonce);
+    osip_free(pszCNonce);
+    osip_free(pszRealm);
+    osip_free(pszQop);
+    osip_free(szNonceCount);
   }
 
   *auth = aut;
@@ -418,6 +424,12 @@ __eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
       sprintf(resp,"\"%s\"",Response);
       osip_proxy_authorization_set_response(aut,resp);
     }
+    osip_free(pszAlg); /* xkd, 2004-5-13*/
+    osip_free(pszNonce);
+    osip_free(pszCNonce);
+    osip_free(pszRealm);
+    osip_free(pszQop);
+    osip_free(szNonceCount);
   }
 
   *auth = aut;
