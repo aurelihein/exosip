@@ -357,7 +357,7 @@ void eXosip_get_localip_for(char *address_to_reach,char **loc){
 	hints.ai_socktype=SOCK_DGRAM;
 	/*hints.ai_flags=AI_NUMERICHOST|AI_CANONNAME;*/
 	err=getaddrinfo(address_to_reach,"5060",&hints,&res);
-	if (err<0){
+	if (err!=0){
 		eXosip_trace(OSIP_ERROR,("Error in getaddrinfo for %s: %s\n",address_to_reach,gai_strerror(err)));
 		return ;
 	}
@@ -384,14 +384,14 @@ void eXosip_get_localip_for(char *address_to_reach,char **loc){
 	res=NULL;
 	s=sizeof(addr);
 	err=getsockname(sock,(struct sockaddr*)&addr,&s);
-	if (err<0) {
+	if (err!=0) {
 		eXosip_trace(OSIP_ERROR,("Error in getsockname: %s\n",strerror(errno)));
 		close(sock);
 		return ;
 	}
 	
 	err=getnameinfo((struct sockaddr *)&addr,s,*loc,MAXHOSTNAMELEN,NULL,0,NI_NUMERICHOST);
-	if (err<0){
+	if (err!=0){
 		eXosip_trace(OSIP_ERROR,("getnameinfo error:%s",strerror(errno)));
 		abort();
 		return ;
