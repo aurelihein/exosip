@@ -43,6 +43,7 @@ typedef struct gui {
   int (*gui_print)();
   int (*gui_run_command)(int);
   int (*gui_key_pressed)();
+  void (*gui_draw_commands)();
 
   int xcursor;
   int ycursor;
@@ -61,6 +62,7 @@ gui_t gui_window_topline = {
   1,
   NULL,
   &window_topline_print,
+  NULL,
   NULL,
   NULL,
   -1,
@@ -92,6 +94,7 @@ gui_t gui_window_icon = {
   &window_icon_print,
   NULL,
   NULL,
+  NULL,
   -1,
   -1,
   -1
@@ -108,6 +111,7 @@ gui_t gui_window_loglines = {
   0,
   NULL,
   &window_loglines_print,
+  NULL,
   NULL,
   NULL,
   -1,
@@ -128,6 +132,7 @@ gui_t gui_window_menu = {
   &window_menu_print,
   &window_menu_run_command,
   NULL,
+  NULL,
   -1,
   -1,
   -1
@@ -145,7 +150,7 @@ typedef struct menu_t {
 
 static const menu_t josua_menu[]= {
   { "v", " Start a Voice Conversation.",          &__show_new_call },
-  { "c", " Start a Chat Session.",                &__josua_message },
+  { "c", " Start a Chat Session.",                &__show_new_message },
   { "m", " Manage Pending Calls.",                &__josua_manage_call },
   { "r", " Manage Pending Registrations.",        &__josua_register  },
   { "u", " Manage Pending Subscriptions.",        &__josua_manage_subscribers },
@@ -491,6 +496,134 @@ int josua_gui_run_command(int c)
   return 0;
 }
 
+int
+josua_print_command(char **commands, int ypos, int xpos)
+{
+  int maxlen = 0;
+  int i;
+  int y,x;
+  char buf[250];
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+
+  getmaxyx(stdscr,y,x);
+  attrset(A_NORMAL);
+
+  for (i=0;commands[i]!=NULL;i=i+2)
+    {
+      int len = strlen(commands[i+1]);
+      if (len>maxlen)
+	maxlen = len;
+    }
+
+  if (commands[0]!=NULL) /* erase with default background */
+    attrset(COLOR_PAIR(6));
+  else
+    attrset(COLOR_PAIR(0));
+  snprintf(buf, 199, "%199.199s", " ");
+  mvaddnstr(ypos,
+	    xpos,
+	    buf,
+	    x-xpos-1);
+  mvaddnstr(ypos+1,
+	    xpos,
+	    buf,
+	    x-xpos-1);
+
+  for (i=0;commands[i]!=NULL;i=i+2)
+    {
+      attrset(COLOR_PAIR(1));
+      snprintf(buf,
+	       strlen(commands[i])+1,
+	       commands[i]);
+      mvaddnstr(ypos,
+		xpos,
+		buf,
+		strlen(commands[i]));
+      attrset(COLOR_PAIR(6));
+      snprintf(buf,
+	       strlen(commands[i+1])+1,
+	       "%s", commands[i+1]);
+      mvaddnstr(ypos,
+		xpos+3,
+		buf,
+		maxlen);
+      i=i+2;
+      if (commands[i]==NULL)
+	break;
+      attrset(COLOR_PAIR(1));
+      snprintf(buf,
+	       strlen(commands[i])+1,
+	       commands[i]);
+      mvaddnstr(ypos+1,
+		xpos,
+		buf,
+		strlen(commands[i]));
+      attrset(COLOR_PAIR(6));
+      snprintf(buf,
+	       strlen(commands[i+1])+1,
+	       "%s", commands[i+1]);
+      mvaddnstr(ypos+1,
+		xpos+3,
+		buf,
+		maxlen);
+      xpos = xpos+maxlen+4; /* position for next column */
+    }
+  return 0;
+}
+
+void josua_clear_commands_only()
+{
+  int x,y;
+  char *commands[] = { NULL };
+  getmaxyx(stdscr,y,x);
+  josua_print_command(commands,
+		      y-5,
+		      0);
+}
+
+int
+josua_clear_box_and_commands(gui_t *box)
+{
+  int pos;
+  int y,x;
+  char buf[250];
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+
+  getmaxyx(stdscr,y,x);
+  attrset(A_NORMAL);
+  attrset(COLOR_PAIR(1));
+
+  {
+    char *commands[] = {
+      NULL
+    };
+    josua_print_command(commands,
+			y-5,
+			0);
+  }
+
+  if (box->x1==-999)
+    {}
+  else x = box->x1;
+
+  if (box->y1<0)
+    y = y + box->y1;
+  else
+    y = box->y1;
+
+  attrset(COLOR_PAIR(0));
+  for (pos=box->y0;pos<y;pos++)
+    {
+      snprintf(buf, 199, "%199.199s", " ");
+      mvaddnstr(pos,
+		box->x0,
+		buf,
+		x-box->x0-1);
+    }
+
+  return 0;
+}
+
 int josua_gui_key_pressed()
 {
   int c;
@@ -574,6 +707,10 @@ int josua_gui_key_pressed()
 		  active_gui = gui_windows[i];
 		}
 	    }
+	  if (gui_windows[i]!=NULL &&
+	      gui_windows[i]->gui_draw_commands!=NULL)
+	    gui_windows[i]->gui_draw_commands();
+	  else josua_clear_commands_only();
 	}
       else if (c==KEY_LEFT || c=='<')
 	{
@@ -620,6 +757,10 @@ int josua_gui_key_pressed()
 		    }
 		}
 	    }
+	  if (gui_windows[i]!=NULL &&
+	      gui_windows[i]->gui_draw_commands!=NULL)
+	    gui_windows[i]->gui_draw_commands();
+	  else josua_clear_commands_only();
 	}
       else
 	{
@@ -631,126 +772,10 @@ int josua_gui_key_pressed()
   return -1;
 }
 
-int
-josua_print_command(char **new_call_commands, int ypos, int xpos)
-{
-  int maxlen = 0;
-  int i;
-  int y,x;
-  char buf[250];
-  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
-
-  getmaxyx(stdscr,y,x);
-  attrset(A_NORMAL);
-
-  for (i=0;new_call_commands[i]!=NULL;i=i+2)
-    {
-      int len = strlen(new_call_commands[i+1]);
-      if (len>maxlen)
-	maxlen = len;
-    }
-
-  if (new_call_commands[0]!=NULL) /* erase with default background */
-    attrset(COLOR_PAIR(6));
-  else
-    attrset(COLOR_PAIR(0));
-  snprintf(buf, 199, "%199.199s", " ");
-  mvaddnstr(ypos,
-	    xpos,
-	    buf,
-	    x-xpos-1);
-  mvaddnstr(ypos+1,
-	    xpos,
-	    buf,
-	    x-xpos-1);
-
-  for (i=0;new_call_commands[i]!=NULL;i=i+2)
-    {
-      attrset(COLOR_PAIR(1));
-      snprintf(buf,
-	       strlen(new_call_commands[i])+1,
-	       new_call_commands[i]);
-      mvaddnstr(ypos,
-		xpos,
-		buf,
-		strlen(new_call_commands[i]));
-      attrset(COLOR_PAIR(6));
-      snprintf(buf,
-	       strlen(new_call_commands[i+1])+1,
-	       "%s", new_call_commands[i+1]);
-      mvaddnstr(ypos,
-		xpos+3,
-		buf,
-		maxlen);
-      i=i+2;
-      if (new_call_commands[i]==NULL)
-	break;
-      attrset(COLOR_PAIR(1));
-      snprintf(buf,
-	       strlen(new_call_commands[i])+1,
-	       new_call_commands[i]);
-      mvaddnstr(ypos+1,
-		xpos,
-		buf,
-		strlen(new_call_commands[i]));
-      attrset(COLOR_PAIR(6));
-      snprintf(buf,
-	       strlen(new_call_commands[i+1])+1,
-	       "%s", new_call_commands[i+1]);
-      mvaddnstr(ypos+1,
-		xpos+3,
-		buf,
-		maxlen);
-      xpos = xpos+maxlen+4; /* position for next column */
-    }
-  return 0;
-}
-
-int
-josua_clear_box_and_commands(gui_t *box)
-{
-  int pos;
-  int y,x;
-  char buf[250];
-  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
-
-  getmaxyx(stdscr,y,x);
-  attrset(A_NORMAL);
-  attrset(COLOR_PAIR(1));
-
-  {
-    char *new_call_commands[] = {
-      NULL
-    };
-    josua_print_command(new_call_commands,
-			y-5,
-			0);
-  }
-
-  if (box->x1==-999)
-    {}
-  else x = box->x1;
-
-  if (box->y1<0)
-    y = y + box->y1;
-  else
-    y = box->y1;
-
-  attrset(COLOR_PAIR(0));
-  for (pos=box->y0;pos<y;pos++)
-    {
-      snprintf(buf, 199, "%199.199s", " ");
-      mvaddnstr(pos,
-		box->x0,
-		buf,
-		x-box->x0-1);
-    }
-
-  return 0;
-}
 
 int window_manage_call_print();
 int window_manage_call_run_command(int c);
+void window_manage_call_draw_commands();
 
 gui_t gui_window_manage_call = {
   GUI_OFF,
@@ -762,6 +787,7 @@ gui_t gui_window_manage_call = {
   &window_manage_call_print,
   &window_manage_call_run_command,
   NULL,
+  window_manage_call_draw_commands,
   -1,
   -1,
   -1
@@ -782,7 +808,6 @@ int window_manage_call_print()
   getmaxyx(stdscr,y,x);
   attrset(A_NORMAL);
   attrset(COLOR_PAIR(1));
-
 
   if (gui_window_manage_call.x1==-999)
     {}
@@ -817,25 +842,27 @@ int window_manage_call_print()
 	break; /* do not print next one */
     }
 
-  {
-    char *new_call_commands[] = {
-      "<",  "PrevWindow",
-      ">",  "NextWindow",
-      "c",  "Close" ,
-      "a",  "Answer",
-      "m",  "Mute"  ,
-      "u",  "UnMute",
-      "d",  "Decline",
-      "r",  "Reject",
-      "b",  "AppearBusy",
-      NULL
-    };
-    josua_print_command(new_call_commands,
-			y-5,
-			0);
-  }
-
+  window_manage_call_draw_commands();
   return 0;
+}
+
+void window_manage_call_draw_commands()
+{
+  int x,y;
+  char *manage_call_commands[] = {
+    "<",  "PrevWindow",
+    ">",  "NextWindow",
+    "c",  "Close" ,
+    "a",  "Answer",
+    "m",  "Mute"  ,
+    "u",  "UnMute",
+    "d",  "Decline",
+    "r",  "Reject",
+    "b",  "AppearBusy",
+    NULL
+  };
+  getmaxyx(stdscr,y,x);
+  josua_print_command(manage_call_commands, y-5, 0);
 }
 
 int window_manage_call_run_command(int c)
@@ -995,6 +1022,7 @@ gui_start()
 int window_new_call_print();
 int window_new_call_run_command(int c);
 int window_new_call_key_pressed();
+void window_new_call_draw_commands();
 
 gui_t gui_window_new_call = {
   GUI_OFF,
@@ -1006,6 +1034,7 @@ gui_t gui_window_new_call = {
   &window_new_call_print,
   &window_new_call_run_command,
   NULL,
+  window_new_call_draw_commands,
   10,
   1,
   -1
@@ -1080,21 +1109,8 @@ int window_new_call_print()
 	    gui_window_new_call.x0,
 	    buf,
 	    x-gui_window_new_call.x0-1);
-
-  {
-    char *new_call_commands[] = {
-      "<",  "PrevWindow",
-      ">",  "NextWindow",
-      "^X", "StartCall" ,
-      "^D", "DeleteLine",
-      "^E", "EraseAll",
-      "^A", "GtoAddrBook",
-      NULL
-    };
-    josua_print_command(new_call_commands,
-			y-5,
-			0);
-  }
+  
+  window_new_call_draw_commands();
 
   return 0;
 
@@ -1228,6 +1244,23 @@ int window_new_call_run_command(int c)
   return 0;
 }
 
+void window_new_call_draw_commands()
+{
+  int x,y;
+  char *new_call_commands[] = {
+    "<",  "PrevWindow",
+    ">",  "NextWindow",
+    "^X", "StartCall" ,
+    "^D", "DeleteLine",
+    "^E", "EraseAll",
+    "^A", "GtoAddrBook",
+    NULL
+  };
+  getmaxyx(stdscr,y,x);
+  josua_print_command(new_call_commands,
+		      y-5,
+		      0);
+}
 
 
 void
@@ -1269,7 +1302,7 @@ __josua_manage_call()
   window_manage_call_print();
 }
 
-void __josua_message()
+void __show_new_message()
 {
 
 }

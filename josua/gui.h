@@ -53,9 +53,9 @@ int gui_start();
 int josua_event_get();
 void josua_printf(char *chfr, ...);
 
-void __josua_message();
-void __josua_manage_call();
 void __show_new_call();
+void __show_new_message();
+void __josua_manage_call();
 void __josua_set_up();
 void __josua_manage_subscribers();
 void __josua_quit();
