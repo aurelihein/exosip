@@ -3,11 +3,11 @@ EXTRA_DIST = README autogen.sh eX_script eXosip_addfriend.sh eXosip_addidentity.
 
 SUBDIRS = scripts platform src include josua tools phapi miniua
 
-josuarpm:
-	rpm -ba josua.spec
-
-eXosiprpm:
-	rpm -ba eXosip.spec
+upload: dist
+	@echo "######## Maintainer only ##########";
+	@echo "building files for upload in ftp://savannah.gnu.org/incoming/savannah/eXosip";
+	@echo "building: $(PACKAGE)-$(VERSION).tar.gz.sig";
+	gpg -b $(PACKAGE)-$(VERSION).tar.gz
 
 install-exec-local:
 	echo "Installing script file for Josua";

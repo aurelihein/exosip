@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.32 $)dnl
+AC_REVISION($Revision: 1.33 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip/eXosip.h)
 
@@ -33,7 +33,7 @@ else
  VERSION="$EXOSIP_VERSION-$PRERELEASE"
 fi
 
-PACKAGE=eXosip
+PACKAGE=libeXosip
 
 AC_MSG_RESULT([Configuring ${PACKAGE} ${VERSION}])
 OS=`uname|sed -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`
