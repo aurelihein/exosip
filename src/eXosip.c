@@ -1771,11 +1771,14 @@ int eXosip_register      (int rid, int registration_period)
 	    osip_message_force_update(reg);
 	  }
 
-	  if (MSG_IS_STATUS_4XX(last_response))
+	  if (last_response!=NULL)
 	    {
-	      eXosip_add_authentication_information(reg, last_response);
+	      if (MSG_IS_STATUS_4XX(last_response))
+		{
+		  eXosip_add_authentication_information(reg, last_response);
+		}
+	      osip_message_free(last_response);
 	    }
-	  osip_message_free(last_response);
 	}
     }
   if (reg==NULL)
