@@ -311,25 +311,30 @@ eXosip_set_mode(int mode)
 void
 eXosip_update()
 {
+  static int static_id  = 1;
   eXosip_call_t      *jc;
   eXosip_subscribe_t *js;
   eXosip_notify_t *jn;
   eXosip_dialog_t    *jd;
-  int counter=1;
-  int counter2=1;
   int now;
 
   now = time(NULL);
   for (jc=eXosip.j_calls; jc!=NULL; jc=jc->next)
     {
-      jc->c_id = counter2;
-      counter2++;
+      if (jc->c_id<1)
+	{
+	  jc->c_id = static_id;
+	  static_id++;
+	}
       for (jd=jc->c_dialogs; jd!=NULL; jd=jd->next)
 	{
 	  if (jd->d_dialog!=NULL) /* finished call */
 	    {
-	      jd->d_id = counter;
-	      counter++;
+	      if (jd->d_id<1)
+		{
+		  jd->d_id = static_id;
+		  static_id++;
+		}
 	    }
 	  else jd->d_id = -1;
 	}
@@ -337,14 +342,20 @@ eXosip_update()
 
   for (js=eXosip.j_subscribes; js!=NULL; js=js->next)
     {
-      js->s_id = counter2;
-      counter2++;
+      if (js->s_id<1)
+	{
+	  js->s_id = static_id;
+	  static_id++;
+	}
       for (jd=js->s_dialogs; jd!=NULL; jd=jd->next)
 	{
 	  if (jd->d_dialog!=NULL) /* finished call */
 	    {
-	      jd->d_id = counter;
-	      counter++;
+	      if (jd->d_id<1)
+		{
+		  jd->d_id = static_id;
+		  static_id++;
+		}
 	      if (eXosip_subscribe_need_refresh(js, now)==0)
 		{
 #define LOW_EXPIRE
@@ -361,14 +372,20 @@ eXosip_update()
 
   for (jn=eXosip.j_notifies; jn!=NULL; jn=jn->next)
     {
-      jn->n_id = counter2;
-      counter2++;
+      if (jn->n_id<1)
+	{
+	  jn->n_id = static_id;
+	  static_id++;
+	}
       for (jd=jn->n_dialogs; jd!=NULL; jd=jd->next)
 	{
 	  if (jd->d_dialog!=NULL) /* finished call */
 	    {
-	      jd->d_id = counter;
-	      counter++;
+	      if (jd->d_id<1)
+		{
+		  jd->d_id = static_id;
+		  static_id++;
+		}
 	    }
 	  else jd->d_id = -1;
 	}
