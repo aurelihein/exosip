@@ -87,6 +87,19 @@ int _josua_start_options(char *from, char *to, char *route)
 }
 #endif
 
+int _josua_start_message(char *from, char *to, char *route, char *buf)
+{
+  int i;
+  eXosip_lock();
+  i = eXosip_message(to, from, route, buf);
+  eXosip_unlock();
+  if (i!=0)
+    {
+      return -1;
+    }
+  return i;
+}
+
 int _josua_start_subscribe(char *from, char *to, char *route)
 {
   int i;

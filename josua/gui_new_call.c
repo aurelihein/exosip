@@ -156,7 +156,6 @@ int window_new_call_run_command(int c)
 	  delch();
 	}
       break;
-    case '\n':
     case '\r':
     case KEY_ENTER:
     case KEY_DOWN:
@@ -230,6 +229,28 @@ int window_new_call_run_command(int c)
 	/* mvinnstr(ycur, xcur, tmp, 199); */
       }
       break;
+    case 23:  /* Ctrl-W */
+      {
+	int ycur = gui_window_new_call.y0;
+	int xcur = gui_window_new_call.x0+10;
+	char to[200];
+	char subject[200];
+	char route[200];
+	/* char attachment[200]; */
+	ycur++;
+	mvinnstr(ycur, xcur, to, x-gui_window_new_call.x0-10);
+	ycur++;
+	mvinnstr(ycur, xcur, subject, x-gui_window_new_call.x0-10);
+	ycur++;
+	mvinnstr(ycur, xcur, route, x-gui_window_new_call.x0-10);
+	osip_clrspace(to);
+	osip_clrspace(subject);
+	osip_clrspace(route);
+
+	i = _josua_start_message(cfg.identity, to, route, subject);
+	if (i!=0) beep();
+      }
+      break;
 #if 0
     case 15: /* Ctrl-O */
       {
@@ -267,10 +288,7 @@ int window_new_call_run_command(int c)
       }
       break;
     default:
-      /*
-	fprintf(stderr, "c=%i", c);
-	exit(0);
-      */
+
       if (gui_window_new_call.xcursor<(x-gui_window_new_call.x0-1))
 	{
 	  gui_window_new_call.xcursor++;
@@ -296,6 +314,7 @@ void window_new_call_draw_commands()
     "^U", "StartSubscribe" ,
     "^A", "GtoAddrBook",
     "^D", "DeleteLine",
+    "^W", "SendMessage",
     "^E", "EraseAll",
     NULL
   };
