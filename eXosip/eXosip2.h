@@ -66,6 +66,7 @@ int   eXosip_build_initial_invite(osip_message_t **invite, char *to,
 				  char *from, char *route, char *subject);
 int   eXosip_start_call    (osip_message_t *invite, void *reference, void *sdp_context_reference, char *local_sdp_port);
 int   eXosip_answer_call   (int jid, int status);
+int   eXosip_answer_options   (int cid, int jid, int status);
 int   eXosip_options_call     (int jid);
 int   eXosip_on_hold_call  (int jid);
 int   eXosip_off_hold_call (int jid);

@@ -415,7 +415,40 @@ void cb_rcvinfo    (int type, osip_transaction_t *tr,osip_message_t *sip)
 
 void cb_rcvoptions (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
+  eXosip_event_t     *je;
+  eXosip_dialog_t    *jd;
+  eXosip_call_t      *jc;
+  eXosip_subscribe_t *js;
+  eXosip_notify_t    *jn;
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
+
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvoptions (id=%i)\r\n", tr->transactionid));
+
+  if (jinfo==NULL)
+    return;
+  jd = jinfo->jd;
+  jc = jinfo->jc;
+  jn = jinfo->jn;
+  js = jinfo->js;
+  if (jinfo->jc==NULL)
+    return;
+  
+  je = eXosip_event_init_for_call(EXOSIP_OPTIONS_NEW, jc, jd);
+  if (je!=NULL)
+    {
+      char *tmp;
+      osip_uri_to_str(sip->req_uri, &tmp);
+      if (tmp!=NULL)
+	{
+	  snprintf(je->req_uri, 255, "%s", tmp);
+	  osip_free(tmp);
+	}
+    }
+  if (eXosip.j_call_callbacks[EXOSIP_OPTIONS_NEW]!=NULL)
+    eXosip.j_call_callbacks[EXOSIP_OPTIONS_NEW](EXOSIP_OPTIONS_NEW, je);
+  else if (eXosip.j_runtime_mode==EVENT_MODE)
+    eXosip_event_add(je);    
+
 }
 
 void cb_rcvnotify  (int type, osip_transaction_t *tr,osip_message_t *sip)

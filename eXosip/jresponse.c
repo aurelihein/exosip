@@ -223,86 +223,138 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
   return NULL;
 }
 
-void
-generating_1xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t *tr, int code)
+int
+eXosip_answer_options_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
+  osip_event_t *evt_answer;
+  osip_transaction_t *tr;
   osip_message_t *response;
   int i;
 
-  i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
+  tr = eXosip_find_last_inc_options(jc, jd);
+  if (tr==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      return -1;
+    }
+
+  if (jd!=NULL)
+    {
+      i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
+    }
+  else
+    {
+      i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
+    }
+
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for OPTIONS\n"));
-      return;
+      return -1;
     }
 
-  osip_message_set_content_length(response, "0");
+  evt_answer = osip_new_outgoing_sipmessage(response);
+  evt_answer->transactionid = tr->transactionid;
 
-  return ;
+  osip_transaction_add_event(tr, evt_answer);
+
+  return 0;
 }
 
-void
-generating_2xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t *tr, int code)
+int
+eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
+  osip_event_t *evt_answer;
+  osip_transaction_t *tr;
   osip_message_t *response;
-  int i;
-  char *size;
+  sdp_message_t *sdp;
   char *body;
-  body = generating_sdp_answer(tr->orig_request, NULL);
-  if (body==NULL)
-    {
-      code = 488;
-    }
-  i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
+  char size[10];
+  int i;
 
+  tr = eXosip_find_last_inc_options(jc, jd);
+  if (tr==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      return -1;
+    }
+  osip_negotiation_sdp_build_offer(eXosip.osip_negotiation, NULL, &sdp, "10400", NULL);
+  if (sdp==NULL)
+    {
+      return -1;
+    }
+  if (jd!=NULL)
+    {
+      i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
+    }
+  else
+    {
+      i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
+    }
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for options\n"));
-      code = 500; /* ? which code to use? */
-      osip_free(body); /* not used */
-      return;
+      sdp_message_free(sdp); /* not used */
+      return -1;
     }
-
-  if (code==488)
-    {
-      osip_message_set_content_length(response, "0");
-      /*  send message to transaction layer */
-      osip_free(body);      
-      return;
-    }
-
+  i = sdp_message_to_str(sdp, &body);
+  sdp_message_free(sdp);
+  if (i!=0) {
+    osip_message_free(response);
+    return -1;
+  }
   i = osip_message_set_body(response, body);
   if (i!=0) {
-    goto g2atii_error_1;
+    osip_message_free(response);
+    return -1;
   }
-  size = (char *) osip_malloc(6*sizeof(char));
-  sprintf(size,"%i",strlen(body));
+  snprintf(size, 9,"%i",strlen(body));
   i = osip_message_set_content_length(response, size);
-  osip_free(size);
-  if (i!=0) goto g2atii_error_1;
+  if (i!=0) {
+    osip_free(body);
+    osip_message_free(response);
+    return -1;
+  }
+  osip_free(body);
   i = osip_message_set_header(response, "content-type", "application/sdp");
-  if (i!=0) goto g2atii_error_1;
+  if (i!=0) {
+    osip_message_free(response);
+    return -1;
+  }
 
+  evt_answer = osip_new_outgoing_sipmessage(response);
+  evt_answer->transactionid = tr->transactionid;
 
-  osip_free(body);
-  return ;
-
- g2atii_error_1:
-  osip_free(body);
-  osip_message_free(response);
-  return ;
+  osip_transaction_add_event(tr, evt_answer);
+  return 0;
 }
 
-void
-generating_3456xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t *tr, int code)
+int
+eXosip_answer_options_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
+  osip_event_t *evt_answer;
+  osip_transaction_t *tr;
   osip_message_t *response;
   int i;
-  i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
+  tr = eXosip_find_last_inc_options(jc, jd);
+  if (tr==NULL)
+    {
+      fprintf(stderr, "eXosip: cannot find transaction to answer");
+      return -1;
+    }
+
+  if (jd!=NULL)
+    {
+      i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
+    }
+  else
+    {
+      i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
+    }
   if (i!=0)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for options\n"));
-      return;
+      return -1;
     }
 
   if (300<=code<=399)
@@ -314,7 +366,12 @@ generating_3456xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction
   osip_message_set_content_length(response, "0");
   /*  send message to transaction layer */
 
-  return ;
+  evt_answer = osip_new_outgoing_sipmessage(response);
+  evt_answer->transactionid = tr->transactionid;
+
+  osip_transaction_add_event(tr, evt_answer);
+
+  return 0;
 }
 
 int

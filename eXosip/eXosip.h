@@ -286,7 +286,7 @@ typedef enum eXosip_event_type_t {
   EXOSIP_OPTIONS_GLOBALFAILURE,   /* announce a global failure             */
 
   /* for UAS events */
-  EXOSIP_OPTIONS_NEW,             /* announce a new info method            */
+  EXOSIP_OPTIONS_NEW,             /* announce a new options method         */
 
   /* for both UAS & UAC events */
   EXOSIP_CALL_STARTAUDIO,         /* audio must be established           */
@@ -453,6 +453,9 @@ int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, osip_message_t *_200Ok);
 int eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 int eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+int eXosip_answer_options_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+int eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
+int eXosip_answer_options_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 void eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jc,
 					eXosip_dialog_t *jd, int code);
 void eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn,

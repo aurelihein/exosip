@@ -206,25 +206,6 @@ int window_new_call_run_command(int c)
       gui_window_new_call.xcursor=10;
       gui_window_new_call.ycursor=1;
       window_new_call_print();
-      /*
-      snprintf(buf, 199, "%199.199s", " ");
-      mvaddnstr(gui_window_new_call.ycursor,
-		gui_window_new_call.x0 + 10,
-		buf,
-		x-gui_window_new_call.x0-10);
-      mvaddnstr(gui_window_new_call.ycursor,
-		gui_window_new_call.x0 + 10,
-		buf,
-		x-gui_window_new_call.x0-10);
-      mvaddnstr(gui_window_new_call.ycursor,
-		gui_window_new_call.x0 + 10,
-		buf,
-		x-gui_window_new_call.x0-10);
-      mvaddnstr(gui_window_new_call.ycursor,
-		gui_window_new_call.x0 + 10,
-		buf,
-		x-gui_window_new_call.x0-10);
-      */
       break;
     case 24: /* Ctrl-X */
       {
@@ -246,7 +227,7 @@ int window_new_call_run_command(int c)
 	/* mvinnstr(ycur, xcur, tmp, 199); */
       }
       break;
-    case 23: /* Ctrl-W */
+    case 15: /* Ctrl-O */
       {
 	int ycur = gui_window_new_call.y0;
 	int xcur = gui_window_new_call.x0+10;

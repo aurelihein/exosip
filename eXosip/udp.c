@@ -99,6 +99,7 @@ void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
   osip_list_add(jd->d_inc_trs, transaction , 0);
 
+#if 0
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_OPTIONS_NEW, jc, jd);
@@ -107,6 +108,7 @@ void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);    
   }
+#endif
 
   osip_transaction_add_event(transaction,evt_answer);
 }
@@ -472,8 +474,10 @@ void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *e
 
   jc->c_inc_options_tr = transaction;
 
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
   eXosip_update();
 
+#if 0
   {
     eXosip_event_t *je;
     je = eXosip_event_init_for_call(EXOSIP_OPTIONS_NEW, jc, NULL);
@@ -493,6 +497,7 @@ void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *e
     else if (eXosip.j_runtime_mode==EVENT_MODE)
       eXosip_event_add(je);    
   }
+#endif
 
   osip_transaction_add_event(transaction, evt_answer);
 
@@ -1857,6 +1862,7 @@ void eXosip_release_terminated_calls ( void )
   int now = time(NULL);
   int pos;
 
+
   for (jc = eXosip.j_calls ; jc != NULL; )
     {
       jcnext=jc->next;
@@ -1882,7 +1888,42 @@ void eXosip_release_terminated_calls ( void )
       jcnext=jc->next;
       if (jc->c_dialogs==NULL)
 	{
-	  if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED
+	  /* release call for options requests */
+	  if (jc->c_inc_options_tr!=NULL)
+	    {
+	      if (jc->c_inc_options_tr->state==NIST_TERMINATED)
+		{
+		  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+					"eXosip: remove an incoming OPTIONS with no final answer\n"));
+		  REMOVE_ELEMENT(eXosip.j_calls, jc);
+		  {
+		    eXosip_event_t *je;
+		    je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, NULL);
+		    if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		      eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		    else if (eXosip.j_runtime_mode==EVENT_MODE)
+		      eXosip_event_add(je);
+		  }
+		  eXosip_call_free(jc);
+		}
+	      else if (jc->c_inc_options_tr->state!=NIST_TERMINATED
+		       && jc->c_inc_options_tr->birth_time+180<now)
+		{
+		  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+					"eXosip: remove an incoming OPTIONS with no final answer\n"));
+		  REMOVE_ELEMENT(eXosip.j_calls, jc);
+		  {
+		    eXosip_event_t *je;
+		    je = eXosip_event_init_for_call(EXOSIP_CALL_RELEASED, jc, NULL);
+		    if (eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED]!=NULL)
+		      eXosip.j_call_callbacks[EXOSIP_CALL_RELEASED](EXOSIP_CALL_RELEASED, je);
+		    else if (eXosip.j_runtime_mode==EVENT_MODE)
+		      eXosip_event_add(je);
+		  }
+		  eXosip_call_free(jc);
+		}
+	    }
+	  else if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED
 	      && jc->c_inc_tr->birth_time+180<now)
 	    {
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,

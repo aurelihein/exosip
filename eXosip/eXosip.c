@@ -486,7 +486,7 @@ int eXosip_start_options(osip_message_t *options, void *reference,
     osip_negotiation_ctx_set_mycontext(jc->c_ctx, sdp_context_reference);
 
   i = osip_transaction_init(&transaction,
-		       ICT,
+		       NICT,
 		       eXosip.j_osip,
 		       options);
   if (i!=0)
@@ -506,6 +506,8 @@ int eXosip_start_options(osip_message_t *options, void *reference,
 
   jc->external_reference = reference;
   ADD_ELEMENT(eXosip.j_calls, jc);
+
+  eXosip_update();
   return 0;
 }
 
@@ -659,6 +661,51 @@ int eXosip_options_call  (int jid)
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
+  return 0;
+}
+
+int eXosip_answer_options   (int cid, int jid, int status)
+{
+  int i = -1;
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+      if (jd==NULL)
+	{
+	  fprintf(stderr, "eXosip: No dialog here?\n");
+	  return -1;
+	}
+    }
+  else 
+    {
+      eXosip_call_find(cid, &jc);
+      if (jc==NULL)
+	{
+	  fprintf(stderr, "eXosip: No call here?\n");
+	  return -1;
+	}
+    }
+  if (status>100 && status<200)
+    {
+      i = eXosip_answer_options_1xx(jc, jd, status);
+    }
+  else if (status>199 && status<300)
+    {
+      i = eXosip_answer_options_2xx(jc, jd, status);
+    }
+  else if (status>300 && status<699)
+    {
+      i = eXosip_answer_options_3456xx(jc, jd, status);
+    }
+  else
+    {
+      fprintf(stderr, "eXosip: wrong status code (101<status<699)\n");
+      return -1;
+    }
+  if (i!=0)
+    return -1;
   return 0;
 }
 

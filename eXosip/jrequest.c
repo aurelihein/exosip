@@ -385,7 +385,7 @@ int eXosip_build_initial_options(osip_message_t **options, char *to, char *from,
   if (route!=NULL && *route=='\0')
     route=NULL;
 
-  i = generating_request_out_of_dialog(options, "INVITE", to, "UDP", from,
+  i = generating_request_out_of_dialog(options, "OPTIONS", to, "UDP", from,
 				       route);
   if (i!=0) return -1;
 

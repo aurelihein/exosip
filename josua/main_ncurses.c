@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.43 2003-06-18 14:35:31 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.44 2003-06-19 16:01:47 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -204,6 +204,122 @@ josua_event_get()
 		   je->reason_phrase,
 		   je->remote_uri,
 		   je->req_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_OPTIONS_NEW)
+	{
+	  int k;
+	  snprintf(buf, 99, "<- (%i %i) OPTIONS from: %s",
+		   je->cid, je->did,
+		   je->remote_uri);
+	  josua_printf(buf);
+
+	  /* answer the OPTIONS method */
+	  /* 1: search for an existing call */
+	  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
+	    {
+	      if (jcalls[k].state != NOT_USED
+		  || jcalls[k].cid==je->cid)
+		break;
+	    }
+	  eXosip_lock();
+	  if (jcalls[k].cid==je->cid)
+	    {
+	      /* already answered! */
+	    }
+	  else if (k==MAX_NUMBER_OF_CALLS)
+	    {
+	      /* answer 200 ok */
+	      eXosip_answer_options(je->cid, je->did, 200);
+	    }
+	  else
+	    {
+	      /* answer 486 ok */
+	      eXosip_answer_options(je->cid, je->did, 486);
+	    }
+	  eXosip_unlock();
+
+#if 0
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
+		       je->remote_sdp_audio_ip,
+		       je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+#endif
+	}
+      else if (je->type==EXOSIP_OPTIONS_ANSWERED)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+#if 0
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
+		       je->remote_sdp_audio_ip,
+		       je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+#endif
+	}
+      else if (je->type==EXOSIP_OPTIONS_PROCEEDING)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+
+#if 0
+	  if (je->remote_sdp_audio_ip[0]!='\0')
+	    {
+	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
+		       je->remote_sdp_audio_ip,
+		       je->remote_sdp_audio_port);
+	      josua_printf(buf);
+	    }
+#endif
+	}
+      else if (je->type==EXOSIP_OPTIONS_REDIRECTED)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_OPTIONS_REQUESTFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_OPTIONS_SERVERFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_OPTIONS_GLOBALFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
 	  josua_printf(buf);
 	}
       else if (je->textinfo[0]!='\0')
