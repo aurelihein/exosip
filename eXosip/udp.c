@@ -738,8 +738,6 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       return ;
     }
 
-
-
   if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
     {
       /* delete the dialog! */
@@ -748,6 +746,11 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   else
     {
       osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+    }
+
+  if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+    {
+      
     }
 
   sipevent = osip_new_outgoing_sipmessage(answer);

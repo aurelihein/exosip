@@ -677,6 +677,17 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       if (jd!=NULL)
 	jd->d_STATE = JD_TERMINATED;
     }
+  else if (MSG_IS_RESPONSEFOR(sip, "NOTIFY"))
+    {
+      osip_header_t  *sub_state;
+      osip_message_header_get_byname(tr->orig_request, "subscription-state",
+				     0, &sub_state);
+      if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+	{
+	  /* delete the dialog! */
+	  eXosip_subscribe_free(js);
+	}
+    }
 }
 
 void eXosip_delete_early_dialog(eXosip_dialog_t *jd)
@@ -907,7 +918,30 @@ void cb_rcvreq_retransmission(int type, osip_transaction_t *tr, osip_message_t *
   
 void cb_killtransaction(int type, osip_transaction_t *tr)
 {
+  eXosip_dialog_t    *jd;
+  eXosip_call_t      *jc;
+  eXosip_subscribe_t *js;
+  eXosip_notify_t    *jn;
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_killtransaction (id=%i)\r\n", tr->transactionid));
+  if (jinfo==NULL)
+    return;
+  jd = jinfo->jd;
+  jc = jinfo->jc;
+  jn = jinfo->jn;
+  js = jinfo->js;
+
+  if (jn==NULL)
+    return;
+
+  /* no answer to a NOTIFY request! */
+  if (MSG_IS_NOTIFY(tr->orig_request)
+      && type==OSIP_NICT_KILL_TRANSACTION
+      && tr->last_response==NULL)
+    {
+      /* delete the dialog! */
+      eXosip_notify_free(jn);
+    }
 }
 
 void cb_endoftransaction(int type, osip_transaction_t *tr)
@@ -917,7 +951,29 @@ void cb_endoftransaction(int type, osip_transaction_t *tr)
   
 void cb_transport_error(int type, osip_transaction_t *tr, int error)
 {
+  eXosip_dialog_t    *jd;
+  eXosip_call_t      *jc;
+  eXosip_subscribe_t *js;
+  eXosip_notify_t    *jn;
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_transport_error (id=%i)\r\n", tr->transactionid));
+  if (jinfo==NULL)
+    return;
+  jd = jinfo->jd;
+  jc = jinfo->jc;
+  jn = jinfo->jn;
+  js = jinfo->js;
+
+  if (jn==NULL)
+    return;
+
+  if (MSG_IS_NOTIFY(tr->orig_request)
+      && type==OSIP_NICT_TRANSPORT_ERROR)
+    {
+      /* delete the dialog! */
+      eXosip_notify_free(jn);
+    }
+
 }
 
 

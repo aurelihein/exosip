@@ -85,10 +85,14 @@ typedef enum eXosip_ss {
   EXOSIP_SUBCRSTATE_TERMINATED
 } eXosip_ss_t;
 
+/* should be added when the sub-state="terminated" */
 typedef enum eXosip_ss_reason {
+  DEACTIVATED,
+  PROBATION,
   REJECTED,
   TIMEOUT,
-  DEACTIVATED
+  GIVEUP,
+  NORESSOURCE
 } eXosip_ss_reason_t;
 
 
