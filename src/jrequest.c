@@ -360,7 +360,10 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 				       route);
   if (i!=0) return -1;
   
-  osip_message_set_subject(*invite, subject);
+  if (subject==NULL)
+	  osip_message_set_subject(*invite, "New Call");
+  else
+	  osip_message_set_subject(*invite, subject);
 
   /* after this delay, we should send a CANCEL */
   osip_message_set_expires(*invite, "120");
