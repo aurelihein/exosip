@@ -390,7 +390,8 @@ void eXosip_get_localip_for(char *address_to_reach,char **loc){
 	err=connect(sock,res->ai_addr,res->ai_addrlen);
 	if (err<0) {
 		eXosip_trace(OSIP_ERROR,("Error in connect: %s\n",strerror(errno)));
-		abort();
+ 		freeaddrinfo(res);
+ 		close(sock);
 		return ;
 	}
 	freeaddrinfo(res);
