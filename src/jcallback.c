@@ -173,7 +173,6 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 		       int port, int out_socket)
 {
   static int num = 0;
-  unsigned long int one_inet_addr;
   struct addrinfo *addrinfo;
   struct __eXosip_sockaddr addr;
   char *message;
