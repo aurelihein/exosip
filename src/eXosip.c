@@ -622,7 +622,7 @@ eXosip_automatic_refresh()
 #ifdef LOW_EXPIRE
 		      i = eXosip_subscribe_send_subscribe(js, jd, "120");
 #else
-		      i = eXosip_subscribe_send_subscribe(js, jd, "600");
+		      i = eXosip_subscribe_send_subscribe(js, jd, "3600");
 #endif
 		    }
 		}
@@ -2577,7 +2577,7 @@ int eXosip_subscribe_refresh  (int sid, char *expires)
       eXosip_add_authentication_information(sub,tr->last_response);
 
       if (expires==NULL)
-	osip_message_set_expires(sub, "600");
+	osip_message_set_expires(sub, "3600");
       else
 	osip_message_set_expires(sub, expires);
 
@@ -2619,7 +2619,7 @@ int eXosip_subscribe_refresh  (int sid, char *expires)
     i = eXosip_subscribe_send_subscribe(js, jd, expires);
 #else
   if (expires==NULL)
-    i = eXosip_subscribe_send_subscribe(js, jd, "600");
+    i = eXosip_subscribe_send_subscribe(js, jd, "3600");
   else
     i = eXosip_subscribe_send_subscribe(js, jd, expires);
 #endif

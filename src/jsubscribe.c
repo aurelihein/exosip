@@ -179,7 +179,7 @@ _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t *js,
 
 int  eXosip_subscribe_need_refresh(eXosip_subscribe_t *js, int now)
 {
-  if (now-js->s_ss_expires>-60)
+  if (now-js->s_ss_expires>-120)
     return 0;
   return -1;
 }

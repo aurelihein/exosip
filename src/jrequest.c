@@ -611,7 +611,7 @@ int generating_initial_subscribe(osip_message_t **subscribe, char *to,
 #ifdef LOW_EXPIRE
   osip_message_set_expires(*subscribe, "120");
 #else
-  osip_message_set_expires(*subscribe, "600");
+  osip_message_set_expires(*subscribe, "3600");
 #endif
 
   /* osip_message_set_organization(*subscribe, "Jack's Org"); */
