@@ -1718,11 +1718,43 @@ int eXosip_terminate_call(int cid, int jid)
 	         "eXosip: cannot initiate SIP transaction! "));
 	      return i;
 	    }
+	  if (jd!=NULL)
+	  {
+		  osip_dialog_free(jd->d_dialog);
+		  jd->d_dialog = NULL;
+	  }
 	  return 0;
 	}
 
   if (jd==NULL || jd->d_dialog==NULL)
     {
+	  /* Check if some dialog exists */
+	  jd = jc->c_dialogs;
+	  if (jd!=NULL && jd->d_dialog!=NULL)
+	  {
+		  i = generating_bye(&request, jd->d_dialog);
+		  if (i!=0)
+			{
+			  OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				 "eXosip: cannot terminate this call! "));
+			  return -2;
+			}
+
+		  i = eXosip_create_transaction(jc, jd, request);
+		  if (i!=0)
+			{
+			  OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				 "eXosip: cannot initiate SIP transaction! "));
+			  return -2;
+			}
+
+		  osip_dialog_free(jd->d_dialog);
+		  jd->d_dialog = NULL;
+		  return 0;
+	  }
+
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
          "eXosip: No established dialog!"));
