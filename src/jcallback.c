@@ -450,6 +450,8 @@ void cb_rcvinfo    (int type, osip_transaction_t *tr,osip_message_t *sip)
 	  /* get content-type info */
 	  osip_content_type_clone(osip_message_get_content_type(sip), &(je->i_ctt));
 	  /* get list of bodies */
+	  je->i_bodies = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+	  osip_list_init(je->i_bodies);
 	  for (pos=0;!osip_list_eol(sip->bodies, pos);pos++)
 	    {
 	      osip_body_t *body;
