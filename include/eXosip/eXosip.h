@@ -107,6 +107,8 @@ void eXosip_sdp_negotiation_add_codec(char *payload, char *number_of_port,
  */
 int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn);
 
+struct eXosip_call_t;
+
 /**
  * Set the reference element to be used in callback for the negociator.
  * This must be done only if eXosip_sdp_negotiation_replace has been

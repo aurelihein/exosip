@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.51 2003-07-21 23:54:51 aymeric Exp $"; */
+/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.52 2003-07-23 09:12:11 aymeric Exp $"; */
 
 #ifdef NCURSES_SUPPORT
 
@@ -335,6 +335,69 @@ josua_event_get()
 		   je->remote_uri);
 	  josua_printf(buf);
 	}
+      else if (je->type==EXOSIP_INFO_NEW)
+	{
+	  int k;
+	  snprintf(buf, 99, "<- (%i %i) INFO from: %s",
+		   je->cid, je->did,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_INFO_ANSWERED)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_INFO_PROCEEDING)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_INFO_REDIRECTED)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_INFO_REQUESTFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_INFO_SERVERFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did, 
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_INFO_GLOBALFAILURE)
+	{
+	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
+		   je->cid, je->did,
+		   je->status_code,
+		   je->reason_phrase,
+		   je->remote_uri);
+	  josua_printf(buf);
+	}
+
       else if (je->type==EXOSIP_SUBSCRIPTION_ANSWERED)
 	{
 	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
