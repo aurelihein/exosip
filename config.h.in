@@ -12,15 +12,6 @@
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* gethostname_r has 3 arguments here. */
-#undef HAVE_FUNC_GETHOSTBYNAME_R_3
-
-/* gethostname_r has 5 arguments here. */
-#undef HAVE_FUNC_GETHOSTBYNAME_R_5
-
-/* gethostname_r has 6 arguments here. */
-#undef HAVE_FUNC_GETHOSTBYNAME_R_6
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 

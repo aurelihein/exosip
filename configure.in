@@ -1,19 +1,19 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.20 $)dnl
+AC_REVISION($Revision: 1.21 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip/eXosip.h)
 
 dnl require at least autoconf v 2.00
 dnl AC_COPYRIGHT (COPYRIGHT-NOTICE)
 
-AC_MSG_NOTICE([eXosip                    The Extended Open SIP library.])
-AC_MSG_NOTICE([Copyright (C) 2002,2003   Aymeric MOIZARD - <jack@atosc.org>])
+AC_MSG_NOTICE([eXosip                       The Extended Open SIP library.])
+AC_MSG_NOTICE([Copyright (C) 2002,2003,2004 Aymeric MOIZARD - <jack@atosc.org>])
 
 dnl *********************************************************************
 dnl Source packaging numbers
 EXOSIP_MAJOR_VERSION=0
 EXOSIP_MINOR_VERSION=7
-EXOSIP_MICRO_VERSION=3
+EXOSIP_MICRO_VERSION=5
 
 dnl program extension
 EXOSIP_VERSION=$EXOSIP_MAJOR_VERSION.$EXOSIP_MINOR_VERSION.$EXOSIP_MICRO_VERSION
@@ -26,6 +26,9 @@ AC_SUBST(EXOSIP_VERSION)
 VERSION=$EXOSIP_VERSION
 PACKAGE=eXosip
 
+AC_MSG_RESULT([Configuring ${PACKAGE} ${VERSION}])
+OS=`uname|sed -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`
+AC_MSG_RESULT([Building Package on ${OS}])
 
 dnl *********************************************************************
 dnl Initialize automake stuff
@@ -73,25 +76,16 @@ AC_ARG_ENABLE(ucl,
 enable_ucl=$enableval,enable_ucl="no")
 
 AC_ARG_ENABLE(debug,
-[  --disable-debug         turn off debugging.],
-disable_debug=$enableval,disable_debug="yes")
+[  --enable-debug         turn on debugging (yes).],
+enable_debug=$enableval,enable_debug="yes")
 
 AC_ARG_ENABLE(trace,
-[  --disable-trace         turn off trace.],
-disable_trace=$enableval,disable_trace="yes")
-
-AC_ARG_ENABLE(mleak,
-[  --enable-mleak          turn on memory leak detection.],
-enable_mleak=$enableval,enable_mleak="no")
+[  --enable-trace         turn on trace (yes).],
+enable_trace=$enableval,enable_trace="yes")
 
 AC_ARG_ENABLE(mpatrol,
 [  --enable-mpatrol        turn on memory leak detection with patrol.],
 enable_mpatrol=$enableval,enable_mpatrol="no")
-
-dnl build with multithreaded support (need semaphore).
-AC_ARG_ENABLE(mt,
-[  --disable-mt            compile oSIP without multi-thread support.],
-enable_mt=$enableval,enable_mt="yes")
 
 dnl support for linux-thread or posix thread (pthread.h)
 AC_ARG_ENABLE(pthread,
@@ -119,15 +113,14 @@ enable_ntimer=$enableval,enable_ntimer="yes")
 JOSUA_FLAGS="-DOSIP_AT_OSIP_DOT_ORG"
 
 dnl compile with mt support
-if test "x$enable_mt" = "xyes"; then
-  if test "x$enable_pthread" = "xyes"; then
-    EXOSIP_FLAGS="-DHAVE_PTHREAD"
-    EXOSIP_LIB="-lpthread"
-  else
-    ACX_PTHREAD()
-  fi
-  EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
+if test "x$enable_pthread" = "xyes"; then
+  EXOSIP_FLAGS="-DHAVE_PTHREAD"
+  EXOSIP_LIB="-lpthread"
+else
+  ACX_PTHREAD()
 fi
+
+EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
 
 if test "x$enable_ucl" = "xyes"; then
   enable_glib="no"
@@ -156,22 +149,33 @@ else
   AC_CHECK_HEADERS(sys/sem.h)
 fi
 
-if test "$host_os" = "hpux11.00" -o "$host_os" = "hpux11.11" -o "$host_vendor" = "apple" ;then
-        echo "We are on $host_os"
-else
-	EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
-fi
+case $OS in
+  linux)
+     EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
+     ;;
+  hpux)
+     ;;
+  aix)
+     ;;
+  osf)
+     AC_CHECK_LIB(rt,sem_open,[JOSUA_LIB="$JOSUA_LIB -lrt"])
+     AC_CHECK_LIB(rt,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
+     ;;
+  sunos)
+     ;;
+  darwin*)
+     EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
+     ;;
+  *)
+     ;;
+esac
 
-if test "x$disable_debug" = "xyes"; then
+if test "x$enable_debug" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DENABLE_DEBUG -g"
 fi
 
-if test "x$disable_trace" = "xyes"; then
+if test "x$enable_trace" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DENABLE_TRACE"
-fi
-
-if test "x$enable_mleak" = "xyes"; then
-  EXOSIP_FLAGS="$EXOSIP_FLAGS -DENABLE_LEAKD"
 fi
 
 if test "x$enable_mpatrol" = "xyes"; then
@@ -187,33 +191,16 @@ dnl Checks for libraries.
 AC_CHECK_LIB(posix4,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lposix4 -mt"])
 AC_CHECK_LIB(nsl,nis_add,[EXOSIP_LIB="$EXOSIP_LIB -lnsl"])
 AC_CHECK_LIB(socket,sendto,[EXOSIP_LIB="$EXOSIP_LIB -lsocket"])
+AC_CHECK_LIB(rt,clock_gettime,[JOSUA_LIB="$JOSUA_LIB -lrt"])
+AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
 
-if test "$host_os" = "hpux11.00" -o "$host_os" = "hpux11.11" ;then
-        echo "We are on HPUX"
-	AC_CHECK_LIB(rt,clock_gettime,[JOSUA_LIB="$JOSUA_LIB -lrt"])
-	AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
-elif test "$host_os" = "osf4.0g" ;then
-        echo "We are on OSF"
-	AC_CHECK_LIB(rt,sem_open,[JOSUA_LIB="$JOSUA_LIB -lrt"])
-	AC_CHECK_LIB(rt,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
-else
-        echo "We are on $host_os"
-	AC_CHECK_LIB(rt,clock_gettime,[JOSUA_LIB="$JOSUA_LIB -lrt"])
-	AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
-fi
-
-if test "x$disable_ncurses" = "xyes"; then
+if test "x$enable_josua" = "xyes"; then
   JOSUA_FLAGS="$JOSUA_FLAGS -DNCURSES_SUPPORT"
   AC_CHECK_LIB(ncurses,wgetch,[JOSUA_LIB="-lncurses"])
   AC_CHECK_HEADERS(ncurses.h)
-else
-  AC_MSG_NOTICE([Compiling without ncurses support.])
 fi
 
-
 EXOSIP_FLAGS="$EXOSIP_FLAGS -DUSE_TMP_BUFFER"
-
-AC_caolan_FUNC_WHICH_GETHOSTBYNAME_R()
 
 AC_SUBST(EXOSIP_FLAGS)
 AC_SUBST(JOSUA_FLAGS)

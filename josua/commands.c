@@ -137,12 +137,13 @@ int _josua_add_contact(char *sipurl, char *telurl, char *email, char *phone)
   return 0;
 }
 
-static int last_id = -2;
+static int last_pos_id = -2;
+static int last_reg_id = -2;
 
 int
 _josua_register(int pos_id)
 {
-  int reg_id;
+  int reg_id = -1;
   int i;
   char *identity;
   char *registrar;
@@ -153,7 +154,7 @@ _josua_register(int pos_id)
     return -1;
   
   eXosip_lock();
-  if (pos_id!=last_id)
+  if (pos_id!=last_pos_id)
     {
       reg_id = eXosip_register_init(identity, registrar, NULL);
       if (reg_id<0)
@@ -161,8 +162,19 @@ _josua_register(int pos_id)
 	  eXosip_unlock();
 	  return -1;
 	}
-      last_id = pos_id;
+      last_pos_id = pos_id;
+      last_reg_id = reg_id;
     }
+  else
+    {
+      if (last_reg_id<0)
+	{
+	  eXosip_unlock();
+	  return -1;
+	}
+      reg_id = last_reg_id;
+    }
+
   i = eXosip_register(reg_id, 3600);
   eXosip_unlock();
   return i;
@@ -183,7 +195,7 @@ _josua_unregister(int pos_id)
     return -1;
   
   eXosip_lock();
-  if (pos_id!=last_id)
+  if (pos_id!=last_pos_id)
     {
       reg_id = eXosip_register_init(identity, registrar, NULL);
       if (reg_id<0)
@@ -191,7 +203,19 @@ _josua_unregister(int pos_id)
 	  eXosip_unlock();
 	  return -1;
 	}
-      last_id = pos_id;
+      last_pos_id = pos_id;
+      last_reg_id = reg_id;
+    }
+  else
+    {
+      if (last_reg_id<0)
+	{
+	  eXosip_unlock();
+	  return -1;
+	}
+      reg_id = last_reg_id;
+      last_reg_id = -1;
+      last_pos_id = -1;
     }
   i = eXosip_register(reg_id, 0);
   eXosip_unlock();
