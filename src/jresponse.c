@@ -868,7 +868,7 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
   i = osip_message_set_content_length(response, size);
   osip_free(size);
   if (i!=0) goto g2atii_error_1;
-  i = osip_message_set_header(response, "content-type", bodytype);
+  i = osip_message_set_content_type(response, bodytype);
   if (i!=0) goto g2atii_error_1;
 
   /* request that estabish a dialog: */
