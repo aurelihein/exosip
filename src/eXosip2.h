@@ -305,6 +305,9 @@ struct eXosip_t {
   jauthinfo_t        *authinfos;
 
   int                 ip_family; /* AF_INET6 or AF_INET */
+  char                nat_type[16];
+  char                forced_proxy[256];
+  char                answer_contact[256]; /* conatact header value to use in answers */
 };
 
 typedef struct jinfo_t jinfo_t;
@@ -320,10 +323,15 @@ int eXosip_guess_ip_for_via (int family, char *address, int size);
 
 int  eXosip_sdp_negotiation_init(osip_negotiation_t **sn);
 void eXosip_sdp_negotiation_free(osip_negotiation_t *sn);
+int eXosip_retrieve_sdp_negotiation_result(osip_negotiation_ctx_t *ctx, char *payload_name,  int pnsize);
+
+
 sdp_message_t *eXosip_get_local_sdp_info(osip_transaction_t *invite_tr);
 sdp_message_t *eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr);
 sdp_message_t *eXosip_get_local_sdp(osip_transaction_t *transaction);
 sdp_message_t *eXosip_get_remote_sdp(osip_transaction_t *transaction);
+
+
 
 int    eXosip_set_callbacks(osip_t *osip);
 char  *osip_call_id_new_random(void);
@@ -456,6 +464,8 @@ int  eXosip_notify_send_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd,
 			       int subsciption_status,
 			       int online_status);
 
+
+int eXosip_is_public_address(const char *addr);
 
 #ifdef __cplusplus
 }

@@ -47,6 +47,8 @@ eXosip_call_init(eXosip_call_t **jc)
   *jc = (eXosip_call_t *)osip_malloc(sizeof(eXosip_call_t));
   if (*jc == NULL) return -1;
   memset(*jc, 0, sizeof(eXosip_call_t));
+
+  (*jc)->c_id = -1;   /* make sure the eXosip_update will assign a valid id to the call */
   osip_negotiation_ctx_init(&(*jc)->c_ctx);
   return 0;
 }

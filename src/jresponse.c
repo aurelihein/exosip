@@ -180,7 +180,10 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 #else
   eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
 #endif
-  if (request->to->url->username==NULL)
+  
+  if (eXosip.answer_contact[0])
+    snprintf(contact,1000, "%s", eXosip.answer_contact);
+  else if (request->to->url->username==NULL)
     snprintf(contact,1000, "<sip:%s:%s>", locip, eXosip.localport);
   else
     snprintf(contact,1000, "<sip:%s@%s:%s>", request->to->url->username,
@@ -208,25 +211,7 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
 
 	  /* If c_address is a PUBLIC address, the request was
 	     coming from the PUBLIC network. */
-	  if (0!=strncmp(c_address, "192.168",7)
-	      && 0!=strncmp(c_address, "10.",3)
-	      && 0!=strncmp(c_address, "172.16.",7)
-	      && 0!=strncmp(c_address, "172.17.",7)
-	      && 0!=strncmp(c_address, "172.18.",7)
-	      && 0!=strncmp(c_address, "172.19.",7)
-	      && 0!=strncmp(c_address, "172.20.",7)
-	      && 0!=strncmp(c_address, "172.21.",7)
-	      && 0!=strncmp(c_address, "172.22.",7)
-	      && 0!=strncmp(c_address, "172.23.",7)
-	      && 0!=strncmp(c_address, "172.24.",7)
-	      && 0!=strncmp(c_address, "172.25.",7)
-	      && 0!=strncmp(c_address, "172.26.",7)
-	      && 0!=strncmp(c_address, "172.27.",7)
-	      && 0!=strncmp(c_address, "172.28.",7)
-	      && 0!=strncmp(c_address, "172.29.",7)
-	      && 0!=strncmp(c_address, "172.30.",7)
-	      && 0!=strncmp(c_address, "172.31.",7)
-	      && 0!=strncmp(c_address, "169.254",7))
+	  if (eXosip_is_public_address(c_address))
 	    {
 	      if (request->to->url->username==NULL)
 		snprintf(contact,1000, "<sip:%s:%s>", eXosip.j_firewall_ip,
@@ -387,38 +372,15 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
 					  "eXosip: here is the resolved destination host=%s\n", c_address));
 				}
 
-			  if (0!=strncmp(c_address, "192.168",7)
-				  && 0!=strncmp(c_address, "10.",3)
-				  && 0!=strncmp(c_address, "172.16.",7)
-				  && 0!=strncmp(c_address, "172.17.",7)
-				  && 0!=strncmp(c_address, "172.18.",7)
-				  && 0!=strncmp(c_address, "172.19.",7)
-				  && 0!=strncmp(c_address, "172.20.",7)
-				  && 0!=strncmp(c_address, "172.21.",7)
-				  && 0!=strncmp(c_address, "172.22.",7)
-				  && 0!=strncmp(c_address, "172.23.",7)
-				  && 0!=strncmp(c_address, "172.24.",7)
-				  && 0!=strncmp(c_address, "172.25.",7)
-				  && 0!=strncmp(c_address, "172.26.",7)
-				  && 0!=strncmp(c_address, "172.27.",7)
-				  && 0!=strncmp(c_address, "172.28.",7)
-				  && 0!=strncmp(c_address, "172.29.",7)
-				  && 0!=strncmp(c_address, "172.30.",7)
-				  && 0!=strncmp(c_address, "172.31.",7)
-				  && 0!=strncmp(c_address, "169.254",7))
-			  {
+			  if (eXosip_is_public_address(c_address))
+			    {
 				  /* replace the IP with our firewall ip */
-				  sdp_connection_t *conn = sdp_message_connection_get(local_sdp, -1, 0);
-				  if (conn!=NULL && conn->c_addr!=NULL )
-				  {
-					  osip_free(conn->c_addr);
-					  conn->c_addr = osip_strdup(eXosip.j_firewall_ip);
-				  }
-				  pos=0;
+				  sdp_connection_t *conn;
+				  pos=-1;
 				  conn = sdp_message_connection_get(local_sdp, pos, 0);
 				  while (conn!=NULL)
 				  {
-					  if (conn!=NULL && conn->c_addr!=NULL )
+					  if (conn->c_addr!=NULL )
 					  {
 						  osip_free(conn->c_addr);
 						  conn->c_addr = osip_strdup(eXosip.j_firewall_ip);
@@ -426,7 +388,7 @@ generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context)
 					  pos++;
 					  conn = sdp_message_connection_get(local_sdp, pos, 0);
 				  }
-			  }
+			    }
 		  }
 	  }
 

@@ -155,7 +155,7 @@ int window_sessions_list_run_command(int c)
       ca = jcall_find_call(cursor_sessions_list);
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
-      eXosip_answer_call(ca->did, 200, 0);
+      eXosip_answer_call(ca->did, 200, "10500");
       eXosip_unlock();
       break;
     case 'r':
@@ -232,15 +232,16 @@ int window_sessions_list_run_command(int c)
     case '9':
     case '#':
     case '*':
-      ca = jcall_find_call(cursor_sessions_list);
-      if (ca==NULL) { beep(); break; }
-      char dtmf_body[1000];
-      snprintf(dtmf_body, 999, "Signal=%c\r\nDuration=250\r\n", c);
-      eXosip_lock();
-      eXosip_info_call(ca->did, "application/dtmf-relay", dtmf_body);
-      eXosip_unlock();
-      break;
-
+      {
+	char dtmf_body[1000];
+	ca = jcall_find_call(cursor_sessions_list);
+	if (ca==NULL) { beep(); break; }
+	snprintf(dtmf_body, 999, "Signal=%c\r\nDuration=250\r\n", c);
+	eXosip_lock();
+	eXosip_info_call(ca->did, "application/dtmf-relay", dtmf_body);
+	eXosip_unlock();
+	break;
+      }
     default:
       beep();
       return -1;

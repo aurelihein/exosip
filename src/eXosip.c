@@ -29,8 +29,8 @@
 #include <osip2/osip_mt.h>
 #include <osip2/osip_condv.h>
 
-#if defined WIN32
-#else
+#ifndef  WIN32
+#include <memory.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -51,12 +51,25 @@ static void *eXosip_thread(void *arg);
 static int eXosip_execute(void);
 static osip_message_t *eXosip_prepare_request_for_auth(osip_message_t *msg);
 
+static int eXosip_update_top_via(osip_message_t *sip);
+
+
 eXosip_t eXosip;
 
 void eXosip_set_firewallip(const char *firewall_address)
 {
 	if (firewall_address==NULL) return;
 	snprintf(eXosip.j_firewall_ip,50, "%s", firewall_address);
+}
+
+void eXosip_set_nattype(const char *nat_type)
+{
+    osip_strncpy(eXosip.nat_type, (nat_type ? nat_type : ""), sizeof(eXosip.nat_type)-1);
+}
+
+void eXosip_force_proxy(const char *proxyurl)
+{
+    osip_strncpy(eXosip.forced_proxy, (proxyurl ? proxyurl : ""),  sizeof(eXosip.forced_proxy)-1);
 }
 
 int eXosip_guess_localip(int family, char *address, int size)
@@ -71,6 +84,31 @@ void eXosip_get_localip(char *ip)
 	       "eXosip_get_localip IS DEPRECATED. Use eXosip_guess_localip!\n"));
   eXosip_guess_ip_for_via(AF_INET, ip, 15);
 }
+
+int 
+eXosip_is_public_address(const char *c_address)
+{
+    return (0!=strncmp(c_address, "192.168",7)
+	    && 0!=strncmp(c_address, "10.",3)
+	    && 0!=strncmp(c_address, "172.16.",7)
+	    && 0!=strncmp(c_address, "172.17.",7)
+	    && 0!=strncmp(c_address, "172.18.",7)
+	    && 0!=strncmp(c_address, "172.19.",7)
+	    && 0!=strncmp(c_address, "172.20.",7)
+	    && 0!=strncmp(c_address, "172.21.",7)
+	    && 0!=strncmp(c_address, "172.22.",7)
+	    && 0!=strncmp(c_address, "172.23.",7)
+	    && 0!=strncmp(c_address, "172.24.",7)
+	    && 0!=strncmp(c_address, "172.25.",7)
+	    && 0!=strncmp(c_address, "172.26.",7)
+	    && 0!=strncmp(c_address, "172.27.",7)
+	    && 0!=strncmp(c_address, "172.28.",7)
+	    && 0!=strncmp(c_address, "172.29.",7)
+	    && 0!=strncmp(c_address, "172.30.",7)
+	    && 0!=strncmp(c_address, "172.31.",7)
+	    && 0!=strncmp(c_address, "169.254",7));
+}
+
 
 void __eXosip_wakeup(void)
 {
@@ -870,7 +908,13 @@ int eXosip_retry_call(int cid)
   inv=eXosip_prepare_request_for_auth(tr->orig_request);
   if (inv==NULL) return -1;
   eXosip_add_authentication_information(inv,tr->last_response);
-  osip_message_force_update(inv);
+  if (-1 == eXosip_update_top_via(inv))
+    {
+      osip_message_free(inv);
+      return -1;
+    }
+
+
   i = osip_transaction_init(&newtr,
 		       ICT,
 		       eXosip.j_osip,
@@ -884,7 +928,7 @@ int eXosip_retry_call(int cid)
   
   sipevent = osip_new_outgoing_sipmessage(inv);
   
-  osip_transaction_set_your_instance(newtr, tr->your_instance);
+  osip_transaction_set_your_instance(newtr, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
   osip_transaction_add_event(newtr, sipevent);
 
   eXosip_update(); /* fixed? */
@@ -974,25 +1018,7 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
 
 		  /* If remote message contains a Public IP, we have to replace the SDP
 			connection address */
-		  if (0!=strncmp(c_address, "192.168",7)
-			  && 0!=strncmp(c_address, "10.",3)
-			  && 0!=strncmp(c_address, "172.16.",7)
-			  && 0!=strncmp(c_address, "172.17.",7)
-			  && 0!=strncmp(c_address, "172.18.",7)
-			  && 0!=strncmp(c_address, "172.19.",7)
-			  && 0!=strncmp(c_address, "172.20.",7)
-			  && 0!=strncmp(c_address, "172.21.",7)
-			  && 0!=strncmp(c_address, "172.22.",7)
-			  && 0!=strncmp(c_address, "172.23.",7)
-			  && 0!=strncmp(c_address, "172.24.",7)
-			  && 0!=strncmp(c_address, "172.25.",7)
-			  && 0!=strncmp(c_address, "172.26.",7)
-			  && 0!=strncmp(c_address, "172.27.",7)
-			  && 0!=strncmp(c_address, "172.28.",7)
-			  && 0!=strncmp(c_address, "172.29.",7)
-			  && 0!=strncmp(c_address, "172.30.",7)
-			  && 0!=strncmp(c_address, "172.31.",7)
-			  && 0!=strncmp(c_address, "169.254",7))
+		  if (eXosip_is_public_address(c_address))
 		  {
 			  /* replace the IP with our firewall ip */
 			  sdp_connection_t *conn = sdp_message_connection_get(sdp, -1, 0);
@@ -1309,6 +1335,36 @@ int eXosip_answer_call   (int jid, int status, char *local_sdp_port)
   if (i!=0)
     return -1;
   return 0;
+}
+
+int
+eXosip_retrieve_negotiated_payload(int jid, int *payload, char *payload_name, int pnsize)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  int pl;
+
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: No call here?\n"));
+      return -1;
+    }
+
+  pl = eXosip_retrieve_sdp_negotiation_result(jc->c_ctx, payload_name, pnsize);
+
+  if (pl >= 0)
+    {
+    *payload = pl;
+    return 0;
+    }
+
+  return -1;
 }
 
 int eXosip_options_call  (int jid)
@@ -1951,6 +2007,7 @@ eXosip_find_authentication_info(const char *username, const char *realm)
   return fallback;
 }
 
+
 int eXosip_clear_authentication_info(){
   jauthinfo_t *jauthinfo;
   for (jauthinfo = eXosip.authinfos; jauthinfo!=NULL;
@@ -2037,7 +2094,10 @@ eXosip_add_authentication_information(osip_message_t *req,
       if (i!=0) return -1;
 
       if (aut != NULL)
-	osip_list_add (req->authorizations, aut, -1);
+	{
+	  osip_list_add (req->authorizations, aut, -1);
+	  osip_message_force_update(req);
+	}
 
       pos++;
       osip_message_get_www_authenticate(last_response, pos, &wwwauth);
@@ -2064,11 +2124,64 @@ eXosip_add_authentication_information(osip_message_t *req,
       if (i!=0) return -1;
 
       if (proxy_aut != NULL)
-	osip_list_add (req->proxy_authorizations, proxy_aut, -1);
+	{
+	  osip_list_add (req->proxy_authorizations, proxy_aut, -1);
+	  osip_message_force_update(req);
+	}
 
       pos++;
       osip_message_get_proxy_authenticate (last_response, pos, &proxyauth);
     }
+
+  return 0;
+}
+
+
+static int 
+eXosip_update_top_via(osip_message_t *sip)
+{
+#ifdef SM
+  char *locip;
+#else
+  char locip[50];
+#endif
+  char *tmp    = (char *)osip_malloc(256*sizeof(char));
+  osip_via_t *via   = (osip_via_t *) osip_list_get (sip->vias, 0);
+
+
+  osip_list_remove(sip->vias, 0);
+  osip_via_free(via);
+#ifdef SM
+  eXosip_get_localip_for(sip->req_uri->host,&locip);
+#else
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
+#endif
+  if (eXosip.ip_family==AF_INET6)
+    snprintf(tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
+	    locip,
+	    eXosip.localport,
+	    via_branch_new_random());
+  else
+    snprintf(tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
+	    locip,
+	    eXosip.localport,
+	    via_branch_new_random());
+
+  if (eXosip.nat_type[0])
+    {
+      strncat(tmp, ";xxx-nat-type=", 256);
+      strncat(tmp, eXosip.nat_type, 256);
+    }
+
+	      
+#ifdef SM
+  osip_free(locip);
+#endif
+  osip_via_init(&via);
+  osip_via_parse(via, tmp);
+  osip_list_add(sip->vias, via, 0);
+  osip_free(tmp);
+
   return 0;
 }
 
@@ -2133,15 +2246,9 @@ int eXosip_register      (int rid, int registration_period)
 
 	  /* modify the REGISTER request */
 	  {
-#ifdef SM
-	    char *locip;
-#else
-	    char locip[50];
-#endif
 	    int osip_cseq_num = osip_atoi(reg->cseq->number);
 	    int length   = strlen(reg->cseq->number);
-	    char *tmp    = (char *)osip_malloc(90*sizeof(char));
-	    osip_via_t *via   = (osip_via_t *) osip_list_get (reg->vias, 0);
+
 
 	    osip_authorization_t *aut;
 	    osip_proxy_authorization_t *proxy_aut;
@@ -2162,31 +2269,12 @@ int eXosip_register      (int rid, int registration_period)
 		proxy_aut = (osip_proxy_authorization_t*)osip_list_get(reg->proxy_authorizations, 0);
 	      }
 
-	    osip_list_remove(reg->vias, 0);
-	    osip_via_free(via);
-#ifdef SM
-	    eXosip_get_localip_for(reg->req_uri->host,&locip);
-#else
-	    eXosip_guess_ip_for_via(eXosip.ip_family, locip, 49);
-#endif
-	    if (eXosip.ip_family==AF_INET6)
-	      sprintf(tmp, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-		      locip,
-		      eXosip.localport,
-		      via_branch_new_random());
-	    else
-	      sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
-		      locip,
-		      eXosip.localport,
-		      via_branch_new_random());
-	      
-#ifdef SM
-	    osip_free(locip);
-#endif
-	    osip_via_init(&via);
-	    osip_via_parse(via, tmp);
-	    osip_list_add(reg->vias, via, 0);
-	    osip_free(tmp);
+
+	    if (-1 == eXosip_update_top_via(reg))
+	      {
+		osip_message_free(reg);
+		return -1;
+	      }
 
 	    osip_cseq_num++;
 	    osip_free(reg->cseq->number);
@@ -2610,4 +2698,64 @@ int eXosip_notify_accept_subscribe(int nid, int code,
     }
 
   return i;
+}
+
+void eXosip_guess_contact_uri(const char *url, char *strbuf, int bufsize, int public_net)
+{
+  int i;
+  osip_from_t *a_from;
+  char *contact = strbuf;
+  char locip[50];
+
+  eXosip_guess_ip_for_via(eXosip.ip_family, locip, sizeof(locip) - 1);
+  contact[0] = 0;
+
+  i = osip_from_init(&a_from);
+  if (i==0)
+    i = osip_from_parse(a_from, url);
+  
+  if (i==0 && a_from!=NULL
+      && a_from->url!=NULL && a_from->url->username!=NULL )
+    {
+      if (eXosip.j_firewall_ip[0]!='\0')
+	{
+	  if (public_net)
+	    {
+	      if (eXosip.localport==NULL)
+		snprintf(contact, bufsize, "<sip:%s@%s>", a_from->url->username,
+			 eXosip.j_firewall_ip);
+	      else
+		snprintf(contact, bufsize, "<sip:%s@%s:%s>", a_from->url->username,
+			 eXosip.j_firewall_ip,
+			 eXosip.localport);
+		}
+	  else
+	    {
+	      if (eXosip.localport==NULL)
+		snprintf(contact, bufsize, "<sip:%s@%s>", a_from->url->username,
+			locip);
+	      else
+		snprintf(contact, bufsize, "<sip:%s@%s:%s>", a_from->url->username,
+			locip,
+			eXosip.localport);
+	    }
+	}
+      else
+	{
+	  if (eXosip.localport==NULL)
+	    snprintf(contact, bufsize, "<sip:%s@%s>", a_from->url->username,
+		    locip);
+	  else
+	    snprintf(contact, bufsize, "<sip:%s@%s:%s>", a_from->url->username,
+		    locip,
+		    eXosip.localport);
+	}
+	  
+      osip_from_free(a_from);
+    }
+} 
+
+void eXosip_set_answer_contact(const char *contacturl)
+{
+  osip_strncpy(eXosip.answer_contact, contacturl ? contacturl : "", sizeof(eXosip.answer_contact)-1);
 }

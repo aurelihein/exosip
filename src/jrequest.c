@@ -98,7 +98,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 #else
   char locip[50];
 #endif
-
+  int doing_register;
   char *register_callid_number = NULL;
 
   i = osip_message_init(&request);
@@ -110,7 +110,9 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   osip_message_set_status_code(request, 0);
   osip_message_set_reason_phrase(request, NULL);
 
-  if (0==strcmp("REGISTER", method_name))
+  doing_register = 0==strcmp("REGISTER", method_name);
+
+  if (doing_register)
     {
       osip_uri_init(&(request->req_uri));
       i = osip_uri_parse(request->req_uri, proxy);
@@ -131,7 +133,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	     "ERROR: callee address does not seems to be a sipurl: %s\n", to));
 	  goto brood_error_1;
 	}
-      if (proxy!=NULL)
+      if (proxy!=NULL && proxy[0] != 0)
 	{  /* equal to a pre-existing route set */
 	   /* if the pre-existing route set contains a "lr" (compliance
 	      with bis-08) then the req_uri should contains the remote target
@@ -161,7 +163,6 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	    /* if the first URI of route set does not contain "lr", the req_uri
 	       is set to the first uri of route set */
 	    {
-	      osip_uri_uparam_get_byname(o_proxy->url, "lr", &lr_param);
 	      request->req_uri = o_proxy->url;
 	      o_proxy->url = NULL;
 	      osip_route_free(o_proxy);
@@ -193,41 +194,27 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   osip_from_set_tag(request->from, osip_from_tag_new_random());
   
   /* set the cseq and call_id header */
-  if (0==strcmp("REGISTER", method_name))
     {
       osip_call_id_t *callid;
       osip_cseq_t *cseq;
       char *num;
+      char  *cidrand;
 
       /* call-id is always the same for REGISTRATIONS */
       i = osip_call_id_init(&callid);
       if (i!=0) goto brood_error_1;
-      register_callid_number = osip_call_id_new_random();
-      osip_call_id_set_number(callid, register_callid_number);
+      cidrand = osip_call_id_new_random();
+      osip_call_id_set_number(callid, cidrand);
+      if (doing_register)
+	register_callid_number = cidrand;
+
       osip_call_id_set_host(callid, osip_strdup(locip));
       request->call_id = callid;
 
       i = osip_cseq_init(&cseq);
       if (i!=0) goto brood_error_1;
-      num = osip_strdup("1");
+      num = osip_strdup(doing_register ? "1" : "20" );
       osip_cseq_set_number(cseq, num);
-      osip_cseq_set_method(cseq, osip_strdup(method_name));
-      request->cseq = cseq;
-    }
-  else
-    {
-      /* set the call-id */
-      osip_call_id_t *callid;
-      osip_cseq_t *cseq;
-      i = osip_call_id_init(&callid);
-      if (i!=0) goto brood_error_1;
-      osip_call_id_set_number(callid, osip_call_id_new_random());
-      osip_call_id_set_host(callid, osip_strdup(locip));
-      request->call_id = callid;
-
-      i = osip_cseq_init(&cseq);
-      if (i!=0) goto brood_error_1;
-      osip_cseq_set_number(cseq, osip_strdup("20")); /* always start with 20... :-> */
       osip_cseq_set_method(cseq, osip_strdup(method_name));
       request->cseq = cseq;
     }
@@ -255,28 +242,10 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 			  "eXosip: here is the resolved destination host=%s\n", c_address));
 		}
 
-	  if (0!=strncmp(c_address, "192.168",7)
-		  && 0!=strncmp(c_address, "10.",3)
-		  && 0!=strncmp(c_address, "172.16.",7)
-		  && 0!=strncmp(c_address, "172.17.",7)
-		  && 0!=strncmp(c_address, "172.18.",7)
-		  && 0!=strncmp(c_address, "172.19.",7)
-		  && 0!=strncmp(c_address, "172.20.",7)
-		  && 0!=strncmp(c_address, "172.21.",7)
-		  && 0!=strncmp(c_address, "172.22.",7)
-		  && 0!=strncmp(c_address, "172.23.",7)
-		  && 0!=strncmp(c_address, "172.24.",7)
-		  && 0!=strncmp(c_address, "172.25.",7)
-		  && 0!=strncmp(c_address, "172.26.",7)
-		  && 0!=strncmp(c_address, "172.27.",7)
-		  && 0!=strncmp(c_address, "172.28.",7)
-		  && 0!=strncmp(c_address, "172.29.",7)
-		  && 0!=strncmp(c_address, "172.30.",7)
-		  && 0!=strncmp(c_address, "172.31.",7)
-		  && 0!=strncmp(c_address, "169.254",7))
+	  if (eXosip_is_public_address(c_address))
 	    {
 	      char tmp[200];
-	      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      snprintf(tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 		      eXosip.j_firewall_ip,
 		      eXosip.localport,
 		      via_branch_new_random() );
@@ -286,12 +255,12 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  {
 	    char tmp[200];
 	    if (eXosip.ip_family==AF_INET6)
-	      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+	      snprintf(tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
 		      locip,
 		      eXosip.localport,
 		      via_branch_new_random() );
 	    else
-	      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      snprintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 		      locip,
 		      eXosip.localport,
 		      via_branch_new_random() );
@@ -302,12 +271,12 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   {
     char tmp[200];
     if (eXosip.ip_family==AF_INET6)
-      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+      snprintf(tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
 	      locip,
 	      eXosip.localport,
 	      via_branch_new_random() );
     else
-      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+      snprintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 	      locip,
 	      eXosip.localport,
 	      via_branch_new_random() );
@@ -318,12 +287,12 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   {
     char tmp[200];
     if (eXosip.ip_family==AF_INET6)
-      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+      spnrintf(tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
 	      locip,
 	      eXosip.localport,
 	      via_branch_new_random() );
     else
-      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+      spnrintf(tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 	      locip,
 	      eXosip.localport,
 	      via_branch_new_random() );
@@ -365,25 +334,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 				  "eXosip: here is the resolved destination host=%s\n", c_address));
 			}
 
-	      if (0!=strncmp(c_address, "192.168",7)
-		  && 0!=strncmp(c_address, "10.",3)
-		  && 0!=strncmp(c_address, "172.16.",7)
-		  && 0!=strncmp(c_address, "172.17.",7)
-		  && 0!=strncmp(c_address, "172.18.",7)
-		  && 0!=strncmp(c_address, "172.19.",7)
-		  && 0!=strncmp(c_address, "172.20.",7)
-		  && 0!=strncmp(c_address, "172.21.",7)
-		  && 0!=strncmp(c_address, "172.22.",7)
-		  && 0!=strncmp(c_address, "172.23.",7)
-		  && 0!=strncmp(c_address, "172.24.",7)
-		  && 0!=strncmp(c_address, "172.25.",7)
-		  && 0!=strncmp(c_address, "172.26.",7)
-		  && 0!=strncmp(c_address, "172.27.",7)
-		  && 0!=strncmp(c_address, "172.28.",7)
-		  && 0!=strncmp(c_address, "172.29.",7)
-		  && 0!=strncmp(c_address, "172.30.",7)
-		  && 0!=strncmp(c_address, "172.31.",7)
-		  && 0!=strncmp(c_address, "169.254",7))
+	      if (eXosip_is_public_address(c_address))
 		{
 		  if (eXosip.localport==NULL)
 		    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
@@ -517,25 +468,7 @@ generating_register(osip_message_t **reg, char *from,
 				  "eXosip: here is the resolved destination host=%s\n", c_address));
 			}
 
-	      if (0!=strncmp(c_address, "192.168",7)
-		  && 0!=strncmp(c_address, "10.",3)
-		  && 0!=strncmp(c_address, "172.16.",7)
-		  && 0!=strncmp(c_address, "172.17.",7)
-		  && 0!=strncmp(c_address, "172.18.",7)
-		  && 0!=strncmp(c_address, "172.19.",7)
-		  && 0!=strncmp(c_address, "172.20.",7)
-		  && 0!=strncmp(c_address, "172.21.",7)
-		  && 0!=strncmp(c_address, "172.22.",7)
-		  && 0!=strncmp(c_address, "172.23.",7)
-		  && 0!=strncmp(c_address, "172.24.",7)
-		  && 0!=strncmp(c_address, "172.25.",7)
-		  && 0!=strncmp(c_address, "172.26.",7)
-		  && 0!=strncmp(c_address, "172.27.",7)
-		  && 0!=strncmp(c_address, "172.28.",7)
-		  && 0!=strncmp(c_address, "172.29.",7)
-		  && 0!=strncmp(c_address, "172.30.",7)
-		  && 0!=strncmp(c_address, "172.31.",7)
-		  && 0!=strncmp(c_address, "169.254",7))
+	      if (eXosip_is_public_address(c_address))
 		{
 		  if (eXosip.localport==NULL)
 		    sprintf(contact, "<sip:%s@%s>", a_from->url->username,
@@ -948,25 +881,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 			  "eXosip: here is the resolved destination host=%s\n", c_address));
 		}
 
-	  if (0!=strncmp(c_address, "192.168",7)
-		  && 0!=strncmp(c_address, "10.",3)
-		  && 0!=strncmp(c_address, "172.16.",7)
-		  && 0!=strncmp(c_address, "172.17.",7)
-		  && 0!=strncmp(c_address, "172.18.",7)
-		  && 0!=strncmp(c_address, "172.19.",7)
-		  && 0!=strncmp(c_address, "172.20.",7)
-		  && 0!=strncmp(c_address, "172.21.",7)
-		  && 0!=strncmp(c_address, "172.22.",7)
-		  && 0!=strncmp(c_address, "172.23.",7)
-		  && 0!=strncmp(c_address, "172.24.",7)
-		  && 0!=strncmp(c_address, "172.25.",7)
-		  && 0!=strncmp(c_address, "172.26.",7)
-		  && 0!=strncmp(c_address, "172.27.",7)
-		  && 0!=strncmp(c_address, "172.28.",7)
-		  && 0!=strncmp(c_address, "172.29.",7)
-		  && 0!=strncmp(c_address, "172.30.",7)
-		  && 0!=strncmp(c_address, "172.31.",7)
-		  && 0!=strncmp(c_address, "169.254",7))
+	  if (eXosip_is_public_address(c_address))
 	  {
 		    char tmp[200];
 		    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
@@ -979,12 +894,12 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 	  {
 	    char tmp[200];
 	    if (eXosip.ip_family==AF_INET6)
-	      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+	      snprintf(tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
 		      locip,
 		      eXosip.localport,
 		      via_branch_new_random() );
 	    else
-	      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      snprintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 		      locip,
 		      eXosip.localport,
 		      via_branch_new_random() );
@@ -996,12 +911,12 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   {
     char tmp[200];
     if (eXosip.ip_family==AF_INET6)
-      sprintf(tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+      snprintf(tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
 	      locip,
 	      eXosip.localport,
 	      via_branch_new_random() );
     else
-      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+      snprintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 	      locip,
 	      eXosip.localport,
 	      via_branch_new_random() );
@@ -1051,25 +966,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 			  "eXosip: here is the resolved destination host=%s\n", c_address));
 		}
 
-	  if (0!=strncmp(c_address, "192.168",7)
-	      && 0!=strncmp(c_address, "10.",3)
-	      && 0!=strncmp(c_address, "172.16.",7)
-	      && 0!=strncmp(c_address, "172.17.",7)
-	      && 0!=strncmp(c_address, "172.18.",7)
-	      && 0!=strncmp(c_address, "172.19.",7)
-	      && 0!=strncmp(c_address, "172.20.",7)
-	      && 0!=strncmp(c_address, "172.21.",7)
-	      && 0!=strncmp(c_address, "172.22.",7)
-	      && 0!=strncmp(c_address, "172.23.",7)
-	      && 0!=strncmp(c_address, "172.24.",7)
-	      && 0!=strncmp(c_address, "172.25.",7)
-	      && 0!=strncmp(c_address, "172.26.",7)
-	      && 0!=strncmp(c_address, "172.27.",7)
-	      && 0!=strncmp(c_address, "172.28.",7)
-	      && 0!=strncmp(c_address, "172.29.",7)
-	      && 0!=strncmp(c_address, "172.30.",7)
-	      && 0!=strncmp(c_address, "172.31.",7)
-	      && 0!=strncmp(c_address, "169.254",7))
+	  if (eXosip_is_public_address(c_address))
 	    {
 	      sprintf(contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
 		      eXosip.j_firewall_ip,

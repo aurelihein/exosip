@@ -119,7 +119,7 @@ struct jcall {
 typedef struct jcall jcall_t;
 
 int    os_sound_init();
-int    os_sound_start(jcall_t *ca);
+int    os_sound_start(jcall_t *ca, int port);
 void  *os_sound_start_thread(void *_ca);
 void  *os_sound_start_out_thread(void *_ca);
 void   os_sound_close(jcall_t *ca);
@@ -136,6 +136,11 @@ extern jcall_t jcalls[];
 
 jcall_t *jcall_find_call(int pos);
 int jcall_get_number_of_pending_calls();
+jcall_t *jcall_locate_call(eXosip_event_t *je, int createit);
+jcall_t *jcall_locate_call_by_cid(int cid);
+jcall_t *jcall_create_call(int cid);
+jcall_t *jcall_get_call(int num);
+int jcall_get_callpos(jcall_t *ca);
 
 int jcall_new(eXosip_event_t *je);
 int jcall_answered(eXosip_event_t *je);

@@ -189,8 +189,18 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
   sdp_message_t *sdp;
   osip_body_t *oldbody;
   int pos;
-  /* search for remote_sdp_audio_port & remote_sdp_audio_ip
-     in the last SIP message */
+  int gotpayload = 0;
+
+
+
+  /* 
+     search for remote_sdp_audio_port & remote_sdp_audio_ip
+     in the last SIP message 
+     extract the payload to be used for connection either from negotioation context
+     or from the last SIP message
+  */
+
+  
 
   if (message==NULL) return -1;
 
@@ -214,8 +224,20 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 	{ return -1; }
     }
   
-  pos=0;
+
+  if (je->jc)
+    {
+      int pl = eXosip_retrieve_sdp_negotiation_result(je->jc->c_ctx, je->payload_name, sizeof(je->payload_name));
+      if (pl >= 0)
+	{
+	  je->payload = pl;
+	  gotpayload = 1;
+	}
+    }
+
+
   sdp = NULL;
+  pos = 0;
   while (!osip_list_eol(message->bodies, pos))
     {
       int i;
@@ -223,18 +245,21 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
       pos++;
       sdp_message_init(&sdp);
       i = sdp_message_parse(sdp,oldbody->body);
-      if (i==0){
-		  int len = strlen(oldbody->body);
-		  if (len<999)
-		osip_strncpy(je->sdp_body, oldbody->body, len);
-		  else
-		osip_strncpy(je->sdp_body, oldbody->body, 999);
-
-	break;
-      }
+      if (i==0)
+	{
+	  int len = strlen(oldbody->body);
+	  if (len<999)
+	    osip_strncpy(je->sdp_body, oldbody->body, len);
+	  else
+	    osip_strncpy(je->sdp_body, oldbody->body, 999);
+	  
+	  break;
+	}
       sdp_message_free(sdp);
       sdp = NULL;
     }
+
+
 
   if (sdp!=NULL)
     {
@@ -245,6 +270,8 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 	  snprintf(je->remote_sdp_audio_ip, 49, "%s",
 		   sdp->c_connection->c_addr);
 	}
+
+
       for (j=0; !osip_list_eol(sdp->m_medias, j); j++)
 	{
 	  sdp_media_t *med = (sdp_media_t*) osip_list_get(sdp->m_medias, j);
@@ -252,13 +279,18 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 	    {
 	      snprintf(je->remote_sdp_audio_ip, 49, "Y a probleme!");
 	    }
+	
 	  if (med->m_media!=NULL &&
 	      0==osip_strcasecmp(med->m_media, "audio"))
 	    {
 	      sdp_connection_t *conn;
 	      int pos_attr;
 	      char *payload = (char *) osip_list_get (med->m_payloads, 0);
-	      if (payload!=NULL)
+
+	      if (!gotpayload)
+		je->payload = 0;
+
+	      if (!gotpayload && payload!=NULL)
 		{
 		  je->payload = osip_atoi(payload);
 		  /* copy payload name! */
@@ -282,7 +314,7 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 			}
 		    }
 		}
-	      else je->payload = 0; /* or -1 ?? */
+	      
 
 	      je->remote_sdp_audio_port = osip_atoi(med->m_port);
 	      conn = (sdp_connection_t*) osip_list_get(med->c_connections, 0);
@@ -865,7 +897,10 @@ eXosip_event_wait(int tv_s, int tv_ms)
       if (tv_s==0 && tv_ms==0)
 		return NULL;
 
-	  i = select(max+1, &fdset, NULL, NULL, &tv);
+      i = select(max+1, &fdset, NULL, NULL, &tv);
+      if (i <= 0)
+	return 0;
+
       if (FD_ISSET (jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset))
 	  {
 		  char buf[500];

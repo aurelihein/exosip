@@ -34,7 +34,7 @@ static int _check_url(char *url)
   return 0;
 }
 
-int _josua_start_call(char *from, char *to, char *subject, char *route)
+int _josua_start_call(char *from, char *to, char *subject, char *route, char *port, void *reference)
 {
   osip_message_t *invite;
   int i;
@@ -62,7 +62,7 @@ int _josua_start_call(char *from, char *to, char *subject, char *route)
       return -1;
     }
   eXosip_lock();
-  i = eXosip_initiate_call(invite, NULL, NULL, "10500");
+  i = eXosip_initiate_call(invite, reference, NULL, port);
   eXosip_unlock();  
   return i;
 }
@@ -104,7 +104,7 @@ int _josua_start_subscribe(char *from, char *to, char *route)
 {
   int i;
   eXosip_lock();
-  i = eXosip_subscribe(to, cfg.identity, route);
+  i = eXosip_subscribe(to, from, route);
   eXosip_unlock();  
   return i;
 }

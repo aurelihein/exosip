@@ -283,3 +283,51 @@ eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr)
     }
   return NULL;
 }
+
+int eXosip_retrieve_sdp_negotiation_result(osip_negotiation_ctx_t *ctx, char *payload_name,  int pnsize)
+{
+  sdp_message_t *local_sdp = 0;
+  int payload_result = -1;
+  
+  if (!ctx)
+    return payload_result;
+
+  local_sdp = osip_negotiation_ctx_get_local_sdp(ctx);
+
+  if (local_sdp != NULL)
+    {
+      sdp_media_t *med = (sdp_media_t*) osip_list_get(local_sdp->m_medias, 0);
+      char *payload = (char *) osip_list_get (med->m_payloads, 0);
+      int pos_attr;
+
+      if (payload!=NULL)
+	{
+	  payload_result = osip_atoi(payload);
+
+	  /* copy payload name! */
+	  for (pos_attr=0;
+	       !osip_list_eol(med->a_attributes, pos_attr);
+	       pos_attr++)
+	    {
+	      sdp_attribute_t *attr;
+	      attr = (sdp_attribute_t *)osip_list_get(med->a_attributes, pos_attr);
+	      if (0==osip_strncasecmp(attr->a_att_field, "rtpmap", 6))
+		{
+		  if ((payload_result <10 && 
+		       0==osip_strncasecmp(attr->a_att_value, payload, 1))
+		      ||(payload_result>9 && payload_result<100 && 
+			 0==osip_strncasecmp(attr->a_att_value, payload, 2))
+		      ||(payload_result >100 && payload_result<128 &&
+			 0==osip_strncasecmp(attr->a_att_value, payload, 3)))
+		    {
+		      snprintf(payload_name, pnsize, "%s", attr->a_att_value);
+		      return payload_result;
+		    }
+		}
+	    }
+	}
+    }
+
+  return payload_result;
+
+}
