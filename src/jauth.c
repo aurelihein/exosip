@@ -237,7 +237,8 @@ __eXosip_create_authorization_header(osip_message_t *previous_answer,
 		   "Authentication method not supported. (Digest only).\n"));
       return -1;
     }
-  if (wa->algorithm!=NULL&&0!=osip_strcasecmp("MD5",wa->algorithm))
+  /* "MD5" is invalid, but some servers use it. */
+  if (wa->algorithm!=NULL&&0!=osip_strcasecmp("MD5",wa->algorithm)&&0!=osip_strcasecmp("\"MD5\"",wa->algorithm))
     {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -346,7 +347,8 @@ __eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
 		   "Authentication method not supported. (Digest only).\n"));
       return -1;
     }
-  if (wa->algorithm!=NULL&&0!=osip_strcasecmp("MD5",wa->algorithm))
+  /* "MD5" is invalid, but some servers use it. */
+  if (wa->algorithm!=NULL&&0!=osip_strcasecmp("MD5",wa->algorithm)&&0!=osip_strcasecmp("\"MD5\"",wa->algorithm))
     {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
