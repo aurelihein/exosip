@@ -5,9 +5,10 @@ AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@ @JOSUA_FLAGS@
 
 josua_SOURCES = \
 main_ncurses.c 	main_shell.c \
-jconfig.c 	jconfig.h \
+jconfig.c 	jconfig.h    \
 pplgetopt.c 	ppl_getopt.h \
-jcalls.c        jcalls.h
+jcalls.c        jcalls.h     \
+gui.c           gui.h
 
 josua_LDFLAGS = -O  -Wall
 josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \

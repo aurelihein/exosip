@@ -1066,6 +1066,25 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	 3: a REQUEST with a wrong CSeq.
 	 4: a NOT-SUPPORTED method with a wrong CSeq.
       */
+      
+      if (!MSG_IS_BYE(evt->sip))
+	{
+	  /* reject all requests for a closed dialog */
+	  old_trn = eXosip_find_last_inc_bye(jc, jd);
+	  if (old_trn!=NULL)
+	    {
+	      eXosip_send_default_answer(jd, transaction, evt, 481);
+	      return ;
+	    }
+	  
+	  old_trn = eXosip_find_last_out_bye(jc, jd);
+	  if (old_trn!=NULL)
+	    {
+	      eXosip_send_default_answer(jd, transaction, evt, 481);
+	      return ;
+	    }
+	}
+
       if (MSG_IS_INVITE(evt->sip))
 	{
 	  /* the previous transaction MUST be freed */
