@@ -62,6 +62,7 @@ int jsubscription_redirected(eXosip_event_t *je);
 int jsubscription_requestfailure(eXosip_event_t *je);
 int jsubscription_serverfailure(eXosip_event_t *je);
 int jsubscription_globalfailure(eXosip_event_t *je);
+int jsubscription_notify(eXosip_event_t *je);
 
 int jsubscription_closed(eXosip_event_t *je);
 

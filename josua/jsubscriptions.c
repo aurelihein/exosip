@@ -334,6 +334,62 @@ int jsubscription_globalfailure(eXosip_event_t *je)
   return 0;
 }
 
+
+int jsubscription_notify(eXosip_event_t *je)
+{
+  jsubscription_t *ca;
+  int k;
+
+  for (k=0;k<MAX_NUMBER_OF_SUBSCRIPTIONS;k++)
+    {
+      if (jsubscriptions[k].state != NOT_USED
+	  && jsubscriptions[k].sid==je->sid
+	  && jsubscriptions[k].did==je->did)
+	break;
+    }
+  if (k==MAX_NUMBER_OF_SUBSCRIPTIONS)
+    {
+      for (k=0;k<MAX_NUMBER_OF_SUBSCRIPTIONS;k++)
+	{
+	  if (jsubscriptions[k].state == NOT_USED)
+	    break;
+	}
+      if (k==MAX_NUMBER_OF_SUBSCRIPTIONS)
+	return -1;
+      ca = &(jsubscriptions[k]);
+      memset(&(jsubscriptions[k]), 0, sizeof(jsubscription_t));
+      
+      ca->sid = je->sid;
+      ca->did = je->did;
+      
+      if (ca->did<1 && ca->did<1)
+	{
+	  exit(0);
+	  return -1; /* not enough information for this event?? */
+	}
+    }
+
+  ca = &(jsubscriptions[k]);
+
+  ca->online_status = je->online_status;
+  ca->ss_status = je->ss_status;
+  ca->ss_reason = je->ss_reason;
+
+  osip_strncpy(ca->textinfo,   je->textinfo, 255);
+  osip_strncpy(ca->req_uri,    je->req_uri, 255);
+  osip_strncpy(ca->local_uri,  je->local_uri, 255);
+  osip_strncpy(ca->remote_uri, je->remote_uri, 255);
+
+
+  if (je->reason_phrase[0]!='\0')
+    {
+      osip_strncpy(ca->reason_phrase, je->reason_phrase, 49);
+      ca->status_code = je->status_code;
+    }
+  ca->state = je->type;
+  return 0;
+}
+
 int jsubscription_closed(eXosip_event_t *je)
 {
   jsubscription_t *ca;

@@ -1034,6 +1034,21 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction, sipevent);
+
+  {
+    eXosip_event_t *je;
+    je = eXosip_event_init_for_subscribe(EXOSIP_SUBSCRIPTION_NOTIFY, js, jd);
+    if (je!=NULL)
+      {
+	eXosip_event_add_status(je, answer);
+      }
+
+    if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY]!=NULL)
+      eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY](EXOSIP_SUBSCRIPTION_NOTIFY, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);
+  }
+
   return;
 }
 

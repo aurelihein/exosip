@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.46 2003-06-23 16:28:38 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.47 2003-06-23 16:47:50 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -397,6 +397,15 @@ josua_event_get()
 		   je->sid, je->did,
 		   je->remote_uri);
 	  josua_printf(buf);
+
+	  snprintf(buf, 99, "<- (%i %i) online=%i [status: %i reason:%i]",
+		   je->sid, je->did, 
+		   je->online_status,
+		   je->ss_status,
+		   je->ss_reason);
+	  josua_printf(buf);
+
+	  jsubscription_notify(je);
 	}
       else if (je->type==EXOSIP_IN_SUBSCRIPTION_NEW)
 	{

@@ -304,7 +304,7 @@ typedef enum eXosip_event_type_t {
   EXOSIP_SUBSCRIPTION_REQUESTFAILURE,  /* announce a request failure      */
   EXOSIP_SUBSCRIPTION_SERVERFAILURE,   /* announce a server failure       */
   EXOSIP_SUBSCRIPTION_GLOBALFAILURE,   /* announce a global failure       */
-  EXOSIP_SUBSCRIPTION_NOTIFY,
+  EXOSIP_SUBSCRIPTION_NOTIFY,          /* announce new NOTIFY request     */
 
   EXOSIP_SUBSCRIPTION_RELEASED,        /* call context is cleared.        */
 
@@ -353,8 +353,6 @@ eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t *jc,
 					      eXosip_dialog_t *jd);
 int eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message);
 int eXosip_event_add_status(eXosip_event_t *je, osip_message_t *response);
-int eXosip_event_add_online_status(eXosip_event_t *je,
-				   eXosip_subscribe_t *js);
 eXosip_event_t *eXosip_event_init_for_subscribe(int type,
 						   eXosip_subscribe_t *js,
 						   eXosip_dialog_t *jd);

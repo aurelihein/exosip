@@ -1016,7 +1016,6 @@ void cb_rcv2xx_4subscribe(osip_transaction_t *tr,osip_message_t *sip)
     je = eXosip_event_init_for_subscribe(EXOSIP_SUBSCRIPTION_ANSWERED, js, jd);
     if (je!=NULL)
       {
-	eXosip_event_add_online_status(je, js);
 	eXosip_event_add_status(je, sip);
       }
 

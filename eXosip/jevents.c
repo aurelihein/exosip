@@ -206,18 +206,6 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
   return -1;
 }
 
-int
-eXosip_event_add_online_status(eXosip_event_t *je,
-			       eXosip_subscribe_t *js)
-{
-  if (je==NULL) return -1;
-  if (js==NULL) return -1;
-  je->ss_status = js->s_ss_status;
-  je->online_status = js->s_online_status;
-  je->ss_reason = js->s_ss_reason;
-  return 0;
-}
-
 eXosip_event_t *
 eXosip_event_init_for_subscribe(int type,
 				eXosip_subscribe_t *js,
@@ -233,6 +221,10 @@ eXosip_event_init_for_subscribe(int type,
   je->sid = js->s_id;
   if (jd!=NULL)
     je->did = jd->d_id;
+
+  je->ss_status = js->s_ss_status;
+  je->online_status = js->s_online_status;
+  je->ss_reason = js->s_ss_reason;
 
   /* je->external_reference = js->external_reference; */
 
@@ -329,6 +321,10 @@ eXosip_event_init_for_notify(int type,
   je->nid = jn->n_id;
   if (jd!=NULL)
     je->did = jd->d_id;
+
+  je->ss_status = jn->n_ss_status;
+  je->online_status = jn->n_online_status;
+  je->ss_reason = jn->n_ss_reason;
 
   /*je->external_reference = jc->external_reference; */
 
