@@ -38,7 +38,7 @@ gui_address_book_newentry.h gui_online.h             jconfig.h              \
 gui_icon.h                  gui_registrations_list.h jinsubscriptions.h     \
 gui_insubscriptions_list.h  gui_sessions_list.h      jsubscriptions.h       \
 gui_loglines.h              gui_setup.h              ppl_getopt.h           \
-sound-ucl.c
+sound-ucl.c                 sound-mac.c
 
 if GLIB_SUPPORT
 josua_LDFLAGS = -O @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@  `pkg-config --libs glib-2.0`
