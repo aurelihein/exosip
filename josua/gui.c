@@ -727,7 +727,6 @@ int window_new_call_key_pressed()
       x-gui_window_new_call.x0-11-1); */
 
   new_call_cursor++;
-  xxx
   return 0;
 }
 
