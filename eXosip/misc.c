@@ -46,6 +46,7 @@ eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *jc)
 
   for (jd=jc->c_dialogs;jd!=NULL;jd=jd->next)
     {
+      pos=0;
       while (!osip_list_eol(jd->d_inc_trs, pos))
 	{
 	  inc_tr = osip_list_get(jd->d_inc_trs, pos);
@@ -66,6 +67,7 @@ eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *jc)
 
   for (jd=jc->c_dialogs;jd!=NULL;jd=jd->next)
     {
+      pos=0;
       while (!osip_list_eol(jd->d_out_trs, pos))
 	{
 	  out_tr = osip_list_get(jd->d_out_trs, pos);
