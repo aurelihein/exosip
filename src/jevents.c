@@ -206,7 +206,12 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
       sdp_message_init(&sdp);
       i = sdp_message_parse(sdp,oldbody->body);
       if (i==0){
-	osip_strncpy(je->sdp_body, oldbody->body, 999);
+		  int len = strlen(oldbody->body);
+		  if (len<999)
+		osip_strncpy(je->sdp_body, oldbody->body, len);
+		  else
+		osip_strncpy(je->sdp_body, oldbody->body, 999);
+
 	break;
       }
       sdp_message_free(sdp);
@@ -254,7 +259,7 @@ eXosip_event_add_sdp_info(eXosip_event_t *je, osip_message_t *message)
 			      ||(je->payload>100 && je->payload<128 &&
 				 0==osip_strncasecmp(attr->a_att_value, payload, 3)))
 			    {
-			      osip_strncpy(je->payload_name, attr->a_att_value, 49);
+			      snprintf(je->payload_name, 49, "%s", attr->a_att_value);
 			    }
 			}
 		    }
