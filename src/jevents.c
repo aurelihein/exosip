@@ -731,7 +731,7 @@ eXosip_event_wait(int tv_s, int tv_ms)
   deadline.tv_sec += interval.tv_sec;
   
   i = osip_cond_timedwait ((struct osip_cond *)eXosip.j_cond,
-			   (struct osip_mutex *)eXosip.j_mutexlock,
+			   (struct osip_mutex *)eXosip.j_condmutex,
 			   &deadline);
   
   je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);

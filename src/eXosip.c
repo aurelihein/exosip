@@ -132,6 +132,8 @@ void eXosip_quit()
     }
   
   osip_mutex_destroy((struct osip_mutex*)eXosip.j_mutexlock);
+  osip_mutex_destroy((struct osip_mutex*)eXosip.j_condmutex);
+  osip_cond_destroy((struct osip_cond*)eXosip.j_cond);
 
   osip_negotiation_free(eXosip.osip_negotiation);  
 
@@ -276,6 +278,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_reg = NULL;
 
   eXosip.j_cond      = (struct osip_cond*)osip_cond_init();
+  eXosip.j_condmutex = (struct osip_mutex*)osip_mutex_init();
 
   eXosip.j_mutexlock = (struct osip_mutex*)osip_mutex_init();
 
