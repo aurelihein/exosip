@@ -57,7 +57,7 @@ eXosip_event_init_for_call(int type,
 	      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
 	      if (tmp!=NULL)
 		{
-		  snprintf(je->to, 255, "%s", tmp);
+		  snprintf(je->remote_uri, 255, "%s", tmp);
 		  osip_free(tmp);
 		}
 	    }
@@ -66,7 +66,7 @@ eXosip_event_init_for_call(int type,
 	      osip_to_to_str(jd->d_dialog->local_uri, &tmp);
 	      if (tmp!=NULL)
 		{
-		  snprintf(je->from, 255, "%s", tmp);
+		  snprintf(je->local_uri, 255, "%s", tmp);
 		  osip_free(tmp);
 		}
 	    }

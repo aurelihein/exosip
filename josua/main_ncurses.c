@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.27 2003-05-27 14:37:14 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.28 2003-05-30 07:53:46 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -844,6 +844,10 @@ void josua_printf(char *chfr, ...)
 
 }
 
+int              eXosip_calls_id[MAX_CALLS];
+eXosip_call_t    eXosip_calls[MAX_CALLS];
+eXosip_event_t  *eXosip_event_calls[MAX_CALLS];
+
 void
 josua_event_get()
 {
@@ -851,13 +855,51 @@ josua_event_get()
   eXosip_event_t *je;
   for (;;)
     {
+      char buf[100];
       je = eXosip_event_wait(0,0);
       if (je==NULL)
 	break;
-      if (je->textinfo[0]!='\0')
+
+      if (je->type==EXOSIP_CALL_NEW)
+	{
+	  sprintf(buf, "New Call from: %s", je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_CALL_ANSWERED)
+	{
+	  sprintf(buf, "Call Established with: %s", je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_CALL_PROCEEDING)
+	{
+	  sprintf(buf, "Call pending with: %s", je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_CALL_RINGING)
+	{
+	  sprintf(buf, "Remote Party is Ringing with: %s", je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_CALL_DISCONNECTED)
+	{
+	  sprintf(buf, "Call closed by: %s", je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_CALL_HOLD)
+	{
+	  sprintf(buf, "Call On Hold: %s", je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->type==EXOSIP_CALL_OFFHOLD)
+	{
+	  sprintf(buf, "Call Off Hold: %s", je->remote_uri);
+	  josua_printf(buf);
+	}
+      else if (je->textinfo[0]!='\0')
 	{
 	  josua_printf(je->textinfo);
 	}
+	
       eXosip_event_free(je);
     }
 }

@@ -278,8 +278,8 @@ typedef struct eXosip_event {
   eXosip_event_type_t type;
 
   char                textinfo[150];
-  char                to[256];
-  char                from[256];
+  char                local_uri[256];
+  char                remote_uri[256];
   char                subject[256];
   /* For a high level usage of the eXosip stack? (API is enough?) */
   /* int did;
