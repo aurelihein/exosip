@@ -954,7 +954,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	{
 	  /* search for the open string */
 	  char *tmp = body->body;
-	  while (tmp!='\0')
+	  while (tmp[0]!='\0')
 	    {
 	      if (tmp[0]=='o' && 0==strncmp(tmp, "online", 6))
 		{
@@ -970,15 +970,34 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 		    }
 		  break;
 		}
-	      else if (tmp[0]=='c' && 0==strncmp(tmp, "busy", 4))
+	      else if (tmp[0]=='b' && 0==strncmp(tmp, "busy", 4))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_BUSY;
+		  break;
+		}
+	      else if (tmp[0]=='b' && 0==strncmp(tmp, "berightback",11))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_BERIGHTBACK;
+		  break;
+		}
+	      else if (tmp[0]=='a' && 0==strncmp(tmp, "away", 4))
 		{
 		  js->s_online_status = EXOSIP_NOTIFY_AWAY;
+		  break;
+		}	
+	      else if (tmp[0]=='o' && 0==strncmp(tmp, "onthephone", 10))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_ONTHEPHONE;
+		  break;
+		}
+	      else if (tmp[0]=='o' && 0==strncmp(tmp, "outtolunch", 10))
+		{
+		  js->s_online_status = EXOSIP_NOTIFY_OUTTOLUNCH;
 		  break;
 		}
 	      tmp++;
 	    }
 	}
-
     }
 #else
   /* modify the status of user */
@@ -1008,7 +1027,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	{
 	  /* search for the open string */
 	  char *tmp = body->body;
-	  while (tmp!='\0')
+	  while (tmp[0]!='\0')
 	    {
 	      if (tmp[0]=='o' && 0==strncmp(tmp, "open", 4))
 		{
@@ -1026,7 +1045,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 		}
 	      else if (tmp[0]=='c' && 0==strncmp(tmp, "closed", 6))
 		{
-		  js->s_online_status = EXOSIP_NOTIFY_AWAY;
+		  js->s_online_status = EXOSIP_NOTIFY_CLOSED;
 		  break;
 		}
 	      tmp++;

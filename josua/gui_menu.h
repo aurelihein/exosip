@@ -25,6 +25,7 @@
 
 int window_menu_print();
 int window_menu_run_command(int c);
+void window_menu_draw_commands();
 
 extern gui_t gui_window_menu;
 

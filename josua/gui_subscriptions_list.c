@@ -75,22 +75,32 @@ int window_subscriptions_list_print()
 		   jsubscriptions[k].remote_uri);
 	  tmp = buf + strlen(buf);
 	  if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_UNKNOWN)
-	    snprintf(tmp, 199-strlen(buf), " %10.10s", "--unknown--");
+	    snprintf(tmp, 199-strlen(buf), " %14.14s", "--unknown--");
 	  else if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_PENDING)
-	    snprintf(tmp, 199-strlen(buf), " %10.10s", "--pending--");
+	    snprintf(tmp, 199-strlen(buf), " %14.14s", "--pending--");
 	  else if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_ACTIVE)
 	    {
 	      if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_UNKNOWN)
-		snprintf(tmp, 199-strlen(buf), " %10.10s", "unknown");
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "unknown");
 	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_PENDING)
-		snprintf(tmp, 199-strlen(buf), " %10.10s", "pending");
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "pending");
 	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_ONLINE)
-		snprintf(tmp, 199-strlen(buf), " %10.10s", "online");
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "online");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_BUSY)
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "Busy");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_BERIGHTBACK)
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "Be Right Back");
 	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_AWAY)
-		snprintf(tmp, 199-strlen(buf), " %10.10s", "away");
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "away");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_ONTHEPHONE)
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "On The Phone");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_OUTTOLUNCH)
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "Out To Lunch");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_CLOSED)
+		snprintf(tmp, 199-strlen(buf), " %14.14s", "Closed");
 	    }
 	  else if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
-	    snprintf(tmp, 199-strlen(buf), " %10.10s", "--terminated--");
+	    snprintf(tmp, 199-strlen(buf), " %14.14s", "--terminated--");
 
 	  tmp = buf + strlen(buf);
 	  snprintf(tmp, 199-strlen(buf), " %100.100s", " ");

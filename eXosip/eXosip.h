@@ -110,7 +110,12 @@ typedef enum eXosip_ss_status {
   EXOSIP_NOTIFY_UNKNOWN,
   EXOSIP_NOTIFY_PENDING, /* subscription not yet accepted */
   EXOSIP_NOTIFY_ONLINE,
-  EXOSIP_NOTIFY_AWAY
+  EXOSIP_NOTIFY_BUSY,
+  EXOSIP_NOTIFY_BERIGHTBACK,
+  EXOSIP_NOTIFY_AWAY,
+  EXOSIP_NOTIFY_ONTHEPHONE,
+  EXOSIP_NOTIFY_OUTTOLUNCH,
+  EXOSIP_NOTIFY_CLOSED
 } eXosip_ss_status_t;
 
 typedef struct eXosip_subscribe_t eXosip_subscribe_t;

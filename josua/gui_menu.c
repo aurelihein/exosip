@@ -18,12 +18,14 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+
 #include "gui_menu.h"
 #include "gui_new_call.h"
 #include "gui_address_book_browse.h"
 #include "gui_sessions_list.h"
 #include "gui_registrations_list.h"
 #include "gui_subscriptions_list.h"
+#include "gui_online.h"
 
 gui_t gui_window_menu = {
   GUI_OFF,
@@ -35,7 +37,7 @@ gui_t gui_window_menu = {
   &window_menu_print,
   &window_menu_run_command,
   NULL,
-  NULL,
+  &window_menu_draw_commands,
   -1,
   -1,
   -1,
@@ -92,11 +94,47 @@ int window_menu_print()
   return 0;
 }
 
+void window_menu_draw_commands()
+{
+  int x,y;
+  char *menu_commands[] = {
+    "<-",  "PrevWindow",
+    "->",  "NextWindow",
+    "^i",  "Toggle Online status",
+    "^a",  "Apply Status" ,
+    NULL
+  };
+  getmaxyx(stdscr,y,x);
+  josua_print_command(menu_commands, y-5, 0);
+}
+
 int window_menu_run_command(int c)
 {
   int max = 7;
   switch (c)
     {
+    case 9:
+      josua_online_status++;
+      if (josua_online_status>EXOSIP_NOTIFY_CLOSED)
+	josua_online_status = EXOSIP_NOTIFY_ONLINE;
+      break;
+    case 1:
+      /* apply IM change status */
+      {
+	int k;
+	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
+	  {
+	    if (jinsubscriptions[k].state != NOT_USED)
+	      {
+		int i;
+		eXosip_lock();
+		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, josua_online_status);
+		if (i!=0) beep();
+		eXosip_unlock();
+	      }
+	  }
+      }
+      break;
     case KEY_DOWN:
       cursor_menu++;
       cursor_menu %= max;

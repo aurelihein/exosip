@@ -76,22 +76,32 @@ int window_insubscriptions_list_print()
 		   jinsubscriptions[k].remote_uri);
 	  tmp = buf + strlen(buf);
 	  if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_UNKNOWN)
-	    snprintf(tmp, 199-strlen(buf), " %-11.11s", "--unknown--");
+	    snprintf(tmp, 199-strlen(buf), " %-14.14s", "--unknown--");
 	  else if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_PENDING)
-	    snprintf(tmp, 199-strlen(buf), " %-11.11s", "--pending--");
+	    snprintf(tmp, 199-strlen(buf), " %-14.14s", "--pending--");
 	  else if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_ACTIVE)
 	    {
 	      if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_UNKNOWN)
-		snprintf(tmp, 199-strlen(buf), " %-11.11s", "unknown");
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "unknown");
 	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_PENDING)
-		snprintf(tmp, 199-strlen(buf), " %-11.11s", "pending");
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "Pending");
 	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_ONLINE)
-		snprintf(tmp, 199-strlen(buf), " %-11.11s", "online");
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "Online");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_BUSY)
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "Busy");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_BERIGHTBACK)
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "Be Right Back");
 	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_AWAY)
-		snprintf(tmp, 199-strlen(buf), " %-11.11s", "away");
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "Away");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_ONTHEPHONE)
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "On The Phone");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_OUTTOLUNCH)
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "Out To Lunch");
+	      else if (jinsubscriptions[k].online_status==EXOSIP_NOTIFY_CLOSED)
+		snprintf(tmp, 199-strlen(buf), " %-14.14s", "Closed");
 	    }
 	  else if (jinsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
-	    snprintf(tmp, 199-strlen(buf), " %11.11s", "--terminated--");
+	    snprintf(tmp, 199-strlen(buf), " %14.14s", "--terminated--");
 
 	  tmp = buf + strlen(buf);
 	  snprintf(tmp, 199-strlen(buf), " %100.100s", " ");
@@ -188,7 +198,7 @@ int window_insubscriptions_list_run_command(int c)
       js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
       if (js==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_TERMINATED, EXOSIP_NOTIFY_AWAY);
+      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_TERMINATED, EXOSIP_NOTIFY_CLOSED);
       if (i!=0) beep();
       if (i==0)
 	jinsubscription_remove(js);
@@ -219,7 +229,7 @@ int window_insubscriptions_list_run_command(int c)
 	    if (jinsubscriptions[k].state != NOT_USED)
 	      {
 		eXosip_lock();
-		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
+		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, josua_online_status);
 		if (i!=0) beep();
 		eXosip_unlock();
 	      }
@@ -235,7 +245,7 @@ int window_insubscriptions_list_run_command(int c)
 	    if (jinsubscriptions[k].state != NOT_USED)
 	      {
 		eXosip_lock();
-		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_AWAY);
+		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, josua_online_status);
 		if (i!=0) beep();
 		eXosip_unlock();
 	      }

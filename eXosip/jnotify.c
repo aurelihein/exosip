@@ -264,7 +264,7 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
 </presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
 
     }
-  else
+  else if (jn->n_online_status==EXOSIP_NOTIFY_BUSY)
     {
       sprintf(buf, "<?xml version=\"1.0\"?>\n\
 <!DOCTYPE presence\n\
@@ -280,6 +280,86 @@ PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
 </presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
 
     }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_BERIGHTBACK)
+    {
+      sprintf(buf, "<?xml version=\"1.0\"?>\n\
+<!DOCTYPE presence\n\
+PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
+<presence>\n\
+<presentity uri=\"%s;method=SUBSCRIBE\" />\n\
+<atom id=\"%i\">\n\
+<address uri=\"%s;user=ip\" priority=\"0.800000\">\n\
+<status status=\"inactive\" />\n\
+<msnsubstatus substatus=\"berightback\" />\n\
+</address>\n\
+</atom>\n\
+</presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
+
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_AWAY)
+    {
+      sprintf(buf, "<?xml version=\"1.0\"?>\n\
+<!DOCTYPE presence\n\
+PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
+<presence>\n\
+<presentity uri=\"%s;method=SUBSCRIBE\" />\n\
+<atom id=\"%i\">\n\
+<address uri=\"%s;user=ip\" priority=\"0.800000\">\n\
+<status status=\"inactive\" />\n\
+<msnsubstatus substatus=\"away\" />\n\
+</address>\n\
+</atom>\n\
+</presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
+
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_ONTHEPHONE)
+    {
+      sprintf(buf, "<?xml version=\"1.0\"?>\n\
+<!DOCTYPE presence\n\
+PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
+<presence>\n\
+<presentity uri=\"%s;method=SUBSCRIBE\" />\n\
+<atom id=\"%i\">\n\
+<address uri=\"%s;user=ip\" priority=\"0.800000\">\n\
+<status status=\"inuse\" />\n\
+<msnsubstatus substatus=\"onthephone\" />\n\
+</address>\n\
+</atom>\n\
+</presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
+
+    }
+  else if (jn->n_online_status==EXOSIP_NOTIFY_OUTTOLUNCH)
+    {
+      sprintf(buf, "<?xml version=\"1.0\"?>\n\
+<!DOCTYPE presence\n\
+PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
+<presence>\n\
+<presentity uri=\"%s;method=SUBSCRIBE\" />\n\
+<atom id=\"%i\">\n\
+<address uri=\"%s;user=ip\" priority=\"0.800000\">\n\
+<status status=\"inactive\" />\n\
+<msnsubstatus substatus=\"outtolunch\" />\n\
+</address>\n\
+</atom>\n\
+</presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
+
+    }
+  else
+    {
+      sprintf(buf, "<?xml version=\"1.0\"?>\n\
+<!DOCTYPE presence\n\
+PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">\n\
+<presence>\n\
+<presentity uri=\"%s;method=SUBSCRIBE\" />\n\
+<atom id=\"%i\">\n\
+<address uri=\"%s;user=ip\" priority=\"0.800000\">\n\
+<status status=\"inactive\" />\n\
+<msnsubstatus substatus=\"away\" />\n\
+</address>\n\
+</atom>\n\
+</presence>", jn->n_contact_info, atom_id, jn->n_contact_info);
+    }
+
   osip_message_set_body(notify, buf);
   osip_message_set_content_type(notify, "application/xpidf+xml");
 #else
