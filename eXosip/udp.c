@@ -1117,17 +1117,10 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	}
       else if (MSG_IS_ACK(evt->sip))
 	{
-	  /*
-	    ProcessAckWithinCall(pCall, evt);
-	  */
 	}
       else if (MSG_IS_REFER(evt->sip))
 	{
-	  /*
-	    pCall->SetIncomingReferRequest(transaction);
-	    osip_transaction_set_your_instance(transaction, , __eXosip_new_jinfo(jc, jd));
-	    ProcessReferWithinCall(pCall, transaction, evt);
-	  */
+	  eXosip_send_default_answer(jd, transaction, evt, 501);
 	}
       else
 	{
