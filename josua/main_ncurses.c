@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.12 2003-03-30 18:48:20 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.13 2003-04-01 22:24:57 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -714,7 +714,6 @@ nctab_get_values(nctab_t (*nctab)[],
   return c;
 }
 
-
 void print_calls()
 {
   char buf[256];
@@ -796,6 +795,192 @@ void print_calls()
   if (jc!=NULL && jc->c_dialogs!=NULL)
     icon = jc->c_dialogs->d_STATE;
   else if (jc!=NULL)
+    {
+      icon = 0;
+    }
+    
+  eXosip_unlock();
+
+}
+
+void print_subscribes()
+{
+  char buf[256];
+  int yline;
+  int y,x;
+  eXosip_subscribe_t *js;
+  eXosip_dialog_t    *jd;
+
+  cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+  getmaxyx(stdscr,y,x);
+  
+
+  attrset(COLOR_PAIR(4));
+  yline = 16;
+  
+  eXosip_lock();
+  for (js = eXosip.j_subscribes; js!=NULL; js = js->next)
+    {
+      for (jd = js->s_dialogs; jd!=NULL; jd = jd->next)
+	{
+	  char *tmp;
+	  if (jd->d_dialog!=NULL)
+	    {
+	      if (jd->d_dialog->state==DIALOG_EARLY)
+		{
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		  sprintf(buf,"S%i D%i: Pending Subscribe To: %s\n",
+			  js->s_id, jd->d_id,
+			  tmp);
+		  osip_free(tmp);
+		}
+	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
+		{
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		  sprintf(buf,"S%i D%i: Established Subscribe To: %s.\n",
+			  js->s_id, jd->d_id,
+			  tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  else 
+	    {
+	      sprintf(buf,"S%i D%i: Connection closed.\n",
+		      js->s_id, jd->d_id);
+	    }
+	  mvaddnstr(yline,0,buf,x-1);
+	  yline++;
+	}
+      if (js->s_dialogs==NULL)
+	{
+	  osip_transaction_t *tr = js->s_out_tr;
+	  char *tmp = NULL;
+	  if (tr==NULL)
+	    {
+	      tr = js->s_inc_tr;
+	      if (tr==NULL) /* Bug ?? */
+		{
+		  eXosip_unlock();
+		  return;
+		}
+	      if (tr->orig_request!=NULL)
+		osip_from_to_str(tr->orig_request->from, &tmp);
+	    }
+	  if (tr->orig_request==NULL) /* info not yet available */
+	    {}
+	  else osip_to_to_str(tr->orig_request->to, &tmp);
+	  if (tmp!=NULL)
+	    sprintf(buf,"S%i D-1: with: %s.\n", js->s_id, tmp);
+	  else
+	    sprintf(buf,"S%i D-1: Waiting for status.\n", js->s_id);
+	  osip_free(tmp);
+	  mvaddnstr(yline,0,buf,x-1);
+	  yline++;
+	}
+    }
+
+  js = eXosip.j_subscribes;
+  if (js!=NULL && js->s_dialogs!=NULL)
+    icon = js->s_dialogs->d_STATE;
+  else if (js!=NULL)
+    {
+      icon = 0;
+    }
+    
+  eXosip_unlock();
+
+}
+
+void print_notifies()
+{
+  char buf[256];
+  int yline;
+  int y,x;
+  eXosip_notify_t *jn;
+  eXosip_dialog_t    *jd;
+
+  cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+  getmaxyx(stdscr,y,x);
+  
+
+  attrset(COLOR_PAIR(4));
+  yline = 20;
+  
+  eXosip_lock();
+  for (jn = eXosip.j_notifies; jn!=NULL; jn = jn->next)
+    {
+      for (jd = jn->n_dialogs; jd!=NULL; jd = jd->next)
+	{
+	  char *tmp;
+	  if (jd->d_dialog!=NULL)
+	    {
+	      if (jd->d_dialog->state==DIALOG_EARLY)
+		{
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		  sprintf(buf,"S%i D%i: Pending Subscribe To: %s\n",
+			  jn->n_id, jd->d_id,
+			  tmp);
+		  osip_free(tmp);
+		}
+	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
+		{
+		  if (jd->d_id!=-1
+		      && jn->n_online_status == EXOSIP_NOTIFY_UNKNOWN)
+		    {
+		      eXosip_notify(jd->d_id, EXOSIP_NOTIFY_AWAY);
+		    }
+		  else if (jd->d_id!=-1
+			   && jn->n_online_status == EXOSIP_NOTIFY_AWAY)
+		    {
+		      eXosip_notify(jd->d_id, EXOSIP_NOTIFY_ONLINE);
+		    }
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		  sprintf(buf,"S%i D%i: Established Subscribe To: %s.\n",
+			  jn->n_id, jd->d_id,
+			  tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  else 
+	    {
+	      sprintf(buf,"S%i D%i: Connection closed.\n",
+		      jn->n_id, jd->d_id);
+	    }
+	  mvaddnstr(yline,0,buf,x-1);
+	  yline++;
+	}
+      if (jn->n_dialogs==NULL)
+	{
+	  osip_transaction_t *tr = jn->n_out_tr;
+	  char *tmp = NULL;
+	  if (tr==NULL)
+	    {
+	      tr = jn->n_inc_tr;
+	      if (tr==NULL) /* Bug ?? */
+		{
+		  eXosip_unlock();
+		  return;
+		}
+	      if (tr->orig_request!=NULL)
+		osip_from_to_str(tr->orig_request->from, &tmp);
+	    }
+	  if (tr->orig_request==NULL) /* info not yet available */
+	    {}
+	  else osip_to_to_str(tr->orig_request->to, &tmp);
+	  if (tmp!=NULL)
+	    sprintf(buf,"S%i D-1: with: %s.\n", jn->n_id, tmp);
+	  else
+	    sprintf(buf,"S%i D-1: Waiting for status.\n", jn->n_id);
+	  osip_free(tmp);
+	  mvaddnstr(yline,0,buf,x-1);
+	  yline++;
+	}
+    }
+
+  jn = eXosip.j_notifies;
+  if (jn!=NULL && jn->n_dialogs!=NULL)
+    icon = jn->n_dialogs->d_STATE;
+  else if (jn!=NULL)
     {
       icon = 0;
     }
@@ -944,6 +1129,8 @@ void print_menu(int menu)
 		  COLORPAIR_OFFHOLDCALL);
     }
   print_calls();
+  print_subscribes();
+  print_notifies();
 }
 
 
@@ -1096,6 +1283,8 @@ void __josua_menu() {
     do
       {	
 	print_calls();
+	print_notifies();
+	print_subscribes();
 	refresh();
 	halfdelay(1);
 	c= getch();
@@ -1195,14 +1384,14 @@ usage:\n\
 \t [-d <verbose level>]\n\
 \t [-p <SIP port>]\n\
 \t [-h]\n\
-\t [-i]                       interactive mode\n\
 \t [-v]\n\
 \n\
-  arguments can be used to make a new call.\n\
+  arguments can be used to make a new call or to subscribe.\n\
 \n\
 \t [-t <sipurl to call>]\n\
 \t [-r <sipurl for route>]\n\
 \t [-s <subject>]\n\
+\t [-S]                       Send a subscription\n\
 \t [-T <delay>]               close calls after 60s as a default timeout.\n");
     exit (code);
 }
@@ -1216,6 +1405,7 @@ int main(int argc, const char *const *argv) {
   ppl_getopt_t *opt;
   ppl_status_t rv;
   const char *optarg;
+  int send_subscription = 0;
 
   if (argc > 1 && strlen (argv[1]) == 1 && 0 == strncmp (argv[1], "-", 2))
     usage (0);
@@ -1224,7 +1414,7 @@ int main(int argc, const char *const *argv) {
 
   ppl_getopt_init (&opt, argc, argv);
 
-#define __APP_BASEARGS "F:I:C:L:f:d:p:t:r:s:T:vVih?X"
+#define __APP_BASEARGS "F:I:C:L:f:d:p:t:r:s:T:vVSh?X"
   while ((rv = ppl_getopt (opt, __APP_BASEARGS, &c, &optarg)) == PPL_SUCCESS)
     {
       switch (c)
@@ -1258,6 +1448,9 @@ int main(int argc, const char *const *argv) {
             break;
           case 's':
             snprintf(cfg.subject, 255, optarg);
+            break;
+          case 'S':
+	    send_subscription = 1;
             break;
           case 'T':
             cfg.timeout = atoi(optarg);
@@ -1346,21 +1539,33 @@ int main(int argc, const char *const *argv) {
 
   if (cfg.to[0]!='\0')
     { /* start a command line call, if needed */
-      osip_message_t *invite;
-      i = eXosip_build_initial_invite(&invite,
-				      cfg.to,
-				      cfg.identity,
-				      cfg.route,
-				      cfg.subject);
-      if (i!=0)
+      if (send_subscription==0)
 	{
-	  fprintf (stderr, "josua: (bad arguments?)\n");
-	  exit(0);
+	  osip_message_t *invite;
+	  i = eXosip_build_initial_invite(&invite,
+					  cfg.to,
+					  cfg.identity,
+					  cfg.route,
+					  cfg.subject);
+	  if (i!=0)
+	    {
+	      fprintf (stderr, "josua: (bad arguments?)\n");
+	      exit(0);
+	    }
+	  eXosip_lock();
+	  eXosip_start_call(invite);
+	  eXosip_unlock();
 	}
-      eXosip_lock();
-      eXosip_start_call(invite);
-      eXosip_unlock();
+      else
+	{
+	  eXosip_lock();
+	  eXosip_subscribe(cfg.to,
+			       cfg.identity,
+			       cfg.route);
+	  eXosip_unlock();
+	}
     }
+
 
   print_menu(0);
   __josua_menu();

@@ -78,6 +78,12 @@ struct eXosip_dialog_t {
   eXosip_dialog_t *parent;
 };
 
+typedef enum eXosip_subscribe_state {
+  EXOSIP_NOTIFY_UNKNOWN,
+  EXOSIP_NOTIFY_PENDING, /* subscription not yet accepted */
+  EXOSIP_NOTIFY_ONLINE,
+  EXOSIP_NOTIFY_AWAY
+} osip_subscribe_state_t;
 
 typedef struct eXosip_subscribe_t eXosip_subscribe_t;
 
@@ -239,6 +245,8 @@ void eXosip_dialog_free(eXosip_dialog_t *jd);
 void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state);
 void eXosip_delete_early_dialog(eXosip_dialog_t *jd);
 
+int generating_initial_subscribe(osip_message_t **message, char *to,
+				 char *from, char *route);
 int generating_message(osip_message_t **message, char *to, char *from,
 		       char *route, char *buff);
 int  generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled);
@@ -278,6 +286,7 @@ int complete_answer_that_establish_a_dialog(osip_message_t *response, osip_messa
 int _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 				       osip_dialog_t *dialog, char *transport);
 
+osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd );

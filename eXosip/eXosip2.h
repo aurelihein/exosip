@@ -61,7 +61,7 @@ void  eXosip_register      (int rid);
 void  eXosip_register_init (char *from, char *proxy, char *contact);
 
 /* This is to manage outgoing subscription */
-void  eXosip_subscribe(char *to, char *from, char *route, char *buff);
+void  eXosip_subscribe(char *to, char *from, char *route);
 void  eXosip_subscribe_terminate(int sid);
 
 /* This is to manage incoming subscription */

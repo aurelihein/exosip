@@ -297,8 +297,10 @@ int eXosip_init(FILE *input, FILE *output, int port)
 void
 eXosip_update()
 {
-  eXosip_call_t *jc;
-  eXosip_dialog_t *jd;
+  eXosip_call_t      *jc;
+  eXosip_subscribe_t *js;
+  eXosip_notify_t *jn;
+  eXosip_dialog_t    *jd;
   int counter=1;
   int counter2=1;
   for (jc=eXosip.j_calls; jc!=NULL; jc=jc->next)
@@ -306,6 +308,36 @@ eXosip_update()
       jc->c_id = counter2;
       counter2++;
       for (jd=jc->c_dialogs; jd!=NULL; jd=jd->next)
+	{
+	  if (jd->d_dialog!=NULL) /* finished call */
+	    {
+	      jd->d_id = counter;
+	      counter++;
+	    }
+	  else jd->d_id = -1;
+	}
+    }
+
+  for (js=eXosip.j_subscribes; js!=NULL; js=js->next)
+    {
+      js->s_id = counter2;
+      counter2++;
+      for (jd=js->s_dialogs; jd!=NULL; jd=jd->next)
+	{
+	  if (jd->d_dialog!=NULL) /* finished call */
+	    {
+	      jd->d_id = counter;
+	      counter++;
+	    }
+	  else jd->d_id = -1;
+	}
+    }
+
+  for (jn=eXosip.j_notifies; jn!=NULL; jn=jn->next)
+    {
+      jn->n_id = counter2;
+      counter2++;
+      for (jd=jn->n_dialogs; jd!=NULL; jd=jd->next)
 	{
 	  if (jd->d_dialog!=NULL) /* finished call */
 	    {
@@ -782,7 +814,7 @@ eXosip_register_init(char *from, char *proxy, char *contact)
 }
 
 
-void eXosip_subscribe    (char *to, char *from, char *route, char *buff)
+void eXosip_subscribe    (char *to, char *from, char *route)
 {
   eXosip_subscribe_t *js;
   osip_message_t *subscribe;
@@ -790,7 +822,7 @@ void eXosip_subscribe    (char *to, char *from, char *route, char *buff)
   osip_event_t *sipevent;
   int i;
     
-  i = generating_message(&subscribe, to, from, route, buff);
+  i = generating_initial_subscribe(&subscribe, to, from, route);
   if (i!=0) 
     {
       fprintf(stderr, "eXosip: cannot subscribe (cannot build SUBSCRIBE)! ");
@@ -825,27 +857,14 @@ void eXosip_subscribe    (char *to, char *from, char *route, char *buff)
   ADD_ELEMENT(eXosip.j_subscribes, js);
 }
 
-
-void eXosip_notify  (int nid, int status)
+void eXosip_notify_send_notify(eXosip_notify_t *jn,
+			       eXosip_dialog_t *jd,
+			       int status)
 {
-  eXosip_dialog_t *jd = NULL;
-  eXosip_notify_t *jn = NULL;
-
   osip_transaction_t *transaction;
-  osip_event_t *sipevent;
   osip_message_t *notify;
+  osip_event_t *sipevent;
   int i;
-
-  if (nid>0)
-    {
-      eXosip_notify_dialog_find(nid, &jn, &jd);
-    }
-  if (jd==NULL)
-    {
-      fprintf(stderr, "eXosip: No subscribe dialog here?\n");
-      return;
-    }
-
   transaction = eXosip_find_last_out_notify(jn, jd);
   if (transaction!=NULL)
     {
@@ -881,6 +900,25 @@ void eXosip_notify  (int nid, int status)
 
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, jn));
 }
+
+void eXosip_notify  (int nid, int status)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_notify_t *jn = NULL;
+
+  if (nid>0)
+    {
+      eXosip_notify_dialog_find(nid, &jn, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No subscribe dialog here?\n");
+      return;
+    }
+
+  eXosip_notify_send_notify(jn, jd, status);
+}
+
 
 void eXosip_notify_accept_subscribe   (int nid, int code, int status)
 {

@@ -27,6 +27,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <assert.h>
+
 #include <eXosip.h>
 
 
@@ -312,14 +314,18 @@ jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
 void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
-  eXosip_call_t *jc;
+  eXosip_dialog_t    *jd;
+  eXosip_call_t      *jc;
+  eXosip_subscribe_t *js;
+  eXosip_notify_t    *jn;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv1xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;
   jc = jinfo->jc;
+  jn = jinfo->jn;
+  js = jinfo->js;
   if (MSG_IS_RESPONSEFOR(sip, "INVITE") && !MSG_TEST_CODE(sip, 100))
     {
       int i;
@@ -333,15 +339,32 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	      fprintf(stderr, "eXosip: cannot establish a dialog\n");
 	      return;
 	    }
-
-	  ADD_ELEMENT(jc->c_dialogs, jd);
-	  jinfo->jd = jd;
+	  if (jc!=NULL)
+	    {
+	      ADD_ELEMENT(jc->c_dialogs, jd);
+	      jinfo->jd = jd;
+	    }
+	  else if (js!=NULL)
+	    {
+	      ADD_ELEMENT(js->s_dialogs, jd);
+	      jinfo->jd = jd;
+	    }
+	  else if (jn!=NULL)
+	    {
+	      ADD_ELEMENT(jn->n_dialogs, jd);
+	      jinfo->jd = jd;
+	    }
+	  else
+	    {
+	      assert(0==0);
+	    }
 	  osip_transaction_set_your_instance(tr, jinfo);
 	}
       else
 	{
 	  osip_dialog_update_route_set_as_uac(jd->d_dialog, sip);
 	}
+
       if ( jd!=NULL)
 	jd->d_STATE = JD_TRYING;
 
@@ -589,19 +612,62 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 
 }
 
+void cb_rcv2xx_4subscribe(osip_transaction_t *tr,osip_message_t *sip)
+{
+  int i;
+  eXosip_dialog_t    *jd;
+  eXosip_subscribe_t *js;
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
+  if (jinfo==NULL)
+    return;
+  jd = jinfo->jd;
+  js = jinfo->js;
+  if (jd == NULL) /* This transaction initiate a dialog in the case of
+		     SUBSCRIBE (else it would be attached to a "jd" element. */
+    {
+      /* allocate a jd */
+      i = eXosip_dialog_init_as_uac(&jd, sip);
+      if (i!=0)
+	{
+	  fprintf(stderr, "eXosip: cannot establish a dialog\n");
+	  return;
+	}
+      ADD_ELEMENT(js->s_dialogs, jd);
+      jinfo->jd = jd;
+      osip_transaction_set_your_instance(tr, jinfo);
+    }
+  else
+    {
+      osip_dialog_update_route_set_as_uac(jd->d_dialog, sip);
+      osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
+    }
+
+  jd->d_STATE = JD_ESTABLISHED;
+  /* look for the body information */
+
+}
+
 void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
-  eXosip_call_t *jc;
+  eXosip_dialog_t    *jd;
+  eXosip_call_t      *jc;
+  eXosip_subscribe_t *js;
+  eXosip_notify_t    *jn;
   jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv2xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;
   jc = jinfo->jc;
+  jn = jinfo->jn;
+  js = jinfo->js;
   if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
     {
       cb_rcv2xx_4invite(tr, sip);
+    }
+  else if (MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+    {
+      cb_rcv2xx_4subscribe(tr, sip);
     }
   else if (MSG_IS_RESPONSEFOR(sip, "BYE"))
     {
@@ -634,7 +700,8 @@ void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       if (jd->d_dialog==NULL)
@@ -653,7 +720,8 @@ void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       if (MSG_TEST_CODE(sip, 401) || MSG_TEST_CODE(sip, 407))
@@ -674,7 +742,8 @@ void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       jd->d_STATE = JD_SERVERERROR;
@@ -693,7 +762,8 @@ void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
       jd->d_STATE = JD_GLOBALFAILURE;
@@ -727,7 +797,8 @@ void cb_snd2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       jd->d_STATE = JD_ESTABLISHED;
       return;
@@ -746,7 +817,8 @@ void cb_snd3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }
@@ -764,7 +836,8 @@ void cb_snd4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }
@@ -782,7 +855,8 @@ void cb_snd5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }
@@ -800,7 +874,8 @@ void cb_snd6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jd = jinfo->jd;
   jc = jinfo->jc;
   if (jd==NULL) return;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE"))
+  if (MSG_IS_RESPONSEFOR(sip, "INVITE")
+      || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
     {
       eXosip_delete_early_dialog(jd);
     }

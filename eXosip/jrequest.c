@@ -223,7 +223,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 
   /* add specific headers for each kind of request... */
 
-  if (0==strcmp("INVITE", method_name))
+  if (0==strcmp("INVITE", method_name) || 0==strcmp("SUBSCRIBE", method_name))
     {
       char *contact;
       osip_from_t *a_from;
@@ -249,6 +249,12 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	}
       osip_from_free(a_from);
     }
+
+  if (0==strcmp("SUBSCRIBE", method_name))
+    {
+      osip_parser_set_header(request, "Event", "presence");
+      osip_parser_set_accept(request, "application/cpim-pidf+xml");
+    }
   else if (0==strcmp("REGISTER", method_name))
     {
     }
@@ -261,7 +267,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 
     }
 
-  osip_parser_set_user_agent(request, "oSIP-ua/0.8.1");
+  osip_parser_set_user_agent(request, "josua/0.6.2");
   /*  else if ... */
   *dest = request;
   return 0;
@@ -344,14 +350,53 @@ int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 
   osip_parser_set_allow(*invite, "INVITE");
   osip_parser_set_allow(*invite, "ACK");
-  /*  osip_parser_set_allow(*invite, "OPTIONS"); */
   osip_parser_set_allow(*invite, "CANCEL");
   osip_parser_set_allow(*invite, "BYE");
+  /*  osip_parser_set_allow(*invite, "OPTIONS"); */
+  /* osip_parser_set_allow(*invite, "REFER"); */
+  osip_parser_set_allow(*invite, "SUBSCRIBE");
+  osip_parser_set_allow(*invite, "NOTIFY");
 
   /* after this delay, we should send a CANCEL */
   osip_parser_set_expires(*invite, "120");
 
   /* osip_parser_set_organization(*invite, "Jack's Org"); */
+  return 0;
+}
+
+/* this method can't be called unless the previous
+   INVITE transaction is over. */
+int generating_initial_subscribe(osip_message_t **subscribe, char *to,
+				 char *from, char *route)
+{
+  int i;
+
+  if (to!=NULL && *to=='\0')
+    return -1;
+
+  osip_clrspace(to);
+  osip_clrspace(from);
+  osip_clrspace(route);
+  if (route!=NULL && *route=='\0')
+    route=NULL;
+
+  i = generating_request_out_of_dialog(subscribe, "SUBSCRIBE", to, "UDP", from,
+				       route);
+  if (i!=0) return -1;
+  
+  osip_parser_set_allow(*subscribe, "INVITE");
+  osip_parser_set_allow(*subscribe, "ACK");
+  osip_parser_set_allow(*subscribe, "CANCEL");
+  osip_parser_set_allow(*subscribe, "BYE");
+  /*  osip_parser_set_allow(*invite, "OPTIONS"); */
+  /* osip_parser_set_allow(*subscribe, "REFER"); */
+  osip_parser_set_allow(*subscribe, "SUBSCRIBE");
+  osip_parser_set_allow(*subscribe, "NOTIFY");
+
+  /* after this delay, we should send a CANCEL */
+  osip_parser_set_expires(*subscribe, "600");
+
+  /* osip_parser_set_organization(*subscribe, "Jack's Org"); */
   return 0;
 }
 
@@ -584,7 +629,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 
   /* add specific headers for each kind of request... */
 
-  if (0==strcmp("INVITE", method_name))
+  if (0==strcmp("INVITE", method_name) || 0==strcmp("SUBSCRIBE", method_name))
     {
       /* add a Contact header for requests that establish a dialog:
 	 (only "INVITE") */
@@ -600,6 +645,18 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       /* Here we'll add the supported header if it's needed! */
       /* the require header must be added by the upper layer if needed */
     }
+
+  if (0==strcmp("SUBSCRIBE", method_name))
+    {
+      osip_parser_set_header(request, "Event", "presence");
+      osip_parser_set_accept(request, "application/cpim-pidf+xml");
+    }
+  else if (0==strcmp("NOTIFY", method_name))
+    {
+      osip_parser_set_header(request, "Subscription-State",
+			     "active;expires=599");
+      osip_parser_set_content_type(request, "application/cpim-pidf+xml");
+    }
   else if (0==strcmp("INFO", method_name))
     {
 
@@ -614,7 +671,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       /* TODO... */
     }
 
-  osip_parser_set_user_agent(request, "oSIP-ua/0.8.1");
+  osip_parser_set_user_agent(request, "josua/0.6.2");
   /*  else if ... */
   *dest = request;
   return 0;
@@ -736,7 +793,7 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
   }
 
   osip_parser_set_max_forwards(request, "70"); /* a UA should start a request with 70 */
-  osip_parser_set_user_agent(request, "oSIP-ua/0.8.1");
+  osip_parser_set_user_agent(request, "josua/0.6.2");
 
   *dest = request;
   return 0;

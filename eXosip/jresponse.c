@@ -35,7 +35,7 @@ eXosip_build_response_default(int jid, int status)
 
 int
 _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
-			     int status, osip_message_t *request)
+			       int status, osip_message_t *request)
 {
   osip_generic_param_t *tag;
   osip_message_t *response;
@@ -97,6 +97,20 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   if (i!=0) goto grd_error_1;
   i = osip_cseq_clone(request->cseq, &(response->cseq));
   if (i!=0) goto grd_error_1;
+
+  if (MSG_IS_SUBSCRIBE(request))
+    {
+      osip_header_t *exp;
+      osip_parser_set_header(response, "Event", "presence");
+      i = osip_parser_get_expires(request, 0, &exp);
+      if (exp==NULL)
+	{
+	  osip_header_t *cp;
+	  i = osip_header_clone(exp, &cp);
+	  if (cp!=NULL)
+	    osip_list_add(response->headers, cp, 0);
+	}
+    }
     
   *dest = response;
   return 0;
