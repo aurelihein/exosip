@@ -51,6 +51,33 @@ eXosip_call_init(eXosip_call_t **jc)
 }
 
 void
+__eXosip_call_remove_dialog_reference_in_call(eXosip_call_t *jc, eXosip_dialog_t *jd)
+{
+  eXosip_dialog_t *_jd;
+  jinfo_t *ji;
+  if (jc==NULL) return;
+  if (jd==NULL) return;
+
+
+  for (_jd = jc->c_dialogs; _jd!=NULL; _jd=jc->c_dialogs)
+    {
+      if (jd==_jd)
+	break;
+    }
+  if (_jd==NULL)
+    {
+      /* dialog not found??? */
+    }
+
+  ji = osip_transaction_get_your_instance(jc->c_inc_tr);
+  if (ji!=NULL && ji->jd==jd)
+    ji->jd=NULL;
+  ji = osip_transaction_get_your_instance(jc->c_out_tr);
+  if (ji!=NULL && ji->jd==jd)
+    ji->jd=NULL;
+}
+
+void
 eXosip_call_free(eXosip_call_t *jc)
 {
   /* ... */

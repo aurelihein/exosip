@@ -162,17 +162,6 @@ int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, osip_message_t *_invite, os
 
 void eXosip_dialog_free(eXosip_dialog_t *jd)
 {
-  osip_message_free(jd->d_200Ok);
-  osip_message_free(jd->d_ack);
-
-  osip_dialog_free(jd->d_dialog);
-
-  while (!osip_list_eol(jd->media_lines, 0))
-    {
-      char *tmp = osip_list_get(jd->media_lines, 0);
-      osip_list_remove(jd->media_lines, 0);
-      osip_free(tmp);
-    }
 
   while (!osip_list_eol(jd->d_inc_trs, 0))
     {
@@ -190,6 +179,18 @@ void eXosip_dialog_free(eXosip_dialog_t *jd)
       osip_list_remove(jd->d_out_trs, 0);
       __eXosip_delete_jinfo(tr);
       osip_list_add(eXosip.j_transactions, tr, 0);
+    }
+
+  osip_message_free(jd->d_200Ok);
+  osip_message_free(jd->d_ack);
+
+  osip_dialog_free(jd->d_dialog);
+
+  while (!osip_list_eol(jd->media_lines, 0))
+    {
+      char *tmp = osip_list_get(jd->media_lines, 0);
+      osip_list_remove(jd->media_lines, 0);
+      osip_free(tmp);
     }
 
   osip_free(jd->media_lines);

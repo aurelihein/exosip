@@ -1480,6 +1480,8 @@ int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 			    "eXosip: eXosip_release_finished_calls remove a dialog\n"));
+      /* Remove existing reference to the dialog from transactions! */
+      __eXosip_call_remove_dialog_reference_in_call(jc, jd);
       REMOVE_ELEMENT(jc->c_dialogs, jd);
       eXosip_dialog_free(jd);
       return 0;
@@ -1501,6 +1503,7 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				"eXosip: eXosip_release_aborted_calls remove an empty dialog\n"));
+      __eXosip_call_remove_dialog_reference_in_call(jc, jd);
 	  REMOVE_ELEMENT(jc->c_dialogs, jd);
 	  eXosip_dialog_free(jd);
 	  return 0;
@@ -1517,6 +1520,7 @@ int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
 				"eXosip: eXosip_release_aborted_calls remove a dialog for an unfinished transaction\n"));
+	  __eXosip_call_remove_dialog_reference_in_call(jc, jd);
 	  REMOVE_ELEMENT(jc->c_dialogs, jd);
 	  {
 	    eXosip_event_t *je;

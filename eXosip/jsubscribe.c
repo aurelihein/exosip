@@ -86,6 +86,34 @@ eXosip_find_last_inc_notify(eXosip_subscribe_t *js, eXosip_dialog_t *jd )
   return NULL;
 }
 
+
+void
+__eXosip_subscribe_remove_dialog_reference_in_subscribe(eXosip_subscribe_t *js, eXosip_dialog_t *jd)
+{
+  eXosip_dialog_t *_jd;
+  jinfo_t *ji;
+  if (js==NULL) return;
+  if (jd==NULL) return;
+
+
+  for (_jd = js->s_dialogs; _jd!=NULL; _jd=js->s_dialogs)
+    {
+      if (jd==_jd)
+	break;
+    }
+  if (_jd==NULL)
+    {
+      /* dialog not found??? */
+    }
+
+  ji = osip_transaction_get_your_instance(js->s_inc_tr);
+  if (ji!=NULL && ji->jd==jd)
+    ji->jd=NULL;
+  ji = osip_transaction_get_your_instance(js->s_out_tr);
+  if (ji!=NULL && ji->jd==jd)
+    ji->jd=NULL;
+}
+
 int
 eXosip_subscribe_init(eXosip_subscribe_t **js, char *uri)
 {
@@ -113,15 +141,9 @@ eXosip_subscribe_free(eXosip_subscribe_t *js)
   __eXosip_delete_jinfo(js->s_inc_tr);
   __eXosip_delete_jinfo(js->s_out_tr);
   if (js->s_inc_tr!=NULL)
-    {
-      osip_transaction_set_your_instance(js->s_inc_tr, NULL);
-      osip_list_add(eXosip.j_transactions, js->s_inc_tr, 0);
-    }
+    osip_list_add(eXosip.j_transactions, js->s_inc_tr, 0);
   if (js->s_out_tr!=NULL)
-    {
-      osip_transaction_set_your_instance(js->s_out_tr, NULL);
-      osip_list_add(eXosip.j_transactions, js->s_out_tr, 0);
-    }
+    osip_list_add(eXosip.j_transactions, js->s_out_tr, 0);
 
   osip_free(js);
 }

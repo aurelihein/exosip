@@ -957,8 +957,11 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       else if (0==osip_strcasecmp(expires->hvalue, "0"))
 	{
 	  /* delete the dialog! */
-	  REMOVE_ELEMENT(eXosip.j_notifies, jn);
-	  eXosip_notify_free(jn);
+	  if (jn!=NULL)
+	    {
+	      REMOVE_ELEMENT(eXosip.j_notifies, jn);
+	      eXosip_notify_free(jn);
+	    }
 	}
 #else
       osip_header_t  *sub_state;
@@ -971,8 +974,11 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       else if (0==osip_strncasecmp(sub_state->hvalue, "terminated", 10))
 	{
 	  /* delete the dialog! */
-	  REMOVE_ELEMENT(eXosip.j_notifies, jn);
-	  eXosip_notify_free(jn);
+	  if (jn!=NULL)
+	    {
+	      REMOVE_ELEMENT(eXosip.j_notifies, jn);
+	      eXosip_notify_free(jn);
+	    }
 	}
 #endif
     }
@@ -1329,7 +1335,7 @@ void cb_transport_error(int type, osip_transaction_t *tr, int error)
   jn = jinfo->jn;
   js = jinfo->js;
 
-  if (jn==NULL || js==NULL)
+  if (jn==NULL && js==NULL)
     return;
 
   if (MSG_IS_NOTIFY(tr->orig_request)

@@ -139,6 +139,33 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
 }
 
 void
+__eXosip_notify_remove_dialog_reference_in_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd)
+{
+  eXosip_dialog_t *_jd;
+  jinfo_t *ji;
+  if (jn==NULL) return;
+  if (jd==NULL) return;
+
+
+  for (_jd = jn->n_dialogs; _jd!=NULL; _jd=jn->n_dialogs)
+    {
+      if (jd==_jd)
+	break;
+    }
+  if (_jd==NULL)
+    {
+      /* dialog not found??? */
+    }
+
+  ji = osip_transaction_get_your_instance(jn->n_inc_tr);
+  if (ji!=NULL && ji->jd==jd)
+    ji->jd=NULL;
+  ji = osip_transaction_get_your_instance(jn->n_out_tr);
+  if (ji!=NULL && ji->jd==jd)
+    ji->jd=NULL;
+}
+
+void
 eXosip_notify_free(eXosip_notify_t *jn)
 {
   /* ... */
@@ -154,15 +181,9 @@ eXosip_notify_free(eXosip_notify_t *jn)
   __eXosip_delete_jinfo(jn->n_inc_tr);
   __eXosip_delete_jinfo(jn->n_out_tr);
   if (jn->n_inc_tr!=NULL)
-    {
-      osip_transaction_set_your_instance(jn->n_inc_tr, NULL);
-      osip_list_add(eXosip.j_transactions, jn->n_inc_tr, 0);
-    }
+    osip_list_add(eXosip.j_transactions, jn->n_inc_tr, 0);
   if (jn->n_out_tr!=NULL)
-    {
-      osip_transaction_set_your_instance(jn->n_out_tr, NULL);
-      osip_list_add(eXosip.j_transactions, jn->n_out_tr, 0);
-    }
+    osip_list_add(eXosip.j_transactions, jn->n_out_tr, 0);
 
   osip_free(jn);
 }
@@ -218,8 +239,9 @@ int
 _eXosip_notify_add_body(eXosip_notify_t *jn, osip_message_t *notify)
 {
   char buf[1000];
+#ifdef SUPPORT_MSN
   int atom_id = 1000;
-
+#endif
   if (jn->n_ss_status!=EXOSIP_SUBCRSTATE_ACTIVE
       || jn->n_contact_info=='\0') /* mandatory! */
     return 0; /* don't need a body? */
