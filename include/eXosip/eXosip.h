@@ -112,13 +112,30 @@ void eXosip_set_firewallip(const char *firewall_address);
  */
 void eXosip_set_nattype(const char *nat_type);
 
-
 /**
  * This method is used to force ALL SIP packets to go through given proxy
  * @param  proxyurl - when empty disable forced proxy behaviour
  */
 void eXosip_force_proxy(const char *proxyurl);
 
+ /**
+ * This method is used to set contact header on answers which establishes dialogs
+ * @param  contacturl - the url to use for conatct SIP header,
+ *                      when empty - the contact header will be generated from 'to'
+ *                     header of the incoming request
+ */
+void eXosip_set_answer_contact(const char *contacturl);
+
+/**
+ * This method is used to build a contact header for SIP packets
+ * @param  url         url from wich username part will be extracted
+ * @param  strbuf      buffer where the result will be stored
+ * @param  bufsize     size of the 'strbuf'
+ * @param  public_net  when TRUE use firewall ip (if defined) as hostname part
+ *                     else use local host ip
+ *                    
+ */
+void eXosip_guess_contact_uri(const char *url, char *strbuf, int bufsize, int public_net);
 
 /**
  * Find the current localip (interface with default route).
