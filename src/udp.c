@@ -495,6 +495,8 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
       return NULL;
     }
 
+  complete_answer_that_establish_a_dialog(answer, evt->sip);
+
   if (local_sdp!=NULL)
     {
       char *local_body;
