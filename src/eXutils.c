@@ -241,7 +241,11 @@ eXosip_guess_ip_for_via (int familiy, char *address, int size)
 static int
 ppl_dns_default_gateway_ipv4 (char *address, int size)
 {
+#ifdef __APPLE_CC__
+  int len;
+#else
   unsigned int len;
+#endif
   int sock_rt, on=1;
   struct sockaddr_in iface_out;
   struct sockaddr_in remote;
@@ -275,6 +279,7 @@ ppl_dns_default_gateway_ipv4 (char *address, int size)
     close(sock_rt);
     return -1;
   }
+
   close(sock_rt);
   if (iface_out.sin_addr.s_addr == 0)
     { /* what is this case?? */
@@ -291,7 +296,11 @@ ppl_dns_default_gateway_ipv4 (char *address, int size)
 static int
 ppl_dns_default_gateway_ipv6 (char *address, int size)
 {
+#ifdef __APPLE_CC__
+  int len;
+#else
   unsigned int len;
+#endif
   int sock_rt, on=1;
   struct sockaddr_in6 iface_out;
   struct sockaddr_in6 remote;
@@ -342,7 +351,11 @@ void eXosip_get_localip_for(char *address_to_reach,char **loc){
 	struct addrinfo *res=NULL;
 	struct sockaddr_storage addr;
 	int sock;
+#ifdef __APPLE_CC__
+	int s;
+#else
 	socklen_t s;
+#endif
 	
 	if (eXosip.forced_localip){
 		*loc=osip_strdup(eXosip.localip);
