@@ -28,6 +28,36 @@
 
 extern eXosip_t eXosip;
 
+
+static void fill_dialog_params(eXosip_event_t *je, osip_dialog_t *dialog)
+{
+	char *tmp;
+	if (dialog->remote_uri!=NULL){
+		osip_to_to_str(dialog->remote_uri, &tmp);
+		if (tmp!=NULL)
+		{
+		  snprintf(je->remote_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	}
+	if (dialog->local_uri!=NULL)
+	{
+		osip_to_to_str(dialog->local_uri, &tmp);
+		if (tmp!=NULL)
+		{
+		  snprintf(je->local_uri, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	}
+	if (dialog->remote_contact_uri!=NULL){
+	  osip_contact_to_str(dialog->remote_contact_uri,&tmp);
+	  if (tmp!=NULL){
+		  snprintf(je->remote_contact,255,"%s",tmp);
+		  osip_free(tmp);
+	  }			  
+	}
+}
+
 eXosip_event_t *
 eXosip_event_init_for_call(int type,
 			   eXosip_call_t *jc,
@@ -91,24 +121,8 @@ eXosip_event_init_for_call(int type,
 	  osip_transaction_t *tr;
 	  osip_header_t *subject;
 	  char *tmp;
-	  if (jd->d_dialog->remote_uri!=NULL)
-	    {
-	      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-	      if (tmp!=NULL)
-		{
-		  snprintf(je->remote_uri, 255, "%s", tmp);
-		  osip_free(tmp);
-		}
-	    }
-	  if (jd->d_dialog->local_uri!=NULL)
-	    {
-	      osip_to_to_str(jd->d_dialog->local_uri, &tmp);
-	      if (tmp!=NULL)
-		{
-		  snprintf(je->local_uri, 255, "%s", tmp);
-		  osip_free(tmp);
-		}
-	    }
+	  
+	  fill_dialog_params(je,jd->d_dialog);
 
 	  if (type==EXOSIP_OPTIONS_NOANSWER
 	      || type==EXOSIP_OPTIONS_PROCEEDING
@@ -311,24 +325,7 @@ eXosip_event_init_for_subscribe(int type,
 
   if (jd!=NULL&&jd->d_dialog!=NULL)
     {
-      if (jd->d_dialog->remote_uri!=NULL)
-	{
-	  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-	  if (tmp!=NULL)
-	    {
-	      snprintf(je->remote_uri, 255, "%s", tmp);
-	      osip_free(tmp);
-	    }
-	}
-      if (jd->d_dialog->local_uri!=NULL)
-	{
-	  osip_to_to_str(jd->d_dialog->local_uri, &tmp);
-	  if (tmp!=NULL)
-	    {
-	      snprintf(je->local_uri, 255, "%s", tmp);
-	      osip_free(tmp);
-	    }
-	}
+      fill_dialog_params(je,jd->d_dialog);
     }
 
   /* fill in usefull info */
@@ -417,24 +414,7 @@ eXosip_event_init_for_notify(int type,
 	{
 	  osip_transaction_t *tr;
 	  char *tmp;
-	  if (jd->d_dialog->remote_uri!=NULL)
-	    {
-	      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-	      if (tmp!=NULL)
-		{
-		  snprintf(je->remote_uri, 255, "%s", tmp);
-		  osip_free(tmp);
-		}
-	    }
-	  if (jd->d_dialog->local_uri!=NULL)
-	    {
-	      osip_to_to_str(jd->d_dialog->local_uri, &tmp);
-	      if (tmp!=NULL)
-		{
-		  snprintf(je->local_uri, 255, "%s", tmp);
-		  osip_free(tmp);
-		}
-	    }
+	  fill_dialog_params(je,jd->d_dialog);
 	  tr = eXosip_find_last_inc_subscribe(jn, jd);
 	  if (tr!=NULL && tr->orig_request!=NULL)
 	    {
@@ -907,4 +887,3 @@ eXosip_event_get()
   je = (eXosip_event_t *) osip_fifo_get(eXosip.j_events);
   return je;
 }
-

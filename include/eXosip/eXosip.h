@@ -571,6 +571,7 @@ typedef struct eXosip_event {
   char                req_uri[256];
   char                local_uri[256];
   char                remote_uri[256];
+  char                remote_contact[256];
   char                subject[256];
   osip_content_type_t *i_ctt;
   osip_list_t         *i_bodies;
