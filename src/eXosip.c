@@ -972,7 +972,7 @@ osip_message_t *eXosip_prepare_request_for_auth(osip_message_t *msg)
 	    eXosip.localport,
 	    via_branch_new_random());
   else
-    sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
+    sprintf(tmp, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
 	    locip,
 	    eXosip.localport,
 	    via_branch_new_random());

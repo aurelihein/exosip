@@ -245,7 +245,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	  if (eXosip_is_public_address(c_address))
 	    {
 	      char tmp[200];
-	      snprintf(tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+	      snprintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 		      eXosip.j_firewall_ip,
 		      eXosip.localport,
 		      via_branch_new_random() );
@@ -292,7 +292,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 	      eXosip.localport,
 	      via_branch_new_random() );
     else
-      spnrintf(tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+      spnrintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 	      locip,
 	      eXosip.localport,
 	      via_branch_new_random() );
@@ -910,7 +910,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 	  if (eXosip_is_public_address(c_address))
 	  {
 		    char tmp[200];
-		    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+		    sprintf(tmp, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 			    eXosip.j_firewall_ip,
 			    eXosip.localport,
 			    via_branch_new_random() );
@@ -958,7 +958,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 	      locip, eXosip.localport,
 	      via_branch_new_random());
     else
-      sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+      sprintf(tmp, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
 	      locip, eXosip.localport,
 	      via_branch_new_random());
 
