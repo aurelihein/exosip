@@ -24,7 +24,14 @@
 #include "eXosip2.h"
 
 extern eXosip_t eXosip;
-char *register_callid_number = NULL;
+
+/* Private functions */
+static int generating_request_out_of_dialog(osip_message_t **dest,
+					    char *method_name, char *to,
+					    char *transport, char *from,
+					    char *proxy);
+static int dialog_fill_route_set(osip_dialog_t *dialog,
+				 osip_message_t *request);
 
 /* should use cryptographically random identifier is RECOMMENDED.... */
 /* by now this should lead to identical call-id when application are
@@ -39,19 +46,19 @@ osip_call_id_new_random()
 }
 
 char *
-osip_from_tag_new_random()
+osip_from_tag_new_random(void)
 {
   return osip_call_id_new_random();
 }
 
 char *
-osip_to_tag_new_random()
+osip_to_tag_new_random(void)
 {
   return osip_call_id_new_random();
 }
 
 unsigned int
-via_branch_new_random()
+via_branch_new_random(void)
 {
   return osip_build_random_number();
 }
@@ -62,7 +69,7 @@ via_branch_new_random()
    to is the remote target URI
    transport is either "TCP" or "UDP" (by now, only UDP is implemented!)
 */
-int
+static int
 generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 				 char *to, char *transport, char *from,
 				 char *proxy)
@@ -80,8 +87,8 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   char locip[50];
 #endif
 
-  if (register_callid_number==NULL)
-    register_callid_number = osip_call_id_new_random();
+  if (eXosip.register_callid_number==NULL)
+    eXosip.register_callid_number = osip_call_id_new_random();
 
   i = osip_message_init(&request);
   if (i!=0) return -1;
@@ -182,7 +189,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       /* call-id is always the same for REGISTRATIONS */
       i = osip_call_id_init(&callid);
       if (i!=0) goto brood_error_1;
-      osip_call_id_set_number(callid, osip_strdup(register_callid_number));
+      osip_call_id_set_number(callid, osip_strdup(eXosip.register_callid_number));
       osip_call_id_set_host(callid, osip_strdup(locip));
       request->call_id = callid;
 
@@ -218,13 +225,13 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   osip_message_set_max_forwards(request, "5"); /* a UA should start a request with 70 */
 
   {
-    char *tmp = (char *)osip_malloc(90*sizeof(char));
-    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+    char tmp[90];
+
+    snprintf(tmp, sizeof(tmp), "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 	    locip,
 	    eXosip.localport,
 	    via_branch_new_random() );
     osip_message_set_via(request, tmp);
-    osip_free(tmp);
   }
 
   /* add specific headers for each kind of request... */
@@ -287,7 +294,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
       osip_message_set_accept(request, "application/sdp");
     }
 
-  osip_message_set_user_agent(request, "josua/0.6.2");
+  osip_message_set_user_agent(request, eXosip.user_agent);
   /*  else if ... */
   *dest = request;
 #ifdef SM
@@ -318,9 +325,9 @@ generating_register(osip_message_t **reg, char *from,
 
   i = generating_request_out_of_dialog(reg, "REGISTER", NULL, "UDP",
 				       from, proxy);
+  if (i!=0) return -1;
 #ifdef SM
   eXosip_get_localip_for((*reg)->req_uri->host,&locip);
-  if (i!=0) return -1;
 #else
   eXosip_guess_ip_for_via(locip);
 #endif
@@ -524,7 +531,7 @@ generating_info(osip_message_t **info, char *from, char *to, char *proxy)
 }
 
 
-int
+static int
 dialog_fill_route_set(osip_dialog_t *dialog, osip_message_t *request)
 {
   /* if the pre-existing route set contains a "lr" (compliance
@@ -700,12 +707,12 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   /* even for ACK for 2xx (ACK within a dialog), the branch ID MUST
      be a new ONE! */
   {
-    char *tmp = (char *)osip_malloc(90*sizeof(char));
-    sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+    char tmp[90];
+
+    snprintf(tmp, sizeof(tmp), "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 	    locip ,eXosip.localport,
 	    via_branch_new_random());
     osip_message_set_via(request, tmp);
-    osip_free(tmp);
   }
 
   /* add specific headers for each kind of request... */
@@ -755,7 +762,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       /* TODO... */
     }
 
-  osip_message_set_user_agent(request, "josua/0.6.2");
+  osip_message_set_user_agent(request, eXosip.user_agent);
   /*  else if ... */
   *dest = request;
   return 0;
@@ -879,7 +886,7 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
   }
 
   osip_message_set_max_forwards(request, "70"); /* a UA should start a request with 70 */
-  osip_message_set_user_agent(request, "josua/0.6.2");
+  osip_message_set_user_agent(request, eXosip.user_agent);
 
   *dest = request;
   return 0;

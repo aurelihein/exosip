@@ -38,9 +38,20 @@
 #include <unistd.h>
 #endif
 
+/* Private functions */
+static int eXosip_create_transaction(eXosip_call_t *jc, eXosip_dialog_t *jd,
+				     osip_message_t *request);
+static int eXosip_create_cancel_transaction(eXosip_call_t *jc,
+					    eXosip_dialog_t *jd,
+					    osip_message_t *request);
+static jauthinfo_t *eXosip_find_authentication_info(const char *username,
+						    const char *realm);
+static int eXosip_add_authentication_information(osip_message_t *req,
+						 osip_message_t *last_response);
+static void *eXosip_thread(void *arg);
+static int eXosip_execute(void);
 
 eXosip_t eXosip;
-extern char *register_callid_number;
 
 
 void eXosip_get_localip(char *ip)
@@ -50,7 +61,7 @@ void eXosip_get_localip(char *ip)
 
 #ifdef NEW_TIMER
 
-void __eXosip_wakeup()
+void __eXosip_wakeup(void)
 {
   jpipe_write(eXosip.j_socketctl, "w", 1);
 }
@@ -58,19 +69,19 @@ void __eXosip_wakeup()
 #endif
 
 int
-eXosip_lock()
+eXosip_lock(void)
 {
   return osip_mutex_lock((struct osip_mutex*)eXosip.j_mutexlock);
 }
 
 int
-eXosip_unlock()
+eXosip_unlock(void)
 {
   return osip_mutex_unlock((struct osip_mutex*)eXosip.j_mutexlock);
 }
 
 
-jfriend_t *jfriend_get()
+jfriend_t *jfriend_get(void)
 {
   return eXosip.j_friends;
 }
@@ -80,12 +91,12 @@ void jfriend_remove(jfriend_t *fr)
   REMOVE_ELEMENT(eXosip.j_friends, fr);
 }
 
-jsubscriber_t *jsubscriber_get()
+jsubscriber_t *jsubscriber_get(void)
 {
   return eXosip.j_subscribers;
 }
 
-jidentity_t *jidentity_get()
+jidentity_t *jidentity_get(void)
 {
   return eXosip.j_identitys;
 }
@@ -113,7 +124,7 @@ eXosip_kill_transaction (osip_list_t * transactions)
     }
 }
 
-void eXosip_quit()
+void eXosip_quit(void)
 {
   eXosip_call_t *jc;
   eXosip_reg_t  *jreg;
@@ -134,7 +145,8 @@ void eXosip_quit()
 
   osip_free(eXosip.localip);
   osip_free(eXosip.localport);
-  osip_free(register_callid_number);
+  osip_free(eXosip.user_agent);
+  osip_free(eXosip.register_callid_number);
 
   eXosip.j_input = 0;
   eXosip.j_output = 0;
@@ -215,7 +227,7 @@ void eXosip_quit()
   return ;
 }
 
-int eXosip_execute ( void )
+static int eXosip_execute ( void )
 {
 #ifdef NEW_TIMER
   struct timeval lower_tv;
@@ -289,6 +301,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
       fprintf(stderr, "eXosip: port must be higher than 0!\n");
       return -1;
     }
+  memset(&eXosip, 0, sizeof(eXosip));
   eXosip.localip = (char *) osip_malloc(30);
   memset(eXosip.localip, '\0', 30);
   eXosip_guess_ip_for_via(eXosip.localip);
@@ -300,6 +313,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
 		/* we should always fallback on something. The linphone user will surely
 		start linphone BEFORE setting its dial up connection.*/
     }
+  eXosip.user_agent = osip_strdup("eXosip/" EXOSIP_VERSION);
 
   eXosip_set_mode(EVENT_MODE);
   eXosip.j_input = input;
@@ -423,6 +437,13 @@ void
 eXosip_set_mode(int mode)
 {
   eXosip.j_runtime_mode = mode;
+}
+
+void
+eXosip_set_user_agent(const char *user_agent)
+{
+  osip_free(eXosip.user_agent);
+  eXosip.user_agent = osip_strdup(user_agent);
 }
 
 void
@@ -1181,9 +1202,9 @@ int eXosip_off_hold_call (int jid)
   return 0;
 }
 
-int eXosip_create_transaction(eXosip_call_t *jc,
-			     eXosip_dialog_t *jd,
-			     osip_message_t *request)
+static int eXosip_create_transaction(eXosip_call_t *jc,
+				     eXosip_dialog_t *jd,
+				     osip_message_t *request)
 {
   osip_event_t *sipevent;
   osip_transaction_t *tr;
@@ -1246,8 +1267,9 @@ int eXosip_transfer_call(int jid, char *refer_to)
   return 0;
 }
 
-int eXosip_create_cancel_transaction(eXosip_call_t *jc,
-				    eXosip_dialog_t *jd, osip_message_t *request)
+static int eXosip_create_cancel_transaction(eXosip_call_t *jc,
+					    eXosip_dialog_t *jd,
+					    osip_message_t *request)
 {
   osip_event_t *sipevent;
   osip_transaction_t *tr;
@@ -1356,10 +1378,12 @@ int eXosip_terminate_call(int cid, int jid)
   return 0;
 }
 
-jauthinfo_t *
-eXosip_find_authentication_info(char *username, char *realm)
+static jauthinfo_t *
+eXosip_find_authentication_info(const char *username, const char *realm)
 {
+  jauthinfo_t *fallback = NULL;
   jauthinfo_t *authinfo;
+
   for (authinfo = eXosip.authinfos;
        authinfo!=NULL;
        authinfo = authinfo->next)
@@ -1367,17 +1391,25 @@ eXosip_find_authentication_info(char *username, char *realm)
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
 		   "INFO: authinfo: %s %s\n", realm, authinfo->realm));
-      if (0==strcmp(authinfo->username, username)
-	  && 0==strncmp(realm+1, authinfo->realm, strlen(realm)-2))
-	return authinfo;
+      if (0==strcmp(authinfo->username, username))
+	{
+	  if (authinfo->realm == NULL)
+	    {
+	      fallback = authinfo;
+	    }
+	  else if (0==strncmp(realm+1, authinfo->realm, strlen(realm)-2))
+	    {
+	      return authinfo;
+	    }
+	}
     }
-  return NULL;
+  return fallback;
 }
 
 int
-eXosip_add_authentication_info(char *username, char *userid,
-			       char *passwd, char *ha1,
-			       char *realm)
+eXosip_add_authentication_info(const char *username, const char *userid,
+			       const char *passwd, const char *ha1,
+			       const char *realm)
 {
   jauthinfo_t *authinfos;
 
@@ -1394,19 +1426,19 @@ eXosip_add_authentication_info(char *username, char *userid,
     return -1;
   memset(authinfos, 0, sizeof(jauthinfo_t));
 
-  snprintf(authinfos->username, 50, username);
-  snprintf(authinfos->userid,   50, userid);
+  snprintf(authinfos->username, 50, "%s", username);
+  snprintf(authinfos->userid,   50, "%s", userid);
   if ( passwd!=NULL && passwd[0]!='\0')
-    snprintf(authinfos->passwd,   50, passwd);
+    snprintf(authinfos->passwd,   50, "%s", passwd);
   else if (ha1!=NULL && ha1[0]!='\0')
-    snprintf(authinfos->ha1,      50, ha1);
-  snprintf(authinfos->realm,    50, realm);
+    snprintf(authinfos->ha1,      50, "%s", ha1);
+  snprintf(authinfos->realm,    50, "%s", realm);
 
   ADD_ELEMENT(eXosip.authinfos, authinfos);
   return 0;
 }
 
-int
+static int
 eXosip_add_authentication_information(osip_message_t *req,
 				      osip_message_t *last_response)
 {
@@ -1484,16 +1516,30 @@ eXosip_add_authentication_information(osip_message_t *req,
   return 0;
 }
 
+static eXosip_reg_t *
+eXosip_reg_find(int rid)
+{
+    eXosip_reg_t *jr;
+
+    for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
+      {
+	if (jr->r_id == rid)
+	  {
+	    return jr;
+	  }
+      }
+    return NULL;
+}
+
 int eXosip_register      (int rid, int registration_period)
 {
   osip_transaction_t *transaction;
   osip_event_t *sipevent;
   osip_message_t *reg;
+  eXosip_reg_t *jr;
   int i;
 
-  eXosip_reg_t *jr;
-
-  jr = eXosip.j_reg;
+  jr = eXosip_reg_find(rid);
   if (jr==NULL)
     {
       /* fprintf(stderr, "eXosip: no registration info saved!\n"); */
@@ -1510,7 +1556,8 @@ int eXosip_register      (int rid, int registration_period)
   reg = NULL;
   if (jr->r_last_tr!=NULL)
     {
-      if (jr->r_last_tr->state!=NICT_TERMINATED)
+      if (jr->r_last_tr->state!=NICT_TERMINATED
+	  && jr->r_last_tr->state!=NICT_COMPLETED)
 	{
 	  /* fprintf(stderr, "eXosip: a registration is already pending!\n"); */
 	  return -1;
@@ -1623,14 +1670,27 @@ eXosip_register_init(char *from, char *proxy, char *contact)
   eXosip_reg_t *jr;
   int i;
 
+  /* Avoid adding the same registration info twice to prevent mem leaks */
+  for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
+    {
+      if (strcmp(jr->r_aor, from) == 0
+	  && strcmp(jr->r_registrar, proxy) == 0
+	  && (jr->r_contact == NULL) == (contact == NULL)
+	  && (contact == NULL || strcmp(jr->r_contact, contact) == 0))
+	{
+	  return jr->r_id;
+	}
+    }
+
+  /* Add new registration info */
   i = eXosip_reg_init(&jr, from, proxy, contact);
   if (i!=0) 
     {
       fprintf(stderr, "eXosip: cannot register! ");
       return i;
     }
-  eXosip.j_reg = jr;
-  return 0;
+  ADD_ELEMENT(eXosip.j_reg, jr);
+  return jr->r_id;
 }
 
 

@@ -28,10 +28,15 @@ extern eXosip_t eXosip;
 
 int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
 {
+  static int r_id;
+
   *jr = (eXosip_reg_t*) osip_malloc(sizeof(eXosip_reg_t));
   if (*jr==NULL) return -1;
 
-  (*jr)->r_id         = -1;
+  if (r_id > 1000000)			/* keep it non-negative */
+  	r_id = 0;
+
+  (*jr)->r_id         = ++r_id;
   (*jr)->r_reg_period = 3600;      /* delay between registration */
   (*jr)->r_aor        = osip_strdup(from);      /* sip identity */
   (*jr)->r_contact    = osip_strdup(contact);   /* sip identity */
@@ -56,25 +61,28 @@ void eXosip_reg_free(eXosip_reg_t *jreg)
   osip_free(jreg->r_realms);
 #endif
 
-  if (jreg->r_last_tr->state==IST_TERMINATED ||
-      jreg->r_last_tr->state==ICT_TERMINATED ||
-      jreg->r_last_tr->state== NICT_TERMINATED ||
-      jreg->r_last_tr->state==NIST_TERMINATED)
+  if (jreg->r_last_tr != NULL)
     {
-      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-			    "Release a terminated transaction\n"));
-      __eXosip_delete_jinfo(jreg->r_last_tr);
-      if (jreg->r_last_tr!=NULL)
-	osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
+      if (jreg->r_last_tr->state==IST_TERMINATED ||
+	  jreg->r_last_tr->state==ICT_TERMINATED ||
+	  jreg->r_last_tr->state== NICT_TERMINATED ||
+	  jreg->r_last_tr->state==NIST_TERMINATED)
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+				"Release a terminated transaction\n"));
+	  __eXosip_delete_jinfo(jreg->r_last_tr);
+	  if (jreg->r_last_tr!=NULL)
+	    osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
+	}
+      else
+	{
+	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
+				"Release a non-terminated transaction\n"));
+	  __eXosip_delete_jinfo(jreg->r_last_tr);
+	  if (jreg->r_last_tr!=NULL)
+	    osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
+	}
     }
-  else
-    {
-      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-			    "Release a non-terminated transaction\n"));
-      __eXosip_delete_jinfo(jreg->r_last_tr);
-      if (jreg->r_last_tr!=NULL)
-	osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
-    }
-  
+
   osip_free(jreg);
 }

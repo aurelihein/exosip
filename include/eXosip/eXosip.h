@@ -83,7 +83,7 @@ int eXosip_force_localip(const char *localip);
  * Release ressource used by the eXtented oSIP library.
  * 
  */
-void  eXosip_quit();
+void  eXosip_quit(void);
 
 /**
  * Find the current localip (interface with default route).
@@ -102,12 +102,26 @@ void eXosip_get_localip(char *ip);
  */
 void eXosip_get_localip_for(char *host, char **localip);
 
+/**
+ * Add authentication credentials. These are used when an outgoing
+ * request comes back with an authorization required response.
+ *
+ * @param username	username
+ * @param userid	not sure what this is for
+ * @param passwd	password
+ * @param ha1		currently ignored
+ * @param realm		realm within which credentials apply, or NULL
+ *			to apply credentials to unrecognized realms
+ */
+int eXosip_add_authentication_info(const char *username, const char *userid,
+				   const char *passwd, const char *ha1,
+				   const char *realm);
 
 /**
  * Remove an audio payload.
  * 
  */
-void eXosip_sdp_negotiation_remove_audio_payloads();
+void eXosip_sdp_negotiation_remove_audio_payloads(void);
 
 /**
  * Remove an audio payload.
@@ -160,16 +174,21 @@ void eXosip_sdp_negotiation_ctx_set_mycontext(struct eXosip_call_t *jc, void *ar
 void eXosip_set_mode(int mode);
 
 /**
+ * Set the SIP User-Agent: header string.
+ */
+void eXosip_set_user_agent(const char *user_agent);
+
+/**
  * Lock the eXtented oSIP library.
  * 
  */
-int   eXosip_lock();
+int   eXosip_lock(void);
 
 /**
  * UnLock the eXtented oSIP library.
  * 
  */
-int   eXosip_unlock();
+int   eXosip_unlock(void);
 
 /** @} */
 
@@ -533,7 +552,7 @@ eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms);
  * Wait for next eXosip event.
  * 
  */
-eXosip_event_t *eXosip_event_get();
+eXosip_event_t *eXosip_event_get(void);
 
 #ifdef __cplusplus
 }

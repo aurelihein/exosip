@@ -28,6 +28,7 @@
 
 extern eXosip_t eXosip;
 
+#if 0
 int eXosip_subscribe_find(int sid, eXosip_subscribe_t **js)
 {
   for (*js=eXosip.j_subscribes; *js!=NULL; *js=(*js)->next)
@@ -38,6 +39,7 @@ int eXosip_subscribe_find(int sid, eXosip_subscribe_t **js)
   *js = NULL;
   return -1;
 }
+#endif
 
 osip_transaction_t *
 eXosip_find_last_out_subscribe(eXosip_subscribe_t *js, eXosip_dialog_t *jd )
@@ -88,6 +90,7 @@ eXosip_find_last_inc_notify(eXosip_subscribe_t *js, eXosip_dialog_t *jd )
 }
 
 
+#if 0
 void
 __eXosip_subscribe_remove_dialog_reference_in_subscribe(eXosip_subscribe_t *js, eXosip_dialog_t *jd)
 {
@@ -114,6 +117,7 @@ __eXosip_subscribe_remove_dialog_reference_in_subscribe(eXosip_subscribe_t *js, 
   if (ji!=NULL && ji->jd==jd)
     ji->jd=NULL;
 }
+#endif
 
 int
 eXosip_subscribe_init(eXosip_subscribe_t **js, char *uri)

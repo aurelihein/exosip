@@ -1,3 +1,8 @@
+eXosip (0.7.3)
+	* warning fix.
+	* support for multiple registrations.
+	* support for authentifications for REGISTER.
+	
 eXosip (0.7.2)
 	* add RTP support with common ucl library.
 	* fix some memory leak.

@@ -28,7 +28,7 @@
 
 extern eXosip_t eXosip;
 
-
+#if 0
 int eXosip_notify_find(int sid, eXosip_notify_t **jn)
 {
   for (*jn=eXosip.j_notifies; *jn!=NULL; *jn=(*jn)->next)
@@ -39,6 +39,7 @@ int eXosip_notify_find(int sid, eXosip_notify_t **jn)
   *jn = NULL;
   return -1;
 }
+#endif
 
 osip_transaction_t *
 eXosip_find_last_inc_subscribe(eXosip_notify_t *jn, eXosip_dialog_t *jd )
@@ -150,6 +151,7 @@ eXosip_notify_init(eXosip_notify_t **jn, osip_message_t *inc_subscribe)
   return 0;
 }
 
+#if 0
 void
 __eXosip_notify_remove_dialog_reference_in_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd)
 {
@@ -175,6 +177,7 @@ __eXosip_notify_remove_dialog_reference_in_notify(eXosip_notify_t *jn, eXosip_di
   if (ji!=NULL && ji->jd==jd)
     ji->jd=NULL;
 }
+#endif
 
 void
 eXosip_notify_free(eXosip_notify_t *jn)

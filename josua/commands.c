@@ -142,6 +142,7 @@ static int last_id = -2;
 int
 _josua_register(int pos_id)
 {
+  int reg_id;
   int i;
   char *identity;
   char *registrar;
@@ -154,15 +155,15 @@ _josua_register(int pos_id)
   eXosip_lock();
   if (pos_id!=last_id)
     {
-      i = eXosip_register_init(identity, registrar, NULL);
-      if (i!=0)
+      reg_id = eXosip_register_init(identity, registrar, NULL);
+      if (reg_id<0)
 	{
 	  eXosip_unlock();
 	  return -1;
 	}
       last_id = pos_id;
     }
-  i = eXosip_register(-1, 3600);
+  i = eXosip_register(reg_id, 3600);
   eXosip_unlock();
   return i;
 }
@@ -171,6 +172,7 @@ _josua_register(int pos_id)
 int
 _josua_unregister(int pos_id)
 {
+  int reg_id;
   int i;
   char *identity;
   char *registrar;
@@ -183,15 +185,15 @@ _josua_unregister(int pos_id)
   eXosip_lock();
   if (pos_id!=last_id)
     {
-      i = eXosip_register_init(identity, registrar, NULL);
-      if (i!=0)
+      reg_id = eXosip_register_init(identity, registrar, NULL);
+      if (reg_id<0)
 	{
 	  eXosip_unlock();
 	  return -1;
 	}
       last_id = pos_id;
     }
-  i = eXosip_register(-1, 0);
+  i = eXosip_register(reg_id, 0);
   eXosip_unlock();
   return i;
 }

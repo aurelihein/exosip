@@ -25,9 +25,12 @@
 #include "eXosip2.h"
 #include <eXosip/eXosip_cfg.h>
 
-
-
 extern eXosip_t eXosip;
+
+/* Private functions */
+static char *generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd, 
+			 osip_message_t *orig_request, char *local_sdp_port);
+
 int
 eXosip_build_response_default(int jid, int status)
 {
@@ -190,7 +193,7 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
   return 0;
 }
 
-char *
+static char *
 generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd, 
 			 osip_message_t *orig_request, char *local_sdp_port)
 {

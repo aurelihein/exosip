@@ -76,24 +76,24 @@ struct jsubscriber_t {
   jsubscriber_t   *parent;
 };
 
-jfriend_t *jfriend_get();
+jfriend_t *jfriend_get(void);
 void jfriend_remove(jfriend_t *fr);
-jsubscriber_t *jsubscriber_get();
-jidentity_t *jidentity_get();
+jsubscriber_t *jsubscriber_get(void);
+jidentity_t *jidentity_get(void);
 
-int   jfriend_load();
-void  jfriend_unload();
+int   jfriend_load(void);
+void  jfriend_unload(void);
 void  friends_add(char *nickname, char *home,
 		  char *work, char *email, char *e164);
 char *jfriend_get_home(int fid);
 
-int   jsubscriber_load();
-void  jsubscriber_unload();
+int   jsubscriber_load(void);
+void  jsubscriber_unload(void);
 void  subscribers_add(char *nickname, char *uri, int black_list);
 char *jsubscriber_get_uri(int fid);
 
-int   jidentity_load();
-void  jidentity_unload();
+int   jidentity_load(void);
+void  jidentity_unload(void);
 void  identitys_add(char *identity, char *registrar, char *realm,
 		    char *userid, char *password);
 char *jidentity_get_identity(int fid);

@@ -40,11 +40,57 @@
 
 extern eXosip_t eXosip;
 
+/* Private functions */
+static void eXosip_send_default_answer(eXosip_dialog_t *jd,
+				       osip_transaction_t *transaction,
+				       osip_event_t *evt,
+				       int status);
+static void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
+			        osip_transaction_t *transaction, osip_event_t *evt);
+static void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
+				   osip_transaction_t *transaction, osip_event_t *evt);
+static void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
+			       osip_transaction_t *transaction, osip_event_t *evt);
+static void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_event_t *evt);
+static int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel);
+static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt);
+static osip_event_t *eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					     osip_transaction_t *transaction,
+					     osip_event_t *evt, sdp_message_t *remote_sdp);
+static void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					  osip_transaction_t *transaction,
+					  osip_event_t *evt, sdp_message_t *sdp);
+static void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					   osip_transaction_t *transaction,
+					   osip_event_t *evt, sdp_message_t *sdp);
+static void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *evt);
+static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *evt);
+static void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					      osip_transaction_t *transaction, osip_event_t *evt);
+static int eXosip_event_package_is_supported(osip_transaction_t *transaction,
+					     osip_event_t *evt);
+static void eXosip_process_new_subscribe(osip_transaction_t *transaction,
+					 osip_event_t *evt);
+static void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
+						 eXosip_dialog_t *jd,
+						 osip_transaction_t *transaction,
+						 osip_event_t *evt);
+static void eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
+						eXosip_dialog_t *jd,
+						osip_transaction_t *transaction,
+						osip_event_t *evt);
+static int eXosip_match_notify_for_subscribe(eXosip_subscribe_t *js, osip_message_t *notify);
+static void eXosip_process_newrequest(osip_event_t *evt);
+static void eXosip_process_response_out_of_transaction(osip_event_t *evt);
+static int eXosip_pendingosip_transaction_exist(eXosip_call_t *jc, eXosip_dialog_t *jd);
+static int eXosip_release_finished_calls(eXosip_call_t *jc, eXosip_dialog_t *jd);
+static int eXosip_release_aborted_calls(eXosip_call_t *jc, eXosip_dialog_t *jd);
 
-void eXosip_send_default_answer(eXosip_dialog_t *jd,
-				osip_transaction_t *transaction,
-				osip_event_t *evt,
-				int status)
+
+static void eXosip_send_default_answer(eXosip_dialog_t *jd,
+				       osip_transaction_t *transaction,
+				       osip_event_t *evt,
+				       int status)
 {
   osip_event_t *evt_answer;
   osip_message_t *answer;
@@ -81,8 +127,8 @@ void eXosip_send_default_answer(eXosip_dialog_t *jd,
   
 }
 
-void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
-			    osip_transaction_t *transaction, osip_event_t *evt)
+static void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
+				   osip_transaction_t *transaction, osip_event_t *evt)
 {
   osip_event_t *evt_answer;
   osip_message_t *answer;
@@ -111,8 +157,8 @@ void eXosip_process_options(eXosip_call_t *jc, eXosip_dialog_t *jd,
 #endif
 }
 
-void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
- 			 osip_transaction_t *transaction, osip_event_t *evt)
+static void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
+ 		    osip_transaction_t *transaction, osip_event_t *evt)
 {
   osip_event_t *evt_answer;
   osip_message_t *answer;
@@ -144,8 +190,8 @@ void eXosip_process_info(eXosip_call_t *jc, eXosip_dialog_t *jd,
 }
  
 
-void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
-			osip_transaction_t *transaction, osip_event_t *evt)
+static void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
+			       osip_transaction_t *transaction, osip_event_t *evt)
 {
   osip_event_t *evt_answer;
   osip_message_t *answer;
@@ -189,7 +235,7 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
 #endif
 }
 
-void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_event_t *evt)
+static void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_event_t *evt)
 {
   eXosip_event_t *je;
   je = eXosip_event_init_for_call(EXOSIP_CALL_ACK, jc, jd);
@@ -201,7 +247,7 @@ void eXosip_process_ack(eXosip_call_t *jc, eXosip_dialog_t *jd, osip_event_t *ev
   osip_event_free(evt);
 }
 
-int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
+static int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
 {
   osip_generic_param_t *br;
   osip_generic_param_t *br2;
@@ -235,7 +281,7 @@ int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
   return 0;
 }
 
-void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
+static void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
 {
   osip_transaction_t *tr;
   osip_event_t *evt_answer;
@@ -382,7 +428,7 @@ void eXosip_process_cancel(osip_transaction_t *transaction, osip_event_t *evt)
     }
 }
 
-osip_event_t *
+static osip_event_t *
 eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			osip_transaction_t *transaction,
 			osip_event_t *evt, sdp_message_t *remote_sdp)
@@ -493,9 +539,9 @@ eXosip_process_reinvite(eXosip_call_t *jc, eXosip_dialog_t *jd,
 }
 
 
-void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
-				   osip_transaction_t *transaction,
-				   osip_event_t *evt, sdp_message_t *sdp)
+static void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					  osip_transaction_t *transaction,
+					  osip_event_t *evt, sdp_message_t *sdp)
 {
   osip_event_t *sipevent;
   sipevent = eXosip_process_reinvite(jc, jd, transaction, evt, sdp);
@@ -517,9 +563,9 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 #endif
 }
 
-void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
-				    osip_transaction_t *transaction,
-				    osip_event_t *evt, sdp_message_t *sdp)
+static void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					   osip_transaction_t *transaction,
+					   osip_event_t *evt, sdp_message_t *sdp)
 {
   osip_event_t *sipevent;
   sipevent = eXosip_process_reinvite(jc, jd, transaction, evt, sdp);
@@ -541,7 +587,7 @@ void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 #endif
 }
 
-void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *evt)
+static void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *evt)
 {
   eXosip_call_t *jc;
 
@@ -555,7 +601,7 @@ void eXosip_process_new_options(osip_transaction_t *transaction, osip_event_t *e
 
 }
 
-void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *evt)
+static void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *evt)
 {
   osip_event_t *evt_answer;
   int i;
@@ -669,8 +715,8 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
 
 }
 
-void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
-				       osip_transaction_t *transaction, osip_event_t *evt)
+static void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
+					      osip_transaction_t *transaction, osip_event_t *evt)
 {
   sdp_message_t *sdp;
   int i;
@@ -780,8 +826,8 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
   return;
 }
 
-int eXosip_event_package_is_supported(osip_transaction_t *transaction,
-				      osip_event_t *evt)
+static int eXosip_event_package_is_supported(osip_transaction_t *transaction,
+					     osip_event_t *evt)
 {
   osip_header_t *event_hdr;
   int code;
@@ -809,8 +855,8 @@ int eXosip_event_package_is_supported(osip_transaction_t *transaction,
   return -1;
 }
 
-void eXosip_process_new_subscribe(osip_transaction_t *transaction,
-				  osip_event_t *evt)
+static void eXosip_process_new_subscribe(osip_transaction_t *transaction,
+					 osip_event_t *evt)
 {
   osip_event_t *evt_answer;
   eXosip_notify_t *jn;
@@ -907,10 +953,10 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
 #endif
 }
 
-void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
-					  eXosip_dialog_t *jd,
-					  osip_transaction_t *transaction,
-					  osip_event_t *evt)
+static void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
+						 eXosip_dialog_t *jd,
+						 osip_transaction_t *transaction,
+						 osip_event_t *evt)
 {
   osip_message_t *answer;
   osip_event_t *sipevent;
@@ -962,7 +1008,7 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
   return;
 }
 
-void
+static void
 eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 				    eXosip_dialog_t *jd,
 				    osip_transaction_t *transaction,
@@ -1238,7 +1284,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   return;
 }
 
-int
+static int
 eXosip_match_notify_for_subscribe(eXosip_subscribe_t *js, osip_message_t *notify)
 {
   osip_transaction_t *out_sub;
@@ -1291,7 +1337,7 @@ eXosip_match_notify_for_subscribe(eXosip_subscribe_t *js, osip_message_t *notify
   return 0;
 }
 
-void eXosip_process_newrequest (osip_event_t *evt)
+static void eXosip_process_newrequest (osip_event_t *evt)
 {
   osip_transaction_t *transaction;
   osip_event_t *evt_answer;
@@ -1672,7 +1718,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
   eXosip_send_default_answer(NULL, transaction, evt, 501);
 }
 
-void eXosip_process_response_out_of_transaction (osip_event_t *evt)
+static void eXosip_process_response_out_of_transaction (osip_event_t *evt)
 {
   osip_event_free(evt);
 }
@@ -1796,7 +1842,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 }
 
 
-int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *jd )
+static int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   osip_transaction_t *tr;
   int now = time(NULL);
@@ -1888,7 +1934,7 @@ int eXosip_pendingosip_transaction_exist ( eXosip_call_t *jc, eXosip_dialog_t *j
   return -1;
 }
 
-int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
+static int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 {    
   osip_transaction_t *tr;
   tr = eXosip_find_last_inc_bye(jc, jd);
@@ -1909,7 +1955,7 @@ int eXosip_release_finished_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
   return -1;
 }
 
-int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
+static int eXosip_release_aborted_calls ( eXosip_call_t *jc, eXosip_dialog_t *jd )
 {
   int now = time(NULL);
   osip_transaction_t *tr;

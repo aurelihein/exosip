@@ -324,7 +324,7 @@ void eXosip_get_localip_for(char *address_to_reach,char **loc){
 		return ;
 	}
 	
-	err=getnameinfo(&addr,s,*loc,MAXHOSTNAMELEN,NULL,0,NI_NUMERICHOST);
+	err=getnameinfo((struct sockaddr *)&addr,s,*loc,MAXHOSTNAMELEN,NULL,0,NI_NUMERICHOST);
 	if (err<0){
 		eXosip_trace(OSIP_ERROR,("getnameinfo error:%s",strerror(errno)));
 		abort();

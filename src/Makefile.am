@@ -2,7 +2,23 @@
 
 lib_LTLIBRARIES = libeXosip.la
 
-AM_CFLAGS = -Wall  @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@
+#
+# Other flags to add someday:
+#	-Wcast-qual
+#	-Wwrite-strings
+#	-Wstrict-prototypes
+#	-Werror
+#
+AM_CFLAGS =	-Wall \
+		-Wcast-align \
+		-Wchar-subscripts \
+		-Wformat \
+		-Winline \
+		-Wmissing-declarations \
+		-Wmissing-prototypes \
+		-Wnested-externs \
+		-Wpointer-arith \
+		@EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@
 
 libeXosip_la_SOURCES =       eXosip.c  \
 jrequest.c jresponse.c    jcallback.c  jdialog.c   udp.c  \

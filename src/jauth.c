@@ -42,9 +42,23 @@ typedef char HASHHEX[HASHHEXLEN+1];
 #define OUT
 
 extern eXosip_t eXosip;
-extern char    *localip;
 
-void CvtHex(IN HASH Bin,
+/* Private functions */
+static void CvtHex(IN HASH Bin, OUT HASHHEX Hex);
+static void DigestCalcHA1(IN const char * pszAlg, IN const char * pszUserName,
+			  IN const char * pszRealm, IN const char * pszPassword,
+			  IN const char * pszNonce, IN const char * pszCNonce,
+			  OUT HASHHEX SessionKey);
+static void DigestCalcResponse(IN HASHHEX HA1,
+			       IN const char * pszNonce,
+			       IN const char * pszNonceCount,
+			       IN const char * pszCNonce,
+			       IN const char * pszQop,
+			       IN const char * pszMethod,
+			       IN const char * pszDigestUri,
+			       IN HASHHEX HEntity, OUT HASHHEX Response);
+
+static void CvtHex(IN HASH Bin,
 	    OUT HASHHEX Hex)
 {
   unsigned short i;
@@ -66,12 +80,12 @@ void CvtHex(IN HASH Bin,
 }
 
 /* calculate H(A1) as per spec */
-void DigestCalcHA1(IN char * pszAlg,
-		   IN char * pszUserName,
-		   IN char * pszRealm,
-		   IN char * pszPassword,
-		   IN char * pszNonce,
-		   IN char * pszCNonce,
+static void DigestCalcHA1(IN const char * pszAlg,
+		   IN const char * pszUserName,
+		   IN const char * pszRealm,
+		   IN const char * pszPassword,
+		   IN const char * pszNonce,
+		   IN const char * pszCNonce,
 		   OUT HASHHEX SessionKey)
 {
   MD5_CTX Md5Ctx;
@@ -84,7 +98,7 @@ void DigestCalcHA1(IN char * pszAlg,
   MD5Update(&Md5Ctx, (unsigned char *)":", 1);
   MD5Update(&Md5Ctx, (unsigned char *)pszPassword, strlen(pszPassword));
   MD5Final((unsigned char *)HA1, &Md5Ctx);
-  if ((pszAlg!=NULL)&&strcasecmp(pszAlg, "md5-sess") == 0)
+  if ((pszAlg!=NULL)&&osip_strcasecmp(pszAlg, "md5-sess") == 0)
     {
       MD5Init(&Md5Ctx);
       MD5Update(&Md5Ctx, (unsigned char *)HA1, HASHLEN);
@@ -98,13 +112,13 @@ void DigestCalcHA1(IN char * pszAlg,
 }
 
 /* calculate request-digest/response-digest as per HTTP Digest spec */
-void DigestCalcResponse(IN HASHHEX HA1,         /* H(A1) */
-			IN char * pszNonce,     /* nonce from server */
-			IN char * pszNonceCount,/* 8 hex digits */
-			IN char * pszCNonce,    /* client nonce */
-			IN char * pszQop,       /* qop-value: "", "auth", "auth-int" */
-			IN char * pszMethod,    /* method from the request */
-			IN char * pszDigestUri, /* requested URL */
+static void DigestCalcResponse(IN HASHHEX HA1,         /* H(A1) */
+			IN const char * pszNonce,     /* nonce from server */
+			IN const char * pszNonceCount,/* 8 hex digits */
+			IN const char * pszCNonce,    /* client nonce */
+			IN const char * pszQop,       /* qop-value: "", "auth", "auth-int" */
+			IN const char * pszMethod,    /* method from the request */
+			IN const char * pszDigestUri, /* requested URL */
 			IN HASHHEX HEntity,     /* H(entity body) if qop="auth-int" */
 			OUT HASHHEX Response    /* request-digest or response-digest */)
 {
@@ -127,7 +141,7 @@ void DigestCalcResponse(IN HASHHEX HA1,         /* H(A1) */
       char *index = strchr(pszQop,'i');
       while (index!=NULL&&index-pszQop>=5&&strlen(index)>=3)
 	{
-	  if (strncasecmp(index-5, "auth-int",8) == 0)
+	  if (osip_strncasecmp(index-5, "auth-int",8) == 0)
 	    {
 	      goto auth_withqop;
 	    }
@@ -137,7 +151,7 @@ void DigestCalcResponse(IN HASHHEX HA1,         /* H(A1) */
       strchr(pszQop,'a');
       while (index!=NULL&&strlen(index)>=4)
 	{
-	  if (strncasecmp(index-5, "auth",4) == 0)
+	  if (osip_strncasecmp(index-5, "auth",4) == 0)
 	    {
 	      /* and in the case of a unknown token
 		 like auth1. It is not auth, but this
@@ -166,7 +180,9 @@ void DigestCalcResponse(IN HASHHEX HA1,         /* H(A1) */
 
   goto end;
 
+#ifdef AUTH_INT_SUPPORT                   /* experimental  */
  auth_withqop:
+#endif
 
   MD5Update(&Md5Ctx, (unsigned char*)":", 1);
   MD5Update(&Md5Ctx, (unsigned char*)HEntity, HASHHEXLEN);
@@ -195,7 +211,8 @@ void DigestCalcResponse(IN HASHHEX HA1,         /* H(A1) */
 
 int
 __eXosip_create_authorization_header(osip_message_t *previous_answer,
-				     char *rquri, char *username, char *passwd,
+				     const char *rquri, const char *username,
+				     const char *passwd,
 				     osip_authorization_t **auth)
 {
   osip_authorization_t *aut;
@@ -256,14 +273,14 @@ __eXosip_create_authorization_header(osip_message_t *previous_answer,
   {   
     char * pszNonce = osip_strdup_without_quote(osip_www_authenticate_get_nonce(wa));
     char * pszCNonce= NULL;
-    char * pszUser = username;
+    const char * pszUser = username;
     char * pszRealm = osip_strdup_without_quote(osip_authorization_get_realm(aut));
-    char * pszPass=NULL;
+    const char * pszPass=NULL;
     char * pszAlg = osip_strdup("MD5");
     char *szNonceCount = NULL;
-    char * pszMethod = previous_answer->cseq->method;
+    const char * pszMethod = previous_answer->cseq->method;
     char * pszQop = NULL;
-    char * pszURI = rquri;
+    const char * pszURI = rquri;
 
     HASHHEX HA1;
     HASHHEX HA2 = "";
@@ -295,7 +312,9 @@ __eXosip_create_authorization_header(osip_message_t *previous_answer,
 
 int
 __eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
-					 char *rquri,char *username,char *passwd,
+					 const char *rquri,
+					 const char *username,
+					 const char *passwd,
 					 osip_proxy_authorization_t **auth)
 {
   osip_proxy_authorization_t *aut;
@@ -314,14 +333,14 @@ __eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
 		   "www_authenticate header is not acceptable.\n"));
       return -1;
     }
-  if (0!=strcasecmp("Digest",wa->auth_type))
+  if (0!=osip_strcasecmp("Digest",wa->auth_type))
     {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		   "Authentication method not supported. (Digest only).\n"));
       return -1;
     }
-  if (wa->algorithm!=NULL&&0!=strcasecmp("MD5",wa->algorithm))
+  if (wa->algorithm!=NULL&&0!=osip_strcasecmp("MD5",wa->algorithm))
     {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -356,14 +375,14 @@ __eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
   {
     char * pszNonce = NULL;
     char * pszCNonce= NULL ; 
-    char * pszUser = username;
+    const char * pszUser = username;
     char * pszRealm = osip_strdup_without_quote(osip_proxy_authorization_get_realm(aut));
-    char * pszPass = NULL;
+    const char * pszPass = NULL;
     char * pszAlg = osip_strdup("MD5");
     char *szNonceCount = NULL;
     char * pszMethod = previous_answer->cseq->method;
     char * pszQop = NULL;
-    char * pszURI = rquri; 
+    const char * pszURI = rquri; 
    
     HASHHEX HA1;
     HASHHEX HA2 = "";

@@ -28,7 +28,6 @@
 
 extern eXosip_t eXosip;
 
-
 eXosip_event_t *
 eXosip_event_init_for_call(int type,
 			   eXosip_call_t *jc,
@@ -146,7 +145,7 @@ eXosip_event_init_for_call(int type,
 	    }
 	  if (tr!=NULL && tr->last_response!=NULL)
 	    {
-	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      snprintf(je->reason_phrase, 49, "%s", tr->last_response->reason_phrase);
 	      je->status_code = tr->last_response->status_code;
 	    }
 	}
@@ -160,7 +159,7 @@ eXosip_event_add_status(eXosip_event_t *je, osip_message_t *response)
 {
   if (response!=NULL && response->reason_phrase!=NULL)
     {
-      snprintf(je->reason_phrase, 49, response->reason_phrase);
+      snprintf(je->reason_phrase, 49, "%s", response->reason_phrase);
       je->status_code = response->status_code;
     }
   else
@@ -358,7 +357,7 @@ eXosip_event_init_for_subscribe(int type,
 	    }
 	  if (tr!=NULL && tr->last_response!=NULL)
 	    {
-	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      snprintf(je->reason_phrase, 49, "%s", tr->last_response->reason_phrase);
 	      je->status_code = tr->last_response->status_code;
 	    }
 	}
@@ -380,7 +379,7 @@ eXosip_event_init_for_subscribe(int type,
 	    }
 	  if (tr!=NULL && tr->last_response!=NULL)
 	    {
-	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      snprintf(je->reason_phrase, 49, "%s", tr->last_response->reason_phrase);
 	      je->status_code = tr->last_response->status_code;
 	    }
 	}
@@ -448,7 +447,7 @@ eXosip_event_init_for_notify(int type,
 	    }
 	  if (tr!=NULL && tr->last_response!=NULL)
 	    {
-	      snprintf(je->reason_phrase, 49,tr->last_response->reason_phrase);
+	      snprintf(je->reason_phrase, 49, "%s", tr->last_response->reason_phrase);
 	      je->status_code = tr->last_response->status_code;
 	    }
 	}
@@ -716,6 +715,7 @@ eXosip_event_add(eXosip_event_t *je)
   return i;
 }
 
+#if 0
 #ifdef CLOCK_REALTIME
 /* if CLOCK_REALTIME exist, then clock_gettime should be defined */
 
@@ -747,6 +747,7 @@ __eXosip_clock_gettime(unsigned int clock_id, struct timespec *time)
    time->tv_nsec = time_val.millitm * 1000000;
    return;
 }
+#endif
 #endif
 
 eXosip_event_t *

@@ -64,14 +64,16 @@
 
 #endif
 
+#define EXOSIP_VERSION	"0.1"
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-void  eXosip_update();
+void  eXosip_update(void);
 #ifdef NEW_TIMER
-void  __eXosip_wakeup();
+void  __eXosip_wakeup(void);
 #endif
 
 typedef struct eXosip_dialog_t eXosip_dialog_t;
@@ -205,17 +207,15 @@ struct jauthinfo_t {
 };
 
 int
-eXosip_add_authentication_info(char *username, char *userid,
-			       char *passwd, char *ha1,
-			       char *realm);
-int
 __eXosip_create_authorization_header(osip_message_t *previous_answer,
-				     char *rquri, char *username, char *passwd,
+				     const char *rquri, const char *username,
+				     const char *passwd,
 				     osip_authorization_t **auth);
 int
 __eXosip_create_proxy_authorization_header(osip_message_t *previous_answer,
-					   char *rquri,char *username,
-					   char *passwd,
+					   const char *rquri,
+					   const char *username,
+					   const char *passwd,
 					   osip_proxy_authorization_t **auth);
 
 
@@ -238,11 +238,16 @@ eXosip_notify_t *eXosip_event_get_notifyinfo(eXosip_event_t *je);
 eXosip_subscribe_t *eXosip_event_get_subscribeinfo(eXosip_event_t *je);
 int eXosip_event_add(eXosip_event_t *je);
 eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms);
-eXosip_event_t *eXosip_event_get();
+eXosip_event_t *eXosip_event_get(void);
 
 typedef void (* eXosip_callback_t) (int type, eXosip_event_t *);
 
 char *strdup_printf(const char *fmt, ...);
+
+jfriend_t *jfriend_get(void);
+void jfriend_remove(jfriend_t *fr);
+jsubscriber_t *jsubscriber_get(void);
+jidentity_t *jidentity_get(void);
 
 #define eXosip_trace(loglevel,args)  do        \
 {                       \
@@ -258,6 +263,9 @@ struct eXosip_t {
   int forced_localip; /* set to 1 when we must always use the default local ip */
   char *localip;	/* default local ip */
   char *localport;
+
+  char *user_agent;
+  char *register_callid_number;
 
   FILE               *j_input;
   FILE               *j_output;
@@ -303,14 +311,18 @@ struct jinfo_t {
 
 void eXosip_guess_ip_for_via (char *);
 
-int  eXosip_sdp_negotiation_init();
+int  eXosip_sdp_negotiation_init(osip_negotiation_t **sn);
 void eXosip_sdp_negotiation_free(osip_negotiation_t *sn);
 sdp_message_t *eXosip_get_local_sdp_info(osip_transaction_t *invite_tr);
 sdp_message_t *eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr);
+sdp_message_t *eXosip_get_local_sdp(osip_transaction_t *transaction);
+sdp_message_t *eXosip_get_remote_sdp(osip_transaction_t *transaction);
 
 int    eXosip_set_callbacks(osip_t *osip);
-char  *osip_to_tag_new_random();
-unsigned int via_branch_new_random();
+char  *osip_call_id_new_random(void);
+char  *osip_to_tag_new_random(void);
+char  *osip_from_tag_new_random(void);
+unsigned int via_branch_new_random(void);
 void __eXosip_delete_jinfo(osip_transaction_t *transaction);
 jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd,
 			    eXosip_subscribe_t *js, eXosip_notify_t *jn);
@@ -337,11 +349,13 @@ int  generating_invite_on_hold(osip_message_t **invite, osip_dialog_t *dialog,
 int  generating_invite_off_hold(osip_message_t **invite, osip_dialog_t *dialog,
 				char *subject, char *sdp);
 int  generating_options(osip_message_t **options, char *from, char *to, char *proxy);
+int  generating_ack_for_2xx(osip_message_t **ack, osip_dialog_t *dialog);
 int  generating_info(osip_message_t **info, char *from, char *to, char *proxy);
 
 int  eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact);
 void eXosip_reg_free(eXosip_reg_t *jreg);
 int  generating_register(osip_message_t **reg, char *transport, char *from, char *proxy, int expires);
+char *generating_sdp_answer(osip_message_t *request, osip_negotiation_ctx_t *context);
 
 int eXosip_call_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd);
 int eXosip_notify_dialog_find(int nid, eXosip_notify_t **jn, eXosip_dialog_t **jd);
@@ -363,12 +377,16 @@ void eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn,
 void eXosip_notify_answer_subscribe_3456xx(eXosip_notify_t *jn,
 					   eXosip_dialog_t *jd, int code);
 
+int eXosip_build_response_default(int jid, int status);
 int _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
 				  int status, osip_message_t *request);
 int complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t *request);
 int _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
 				       osip_dialog_t *dialog, char *transport);
+int eXosip_build_initial_options(osip_message_t **options, char *to, char *from,
+				 char *route);
 
+void eXosip_kill_transaction(osip_list_t * transactions);
 int eXosip_remove_transaction_from_call(osip_transaction_t *tr, eXosip_call_t *jc);
 osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t *jn, eXosip_dialog_t *jd);
 osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd);
