@@ -118,7 +118,7 @@ void eXosip_set_nattype(const char *nat_type);
  */
 void eXosip_force_proxy(const char *proxyurl);
 
- /**
+/**
  * This method is used to set contact header on answers which establishes dialogs
  * @param  contacturl - the url to use for conatct SIP header,
  *                      when empty - the contact header will be generated from 'to'
