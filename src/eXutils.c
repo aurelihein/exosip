@@ -335,6 +335,8 @@ void eXosip_get_localip_for(char *address_to_reach,char **loc){
 	return ;
 }
 
+#endif
+
 #ifdef SM
 
 void eXosip_get_localip_from_via(osip_message_t *mesg,char **locip){
@@ -376,5 +378,3 @@ char *strdup_printf(const char *fmt, ...)
 			return NULL;
 	}
 }
-
-#endif
