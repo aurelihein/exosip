@@ -40,18 +40,18 @@ gui_t gui_window_setup = {
 int cursor_setup = 0;
 
 typedef struct _j_codec {
-  const char *payload;
-  const char *codec;
+  char payload[10];
+  char codec[200];
   int enabled;
 } j_codec_t;
 
 j_codec_t j_codec[] = {
-  { "0", "PCMU/8000", 0},
-  { "8", "PCMA/8000", 0},
-  { "3", "GSM/8000", 0},
-  { "110", "speex/8000", 0},
-  { "111", "speex/16000", 0},
-  { "-1", NULL , -1}
+  { {"0"}, {"PCMU/8000"}, 0},
+  { {"8"}, {"PCMA/8000"}, 0},
+  { {"3"}, {"GSM/8000"}, 0},
+  { {"110"}, {"speex/8000"}, 0},
+  { {"111"}, {"speex/16000"}, 0},
+  { {"-1"}, {""} , -1}
 };
 
 int window_setup_print()
@@ -74,19 +74,20 @@ int window_setup_print()
 
   attrset(COLOR_PAIR(0));
 
-  for (k=0;j_codec[k].codec!=NULL;k++)
+  for (k=0;j_codec[k].codec[0]!='\0';k++)
     {
-      snprintf(buf, 199, "%c%c %s %s %-40.40s ",
+      snprintf(buf, 199, "   %c%c %s %-3.3s %-150.150s ",
 	       (cursor_setup==k) ? '-' : ' ',
 	       (cursor_setup==k) ? '>' : ' ',
 	       (j_codec[k].enabled==0) ? "ON " : "   ",
 	       j_codec[k].payload,
 	       j_codec[k].codec);
 
-      attrset(COLOR_PAIR(5));
-      attrset((k==cursor_setup) ? A_REVERSE : A_NORMAL);
+      /* attrset(COLOR_PAIR(0));
+	 attrset((k==cursor_setup) ? A_REVERSE : A_NORMAL); */
+	 attrset((k==cursor_setup) ? A_REVERSE : COLOR_PAIR(1));
 
-      mvaddnstr(gui_window_setup.y0+k,
+      mvaddnstr(gui_window_setup.y0+1+k,
 		gui_window_setup.x0,
 		buf,
 		x-gui_window_setup.x0-1);
@@ -106,6 +107,8 @@ void window_setup_draw_commands()
     "->",  "NextWindow",
     "e",  "Enable",
     "d",  "Disable" ,
+    "q",  "Move Up",
+    "w",  "Move Down" ,
     NULL
   };
   getmaxyx(stdscr,y,x);
@@ -129,7 +132,7 @@ int window_setup_run_command(int c)
   else
     max = gui_window_setup.y1 - gui_window_setup.y0+2;
   
-  for (k=0;j_codec[k].codec!=NULL;k++)
+  for (k=0;j_codec[k].codec[0]!='\0';k++)
     {
     }
   if (k<max) max=k;
@@ -145,7 +148,32 @@ int window_setup_run_command(int c)
       cursor_setup += max-1;
       cursor_setup %= max;
       break;
-	
+    case 'q':
+      if (cursor_setup==0)
+	{ beep(); break; }
+      cursor_setup += max-1;
+      cursor_setup %= max;
+      k = 1;
+      {
+	j_codec_t codec;
+	memcpy(&codec, &j_codec[cursor_setup], sizeof(j_codec_t));
+	memcpy(&j_codec[cursor_setup], &j_codec[cursor_setup+1], sizeof(j_codec_t));
+	memcpy(&j_codec[cursor_setup+1], &codec, sizeof(j_codec_t));
+      }
+      break;
+    case 'w':
+      if (cursor_setup==max-1)
+	{ beep(); break; }
+      cursor_setup++;
+      cursor_setup %= max;
+      k = 1;
+      {
+	j_codec_t codec;
+	memcpy(&codec, &j_codec[cursor_setup], sizeof(j_codec_t));
+	memcpy(&j_codec[cursor_setup], &j_codec[cursor_setup-1], sizeof(j_codec_t));
+	memcpy(&j_codec[cursor_setup-1], &codec, sizeof(j_codec_t));
+      }
+      break;
     case 'e':
       j_codec[cursor_setup].enabled = 0;
       k = 1; /* rebuilt set of codec */
@@ -162,7 +190,7 @@ int window_setup_run_command(int c)
   if (k==1)
     {
       eXosip_sdp_negotiation_remove_audio_payloads();
-      for (k=0;j_codec[k].codec!=NULL;k++)
+      for (k=0;j_codec[k].codec[0]!='\0';k++)
 	{
 	  char tmp[40];
 	  if (j_codec[k].enabled==0)
