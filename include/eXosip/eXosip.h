@@ -93,6 +93,14 @@ int eXosip_force_localip(const char *localip);
 void  eXosip_quit(void);
 
 /**
+ * Automatic refresh of subscription and register
+ *   send subscribe refresh when subscription is close to expiration.
+ *   send register refresh when registration is close to expiration.
+ * 
+ */
+void eXosip_automatic_refresh(void);
+
+/**
  * Wake Up the eXosip_event_wait method.
  * 
  */

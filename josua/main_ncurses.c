@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.60 2005-01-12 14:47:42 aymeric Exp $"; */
+/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.61 2005-02-10 15:19:52 aymeric Exp $"; */
 
 #ifdef NCURSES_SUPPORT
 
@@ -47,6 +47,7 @@ josua_event_get()
     {
       char buf[100];
       je = eXosip_event_wait(0,50);
+      eXosip_automatic_refresh();
       if (je==NULL)
 	break;
       counter++;

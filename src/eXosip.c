@@ -579,6 +579,81 @@ eXosip_set_user_agent(const char *user_agent)
 }
 
 void
+eXosip_automatic_refresh()
+{
+#if 0
+  eXosip_call_t      *jc;
+  eXosip_notify_t    *jn;
+#endif
+  eXosip_subscribe_t *js;
+  eXosip_dialog_t    *jd;
+  int now;
+  
+  now = time(NULL);
+  
+#if 0
+  for (jc=eXosip.j_calls; jc!=NULL; jc=jc->next)
+    {
+      if (jc->c_id<1)
+	{
+	}
+      for (jd=jc->c_dialogs; jd!=NULL; jd=jd->next)
+	{
+	  if (jd->d_dialog!=NULL) /* finished call */
+	    {
+	      /* sending update for keep-alive mechanism could be done here! */
+	    }
+	}
+    }
+#endif
+  
+  for (js=eXosip.j_subscribes; js!=NULL; js=js->next)
+    {
+      for (jd=js->s_dialogs; jd!=NULL; jd=jd->next)
+	{
+	  if (jd->d_dialog!=NULL) /* finished call */
+	    {
+	      if (jd->d_id>=1)
+		{
+		  if (eXosip_subscribe_need_refresh(js, now)==0)
+		    {
+		      int i;
+#ifdef LOW_EXPIRE
+		      i = eXosip_subscribe_send_subscribe(js, jd, "120");
+#else
+		      i = eXosip_subscribe_send_subscribe(js, jd, "600");
+#endif
+		    }
+		}
+	    }
+	}
+    }
+  
+#if 0
+  for (jn=eXosip.j_notifies; jn!=NULL; jn=jn->next)
+    {
+      if (jn->n_id<1)
+	{
+	  jn->n_id = static_id;
+	  static_id++;
+	}
+      for (jd=jn->n_dialogs; jd!=NULL; jd=jd->next)
+	{
+	  if (jd->d_dialog!=NULL) /* finished call */
+	    {
+	      if (jd->d_id>=1)
+		{
+		  /* keep-alive of dialog should be done by subscribe */
+		  /* may be we can decide to close the subscribption
+		     if it is expired */
+		}
+	    }
+	}
+    }
+#endif
+}
+
+void
 eXosip_update()
 {
   static int static_id  = 1;
@@ -628,15 +703,6 @@ eXosip_update()
 		{
 		  jd->d_id = static_id;
 		  static_id++;
-		}
-	      if (eXosip_subscribe_need_refresh(js, now)==0)
-		{
-		  int i;
-#ifdef LOW_EXPIRE
-		  i = eXosip_subscribe_send_subscribe(js, jd, "60");
-#else
-		  i = eXosip_subscribe_send_subscribe(js, jd, "600");
-#endif
 		}
 	    }
 	  else

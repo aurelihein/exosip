@@ -609,7 +609,7 @@ int generating_initial_subscribe(osip_message_t **subscribe, char *to,
   if (i!=0) return -1;
   
 #ifdef LOW_EXPIRE
-  osip_message_set_expires(*subscribe, "60");
+  osip_message_set_expires(*subscribe, "120");
 #else
   osip_message_set_expires(*subscribe, "600");
 #endif
