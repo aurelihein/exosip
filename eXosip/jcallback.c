@@ -29,7 +29,6 @@
 #include <windowsx.h>
 #include <winsock2.h>
 #include <Ws2tcpip.h>
-//#include <Iphlpapi.h>
 #else 
 #include <sys/wait.h>
 #include <sys/types.h>
