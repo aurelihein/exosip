@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "EXOSIP_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\osip\include" /I "..\..\include" /D "EXOSIP_EXPORTS" /D "_DEBUG" /D "ENABLE_TRACE" /D "ENABLE_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "OSIP_MT" /D "USE_TMP_BUFFER" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\osip\include" /I "..\..\include" /D "EXOSIP_EXPORTS" /D "_DEBUG" /D "ENABLE_TRACE" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "OSIP_MT" /FR /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x40c /d "_DEBUG"
@@ -136,6 +136,10 @@ SOURCE=..\..\src\jnotify.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\jpipe.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\jreg.c
 # End Source File
 # Begin Source File
@@ -181,6 +185,10 @@ SOURCE=..\..\src\eXosip2.h
 # Begin Source File
 
 SOURCE=..\..\include\eXosip\eXosip_cfg.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\jpipe.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
