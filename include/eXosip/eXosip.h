@@ -106,6 +106,21 @@ void  __eXosip_wakeup_event(void);
 void eXosip_set_firewallip(const char *firewall_address);
 
 /**
+ * This method is used to modify NAT firewall type
+ * When you are behind a NAT. (EXPERIMENTAL)
+ * @param nat type ("", "fcone", "rcone", "prcone", "sym")
+ */
+void eXosip_set_nattype(const char *nat_type);
+
+
+/**
+ * This method is used to force ALL SIP packets to go through given proxy
+ * @param  proxyurl - when empty disable forced proxy behaviour
+ */
+void eXosip_force_proxy(const char *proxyurl);
+
+
+/**
  * Find the current localip (interface with default route).
  * ****DEPRECATED**** Use eXosip_guess_localip
  * 
@@ -320,6 +335,16 @@ int eXosip2_answer_send(int jid, osip_message_t *answer);
  */
 int   eXosip_answer_call_with_body   (int jid, int status,const char *body_type, const char*body);
 
+
+/**
+ * Retreive payload negotiated for this dialog
+ * 
+ * @param jid          dialog id of call.
+ * @param payload      will hold the negotited payload code
+ * @param payload_name will hold negotioated payload mime string
+ * @param pnsize       size of the payload_name buffer
+ */
+int   eXosip_retrieve_negotiated_payload(int jid, int *payload, char *payload_name, int pnsize);
 
 /**
  * Set a new application context for an existing call
