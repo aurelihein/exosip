@@ -210,7 +210,7 @@ int window_sessions_list_run_command(int c)
       if (ca==NULL) { beep(); break; }
       eXosip_lock();
       /* eXosip_off_hold_call(ca->did, "192.168.1.66", 11111); */
-      eXosip_off_hold_call(ca->did, NULL, 0);
+      eXosip_off_hold_call(ca->did);
       eXosip_unlock();
       break;
     case 'o':
