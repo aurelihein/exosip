@@ -397,7 +397,7 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   eXosip_call_t *jc;
   eXosip_dialog_t *jd;
   osip_message_t *answer;
-  char *contact;
+  char contact[200];
 
   eXosip_call_init(&jc);
   /* eXosip_call_set_subect... */
@@ -413,7 +413,6 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
       return;
     }
   osip_message_set_content_length(answer, "0");
-  contact = (char *) osip_malloc(30);
   sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
 	  localip,
 	  localport);
@@ -421,7 +420,6 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   if (i!=0)
     {
       osip_message_free(answer);
-      osip_free(contact);
       fprintf(stderr, "eXosip: cannot complete answer!\n");
       return ;
     }
@@ -431,7 +429,6 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
     {
       osip_message_free(answer);
       fprintf(stderr, "eXosip: cannot create dialog!\n");
-      osip_free(contact);
       return ;
     }
   ADD_ELEMENT(jc->c_dialogs, jd);
@@ -448,11 +445,9 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
     {
       fprintf(stderr, "eXosip: cannot send ringback.");
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not create response for invite\n"));
-      osip_free(contact);
       return;
     }
   i = complete_answer_that_establish_a_dialog(answer, evt->sip, contact);
-  osip_free(contact);
   if (i!=0)
     {
       osip_message_free(answer);
@@ -643,7 +638,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   eXosip_notify_t *jn;
   eXosip_dialog_t *jd;
   osip_message_t *answer;
-  char *contact;
+  char contact[200];
   int code;
   int i;
 
@@ -659,7 +654,6 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
       eXosip_notify_free(jn);
       return;
     }
-  contact = (char *) osip_malloc(30);
   sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
 	  localip,
 	  localport);
@@ -667,7 +661,6 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   if (i!=0)
     {
       osip_message_free(answer);
-      osip_free(contact);
       fprintf(stderr, "eXosip: cannot complete answer!\n");
       jn->n_inc_tr = transaction;
       eXosip_notify_free(jn);
@@ -679,7 +672,6 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
     {
       osip_message_free(answer);
       fprintf(stderr, "eXosip: cannot create dialog!\n");
-      osip_free(contact);
       jn->n_inc_tr = transaction;
       eXosip_notify_free(jn);
       return ;
@@ -712,14 +704,12 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   _eXosip_notify_add_expires_in_2XX_for_subscribe(jn, answer);
 
   {
-    char *contact;
-    contact = (char *) osip_malloc(50);
+    char *contact[200];
     sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
 	    localip,
 	    localport);
     i = complete_answer_that_establish_a_dialog(answer, evt->sip,
 						contact);
-    osip_free(contact);
     if (i!=0)
       {
 	osip_message_free(answer);
@@ -757,14 +747,12 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
   _eXosip_notify_add_expires_in_2XX_for_subscribe(jn, answer);
 
   {
-    char *contact;
-    contact = (char *) osip_malloc(50);
+    char contact [200];
     sprintf(contact, "<sip:%s@%s:%s>", evt->sip->to->url->username,
 	    localip,
 	    localport);
     i = complete_answer_that_establish_a_dialog(answer, evt->sip,
 						contact);
-    osip_free(contact);
     if (i!=0)
       {
 	/* this info is yet known by the remote UA,
