@@ -141,6 +141,8 @@ int jcall_new(eXosip_event_t *je)
       ca->status_code = je->status_code;
     }
 
+  eXosip_answer_call(ca->did, 180, NULL);
+
   ca->state = je->type;
   return 0;
 }
