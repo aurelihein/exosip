@@ -34,7 +34,8 @@ extern char *localip;
 extern char *localport;
 
 void eXosip_send_default_answer(eXosip_dialog_t *jd,
-				osip_transaction_t *transaction, osip_event_t *evt,
+				osip_transaction_t *transaction,
+				osip_event_t *evt,
 				int status)
 {
   osip_event_t *evt_answer;
@@ -1128,7 +1129,8 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	  socklen_t slen;
 #else
 	  int slen;
-#endif  
+#endif
+	  slen = sizeof(struct sockaddr_in);
 	  i = recvfrom (eXosip.j_socket, buf, SIP_MESSAGE_MAX_LENGTH, 0,
 			(struct sockaddr *) &sa, &slen);
 	  if( i > 0 )
