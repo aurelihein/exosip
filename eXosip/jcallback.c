@@ -679,14 +679,33 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
     }
   else if (MSG_IS_RESPONSEFOR(sip, "NOTIFY"))
     {
-      osip_header_t  *sub_state;
-      osip_message_header_get_byname(tr->orig_request, "subscription-state",
-				     0, &sub_state);
-      if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+#ifdef SUPPORT_MSN
+      osip_header_t  *expires;
+      osip_message_header_get_byname(tr->orig_request, "expires",
+				     0, &expires);
+      if (expires==NULL || expires->hvalue==NULL)
+	{
+	  /* UNCOMPLIANT UA without a subscription-state header */
+	}
+      else if (0==osip_strcasecmp(expires->hvalue, "0"))
 	{
 	  /* delete the dialog! */
 	  eXosip_subscribe_free(js);
 	}
+#else
+      osip_header_t  *sub_state;
+      osip_message_header_get_byname(tr->orig_request, "subscription-state",
+				     0, &sub_state);
+      if (sub_state==NULL || sub_state->hvalue==NULL)
+	{
+	  /* UNCOMPLIANT UA without a subscription-state header */
+	}
+      else if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+	{
+	  /* delete the dialog! */
+	  eXosip_subscribe_free(js);
+	}
+#endif
     }
 }
 

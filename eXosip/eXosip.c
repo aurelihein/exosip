@@ -932,6 +932,7 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
   if (jn->n_ss_status==EXOSIP_SUBCRSTATE_UNKNOWN)
     jn->n_online_status=EXOSIP_SUBCRSTATE_PENDING;
 
+#ifndef SUPPORT_MSN
   if (jn->n_ss_status==EXOSIP_SUBCRSTATE_PENDING)
     osip_strncpy(subsciption_state, "pending;expires=", 16);
   else if (jn->n_ss_status==EXOSIP_SUBCRSTATE_ACTIVE)
@@ -946,6 +947,14 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
     sprintf(tmp, "%i", jn->n_ss_expires-now);
   osip_parser_set_header(notify, "Subscription-State",
 			 subsciption_state);
+#endif
+
+  /* add a body */
+  i = _eXosip_notify_add_body(jn, notify);
+  if (i!=0)
+    {
+
+    }
 
   i = osip_transaction_init(&transaction,
 		       NICT,

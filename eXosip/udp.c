@@ -718,10 +718,12 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
   osip_message_t *answer;
   osip_event_t   *sipevent;
   osip_header_t  *sub_state;
+  osip_header_t  *expires;
   int i;
 
   /* if subscription-state has a reason state set to terminated,
      we close the dialog */
+#ifndef SUPPORT_MSN
   osip_message_header_get_byname(evt->sip, "subscription-state",
 				 0,
 				 &sub_state);
@@ -730,6 +732,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       eXosip_send_default_answer(jd, transaction, evt, 400);
       return;
     }
+#endif
 
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
@@ -738,6 +741,24 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       return ;
     }
 
+#ifdef SUPPORT_MSN
+  osip_message_header_get_byname(evt->sip, "expires",
+				 0,
+				 &expires);
+  if (expires==NULL||expires->hvalue==NULL)
+    {
+      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+    }
+  else if (0==osip_strcasecmp(expires->hvalue, "0"))
+    {
+      /* delete the dialog! */
+      eXosip_subscribe_free(js);
+    }
+  else
+    {
+      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+    }
+#else
   if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
     {
       /* delete the dialog! */
@@ -747,11 +768,8 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
     {
       osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
     }
+#endif
 
-  if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
-    {
-      
-    }
 
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
