@@ -424,7 +424,6 @@ int jcall_requestfailure(eXosip_event_t *je)
       if (oddnumber==0)
 	{
 	  eXosip_retry_call(je->cid);
-	  eXosip_clear_authentication_info();
 	  oddnumber=1;
 	} else oddnumber=0;
     }

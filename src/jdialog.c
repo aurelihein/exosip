@@ -65,6 +65,9 @@ int eXosip_subscribe_dialog_find(int sid, eXosip_subscribe_t **js, eXosip_dialog
 {
   for (*js=eXosip.j_subscribes; *js!=NULL; *js=(*js)->next)
     {
+      *jd=NULL;
+      if ((*js)->s_id==sid)
+	return 0;
       for (*jd=(*js)->s_dialogs; *jd!=NULL; *jd=(*jd)->next)
 	{
 	  if ((*jd)->d_id==sid)

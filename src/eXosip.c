@@ -2326,11 +2326,70 @@ int eXosip_subscribe_refresh  (int sid, char *expires)
     {
       eXosip_subscribe_dialog_find(sid, &js, &jd);
     }
-  if (jd==NULL)
+  if (js==NULL)
     {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: No subscribe here?\n"));
+      return -1;
+    }
+
+  if (jd==NULL)
+    {
+      osip_transaction_t *tr;
+      osip_transaction_t *newtr;
+      osip_message_t *sub;
+      osip_event_t *sipevent;
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
          "eXosip: No subscribe dialog here?\n"));
+      
+      tr=eXosip_find_last_out_subscribe(js,NULL);
+      if (tr==NULL){
+	eXosip_trace(OSIP_INFO1,("eXosip_retry_last_sub: No such transaction."));
+	return -1;
+      }
+      if (tr->last_response==NULL){
+	eXosip_trace(OSIP_INFO1,("eXosip_retry_last_sub: transaction has not been answered."));
+	return -1;
+      }
+      sub=eXosip_prepare_request_for_auth(tr->orig_request);
+      if (sub==NULL) return -1;
+      eXosip_add_authentication_information(sub,tr->last_response);
+
+      if (expires==NULL)
+	osip_message_set_expires(sub, "600");
+      else
+	osip_message_set_expires(sub, expires);
+
+      osip_message_force_update(sub);
+      i = osip_transaction_init(&newtr,
+				NICT,
+				eXosip.j_osip,
+				sub);
+      if (i!=0)
+	{
+	  osip_message_free(sub);
+	  return -1;
+	}
+
+      if (jd!=NULL)
+	osip_list_add(jd->d_out_trs, newtr, 0);
+      else
+	{
+	  js->s_out_tr = newtr;
+	  /* remove old transaction */
+	  osip_list_add(eXosip.j_transactions, tr, 0);
+	}
+      
+      sipevent = osip_new_outgoing_sipmessage(sub);
+      
+      osip_transaction_set_your_instance(newtr, tr->your_instance);
+      osip_transaction_set_your_instance(tr, NULL);
+      osip_transaction_add_event(newtr, sipevent);
+      
+      eXosip_update(); /* fixed? */
+      __eXosip_wakeup();
       return -1;
     }
 
