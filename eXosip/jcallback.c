@@ -110,7 +110,7 @@ int cb_udp_snd_message(transaction_t *tr, osip_msg_t *sip, char *host,
   
 }
 
-void cb_ict_kill_transaction(transaction_t *tr)
+void cb_ict_kill_transaction(int type, transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_ict_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -122,7 +122,7 @@ void cb_ict_kill_transaction(transaction_t *tr)
     }
 }
 
-void cb_ist_kill_transaction(transaction_t *tr)
+void cb_ist_kill_transaction(int type, transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_ist_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -133,7 +133,7 @@ void cb_ist_kill_transaction(transaction_t *tr)
     }
 }
 
-void cb_nict_kill_transaction(transaction_t *tr)
+void cb_nict_kill_transaction(int type, transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_nict_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -144,7 +144,7 @@ void cb_nict_kill_transaction(transaction_t *tr)
     }
 }
 
-void cb_nist_kill_transaction(transaction_t *tr)
+void cb_nist_kill_transaction(int type, transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_nist_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -155,107 +155,107 @@ void cb_nist_kill_transaction(transaction_t *tr)
     }
 }
   
-void cb_rcvinvite  (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvinvite  (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvinvite (id=%i)\n", tr->transactionid));
 }
 
-void cb_rcvack     (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvack     (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvack (id=%i)\n", tr->transactionid));
 }
 
-void cb_rcvack2    (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvack2    (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvack2 (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_rcvregister(transaction_t *tr,osip_msg_t *sip)
+void cb_rcvregister(int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvbye (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvbye     (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvbye     (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvbye (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvcancel  (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvcancel  (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvcancel (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvinfo    (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvinfo    (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvinfo (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvoptions (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvoptions (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvoptions (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvnotify  (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvnotify  (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvnotify (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvsubscribe (transaction_t *tr,osip_msg_t *sip)
+void cb_rcvsubscribe (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvsubscribe (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvunkrequest(transaction_t *tr,osip_msg_t *sip)
+void cb_rcvunkrequest(int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvunkrequest (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndinvite  (transaction_t *tr,osip_msg_t *sip)
+void cb_sndinvite  (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndinvite (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndack     (transaction_t *tr,osip_msg_t *sip)
+void cb_sndack     (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndack (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_sndregister(transaction_t *tr,osip_msg_t *sip)
+void cb_sndregister(int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndregister (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndbye     (transaction_t *tr,osip_msg_t *sip)
+void cb_sndbye     (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndbye (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndcancel  (transaction_t *tr,osip_msg_t *sip)
+void cb_sndcancel  (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndcancel (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndinfo    (transaction_t *tr,osip_msg_t *sip)
+void cb_sndinfo    (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndinfo (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndoptions (transaction_t *tr,osip_msg_t *sip)
+void cb_sndoptions (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndoptions (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndnotify  (transaction_t *tr,osip_msg_t *sip)
+void cb_sndnotify  (int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndnotify (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndsubscribe(transaction_t *tr,osip_msg_t *sip)
+void cb_sndsubscribe(int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndsubscibe (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndunkrequest(transaction_t *tr,osip_msg_t *sip)
+void cb_sndunkrequest(int type, transaction_t *tr,osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndunkrequest (id=%i)\r\n", tr->transactionid));
 }
@@ -269,7 +269,7 @@ jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd)
   return ji;
 }
 
-void cb_rcv1xx(transaction_t *tr,osip_msg_t *sip)
+void cb_rcv1xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -517,7 +517,7 @@ void cb_rcv2xx_4invite(transaction_t *tr,osip_msg_t *sip)
 
 }
 
-void cb_rcv2xx(transaction_t *tr,osip_msg_t *sip)
+void cb_rcv2xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -552,7 +552,7 @@ void eXosip_delete_early_dialog(eXosip_dialog_t *jd)
     }    
 }
 
-void cb_rcv3xx(transaction_t *tr,osip_msg_t *sip)
+void cb_rcv3xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -570,7 +570,7 @@ void cb_rcv3xx(transaction_t *tr,osip_msg_t *sip)
     }
 }
 
-void cb_rcv4xx(transaction_t *tr,osip_msg_t *sip)
+void cb_rcv4xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -591,7 +591,7 @@ void cb_rcv4xx(transaction_t *tr,osip_msg_t *sip)
     }
 }
 
-void cb_rcv5xx(transaction_t *tr,osip_msg_t *sip)
+void cb_rcv5xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -610,7 +610,7 @@ void cb_rcv5xx(transaction_t *tr,osip_msg_t *sip)
 
 }
 
-void cb_rcv6xx(transaction_t *tr,osip_msg_t *sip)
+void cb_rcv6xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -629,7 +629,7 @@ void cb_rcv6xx(transaction_t *tr,osip_msg_t *sip)
 
 }
 
-void cb_snd1xx(transaction_t *tr,osip_msg_t *sip)
+void cb_snd1xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -644,7 +644,7 @@ void cb_snd1xx(transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_TRYING;
 }
 
-void cb_snd2xx(transaction_t *tr,osip_msg_t *sip)
+void cb_snd2xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -663,7 +663,7 @@ void cb_snd2xx(transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_ESTABLISHED;
 }
 
-void cb_snd3xx(transaction_t *tr,osip_msg_t *sip)
+void cb_snd3xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -681,7 +681,7 @@ void cb_snd3xx(transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_REDIRECTED;
 }
 
-void cb_snd4xx(transaction_t *tr,osip_msg_t *sip)
+void cb_snd4xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -699,7 +699,7 @@ void cb_snd4xx(transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_CLIENTERROR;
 }
 
-void cb_snd5xx(transaction_t *tr,osip_msg_t *sip)
+void cb_snd5xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -717,7 +717,7 @@ void cb_snd5xx(transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_SERVERERROR;
 }
 
-void cb_snd6xx(transaction_t *tr,osip_msg_t *sip)
+void cb_snd6xx(int type, transaction_t *tr,osip_msg_t *sip)
 {
   eXosip_dialog_t *jd;
   eXosip_call_t *jc;
@@ -735,37 +735,37 @@ void cb_snd6xx(transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_GLOBALFAILURE;
 }
 
-void cb_rcvresp_retransmission(transaction_t *tr, osip_msg_t *sip)
+void cb_rcvresp_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvresp_retransmission (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndreq_retransmission(transaction_t *tr, osip_msg_t *sip)
+void cb_sndreq_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndreq_retransmission (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndresp_retransmission(transaction_t *tr, osip_msg_t *sip)
+void cb_sndresp_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndresp_retransmission (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvreq_retransmission(transaction_t *tr, osip_msg_t *sip)
+void cb_rcvreq_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvreq_retransmission (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_killtransaction(transaction_t *tr)
+void cb_killtransaction(int type, transaction_t *tr)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_killtransaction (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_endoftransaction(transaction_t *tr)
+void cb_endoftransaction(int type, transaction_t *tr)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_endoftransaction (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_transport_error(transaction_t *tr, int error)
+void cb_transport_error(int type, transaction_t *tr, int error)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_transport_error (id=%i)\r\n", tr->transactionid));
 }
@@ -776,83 +776,104 @@ int
 eXosip_set_callbacks(osip_t *osip)
 {
   // register all callbacks
+
   osip_setcb_send_message(osip, &cb_udp_snd_message);
   
-  osip_setcb_ict_kill_transaction(osip,&cb_ict_kill_transaction);
-  osip_setcb_ist_kill_transaction(osip,&cb_ist_kill_transaction);
-  osip_setcb_nict_kill_transaction(osip,&cb_nict_kill_transaction);
-  osip_setcb_nist_kill_transaction(osip,&cb_nist_kill_transaction);
+  osip_set_kill_transaction_callback(osip ,OSIP_ICT_KILL_TRANSACTION,
+				 &cb_ict_kill_transaction);
+  osip_set_kill_transaction_callback(osip ,OSIP_NIST_KILL_TRANSACTION,
+				 &cb_ist_kill_transaction);
+  osip_set_kill_transaction_callback(osip ,OSIP_NICT_KILL_TRANSACTION,
+				 &cb_nict_kill_transaction);
+  osip_set_kill_transaction_callback(osip ,OSIP_NIST_KILL_TRANSACTION,
+				 &cb_nist_kill_transaction);
           
-  osip_setcb_ict_2xx_received2(osip,&cb_rcvresp_retransmission);
-  osip_setcb_ict_3456xx_received2(osip,&cb_rcvresp_retransmission);
-  osip_setcb_ict_invite_sent2(osip,&cb_sndreq_retransmission);
-  osip_setcb_ist_2xx_sent2(osip,&cb_sndresp_retransmission);
-  osip_setcb_ist_3456xx_sent2(osip,&cb_sndresp_retransmission);
-  osip_setcb_ist_invite_received2(osip,&cb_rcvreq_retransmission);
-  osip_setcb_nict_2xx_received2(osip,&cb_rcvresp_retransmission);
-  osip_setcb_nict_3456xx_received2(osip,&cb_rcvresp_retransmission);
-  osip_setcb_nict_request_sent2(osip,&cb_sndreq_retransmission);
-  osip_setcb_nist_2xx_sent2(osip,&cb_sndresp_retransmission);
-  osip_setcb_nist_3456xx_sent2(osip,&cb_sndresp_retransmission);
-  osip_setcb_nist_request_received2(osip,&cb_rcvreq_retransmission);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_2XX_RECEIVED_AGAIN,
+			&cb_rcvresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_3456XX_RECEIVED_AGAIN,
+			&cb_rcvresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_ICT_INVITE_SENT_AGAIN,
+			&cb_sndreq_retransmission);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_2XX_SENT_AGAIN,
+			&cb_sndresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_3456XX_SENT_AGAIN,
+			&cb_sndresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_IST_INVITE_RECEIVED_AGAIN,
+			&cb_rcvreq_retransmission);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_2XX_RECEIVED_AGAIN,
+			&cb_rcvresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_3456XX_RECEIVED_AGAIN,
+			&cb_rcvresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_NICT_REQUEST_SENT_AGAIN,
+			&cb_sndreq_retransmission);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_2XX_SENT_AGAIN,
+			&cb_sndresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_3456XX_SENT_AGAIN,
+			&cb_sndresp_retransmission);
+  osip_set_msg_callback(osip ,OSIP_NIST_REQUEST_RECEIVED_AGAIN,
+			&cb_rcvreq_retransmission);
           
-  osip_setcb_ict_transport_error(osip,&cb_transport_error);
-  osip_setcb_ist_transport_error(osip,&cb_transport_error);
-  osip_setcb_nict_transport_error(osip,&cb_transport_error);
-  osip_setcb_nist_transport_error(osip,&cb_transport_error);
+  osip_set_transport_error_callback(osip ,OSIP_ICT_TRANSPORT_ERROR,
+				    &cb_transport_error);
+  osip_set_transport_error_callback(osip ,OSIP_IST_TRANSPORT_ERROR,
+				    &cb_transport_error);
+  osip_set_transport_error_callback(osip ,OSIP_NICT_TRANSPORT_ERROR,
+				    &cb_transport_error);
+  osip_set_transport_error_callback(osip ,OSIP_NIST_TRANSPORT_ERROR,
+				    &cb_transport_error);
   
-  osip_setcb_ict_invite_sent  (osip,&cb_sndinvite);
-  osip_setcb_ict_ack_sent     (osip,&cb_sndack);
-  osip_setcb_nict_register_sent(osip,&cb_sndregister);
-  osip_setcb_nict_bye_sent     (osip,&cb_sndbye);
-  osip_setcb_nict_cancel_sent  (osip,&cb_sndcancel);
-  osip_setcb_nict_info_sent    (osip,&cb_sndinfo);
-  osip_setcb_nict_options_sent (osip,&cb_sndoptions);
-  osip_setcb_nict_subscribe_sent (osip,&cb_sndoptions);
-  osip_setcb_nict_notify_sent (osip,&cb_sndoptions);
+  osip_set_msg_callback(osip ,OSIP_ICT_INVITE_SENT,     &cb_sndinvite);
+  osip_set_msg_callback(osip ,OSIP_ICT_ACK_SENT,        &cb_sndack);
+  osip_set_msg_callback(osip ,OSIP_NICT_REGISTER_SENT,  &cb_sndregister);
+  osip_set_msg_callback(osip ,OSIP_NICT_BYE_SENT,       &cb_sndbye);
+  osip_set_msg_callback(osip ,OSIP_NICT_CANCEL_SENT,    &cb_sndcancel);
+  osip_set_msg_callback(osip ,OSIP_NICT_INFO_SENT,      &cb_sndinfo);
+  osip_set_msg_callback(osip ,OSIP_NICT_OPTIONS_SENT,   &cb_sndoptions);
+  osip_set_msg_callback(osip ,OSIP_NICT_SUBSCRIBE_SENT, &cb_sndsubscribe);
+  osip_set_msg_callback(osip ,OSIP_NICT_NOTIFY_SENT,    &cb_sndnotify);
   /*  osip_setcb_nict_sndprack   (osip,&cb_sndprack); */
-  osip_setcb_nict_unknown_sent(osip,&cb_sndunkrequest);
+  osip_set_msg_callback(osip ,OSIP_NICT_UNKNOWN_REQUEST_SENT, &cb_sndunkrequest);
 
-  osip_setcb_ict_1xx_received(osip,&cb_rcv1xx);
-  osip_setcb_ict_2xx_received(osip,&cb_rcv2xx);
-  osip_setcb_ict_3xx_received(osip,&cb_rcv3xx);
-  osip_setcb_ict_4xx_received(osip,&cb_rcv4xx);
-  osip_setcb_ict_5xx_received(osip,&cb_rcv5xx);
-  osip_setcb_ict_6xx_received(osip,&cb_rcv6xx);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_2XX_RECEIVED, &cb_rcv2xx);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_3XX_RECEIVED, &cb_rcv3xx);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_4XX_RECEIVED, &cb_rcv4xx);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_5XX_RECEIVED, &cb_rcv5xx);
+  osip_set_msg_callback(osip ,OSIP_ICT_STATUS_6XX_RECEIVED, &cb_rcv6xx);
   
-  osip_setcb_ist_1xx_sent(osip,&cb_snd1xx);
-  osip_setcb_ist_2xx_sent(osip,&cb_snd2xx);
-  osip_setcb_ist_3xx_sent(osip,&cb_snd3xx);
-  osip_setcb_ist_4xx_sent(osip,&cb_snd4xx);
-  osip_setcb_ist_5xx_sent(osip,&cb_snd5xx);
-  osip_setcb_ist_6xx_sent(osip,&cb_snd6xx);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_1XX_SENT, &cb_snd1xx);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_2XX_SENT, &cb_snd2xx);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_3XX_SENT, &cb_snd3xx);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_4XX_SENT, &cb_snd4xx);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_5XX_SENT, &cb_snd5xx);
+  osip_set_msg_callback(osip ,OSIP_IST_STATUS_6XX_SENT, &cb_snd6xx);
   
-  osip_setcb_nict_1xx_received(osip,&cb_rcv1xx);
-  osip_setcb_nict_2xx_received(osip,&cb_rcv2xx);
-  osip_setcb_nict_3xx_received(osip,&cb_rcv3xx);
-  osip_setcb_nict_4xx_received(osip,&cb_rcv4xx);
-  osip_setcb_nict_5xx_received(osip,&cb_rcv5xx);
-  osip_setcb_nict_6xx_received(osip,&cb_rcv6xx);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_2XX_RECEIVED, &cb_rcv2xx);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_3XX_RECEIVED, &cb_rcv3xx);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_4XX_RECEIVED, &cb_rcv4xx);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_5XX_RECEIVED, &cb_rcv5xx);
+  osip_set_msg_callback(osip ,OSIP_NICT_STATUS_6XX_RECEIVED, &cb_rcv6xx);
       
-
-  osip_setcb_nist_1xx_sent(osip,&cb_snd1xx);
-  osip_setcb_nist_2xx_sent(osip,&cb_snd2xx);
-  osip_setcb_nist_3xx_sent(osip,&cb_snd3xx);
-  osip_setcb_nist_4xx_sent(osip,&cb_snd4xx);
-  osip_setcb_nist_5xx_sent(osip,&cb_snd5xx);
-  osip_setcb_nist_6xx_sent(osip,&cb_snd6xx);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_1XX_SENT, &cb_snd1xx);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_2XX_SENT, &cb_snd2xx);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_3XX_SENT, &cb_snd3xx);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_4XX_SENT, &cb_snd4xx);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_5XX_SENT, &cb_snd5xx);
+  osip_set_msg_callback(osip ,OSIP_NIST_STATUS_6XX_SENT, &cb_snd6xx);
   
-  osip_setcb_ist_invite_received  (osip,&cb_rcvinvite);
-  osip_setcb_ist_ack_received     (osip,&cb_rcvack);
-  osip_setcb_ist_ack_received2    (osip,&cb_rcvack2);
-  osip_setcb_nist_register_received(osip,&cb_rcvregister);
-  osip_setcb_nist_bye_received     (osip,&cb_rcvbye);
-  osip_setcb_nist_cancel_received  (osip,&cb_rcvcancel);
-  osip_setcb_nist_info_received    (osip,&cb_rcvinfo);
-  osip_setcb_nist_options_received (osip,&cb_rcvoptions);
-  osip_setcb_nist_subscribe_received (osip,&cb_rcvoptions);
-  osip_setcb_nist_notify_received (osip,&cb_rcvoptions);
-  osip_setcb_nist_unknown_received(osip,&cb_rcvunkrequest);
+  osip_set_msg_callback(osip ,OSIP_IST_INVITE_RECEIVED,     &cb_rcvinvite);
+  osip_set_msg_callback(osip ,OSIP_IST_ACK_RECEIVED,        &cb_rcvack);
+  osip_set_msg_callback(osip ,OSIP_IST_ACK_RECEIVED_AGAIN,  &cb_rcvack2);
+  osip_set_msg_callback(osip ,OSIP_NIST_REGISTER_RECEIVED,  &cb_rcvregister);
+  osip_set_msg_callback(osip ,OSIP_NIST_BYE_RECEIVED,       &cb_rcvbye);
+  osip_set_msg_callback(osip ,OSIP_NIST_CANCEL_RECEIVED,    &cb_rcvcancel);
+  osip_set_msg_callback(osip ,OSIP_NIST_INFO_RECEIVED,      &cb_rcvinfo);
+  osip_set_msg_callback(osip ,OSIP_NIST_OPTIONS_RECEIVED,   &cb_rcvoptions);
+  osip_set_msg_callback(osip ,OSIP_NIST_SUBSCRIBE_RECEIVED, &cb_rcvsubscribe);
+  osip_set_msg_callback(osip ,OSIP_NIST_NOTIFY_RECEIVED,    &cb_rcvnotify);
+  osip_set_msg_callback(osip ,OSIP_NIST_UNKNOWN_REQUEST_RECEIVED, &cb_sndunkrequest);
+
 
   return 0;
 }
