@@ -290,8 +290,12 @@ void cb_sndunkrequest(int type, osip_transaction_t *tr,osip_message_t *sip)
 
 void __eXosip_delete_jinfo(osip_transaction_t *transaction)
 {
-  jinfo_t *ji = osip_transaction_get_your_instance(transaction);
+  jinfo_t *ji;
+  if (transaction==NULL)
+    return;
+  ji = osip_transaction_get_your_instance(transaction);
   osip_free(ji);
+  osip_transaction_set_your_instance(transaction, NULL);
 }
 
 jinfo_t *__eXosip_new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd)

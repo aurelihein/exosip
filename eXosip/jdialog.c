@@ -154,5 +154,9 @@ void eXosip_dialog_free(eXosip_dialog_t *jd)
       __eXosip_delete_jinfo(tr);
       osip_list_add(eXosip.j_transactions, tr, 0);
     }
+
+  osip_free(jd->media_lines);
+  osip_free(jd->d_out_trs);
+  osip_free(jd->d_inc_trs);
   osip_free(jd);
 }

@@ -26,6 +26,8 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 extern eXosip_t eXosip;
 extern char *localip;
@@ -763,7 +765,14 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	}
       else
 	{
-	  i = recv(eXosip.j_socket, buf, SIP_MESSAGE_MAX_LENGTH ,  0);
+	  struct sockaddr_in sa;
+#ifdef __linux
+	  socklen_t slen;
+#else
+	  int slen;
+#endif  
+	  i = recvfrom (eXosip.j_socket, buf, SIP_MESSAGE_MAX_LENGTH, 0,
+			(struct sockaddr *) &sa, &slen);
 	  if( i > 0 )
 	    {
 	      /* Message might not end with a "\0" but we know the number of */
@@ -772,8 +781,9 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	      osip_event_t *sipevent;
 	      osip_strncpy(buf+i,"\0",1);
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-			  "Received message: \n%s\n", buf));
+				    "Received message: \n%s\n", buf));
 	      sipevent = osip_parse(buf);
+	      msg_fix_last_via_header(sipevent->sip, inet_ntoa (sa.sin_addr), ntohs (sa.sin_port));
 	      transaction = NULL;
 	      if (sipevent!=NULL&&sipevent->sip!=NULL)
 		{
@@ -789,7 +799,6 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 		      else if (MSG_IS_RESPONSE(sipevent->sip))
 			eXosip_process_response_out_of_transaction(sipevent);
 		      eXosip_unlock();
-
 		    }
 		  else
 		    {
