@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.28 2003-05-30 07:53:46 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.29 2003-05-30 08:44:20 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -843,10 +843,6 @@ void josua_printf(char *chfr, ...)
   va_end (ap);
 
 }
-
-int              eXosip_calls_id[MAX_CALLS];
-eXosip_call_t    eXosip_calls[MAX_CALLS];
-eXosip_event_t  *eXosip_event_calls[MAX_CALLS];
 
 void
 josua_event_get()
@@ -1905,25 +1901,98 @@ int __josua_manage_choose_call_in_list() {
     } else if (c=='<' || c=='q') {
       return -1;
     } else if (c=='d') {
-      eXosip_answer_call(cursor+1, 603);
+      int did = cursor;
+      eXosip_call_t *jc = eXosip.j_calls;
+      eXosip_lock();
+      for (;jc!=NULL && (did!=0); jc=jc->next)
+	did--;
+      if (jc==NULL || jc->c_dialogs==NULL)
+	{
+	  eXosip_unlock();
+	}
+      else
+	{
+	  did = jc->c_dialogs->d_id;
+	  eXosip_unlock();
+	  eXosip_answer_call(did, 603);
+	}
+
     } else if (c=='r') {
       char tmp[10];
       int code;
-      /* ask for a specific code */
-      sprintf(buf,"code: %80.80s", " ");
-      mvaddnstr(y-6,0, buf,x-1);
-      mvwgetnstr(stdscr, y-6, 6, tmp, 9);
-      code = osip_atoi(tmp);
-      if (code>100 && code<699)
-	eXosip_answer_call(cursor+1, code);
+      int did = cursor;
+      eXosip_call_t *jc = eXosip.j_calls;
+      eXosip_lock();
+      for (;jc!=NULL && (did!=0); jc=jc->next)
+	did--;
+      if (jc==NULL || jc->c_dialogs==NULL)
+	{
+	  eXosip_unlock();
+	}
+      else
+	{
+	  did = jc->c_dialogs->d_id;
+	  eXosip_unlock();
+
+	  /* ask for a specific code */
+	  sprintf(buf,"code: %80.80s", " ");
+	  mvaddnstr(y-6,0, buf,x-1);
+	  mvwgetnstr(stdscr, y-6, 6, tmp, 9);
+	  code = osip_atoi(tmp);
+	  if (code>100 && code<699)
+	    eXosip_answer_call(did, code);
+	}
 
     } else if (c=='a') {
-      eXosip_answer_call(cursor+1, 200);
+      int did = cursor;
+      eXosip_call_t *jc = eXosip.j_calls;
+      eXosip_lock();
+      for (;jc!=NULL && (did!=0); jc=jc->next)
+	did--;
+      if (jc==NULL || jc->c_dialogs==NULL)
+	{
+	  eXosip_unlock();
+	}
+      else
+	{
+	  did = jc->c_dialogs->d_id;
+	  eXosip_unlock();
+	  eXosip_answer_call(did, 200);
+	}
     } else if (c=='t') {
-      eXosip_terminate_call(cursor+1, 1);
+      int did = cursor;
+      eXosip_call_t *jc = eXosip.j_calls;
+      eXosip_lock();
+      for (;jc!=NULL && (did!=0); jc=jc->next)
+	did--;
+      if (jc==NULL || jc->c_dialogs==NULL)
+	{
+	  eXosip_unlock();
+	}
+      else
+	{
+	  int cid = jc->c_id;
+	  did = jc->c_dialogs->d_id;
+	  eXosip_unlock();
+	  eXosip_terminate_call(cid, did);
+	}
     } else if (c=='h') {
       /* Put on/off Hold */
-      eXosip_on_hold_call(cursor+1);
+      int did = cursor;
+      eXosip_call_t *jc = eXosip.j_calls;
+      eXosip_lock();
+      for (;jc!=NULL && (did!=0); jc=jc->next)
+	did--;
+      if (jc==NULL || jc->c_dialogs==NULL)
+	{
+	  eXosip_unlock();
+	}
+      else
+	{
+	  did = jc->c_dialogs->d_id;
+	  eXosip_unlock();
+	  eXosip_on_hold_call(did);
+	}
     } else {
       beep();
     }

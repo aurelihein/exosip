@@ -318,6 +318,9 @@ eXosip_update()
   eXosip_dialog_t    *jd;
   int now;
 
+  if (static_id>100000)
+    static_id = 1; /* loop */
+
   now = time(NULL);
   for (jc=eXosip.j_calls; jc!=NULL; jc=jc->next)
     {
