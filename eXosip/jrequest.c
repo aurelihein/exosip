@@ -646,8 +646,6 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
     }
   else if (0==strcmp("NOTIFY", method_name))
     {
-      osip_parser_set_header(request, "Subscription-State",
-			     "active;expires=599");
       osip_parser_set_content_type(request, "application/cpim-pidf+xml");
     }
   else if (0==strcmp("INFO", method_name))

@@ -100,10 +100,10 @@ int cancel_match_invite(osip_transaction_t *invite, osip_message_t *cancel)
   osip_generic_param_t *br;
   osip_generic_param_t *br2;
   osip_via_t *via;
-  osip_via_param_get_by_name (invite->topvia, "branch", &br);
+  osip_via_param_get_byname (invite->topvia, "branch", &br);
   via = osip_list_get(cancel->vias, 0);
   if (via==NULL) return -1; /* request without via??? */
-  osip_via_param_get_by_name (via, "branch", &br2);
+  osip_via_param_get_byname (via, "branch", &br2);
   if (br!=NULL && br2==NULL)
     return -1;
   if (br2!=NULL && br==NULL)
@@ -281,7 +281,6 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
     if (i!=200)
       {
-	osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 	eXosip_send_default_answer(jd, transaction, evt, i);
 	return;
       }
@@ -296,7 +295,6 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
       if (local_sdp==NULL)
 	{
-	  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 	  eXosip_send_default_answer(jd, transaction, evt, 500);
 	  return;
 	}
@@ -305,7 +303,6 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
     {
-      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
       eXosip_send_default_answer(jd, transaction, evt, 500);
       return ;
     }
@@ -319,14 +316,12 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       i = sdp_message_to_str(local_sdp, &local_body);
       sdp_message_free(local_sdp);
       if (i!=0) {
-	osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	msg_free(answer);
 	return ;
       } 
       i = osip_parser_set_body(answer, local_body);
       if (i!=0) {
-	osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	osip_free(local_body);
 	msg_free(answer);
@@ -339,7 +334,6 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       osip_free(size);
       i = osip_parser_set_header(answer, "content-type", "application/sdp");
       if (i!=0) {
-	osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	msg_free(answer);
 	return;
@@ -440,7 +434,7 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
 }
 
 void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
-				      osip_transaction_t *transaction, osip_event_t *evt)
+				       osip_transaction_t *transaction, osip_event_t *evt)
 {
   sdp_message_t *sdp;
   int i;
@@ -479,7 +473,6 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
   if (pos!=0 && i!=200)
     {
-      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
       eXosip_send_default_answer(jd, transaction, evt, 400);
       return;
     }
@@ -549,6 +542,27 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
     }
   eXosip_process_invite_off_hold(jc, jd, transaction, evt, NULL);
   return;
+}
+
+int eXosip_event_package_is_supported(osip_transaction_t *transaction,
+				      osip_event_t *evt)
+{
+  osip_header_t *event_hdr;
+  int code;
+
+  /* get the event type and return "489 Bad Event". */
+  osip_message_header_get_byname(evt->sip, "event", 0, &event_hdr);
+  if (event_hdr==NULL || event_hdr->hvalue==NULL)
+    code = 400;      /* Bad Request */
+  else if (0!=osip_strcasecmp(event_hdr->hvalue, "presence"))
+    code = 489;
+  else code = 200;
+  if (code!=200)
+    {
+      eXosip_send_default_answer(NULL, transaction, evt, code);
+      return 0;
+    }
+  return -1;
 }
 
 void eXosip_process_new_subscribe(osip_transaction_t *transaction,
@@ -663,7 +677,6 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
     {
-      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, NULL, jn));
       eXosip_send_default_answer(jd, transaction, evt, 500);
       return ;
     }
@@ -691,7 +704,8 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
   sipevent->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction, sipevent);
 
-  eXosip_notify_send_notify(jn, jd, jn->n_online_status);
+  eXosip_notify_send_notify(jn, jd, jn->n_ss_status,
+			    jn->n_online_status);
   return;
 }
 
@@ -702,18 +716,40 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 				    osip_event_t *evt)
 {
   osip_message_t *answer;
-  osip_event_t *sipevent;
+  osip_event_t   *sipevent;
+  osip_header_t  *sub_state;
   int i;
+
+  /* if subscription-state has a reason state set to terminated,
+     we close the dialog */
+  osip_message_header_get_byname(evt->sip, "subscription-state",
+				 0,
+				 &sub_state);
+  if (sub_state==NULL||sub_state->hvalue==NULL)
+    {
+      eXosip_send_default_answer(jd, transaction, evt, 400);
+      return;
+    }
 
   i = _eXosip_build_response_default(&answer, jd->d_dialog, 200, evt->sip);
   if (i!=0)
     {
-      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
       eXosip_send_default_answer(jd, transaction, evt, 500);
       return ;
     }
-  
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+
+
+
+  if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+    {
+      /* delete the dialog! */
+      eXosip_subscribe_free(js);
+    }
+  else
+    {
+      osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+    }
+
   sipevent = osip_new_outgoing_sipmessage(answer);
   sipevent->transactionid =  transaction->transactionid;
   osip_transaction_add_event(transaction, sipevent);
@@ -988,7 +1024,8 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	  old_trn = eXosip_find_last_inc_subscribe(jn, jd);
 	  
 	  /* shouldn't we wait for the COMPLETED state? */
-	  if (old_trn!=NULL && old_trn->state!=NIST_TERMINATED)
+	  if (old_trn!=NULL && old_trn->state!=NIST_TERMINATED
+	      && old_trn->state!=NIST_COMPLETED)
 	    {
 	      /* retry later? */
 	      eXosip_send_default_answer(jd, transaction, evt, 500);
@@ -1011,6 +1048,11 @@ void eXosip_process_newrequest (osip_event_t *evt)
 
   if (MSG_IS_SUBSCRIBE(evt->sip))
     {
+
+      if (0==eXosip_event_package_is_supported(transaction, evt))
+	{
+	  return;
+	}	
       eXosip_process_new_subscribe(transaction, evt);
       return;
     }

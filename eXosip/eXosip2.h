@@ -71,9 +71,10 @@ void  eXosip_register_init (char *from, char *proxy, char *contact);
 void  eXosip_subscribe(char *to, char *from, char *route);
 void  eXosip_subscribe_terminate(int sid);
 void  eXosip_subscribe_refresh(int sid);
+void  eXosip_close_subscribe(int sid);
 
 /* This is to manage incoming subscription */
-void  eXosip_notify_accept_subscribe   (int nid, int code, int status);
-void  eXosip_notify(int nid, int status);
+void  eXosip_notify_accept_subscribe   (int nid, int code, int subscription_status, int online_status);
+void  eXosip_notify(int nid, int subscription_status, int online_status);
 
 #endif

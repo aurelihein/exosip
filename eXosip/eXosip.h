@@ -87,8 +87,8 @@ typedef enum eXosip_ss {
 
 typedef enum eXosip_ss_reason {
   REJECTED,
-  TIMEOUT
-  
+  TIMEOUT,
+  DEACTIVATED
 } eXosip_ss_reason_t;
 
 
@@ -105,7 +105,7 @@ struct eXosip_subscribe_t {
 
   int                 s_id;
   int                 s_online_status;
-  int                 s_ss_status; /* User Status */
+  int                 s_ss_status;
   int                 s_ss_reason;
   int                 s_ss_expires;
   eXosip_dialog_t    *s_dialogs;
@@ -123,7 +123,7 @@ struct eXosip_notify_t {
 
   int                 n_id;
   int                 n_online_status;
-  int                 n_ss_status; /* User Status */
+  int                 n_ss_status;
   int                 n_ss_reason;
   int                 n_ss_expires;
   eXosip_dialog_t    *n_dialogs;
@@ -342,7 +342,7 @@ void eXosip_subscribe_free(eXosip_subscribe_t *js);
 int  _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t *js, osip_message_t *inc_subscribe);
 int  eXosip_subscribe_need_refresh(eXosip_subscribe_t *js, int now);
 void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
-				     eXosip_dialog_t *jd);
+				     eXosip_dialog_t *jd, const char *expires);
 
 int  eXosip_notify_init(eXosip_notify_t **jn);
 void eXosip_notify_free(eXosip_notify_t *jn);
@@ -351,7 +351,8 @@ int  _eXosip_notify_set_refresh_interval(eXosip_notify_t *jn,
 int  eXosip_notify_add_allowed_subscriber(char *sip_url);
 int  _eXosip_notify_is_a_known_subscriber(osip_message_t *sip);
 void eXosip_notify_send_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd,
-			       int status);
+			       int subsciption_status,
+			       int online_status);
 
 
 #define REMOVE_ELEMENT(first_element, element)   \

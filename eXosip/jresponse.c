@@ -50,20 +50,28 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   sprintf(response->sipversion,"SIP/2.0");
   response->statuscode = (char *)osip_malloc(5*sizeof(char));
   sprintf(response->statuscode,"%i",status);
-  response->reasonphrase = osip_parser_get_reason(status);
-  if (response->reasonphrase==NULL)
+
+  /* handle some internal reason definitions. */
+  if (MSG_IS_NOTIFY(request) && status==481)
     {
-      if (0==strcmp(response->statuscode, "101"))
-	response->reasonphrase = osip_strdup("Dialog Establishement");
-      else
-	response->reasonphrase = osip_strdup("Unknown code");
+      response->reasonphrase = osip_strdup("Subcription Does Not Exist");
     }
-  response->rquri     = NULL;
-  response->sipmethod = NULL;
+  else
+    {
+      response->reasonphrase = osip_parser_get_reason(status);
+      if (response->reasonphrase==NULL)
+	{
+	  if (0==strcmp(response->statuscode, "101"))
+	    response->reasonphrase = osip_strdup("Dialog Establishement");
+	  else
+	    response->reasonphrase = osip_strdup("Unknown code");
+	}
+      response->rquri     = NULL;
+      response->sipmethod = NULL;
+    }
 
   i = osip_to_clone(request->to, &(response->to));
   if (i!=0) goto grd_error_1;
-
 
   i = osip_to_get_tag(response->to,&tag);
   if (i!=0)

@@ -326,7 +326,9 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
   jc = jinfo->jc;
   jn = jinfo->jn;
   js = jinfo->js;
-  if (MSG_IS_RESPONSEFOR(sip, "INVITE") && !MSG_TEST_CODE(sip, 100))
+  if ((MSG_IS_RESPONSEFOR(sip, "INVITE")
+       || MSG_IS_RESPONSEFOR(sip, "SUBSCRIBE"))
+      && !MSG_TEST_CODE(sip, 100))
     {
       int i;
       if (jd == NULL) /* This transaction initiate a dialog in the case of

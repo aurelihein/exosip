@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.15 2003-04-04 20:36:40 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.16 2003-04-05 17:21:32 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -929,20 +929,37 @@ void print_notifies()
 	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
 		{
 		  if (jd->d_id!=-1
-		      && jn->n_online_status == EXOSIP_NOTIFY_UNKNOWN)
+		      && jn->n_ss_status == EXOSIP_SUBCRSTATE_UNKNOWN)
 		    {
-		      eXosip_notify(jd->d_id, EXOSIP_NOTIFY_AWAY);
+		      eXosip_notify(jd->d_id, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_AWAY);
+		      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		      sprintf(buf,"N%i D%i: %7.7s %s.\n",
+			      jn->n_id, jd->d_id,
+			      "unknown",
+			      tmp);
+		      osip_free(tmp);
 		    }
 		  else if (jd->d_id!=-1
-			   && jn->n_online_status == EXOSIP_NOTIFY_AWAY)
+			   && jn->n_ss_status == EXOSIP_SUBCRSTATE_PENDING)
 		    {
-		      eXosip_notify(jd->d_id, EXOSIP_NOTIFY_ONLINE);
+		      eXosip_notify(jd->d_id, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
+		      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		      sprintf(buf,"N%i D%i: %7.7s %s.\n",
+			      jn->n_id, jd->d_id,
+			      "pending",
+			      tmp);
+		      osip_free(tmp);
 		    }
-		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
-		  sprintf(buf,"N%i D%i: Established Subscribe To: %s.\n",
-			  jn->n_id, jd->d_id,
-			  tmp);
-		  osip_free(tmp);
+		  else if (jd->d_id!=-1
+			   && jn->n_ss_status == EXOSIP_SUBCRSTATE_ACTIVE)
+		    {
+		      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+		      sprintf(buf,"N%i D%i: %7.7s %s.\n",
+			      jn->n_id, jd->d_id,
+			      "active",
+			      tmp);
+		      osip_free(tmp);
+		    }
 		}
 	    }
 	  else 

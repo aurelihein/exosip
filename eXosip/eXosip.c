@@ -335,7 +335,7 @@ eXosip_update()
 	      jd->d_id = counter;
 	      counter++;
 	      if (eXosip_subscribe_need_refresh(js, now)==0)
-		eXosip_subscribe_send_subscribe(js, jd);
+		eXosip_subscribe_send_subscribe(js, jd, "600");
 	    }
 	  else jd->d_id = -1;
 	}
@@ -390,9 +390,8 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   sipevent = osip_new_outgoing_sipmessage(message);
   sipevent->transactionid =  transaction->transactionid;
   
-  osip_transaction_add_event(transaction, sipevent);
-
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
+  osip_transaction_add_event(transaction, sipevent);
 }
 
 void eXosip_start_call    (osip_message_t *invite)
@@ -448,9 +447,9 @@ void eXosip_start_call    (osip_message_t *invite)
   sipevent = osip_new_outgoing_sipmessage(invite);
   sipevent->transactionid =  transaction->transactionid;
   
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
 
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
   ADD_ELEMENT(eXosip.j_calls, jc);
 }
 
@@ -574,9 +573,9 @@ void eXosip_on_hold_call  (int jid)
   sipevent = osip_new_outgoing_sipmessage(invite);
   sipevent->transactionid =  transaction->transactionid;
   
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd, NULL, NULL));
   osip_transaction_add_event(transaction, sipevent);
 
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL, NULL, NULL));
 }
 
 void eXosip_off_hold_call (int jid)
@@ -609,8 +608,8 @@ int eXosip_create_transaction(eXosip_call_t *jc,
   sipevent = osip_new_outgoing_sipmessage(request);
   sipevent->transactionid =  tr->transactionid;
   
-  osip_transaction_add_event(tr, sipevent);
   osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+  osip_transaction_add_event(tr, sipevent);
   return 0;
 }
 
@@ -860,9 +859,9 @@ void eXosip_subscribe    (char *to, char *from, char *route)
   sipevent = osip_new_outgoing_sipmessage(subscribe);
   sipevent->transactionid =  transaction->transactionid;
   
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, js, NULL));
   osip_transaction_add_event(transaction, sipevent);
 
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, js, NULL));
   ADD_ELEMENT(eXosip.j_subscribes, js);
 }
 
@@ -882,17 +881,38 @@ void eXosip_subscribe_refresh  (int sid)
       return;
     }
 
-  eXosip_subscribe_send_subscribe(js, jd);
+  eXosip_subscribe_send_subscribe(js, jd, "600");
+}
+
+void eXosip_close_subscribe(int sid)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_subscribe_t *js = NULL;
+
+  if (sid>0)
+    {
+      eXosip_subscribe_dialog_find(sid, &js, &jd);
+    }
+  if (jd==NULL)
+    {
+      fprintf(stderr, "eXosip: No subscribe dialog here?\n");
+      return;
+    }
+  eXosip_subscribe_send_subscribe(js, jd, "0");
 }
 
 void eXosip_notify_send_notify(eXosip_notify_t *jn,
 			       eXosip_dialog_t *jd,
-			       int status)
+			       int subsciption_status,
+			       int online_status)
 {
   osip_transaction_t *transaction;
   osip_message_t *notify;
   osip_event_t *sipevent;
-  int i;
+  int   i;
+  char  subsciption_state[50];
+  char *tmp;
+  int   now = time(NULL);
   transaction = eXosip_find_last_out_notify(jn, jd);
   if (transaction!=NULL)
     {
@@ -905,8 +925,27 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
   if (i!=0) {
     return;
   }
+  jn->n_online_status = online_status;
+  jn->n_ss_status = subsciption_status;
 
-  jn->n_online_status = status;
+  /* add the notifications info */
+  if (jn->n_ss_status==EXOSIP_SUBCRSTATE_UNKNOWN)
+    jn->n_online_status=EXOSIP_SUBCRSTATE_PENDING;
+
+  if (jn->n_ss_status==EXOSIP_SUBCRSTATE_PENDING)
+    osip_strncpy(subsciption_state, "pending;expires=", 16);
+  else if (jn->n_ss_status==EXOSIP_SUBCRSTATE_ACTIVE)
+    osip_strncpy(subsciption_state, "active;expires=", 15);
+  else if (jn->n_ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
+    osip_strncpy(subsciption_state, "terminated;expires=", 19);
+
+  tmp = subsciption_state + strlen(subsciption_state);
+  if (jn->n_ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
+    sprintf(tmp, "%i", 0);
+  else
+    sprintf(tmp, "%i", jn->n_ss_expires-now);
+  osip_parser_set_header(notify, "Subscription-State",
+			 subsciption_state);
 
   i = osip_transaction_init(&transaction,
 		       NICT,
@@ -924,12 +963,12 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
   sipevent = osip_new_outgoing_sipmessage(notify);
   sipevent->transactionid =  transaction->transactionid;
   
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, NULL, jn));
   osip_transaction_add_event(transaction, sipevent);
 
-  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, jn));
 }
 
-void eXosip_notify  (int nid, int status)
+void eXosip_notify  (int nid, int subscription_status, int online_status)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
@@ -944,11 +983,13 @@ void eXosip_notify  (int nid, int status)
       return;
     }
 
-  eXosip_notify_send_notify(jn, jd, status);
+  eXosip_notify_send_notify(jn, jd, subscription_status, online_status);
 }
 
 
-void eXosip_notify_accept_subscribe   (int nid, int code, int status)
+void eXosip_notify_accept_subscribe   (int nid, int code,
+				       int subscription_status,
+				       int online_status)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
@@ -979,5 +1020,5 @@ void eXosip_notify_accept_subscribe   (int nid, int code, int status)
       return;
     }
 
-  eXosip_notify(nid, status);
+  eXosip_notify(nid, subscription_status, online_status);
 }
