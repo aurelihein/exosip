@@ -644,37 +644,19 @@ static void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "INVITE")
 	   && sip->status_code < 180)
 	{
-	  eXosip_event_t *je;
-	  je = eXosip_event_init_for_call(EXOSIP_CALL_PROCEEDING, jc, jd);
-	  if (je!=NULL)
-	    eXosip_event_add_status(je, sip);
-	  if (eXosip.j_call_callbacks[EXOSIP_CALL_PROCEEDING]!=NULL)
-	    eXosip.j_call_callbacks[EXOSIP_CALL_PROCEEDING](EXOSIP_CALL_PROCEEDING, je);
-	  else if (eXosip.j_runtime_mode==EVENT_MODE)
-	    eXosip_event_add(je);
+	  report_call_event_with_status(EXOSIP_CALL_PROCEEDING, jc, jd, sip);
 	}
       else if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "INVITE")
 		&& sip->status_code >= 180)
 	{
-	  eXosip_event_t *je;
-	  je = eXosip_event_init_for_call(EXOSIP_CALL_RINGING, jc, jd);
-	  if (je!=NULL)
-	    eXosip_event_add_status(je, sip);
-	  if (eXosip.j_call_callbacks[EXOSIP_CALL_RINGING]!=NULL)
-	    eXosip.j_call_callbacks[EXOSIP_CALL_RINGING](EXOSIP_CALL_RINGING, je);
-	  else if (eXosip.j_runtime_mode==EVENT_MODE)
-	      eXosip_event_add(je);
+	  report_call_event_with_status(EXOSIP_CALL_RINGING, jc, jd, sip);
 	}
       else if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
 	{
 	  eXosip_event_t *je;
 	  je = eXosip_event_init_for_subscribe(EXOSIP_SUBSCRIPTION_PROCEEDING, js, jd);
 	  if (je!=NULL)
-	    eXosip_event_add_status(je, sip);
-	  if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_PROCEEDING]!=NULL)
-	    eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_PROCEEDING](EXOSIP_SUBSCRIPTION_PROCEEDING, je);
-	  else if (eXosip.j_runtime_mode==EVENT_MODE)
-	    eXosip_event_add(je);
+	    report_event_with_status(je, sip);
 	}
       if (MSG_TEST_CODE(sip, 180) && jd!=NULL)
 	{
