@@ -179,7 +179,7 @@ int  eXosip_subscribe_need_refresh(eXosip_subscribe_t *js, int now)
   return -1;
 }
 
-void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
+int eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
 				     eXosip_dialog_t *jd, const char *expires)
 {
   osip_transaction_t *transaction;
@@ -191,14 +191,14 @@ void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
     {
       if (transaction->state!=NICT_TERMINATED &&
 	  transaction->state!=NIST_TERMINATED)
-	return;
+	return -1;
     }
 
   i = _eXosip_build_request_within_dialog(&subscribe, "SUBSCRIBE",
 					  jd->d_dialog, "UDP");
-  if (i!=0) {
-    return;
-  }
+  if (i!=0)
+    return -2;
+
   osip_message_set_expires(subscribe, expires);
 
   i = osip_transaction_init(&transaction,
@@ -209,7 +209,7 @@ void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
     {
       /* TODO: release the j_call.. */
       osip_message_free(subscribe);
-      return ;
+      return -1;
     }
   
   _eXosip_subscribe_set_refresh_interval(js, subscribe);
@@ -221,4 +221,5 @@ void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
   osip_transaction_add_event(transaction, sipevent);
 
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, js, NULL));
+  return 0;
 }

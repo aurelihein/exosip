@@ -376,11 +376,12 @@ eXosip_update()
 		}
 	      if (eXosip_subscribe_need_refresh(js, now)==0)
 		{
+		  int i;
 #define LOW_EXPIRE
 #ifdef LOW_EXPIRE
-		  eXosip_subscribe_send_subscribe(js, jd, "60");
+		  i = eXosip_subscribe_send_subscribe(js, jd, "60");
 #else
-		  eXosip_subscribe_send_subscribe(js, jd, "600");
+		  i = eXosip_subscribe_send_subscribe(js, jd, "600");
 #endif
 		}
 	    }
@@ -1215,8 +1216,9 @@ int eXosip_subscribe    (char *to, char *from, char *route)
 }
 
 
-void eXosip_subscribe_refresh  (int sid)
+int eXosip_subscribe_refresh  (int sid, char *expires)
 {
+  int i;
   eXosip_dialog_t *jd = NULL;
   eXosip_subscribe_t *js = NULL;
 
@@ -1227,19 +1229,27 @@ void eXosip_subscribe_refresh  (int sid)
   if (jd==NULL)
     {
       fprintf(stderr, "eXosip: No subscribe dialog here?\n");
-      return;
+      return -1;
     }
 
 #define LOW_EXPIRE
 #ifdef LOW_EXPIRE
-  eXosip_subscribe_send_subscribe(js, jd, "60");
+  if (expires==NULL)
+    i = eXosip_subscribe_send_subscribe(js, jd, "60");
+  else
+    i = eXosip_subscribe_send_subscribe(js, jd, expires);
 #else
-  eXosip_subscribe_send_subscribe(js, jd, "600");
+  if (expires==NULL)
+    i = eXosip_subscribe_send_subscribe(js, jd, "600");
+  else
+    i = eXosip_subscribe_send_subscribe(js, jd, expires);
 #endif
+  return i;
 }
 
-void eXosip_subscribe_close(int sid)
+int eXosip_subscribe_close(int sid)
 {
+  int i;
   eXosip_dialog_t *jd = NULL;
   eXosip_subscribe_t *js = NULL;
 
@@ -1250,16 +1260,17 @@ void eXosip_subscribe_close(int sid)
   if (jd==NULL)
     {
       fprintf(stderr, "eXosip: No subscribe dialog here?\n");
-      return;
+      return -1;
     }
 
-  eXosip_subscribe_send_subscribe(js, jd, "0");
+  i = eXosip_subscribe_send_subscribe(js, jd, "0");
+  return i;
 }
 
-void eXosip_notify_send_notify(eXosip_notify_t *jn,
-			       eXosip_dialog_t *jd,
-			       int subscription_status,
-			       int online_status)
+int eXosip_notify_send_notify(eXosip_notify_t *jn,
+			      eXosip_dialog_t *jd,
+			      int subscription_status,
+			      int online_status)
 {
   osip_transaction_t *transaction;
   osip_message_t *notify;
@@ -1273,7 +1284,7 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
     {
       if (transaction->state!=NICT_TERMINATED &&
 	  transaction->state!=NIST_TERMINATED)
-	return;
+	return -1;
     }
 
 #ifndef SUPPORT_MSN
@@ -1288,15 +1299,15 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
       /* set the new state anyway! */
       jn->n_online_status = online_status;
       jn->n_ss_status = subscription_status;
-      return;
+      return -1;
     }
 
 #endif
 
   i = _eXosip_build_request_within_dialog(&notify, "NOTIFY", jd->d_dialog, "UDP");
-  if (i!=0) {
-    return;
-  }
+  if (i!=0)
+    return -2;
+
   jn->n_online_status = online_status;
   jn->n_ss_status = subscription_status;
 
@@ -1346,7 +1357,7 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
     {
       /* TODO: release the j_call.. */
       osip_message_free(notify);
-      return ;
+      return -1;
     }
   
   osip_list_add(jd->d_out_trs, transaction, 0);
@@ -1356,11 +1367,12 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
   
   osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, jd, NULL, jn));
   osip_transaction_add_event(transaction, sipevent);
-
+  return 0;
 }
 
-void eXosip_notify  (int nid, int subscription_status, int online_status)
+int eXosip_notify  (int nid, int subscription_status, int online_status)
 {
+  int i;
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
 
@@ -1371,17 +1383,19 @@ void eXosip_notify  (int nid, int subscription_status, int online_status)
   if (jd==NULL)
     {
       fprintf(stderr, "eXosip: No subscribe dialog here?\n");
-      return;
+      return -1;
     }
 
-  eXosip_notify_send_notify(jn, jd, subscription_status, online_status);
+  i = eXosip_notify_send_notify(jn, jd, subscription_status, online_status);
+  return i;
 }
 
 
-void eXosip_notify_accept_subscribe   (int nid, int code,
-				       int subscription_status,
-				       int online_status)
+int eXosip_notify_accept_subscribe(int nid, int code,
+				   int subscription_status,
+				   int online_status)
 {
+  int i;
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
   if (nid>0)
@@ -1391,7 +1405,7 @@ void eXosip_notify_accept_subscribe   (int nid, int code,
   if (jd==NULL)
     {
       fprintf(stderr, "eXosip: No call here?\n");
-      return;
+      return -1;
     }
   if (code>100 && code<200)
     {
@@ -1408,8 +1422,9 @@ void eXosip_notify_accept_subscribe   (int nid, int code,
   else
     {
       fprintf(stderr, "eXosip: wrong status code (101<code<699)\n");
-      return;
+      return -1;
     }
 
-  eXosip_notify(nid, subscription_status, online_status);
+  i = eXosip_notify(nid, subscription_status, online_status);
+  return i;
 }

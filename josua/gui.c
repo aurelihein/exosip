@@ -216,7 +216,6 @@ int josua_gui_run_command(int c)
 int
 josua_print_command(char **commands, int ypos, int xpos)
 {
-  int maxlen = 0;
   int i;
   int y,x;
   char buf[250];
@@ -225,12 +224,14 @@ josua_print_command(char **commands, int ypos, int xpos)
   getmaxyx(stdscr,y,x);
   attrset(A_NORMAL);
 
+#if 0
   for (i=0;commands[i]!=NULL;i=i+2)
     {
       int len = strlen(commands[i+1]);
       if (len>maxlen)
 	maxlen = len;
     }
+#endif
 
   if (commands[0]!=NULL) /* erase with default background */
     attrset(COLOR_PAIR(10));
@@ -248,6 +249,13 @@ josua_print_command(char **commands, int ypos, int xpos)
 
   for (i=0;commands[i]!=NULL;i=i+2)
     {
+      int maxlen = strlen(commands[i+1]);
+      if (commands[i+2]!=NULL)
+	{
+	  int len = strlen(commands[i+3]);
+	  if (len>maxlen)
+	    maxlen = len;
+	}
       attrset(COLOR_PAIR(1));
       snprintf(buf,
 	       strlen(commands[i])+1,

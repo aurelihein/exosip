@@ -80,13 +80,12 @@ int   eXosip_register_init (char *from, char *proxy, char *contact);
 
 /* This is to manage outgoing subscription */
 int  eXosip_subscribe(char *to, char *from, char *route);
-void  eXosip_subscribe_terminate(int sid);
-void  eXosip_subscribe_refresh(int sid);
-void  eXosip_subscribe_close(int sid);
+int  eXosip_subscribe_refresh(int sid, char *expires);
+int  eXosip_subscribe_close(int sid);
 
 /* This is to manage incoming subscription */
-void  eXosip_notify_accept_subscribe   (int nid, int code, int subscription_status, int online_status);
-void  eXosip_notify(int nid, int subscription_status, int online_status);
+int  eXosip_notify_accept_subscribe   (int nid, int code, int subscription_status, int online_status);
+int  eXosip_notify(int nid, int subscription_status, int online_status);
 
 #ifdef __cplusplus
 }

@@ -66,14 +66,31 @@ int window_subscriptions_list_print()
     {
       if (jsubscriptions[k].state != NOT_USED)
 	{
-	  snprintf(buf, 199, "%c%c %i//%i %i %s with: %s %199.199s",
+	  char *tmp;
+	  snprintf(buf, 199, "%c%c %i//%i %30.30s ",
 		   (cursor_subscriptions_list==pos-1) ? '-' : ' ',
 		   (cursor_subscriptions_list==pos-1) ? '>' : ' ',
 		   jsubscriptions[k].sid,
 		   jsubscriptions[k].did,
-		   jsubscriptions[k].status_code,
-		   jsubscriptions[k].reason_phrase,
-		   jsubscriptions[k].remote_uri, " ");
+		   jsubscriptions[k].remote_uri);
+	  tmp = buf + strlen(buf);
+	  if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_UNKNOWN)
+	    snprintf(tmp, 199-strlen(buf), " %10.10s", "--unknown--");
+	  else if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_PENDING)
+	    snprintf(tmp, 199-strlen(buf), " %10.10s", "--pending--");
+	  else if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_ACTIVE)
+	    {
+	      if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_UNKNOWN)
+		snprintf(tmp, 199-strlen(buf), " %10.10s", "unknown");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_PENDING)
+		snprintf(tmp, 199-strlen(buf), " %10.10s", "pending");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_ONLINE)
+		snprintf(tmp, 199-strlen(buf), " %10.10s", "online");
+	      else if (jsubscriptions[k].online_status==EXOSIP_NOTIFY_AWAY)
+		snprintf(tmp, 199-strlen(buf), " %10.10s", "away");
+	    }
+	  else if (jsubscriptions[k].ss_status==EXOSIP_SUBCRSTATE_TERMINATED)
+	    snprintf(tmp, 199-strlen(buf), " %10.10s", "--terminated--");
 
 	  attrset(COLOR_PAIR(5));
 	  attrset((pos-1==cursor_subscriptions_list) ? A_REVERSE : A_NORMAL);
@@ -116,9 +133,8 @@ void window_subscriptions_list_draw_commands()
   char *subscriptions_list_commands[] = {
     "<",  "PrevWindow",
     ">",  "NextWindow",
+    "r",  "Refresh",
     "c",  "Close" ,
-    "a",  "Accept",
-    "r",  "Reject",
     "t",  "ViewSubscribers",
     NULL
   };
@@ -128,7 +144,7 @@ void window_subscriptions_list_draw_commands()
 
 int window_subscriptions_list_run_command(int c)
 {
-  /*  jsubscription_t *js; */
+  jsubscription_t *js;
   int i;
   int max;
   int y,x;
@@ -169,34 +185,27 @@ int window_subscriptions_list_run_command(int c)
       __show_insubscriptions_list();
       break;
 
-#if 0
-    case 'a':
-      ca = jsubscription_find_subscription(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      eXosip_answer_call(ca->did, 200);
-      eXosip_unlock();
-      break;
     case 'r':
-      ca = jsubscription_find_subscription(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
+      js = jsubscription_find_subscription(cursor_subscriptions_list);
+      if (js==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_answer_call(ca->did, 480);
-      if (i==0)
-	jsubscription_remove(ca);
+      i = eXosip_subscribe_refresh(js->sid, "600");
+      if (i!=0) beep();
       eXosip_unlock();
       window_subscriptions_list_print();
       break;
-    case 'd':
-      ca = jsubscription_find_subscription(cursor_subscriptions_list);
-      if (ca==NULL) { beep(); break; }
+    case 'c':
+      js = jsubscription_find_subscription(cursor_subscriptions_list);
+      if (js==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_answer_call(ca->did, 603);
+      i = eXosip_subscribe_close(js->sid);
+      if (i!=0) beep();
       if (i==0)
-	jsubscription_remove(ca);
+	jsubscription_remove(js);
       eXosip_unlock();
       window_subscriptions_list_print();
       break;
+#if 0
     case 'b':
       ca = jsubscription_find_subscription(cursor_subscriptions_list);
       if (ca==NULL) { beep(); break; }
@@ -244,6 +253,7 @@ int window_subscriptions_list_run_command(int c)
       return -1;
     }
 
-  window_subscriptions_list_print();
+  if (gui_window_subscriptions_list.on_off==GUI_ON)
+    window_subscriptions_list_print();
   return 0;
 }

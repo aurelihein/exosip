@@ -98,9 +98,12 @@ void window_insubscriptions_list_draw_commands()
   char *insubscriptions_list_commands[] = {
     "<",  "PrevWindow",
     ">",  "NextWindow",
-    "c",  "Close" ,
     "a",  "Accept",
-    "r",  "Reject",
+    "c",  "Close" ,
+    "o",  "Online",
+    "g",  "Gone",
+    "O",  "OnlineAll",
+    "G",  "GoneAll",
     "t",  "ViewSubscribers",
     NULL
   };
@@ -111,7 +114,7 @@ void window_insubscriptions_list_draw_commands()
 
 int window_insubscriptions_list_run_command(int c)
 {
-  /*  jinsubscription_t *js; */
+  jinsubscription_t *js;
   int i;
   int max;
   int y,x;
@@ -131,7 +134,7 @@ int window_insubscriptions_list_run_command(int c)
   i = jinsubscription_get_number_of_pending_insubscriptions();
   if (i<max) max=i;
 
-  if (max==0)
+  if (max==0 && c!='t')
     {
       beep();
       return -1;
@@ -152,81 +155,76 @@ int window_insubscriptions_list_run_command(int c)
       __show_subscriptions_list();
       break;
 
-#if 0
     case 'a':
-      ca = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
+      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
+      if (js==NULL) { beep(); break; }
       eXosip_lock();
-      eXosip_answer_call(ca->did, 200);
+      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
+      if (i!=0) beep();
       eXosip_unlock();
-      break;
-    case 'r':
-      ca = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_answer_call(ca->did, 480);
-      if (i==0)
-	jinsubscription_remove(ca);
-      eXosip_unlock();
-      window_insubscriptions_list_print();
-      break;
-    case 'd':
-      ca = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_answer_call(ca->did, 603);
-      if (i==0)
-	jinsubscription_remove(ca);
-      eXosip_unlock();
-      window_insubscriptions_list_print();
-      break;
-    case 'b':
-      ca = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      i = eXosip_answer_call(ca->did, 486);
-      if (i==0)
-	jinsubscription_remove(ca);
-      eXosip_unlock();
-      window_insubscriptions_list_print();
       break;
     case 'c':
-      ca = jinsubscription_find_insubscription(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
+      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
+      if (js==NULL) { beep(); break; }
       eXosip_lock();
-      i = eXosip_terminate_call(ca->nid, ca->did);
+      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_TERMINATED, EXOSIP_NOTIFY_AWAY);
+      if (i!=0) beep();
       if (i==0)
-	jinsubscription_remove(ca);
-      eXosip_unlock();
-      window_insubscriptions_list_print();
-      break;
-    case 'm':
-      ca = jinsubscription_find_call(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      eXosip_on_hold_call(ca->did);
-      eXosip_unlock();
-      break;
-    case 'u':
-      ca = jinsubscription_find_call(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
-      eXosip_lock();
-      eXosip_off_hold_call(ca->did);
+	jinsubscription_remove(js);
       eXosip_unlock();
       break;
     case 'o':
-      ca = jinsubscription_find_call(cursor_insubscriptions_list);
-      if (ca==NULL) { beep(); break; }
+      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
+      if (js==NULL) { beep(); break; }
       eXosip_lock();
-      eXosip_options_call(ca->did);
+      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
+      if (i!=0) beep();
       eXosip_unlock();
       break;
-#endif
+    case 'g':
+      js = jinsubscription_find_insubscription(cursor_insubscriptions_list);
+      if (js==NULL) { beep(); break; }
+      eXosip_lock();
+      i = eXosip_notify(js->did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_AWAY);
+      if (i!=0) beep();
+      eXosip_unlock();
+      break;
+    case 'O':
+      {
+	int k;
+	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
+	  {
+	    if (jinsubscriptions[k].state != NOT_USED)
+	      {
+		eXosip_lock();
+		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_ONLINE);
+		if (i!=0) beep();
+		eXosip_unlock();
+	      }
+	  }
+      }
+      break;
+    case 'G':
+      {
+	int k;
+	for (k=0;k<MAX_NUMBER_OF_INSUBSCRIPTIONS;k++)
+	  {
+	    if (jinsubscriptions[k].state != NOT_USED)
+	      {
+		eXosip_lock();
+		i = eXosip_notify(jinsubscriptions[k].did, EXOSIP_SUBCRSTATE_ACTIVE, EXOSIP_NOTIFY_AWAY);
+		if (i!=0) beep();
+		eXosip_unlock();
+	      }
+	  }
+      }
+      break;
     default:
       beep();
       return -1;
     }
 
-  window_insubscriptions_list_print();
+  if (gui_window_insubscriptions_list.on_off==GUI_ON)
+    window_insubscriptions_list_print();
   return 0;
 }

@@ -901,8 +901,27 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       && 0==osip_strcasecmp(expires->hvalue, "0"))
     {
       /* delete the dialog! */
+      js->s_ss_status = EXOSIP_SUBCRSTATE_TERMINATED;
+      js->s_online_status = EXOSIP_NOTIFY_UNKNOWN;
+      {
+	eXosip_event_t *je;
+	je = eXosip_event_init_for_subscribe(EXOSIP_SUBSCRIPTION_NOTIFY, js, jd);
+	if (je!=NULL)
+	  {
+	    eXosip_event_add_status(je, answer);
+	  }
+	
+	if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY]!=NULL)
+	  eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY](EXOSIP_SUBSCRIPTION_NOTIFY, je);
+	else if (eXosip.j_runtime_mode==EVENT_MODE)
+	  eXosip_event_add(je);
+      }
+
+
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+      return 0;
     }
   else
     {
@@ -1020,8 +1039,25 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       /* delete the dialog! */
       js->s_ss_status = EXOSIP_SUBCRSTATE_TERMINATED;
       js->s_online_status = EXOSIP_NOTIFY_UNKNOWN;
+
+      {
+	eXosip_event_t *je;
+	je = eXosip_event_init_for_subscribe(EXOSIP_SUBSCRIPTION_NOTIFY, js, jd);
+	if (je!=NULL)
+	  {
+	    eXosip_event_add_status(je, answer);
+	  }
+	
+	if (eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY]!=NULL)
+	  eXosip.j_call_callbacks[EXOSIP_SUBSCRIPTION_NOTIFY](EXOSIP_SUBSCRIPTION_NOTIFY, je);
+	else if (eXosip.j_runtime_mode==EVENT_MODE)
+	  eXosip_event_add(je);
+      }
+      osip_list_add(eXosip.j_transactions, transaction, 0);
+
       REMOVE_ELEMENT(eXosip.j_subscribes, js);
       eXosip_subscribe_free(js);
+      return;
     }
   else
     {
