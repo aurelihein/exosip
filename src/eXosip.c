@@ -385,6 +385,8 @@ int eXosip_init(FILE *input, FILE *output, int port)
 #endif
    
   /* open the UDP listener */
+
+#ifndef IPV6_SUPPORT
   eXosip.j_socket = (int)socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (eXosip.j_socket==-1)
     return -1;
@@ -402,6 +404,26 @@ int eXosip_init(FILE *input, FILE *output, int port)
       return -1;
     }
   }
+#else
+  eXosip.j_socket = (int)socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+  if (eXosip.j_socket==-1)
+    return -1;
+  
+  {
+    struct sockaddr_in6  raddr;
+    memset(&raddr, 0, sizeof(raddr));
+    raddr.sin_port = htons((short)port);
+    raddr.sin_family = AF_INET6;
+    
+    i = bind(eXosip.j_socket, (struct sockaddr *)&raddr, sizeof(raddr));
+    if (i < 0)
+    {
+      fprintf(stderr, "eXosip: Cannot bind on port: %i!\n", i);
+      return -1;
+    }
+  }
+#endif
+
 
   eXosip.localport = (char*)osip_malloc(10);
   sprintf(eXosip.localport, "%i", port);
