@@ -54,20 +54,6 @@ struct colordata {
        int attr;
 };
 
-/*
-struct colordata color[]= {
-  // fore              back            attr
-  {COLOR_WHITE,        COLOR_BLACK,    0	},  0 default 
-  {COLOR_WHITE,        COLOR_GREEN,    A_BOLD	},  1 title 
-  {COLOR_WHITE,        COLOR_BLACK,    0	},  2 list 
-  {COLOR_WHITE,        COLOR_YELLOW,   A_REVERSE},  3 listsel 
-  {COLOR_WHITE,        COLOR_BLUE,     0	},  4 calls 
-  {COLOR_WHITE,        COLOR_RED,      0	},  5 query 
-  {COLOR_BLACK,        COLOR_CYAN,     0	},  6 info 
-  {COLOR_WHITE,        COLOR_BLACK,    0	},  7 help 
-};
-*/
-
 struct colordata color[]= {
   /* fore              back            attr */
   {COLOR_WHITE,        COLOR_BLACK,    0	}, /* 0 default */
