@@ -1,3 +1,8 @@
+eXosip (0.7.1)
+	* rewrite of header files and new directory architecture.
+	* support for INFO and OPTIONS within calls.
+	* support for AUDIO.
+	
 eXosip (0.6.3)
 	* use of event oriented interface in josua.
 	
