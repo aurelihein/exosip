@@ -785,7 +785,7 @@ void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	{
 	  /* UNCOMPLIANT UA without a subscription-state header */
 	}
-      else if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+      else if (0==osip_strncasecmp(sub_state->hvalue, "terminated", 10))
 	{
 	  /* delete the dialog! */
 	  REMOVE_ELEMENT(eXosip.j_notifies, jn);

@@ -785,7 +785,7 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
     }
 #else
   /* modify the status of user */
-  if (0==osip_strcasecmp(sub_state->hvalue, "active"))
+  if (0==osip_strncasecmp(sub_state->hvalue, "active", 6))
     {
       osip_content_type_t *ctype;
       osip_body_t *body = NULL;
@@ -796,11 +796,14 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
       ctype = osip_parser_get_content_type(evt->sip);
       if (ctype!=NULL && ctype->type!=NULL && ctype->subtype!=NULL)
 	{
-	  if (0==strcmp(ctype->type, "application")
-	      && 0==strcmp(ctype->type, "cpim-pidf+xml"))
+	  if (0==osip_strcasecmp(ctype->type, "application")
+	      && 0==osip_strcasecmp(ctype->subtype, "cpim-pidf+xml"))
+	    osip_parser_get_body(evt->sip, 0, &body);
+	  else
 	    {
-	      /* correct body found! */
-	      osip_parser_get_body(evt->sip, 0, &body);
+	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
+				    "Unknown body: %s/%s\n",
+				    ctype->type, ctype->subtype));
 	    }
 	}
 
@@ -827,17 +830,18 @@ eXosip_process_notify_within_dialog(eXosip_subscribe_t *js,
 	      else if (tmp[0]=='c' && 0==strncmp(tmp, "closed", 6))
 		{
 		  js->s_online_status = EXOSIP_NOTIFY_AWAY;
+		  break;
 		}
 	      tmp++;
 	    }
 	}
     }
-  else if (0==osip_strcasecmp(sub_state->hvalue, "pending"))
+  else if (0==osip_strncasecmp(sub_state->hvalue, "pending", 7))
     {
       js->s_ss_status = EXOSIP_SUBCRSTATE_PENDING;
       js->s_online_status = EXOSIP_NOTIFY_PENDING;
     }
-  else if (0==osip_strcasecmp(sub_state->hvalue, "terminated"))
+  else if (0==osip_strncasecmp(sub_state->hvalue, "terminated", 10))
     {
       /* delete the dialog! */
       js->s_ss_status = EXOSIP_SUBCRSTATE_TERMINATED;
