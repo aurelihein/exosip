@@ -18,33 +18,20 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __GUI_MENU_H__
-#define __GUI_MENU_H__
+#ifndef __GUI_ADDRESS_BOOK_MENU_H__
+#define __GUI_ADDRESS_BOOK_MENU_H__
 
 #include "gui.h"
+#include "gui_menu.h"
 
-int window_menu_print();
-int window_menu_run_command(int c);
+int window_address_book_menu_print();
+int window_address_book_menu_run_command(int c);
+void window_address_book_menu_draw_commands();
 
-extern gui_t gui_window_menu;
+extern gui_t gui_window_address_book_menu;
 
-typedef struct menu_t {
-  const char *key;
-  const char *text;
-  void (*fn)();
-} menu_t;
-
-
-/* some external methods */
-
-
-void __show_new_call();
-void __show_new_message();
-void __show_address_book_menu();
-void __josua_manage_call();
-void __josua_manage_subscribers();
-void __josua_quit();
-
-void __josua_register();
+void __show_newentry_abook();
+void __show_browse_abook();
+void __show_main_menu();
 
 #endif

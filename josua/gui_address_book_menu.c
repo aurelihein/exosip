@@ -18,20 +18,17 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "gui_menu.h"
-#include "gui_new_call.h"
-#include "gui_manage_call.h"
 #include "gui_address_book_menu.h"
 
-gui_t gui_window_menu = {
+gui_t gui_window_address_book_menu = {
   GUI_OFF,
   20,
   -999,
   2,
   9,
   NULL,
-  &window_menu_print,
-  &window_menu_run_command,
+  &window_address_book_menu_print,
+  &window_address_book_menu_run_command,
   NULL,
   NULL,
   -1,
@@ -39,20 +36,16 @@ gui_t gui_window_menu = {
   -1
 };
 
-static const menu_t josua_menu[]= {
-  { "v", " Start a Voice Conversation.",        &__show_new_call },
-  { "c", " Start a Chat Session.",              &__show_new_message },
-  { "m", " Manage Pending Calls.",              &__josua_manage_call },
-  { "r", " Manage Pending Registrations.",      &__josua_register  },
-  { "u", " Manage Pending Subscriptions.",      &__josua_manage_subscribers },
-  { "a", " Address Book Menu.",                 &__show_address_book_menu  },
-  { "q", " Quit jack' Open Sip User Agent.",    &__josua_quit  },
+static const menu_t josua_address_book_menu[]= {
+  { "a", " Add New Freind.",                    &__show_newentry_abook },
+  { "s", " Browse Address Book.",               &__show_browse_abook },
+  { "q", " Main Menu.",                         &__show_main_menu  },
   { 0 }
 };
 
-int cursor_menu = 0;
+int cursor_address_book_menu = 0;
 
-int window_menu_print()
+int window_address_book_menu_print()
 {
   int y,x;
   char buf[250];
@@ -62,53 +55,52 @@ int window_menu_print()
 
   getmaxyx(stdscr,y,x);
   pos = 0;
-  for (i=gui_window_menu.y0; i<gui_window_menu.y1; i++)
+  for (i=gui_window_address_book_menu.y0; i<gui_window_address_book_menu.y1; i++)
     {
-      snprintf(buf, gui_window_menu.x1 - gui_window_menu.x0,
+      if (i==gui_window_address_book_menu.y0+3)
+	break;
+      snprintf(buf, gui_window_address_book_menu.x1 - gui_window_address_book_menu.x0,
 	      "%c%c %d. %-80.80s ",
-	      (cursor_menu==pos) ? '-' : ' ',
-	      (cursor_menu==pos) ? '>' : ' ',
-	      i-gui_window_menu.y0,
-	      josua_menu[i-gui_window_menu.y0].text);
+	      (cursor_address_book_menu==pos) ? '-' : ' ',
+	      (cursor_address_book_menu==pos) ? '>' : ' ',
+	      i-gui_window_address_book_menu.y0,
+	      josua_address_book_menu[i-gui_window_address_book_menu.y0].text);
 
       attrset(COLOR_PAIR(5));
-      attrset((pos==cursor_menu) ? A_REVERSE : A_NORMAL);
+      attrset((pos==cursor_address_book_menu) ? A_REVERSE : A_NORMAL);
       mvaddnstr(i,
-		gui_window_menu.x0,
+		gui_window_address_book_menu.x0,
 		buf,
-		x-gui_window_menu.x0-1);
+		x-gui_window_address_book_menu.x0-1);
       pos++;
     }
+  refresh();
   return 0;
 }
 
-int window_menu_run_command(int c)
+int window_address_book_menu_run_command(int c)
 {
-  int max = 7;
+  int max = 3;
   switch (c)
     {
     case KEY_DOWN:
-      cursor_menu++;
-      cursor_menu %= max;
+      cursor_address_book_menu++;
+      cursor_address_book_menu %= max;
       break;
     case KEY_UP:
-      cursor_menu += max-1;
-      cursor_menu %= max;
+      cursor_address_book_menu += max-1;
+      cursor_address_book_menu %= max;
       break;
     case '0':
     case '1':
     case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-      cursor_menu = c-48;
+      cursor_address_book_menu = c-48;
       break;
     case '\n':
     case '\r':
     case KEY_ENTER:
-      /* menu selected! */
-      josua_menu[cursor_menu].fn();
+      /* address_book_menu selected! */
+      josua_address_book_menu[cursor_address_book_menu].fn();
       break;
 
     default:
@@ -116,14 +108,15 @@ int window_menu_run_command(int c)
       return -1;
     }
 
-  if (gui_window_menu.on_off==GUI_ON)
-    window_menu_print();
+  if (gui_window_address_book_menu.on_off==GUI_ON)
+    window_address_book_menu_print();
   return 0;
 }
 
 void
-__show_new_call()
+__show_newentry_abook()
 {
+  /*
   active_gui->on_off = GUI_OFF;
   if (gui_windows[EXTRAGUI]==NULL)
     gui_windows[EXTRAGUI]= &gui_window_new_call;
@@ -138,12 +131,14 @@ __show_new_call()
   active_gui->on_off = GUI_ON;
 
   window_new_call_print();
+  */
 }
 
 
 void
-__josua_manage_call()
+__show_browse_abook()
 {
+  /*
   active_gui->on_off = GUI_OFF;
   if (gui_windows[EXTRAGUI]==NULL)
     gui_windows[EXTRAGUI]= &gui_window_manage_call;
@@ -158,18 +153,20 @@ __josua_manage_call()
   active_gui->on_off = GUI_ON;
 
   window_manage_call_print();
+  */
 }
 
-void __show_address_book_menu()
+void
+__show_main_menu()
 {
   active_gui->on_off = GUI_OFF;
   if (gui_windows[MENUGUI]==NULL)
-    gui_windows[MENUGUI]= &gui_window_address_book_menu;
+    gui_windows[MENUGUI]= &gui_window_menu;
   else
     {
       josua_clear_box_and_commands(gui_windows[MENUGUI]);
       gui_windows[MENUGUI]->on_off = GUI_OFF;
-      gui_windows[MENUGUI]= &gui_window_address_book_menu;
+      gui_windows[MENUGUI]= &gui_window_menu;
     }
 
   if (gui_windows[EXTRAGUI]!=NULL)
@@ -181,29 +178,5 @@ void __show_address_book_menu()
   active_gui = gui_windows[MENUGUI];
   active_gui->on_off = GUI_ON;
 
-  window_address_book_menu_print();
+  window_menu_print();
 }
-
-void __show_new_message()
-{
-
-}
-
-void __josua_register()
-{
-
-}
-
-void __josua_manage_subscribers()
-{
-
-}
-
-void __josua_quit() {
-
-  eXosip_quit();
-
-  cursesoff();  
-  exit(1);
-}
-

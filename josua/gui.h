@@ -73,8 +73,8 @@ typedef struct gui {
 
 #define TOPGUI      0
 #define ICONGUI     1
-#define MENUGUI     2
-#define LOGLINESGUI 3
+#define LOGLINESGUI 2
+#define MENUGUI     3
 #define EXTRAGUI    4
 extern gui_t *gui_windows[10];
 extern gui_t *active_gui;
