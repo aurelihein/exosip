@@ -34,16 +34,16 @@ eXosip_build_response_default(int jid, int status)
 }
 
 int
-_eXosip_build_response_default(sip_t **dest, dialog_t *dialog,
-			     int status, sip_t *request)
+_eXosip_build_response_default(osip_msg_t **dest, dialog_t *dialog,
+			     int status, osip_msg_t *request)
 {
   generic_param_t *tag;
-  sip_t *response;
+  osip_msg_t *response;
   int pos;
   int i;
 
   i = msg_init(&response);
-  /* initialise sip_t structure */
+  /* initialise osip_msg_t structure */
   /* yet done... */
 
   response->strtline->sipversion = (char *)smalloc(8*sizeof(char));
@@ -107,7 +107,7 @@ _eXosip_build_response_default(sip_t **dest, dialog_t *dialog,
 }
 
 int
-complete_answer_that_establish_a_dialog(sip_t *response, sip_t *request, char *contact)
+complete_answer_that_establish_a_dialog(osip_msg_t *response, osip_msg_t *request, char *contact)
 {
   int i;
   int pos=0;
@@ -130,7 +130,7 @@ complete_answer_that_establish_a_dialog(sip_t *response, sip_t *request, char *c
 }
 
 char *
-generating_sdp_answer(sip_t *request)
+generating_sdp_answer(osip_msg_t *request)
 {
   sdp_context_t *context;
   sdp_t *remote_sdp;
@@ -190,7 +190,7 @@ generating_sdp_answer(sip_t *request)
 void
 generating_1xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
 {
-  sip_t *response;
+  osip_msg_t *response;
   int i;
 
   i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
@@ -208,7 +208,7 @@ generating_1xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
 void
 generating_2xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
 {
-  sip_t *response;
+  osip_msg_t *response;
   int i;
   char *size;
   char *body;
@@ -267,7 +267,7 @@ generating_2xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
 void
 generating_3456xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
 {
-  sip_t *response;
+  osip_msg_t *response;
   int i;
   i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
   if (i!=0)
@@ -291,8 +291,8 @@ generating_3456xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int cod
 void
 eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
-  sipevent_t *evt_answer;
-  sip_t *response;
+  osip_event_t *evt_answer;
+  osip_msg_t *response;
   int i;
   transaction_t *tr;
   tr = eXosip_find_last_inc_invite(jc, jd);
@@ -350,8 +350,8 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 void
 eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
-  sipevent_t *evt_answer;
-  sip_t *response;
+  osip_event_t *evt_answer;
+  osip_msg_t *response;
   int i;
   char *size;
   char *body;
@@ -465,8 +465,8 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 void
 eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 {
-  sipevent_t *evt_answer;
-  sip_t *response;
+  osip_event_t *evt_answer;
+  osip_msg_t *response;
   int i;
   transaction_t *tr;
   tr = eXosip_find_last_inc_invite(jc, jd);

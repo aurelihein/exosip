@@ -59,8 +59,8 @@ struct eXosip_dialog_t {
   dialog_t        *d_dialog;      /* active dialog */
 
   int              d_timer;
-  sip_t           *d_200Ok;
-  sip_t           *d_ack;
+  osip_msg_t           *d_200Ok;
+  osip_msg_t           *d_ack;
   list_t          *media_lines;
 
   list_t          *d_inc_trs;
@@ -216,41 +216,41 @@ char  *to_tag_new_random();
 unsigned int via_branch_new_random();
 jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd);
 
-int  eXosip_dialog_init_as_uac(eXosip_dialog_t **jd, sip_t *_200Ok);
-int  eXosip_dialog_init_as_uas(eXosip_dialog_t **jd, sip_t *_invite, sip_t *_200Ok);
+int  eXosip_dialog_init_as_uac(eXosip_dialog_t **jd, osip_msg_t *_200Ok);
+int  eXosip_dialog_init_as_uas(eXosip_dialog_t **jd, osip_msg_t *_invite, osip_msg_t *_200Ok);
 void eXosip_dialog_free(eXosip_dialog_t *jd);
 void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state);
 void eXosip_delete_early_dialog(eXosip_dialog_t *jd);
 
-int generating_message(sip_t **message, char *to, char *from,
+int generating_message(osip_msg_t **message, char *to, char *from,
 		       char *route, char *buff);
-int  generating_cancel(sip_t **dest, sip_t *request_cancelled);
-int  generating_info(sip_t **info, dialog_t *dialog);
-int  generating_bye(sip_t **bye, dialog_t *dialog);
-int  generating_refer(sip_t **refer, dialog_t *dialog, char *refer_to);
-int  generating_invite_on_hold(sip_t **invite, dialog_t *dialog,
+int  generating_cancel(osip_msg_t **dest, osip_msg_t *request_cancelled);
+int  generating_info(osip_msg_t **info, dialog_t *dialog);
+int  generating_bye(osip_msg_t **bye, dialog_t *dialog);
+int  generating_refer(osip_msg_t **refer, dialog_t *dialog, char *refer_to);
+int  generating_invite_on_hold(osip_msg_t **invite, dialog_t *dialog,
 				char *subject, char *sdp);
-int  generating_invite_off_hold(sip_t **invite, dialog_t *dialog,
+int  generating_invite_off_hold(osip_msg_t **invite, dialog_t *dialog,
 				char *subject, char *sdp);
-int  generating_options(sip_t **options, char *from, char *to,
+int  generating_options(osip_msg_t **options, char *from, char *to,
 			char *sdp, char *proxy);
 
 int  eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact);
 void eXosip_reg_free(eXosip_reg_t *jreg);
-int  generating_register(sip_t **reg, char *transport, char *from, char *proxy);
+int  generating_register(osip_msg_t **reg, char *transport, char *from, char *proxy);
 
 int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd);
 int eXosip_call_find(int cid, eXosip_call_t **jc);
-int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, sip_t *_200Ok);
+int eXosip_dialog_set_200ok(eXosip_dialog_t *_jd, osip_msg_t *_200Ok);
 
 void eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 void eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 void eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code);
 
-int _eXosip_build_response_default(sip_t **dest, dialog_t *dialog,
-				  int status, sip_t *request);
-int complete_answer_that_establish_a_dialog(sip_t *response, sip_t *request, char *contact);
-int _eXosip_build_request_within_dialog(sip_t **dest, char *method_name,
+int _eXosip_build_response_default(osip_msg_t **dest, dialog_t *dialog,
+				  int status, osip_msg_t *request);
+int complete_answer_that_establish_a_dialog(osip_msg_t *response, osip_msg_t *request, char *contact);
+int _eXosip_build_request_within_dialog(osip_msg_t **dest, char *method_name,
 				       dialog_t *dialog, char *transport);
 
 transaction_t *eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd );

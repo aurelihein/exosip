@@ -32,11 +32,11 @@ extern char *localip;
 extern char *localport;
 
 void eXosip_send_default_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
-			       transaction_t *transaction, sipevent_t *evt,
+			       transaction_t *transaction, osip_event_t *evt,
 			       int status)
 {
-  sipevent_t *evt_answer;
-  sip_t *answer;
+  osip_event_t *evt_answer;
+  osip_msg_t *answer;
   int i;
   
   list_add(eXosip.j_transactions, transaction, 0);
@@ -63,10 +63,10 @@ void eXosip_send_default_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
 }
 
 void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
-		       transaction_t *transaction, sipevent_t *evt)
+		       transaction_t *transaction, osip_event_t *evt)
 {
-  sipevent_t *evt_answer;
-  sip_t *answer;
+  osip_event_t *evt_answer;
+  osip_msg_t *answer;
   int i;
 
   list_add(jd->d_inc_trs, transaction , 0);
@@ -88,7 +88,7 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
   jd->d_dialog = NULL;
 }
 
-int cancel_match_invite(transaction_t *invite, sip_t *cancel)
+int cancel_match_invite(transaction_t *invite, osip_msg_t *cancel)
 {
   generic_param_t *br;
   generic_param_t *br2;
@@ -122,11 +122,11 @@ int cancel_match_invite(transaction_t *invite, sip_t *cancel)
   return 0;
 }
 
-void eXosip_process_cancel(transaction_t *transaction, sipevent_t *evt)
+void eXosip_process_cancel(transaction_t *transaction, osip_event_t *evt)
 {
   transaction_t *tr;
-  sipevent_t *evt_answer;
-  sip_t *answer;
+  osip_event_t *evt_answer;
+  osip_msg_t *answer;
   int i;
   
   eXosip_call_t *jc;
@@ -247,11 +247,11 @@ void eXosip_process_cancel(transaction_t *transaction, sipevent_t *evt)
 
 void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 				  transaction_t *transaction,
-				  sipevent_t *evt, sdp_t *remote_sdp)
+				  osip_event_t *evt, sdp_t *remote_sdp)
 {
   sdp_t *local_sdp;
-  sip_t *answer;
-  sipevent_t *sipevent;
+  osip_msg_t *answer;
+  osip_event_t *sipevent;
   int i;
 
   /* We must negociate... */
@@ -348,18 +348,18 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
 void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
 				  transaction_t *transaction,
-				  sipevent_t *evt, sdp_t *sdp)
+				  osip_event_t *evt, sdp_t *sdp)
 {
   eXosip_process_invite_on_hold(jc, jd, transaction, evt, sdp);
 }
 
-void eXosip_process_new_invite(transaction_t *transaction, sipevent_t *evt)
+void eXosip_process_new_invite(transaction_t *transaction, osip_event_t *evt)
 {
-  sipevent_t *evt_answer;
+  osip_event_t *evt_answer;
   int i;
   eXosip_call_t *jc;
   eXosip_dialog_t *jd;
-  sip_t *answer;
+  osip_msg_t *answer;
   char *contact;
 
   eXosip_call_init(&jc);
@@ -433,7 +433,7 @@ void eXosip_process_new_invite(transaction_t *transaction, sipevent_t *evt)
 }
 
 void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
-				      transaction_t *transaction, sipevent_t *evt)
+				      transaction_t *transaction, osip_event_t *evt)
 {
   sdp_t *sdp;
   int i;
@@ -549,11 +549,11 @@ void eXosip_process_invite_within_call(eXosip_call_t *jc, eXosip_dialog_t *jd,
 
 }
 
-void eXosip_process_newrequest (sipevent_t *evt)
+void eXosip_process_newrequest (osip_event_t *evt)
 {
   transaction_t *transaction;
-  sipevent_t *evt_answer;
-  sip_t *answer;
+  osip_event_t *evt_answer;
+  osip_msg_t *answer;
   int i;
   int ctx_type;
   eXosip_call_t *jc;
@@ -724,7 +724,7 @@ void eXosip_process_newrequest (sipevent_t *evt)
     }
 }
 
-void eXosip_process_response_out_of_transaction (sipevent_t *evt)
+void eXosip_process_response_out_of_transaction (osip_event_t *evt)
 {
 
 }
@@ -768,7 +768,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 	      /* Message might not end with a "\0" but we know the number of */
 	      /* char received! */
 	      transaction_t *transaction = NULL;
-	      sipevent_t *sipevent;
+	      osip_event_t *sipevent;
 	      sstrncpy(buf+i,"\0",1);
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
 			  "Received message: \n%s\n", buf));

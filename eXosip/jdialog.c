@@ -48,7 +48,7 @@ int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd)
   return -1;
 }
 
-int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, sip_t *_200Ok)
+int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, osip_msg_t *_200Ok)
 {
   int i;
   if (jd==NULL) return -1;
@@ -61,7 +61,7 @@ int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, sip_t *_200Ok)
 }
 
 
-int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, sip_t *_200Ok)
+int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, osip_msg_t *_200Ok)
 {
   int i;
   eXosip_dialog_t *jd;
@@ -94,7 +94,7 @@ int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, sip_t *_200Ok)
   return 0;
 }
 
-int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, sip_t *_invite, sip_t *_200Ok)
+int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, osip_msg_t *_invite, osip_msg_t *_200Ok)
 {
   int i;
   eXosip_dialog_t *jd;

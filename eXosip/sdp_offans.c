@@ -109,7 +109,7 @@ eXosip_get_local_sdp_info(transaction_t *invite_tr)
 {
   content_type_t *ctt;
   mime_version_t *mv;
-  sip_t *message;
+  osip_msg_t *message;
   sdp_t *sdp;
   char  *oldbody;
   int pos;

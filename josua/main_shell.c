@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.1.1.1 2003-03-11 21:23:12 aymeric Exp $";
+static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.2 2003-03-18 09:56:50 aymeric Exp $";
 
 #ifndef NCURSES_SUPPORT
 
@@ -45,7 +45,7 @@ static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.1.1.1 2003-03-11 21:23
 
 #include "ppl_getopt.h"
 
-extern jmsip_t jmsip;
+extern jmosip_msg_t jmsip;
 
 
 
@@ -55,7 +55,7 @@ void __jmsip_answer_call(char *command);
 void __jmsip_on_hold_call(char *command);
 void __jmsip_bye_call(char *command);
 void __jmsip_cancel_call(char *command);
-void __jmsip_transfert_call(char *command);
+void __jmosip_msg_transfert_call(char *command);
 void __jmsip_setup(char *comman);
 void __jmsip_quit(char *command);
 void __jmsip_help(char *command);
@@ -161,7 +161,7 @@ void __jmsip_menu() {
           else if (strlen (tmp) >= 7 && 0 == strncmp (tmp, "cancel ", 7))
             __jmsip_cancel_call(tmp+7);
           else if (strlen (tmp) >= 6 && 0 == strncmp (tmp, "refer ", 6))
-            __jmsip_transfert_call(tmp+6);
+            __jmosip_msg_transfert_call(tmp+6);
           else if (strlen (tmp) >= 8 && 0 == strncmp (tmp, "message ", 8))
             __jmsip_message(tmp+8);
           else if (strlen (tmp) >= 9 && 0 == strncmp (tmp, "register ", 9))
@@ -468,7 +468,7 @@ void __jmsip_message(char *command) {
 
 /* call <url> <subject> <route> */
 void __jmsip_start_call(char *command) {
-  sip_t *invite;
+  osip_msg_t *invite;
   char to[100];
   char subject[100];
   char route[100];
@@ -582,7 +582,7 @@ void __jmsip_bye_call(char *command) {
   if (c==-1) return;
 
   jmsip_lock();
-  jmsip_terminate_call(c, i);
+  jmosip_msg_terminate_call(c, i);
   jmsip_unlock();
 }
 
@@ -595,12 +595,12 @@ void __jmsip_cancel_call(char *command) {
   if (c==-1) return;
 
   jmsip_lock();
-  jmsip_terminate_call(c, -1);
+  jmosip_msg_terminate_call(c, -1);
   jmsip_unlock();
 }
 
 /* refer <jid> <sip_url> */
-void __jmsip_transfert_call(char *command) {
+void __jmosip_msg_transfert_call(char *command) {
   int c;
   char *tmp;
   char refer_to[121];
@@ -618,7 +618,7 @@ void __jmsip_transfert_call(char *command) {
   if (c==-1) return;  
 
   jmsip_lock();
-  jmsip_transfert_call(c, refer_to);
+  jmosip_msg_transfert_call(c, refer_to);
   jmsip_unlock();
   
 }

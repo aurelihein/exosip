@@ -65,7 +65,7 @@ via_branch_new_random()
    transport is either "TCP" or "UDP" (by now, only UDP is implemented!)
 */
 int
-generating_request_out_of_dialog(sip_t **dest, char *method_name,
+generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
 				 char *to, char *transport, char *from,
 				 char *proxy)
 {
@@ -75,7 +75,7 @@ generating_request_out_of_dialog(sip_t **dest, char *method_name,
   */
   static int register_cseq_number = 1; /* always start registration with 1 */
   int i;
-  sip_t *request;
+  osip_msg_t *request;
 
   if (register_callid_number==NULL)
     register_callid_number = call_id_new_random();
@@ -263,7 +263,7 @@ generating_request_out_of_dialog(sip_t **dest, char *method_name,
 }
 
 int
-generating_register(sip_t **reg, char *from,
+generating_register(osip_msg_t **reg, char *from,
 		    char *proxy, char *contact)
 {
   from_t *a_from;
@@ -301,7 +301,7 @@ generating_register(sip_t **reg, char *from,
 
 /* this method can't be called unless the previous
    INVITE transaction is over. */
-int eXosip_build_initial_invite(sip_t **invite, char *to, char *from,
+int eXosip_build_initial_invite(osip_msg_t **invite, char *to, char *from,
 				char *route, char *subject)
 {
   int i;
@@ -348,7 +348,7 @@ int eXosip_build_initial_invite(sip_t **invite, char *to, char *from,
 
 /* this method can't be called unless the previous
    INVITE transaction is over. */
-int generating_message(sip_t **message, char *to, char *from,
+int generating_message(osip_msg_t **message, char *to, char *from,
 		       char *route, char *buff)
 {
   int i;
@@ -388,7 +388,7 @@ int generating_message(sip_t **message, char *to, char *from,
 
 
 int
-generating_options(sip_t **options, char *from, char *to, char *sdp, char *proxy)
+generating_options(osip_msg_t **options, char *from, char *to, char *sdp, char *proxy)
 {
   int i;
   i = generating_request_out_of_dialog(options, "OPTIONS", to, "UDP",
@@ -413,7 +413,7 @@ generating_options(sip_t **options, char *from, char *to, char *sdp, char *proxy
 
 
 int
-dialog_fill_route_set(dialog_t *dialog, sip_t *request)
+dialog_fill_route_set(dialog_t *dialog, osip_msg_t *request)
 {
   /* if the pre-existing route set contains a "lr" (compliance
      with bis-08) then the rquri should contains the remote target
@@ -500,11 +500,11 @@ dialog_fill_route_set(dialog_t *dialog, sip_t *request)
 }
 
 int
-_eXosip_build_request_within_dialog(sip_t **dest, char *method_name,
+_eXosip_build_request_within_dialog(osip_msg_t **dest, char *method_name,
 				   dialog_t *dialog, char *transport)
 {
   int i;
-  sip_t *request;
+  osip_msg_t *request;
 
   i = msg_init(&request);
   if (i!=0) return -1;
@@ -633,7 +633,7 @@ _eXosip_build_request_within_dialog(sip_t **dest, char *method_name,
 
 /* this request is only build within a dialog!! */
 int
-generating_bye(sip_t **bye, dialog_t *dialog)
+generating_bye(osip_msg_t **bye, dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(bye, "BYE", dialog, "UDP");
@@ -645,7 +645,7 @@ generating_bye(sip_t **bye, dialog_t *dialog)
 
 /* this request is only build within a dialog! (but should not!) */
 int
-generating_refer(sip_t **refer, dialog_t *dialog, char *refer_to)
+generating_refer(osip_msg_t **refer, dialog_t *dialog, char *refer_to)
 {
   int i;
   i = _eXosip_build_request_within_dialog(refer, "REFER", dialog, "UDP");
@@ -659,7 +659,7 @@ generating_refer(sip_t **refer, dialog_t *dialog, char *refer_to)
 
 /* this request can be inside or outside a dialog */
 int
-generating_options_within_dialog(sip_t **options, dialog_t *dialog, char *sdp)
+generating_options_within_dialog(osip_msg_t **options, dialog_t *dialog, char *sdp)
 {
   int i;
   i = _eXosip_build_request_within_dialog(options, "OPTIONS", dialog, "UDP");
@@ -683,7 +683,7 @@ generating_options_within_dialog(sip_t **options, dialog_t *dialog, char *sdp)
 }
 
 int
-generating_info(sip_t **info, dialog_t *dialog)
+generating_info(osip_msg_t **info, dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(info, "INFO", dialog, "UDP");
@@ -694,10 +694,10 @@ generating_info(sip_t **info, dialog_t *dialog)
 
 /* It is RECOMMENDED to only cancel INVITE request */
 int
-generating_cancel(sip_t **dest, sip_t *request_cancelled)
+generating_cancel(osip_msg_t **dest, osip_msg_t *request_cancelled)
 {
   int i;
-  sip_t *request;
+  osip_msg_t *request;
   
   i = msg_init(&request);
   if (i!=0) return -1;
@@ -765,7 +765,7 @@ generating_cancel(sip_t **dest, sip_t *request_cancelled)
 
 
 int
-generating_ack_for_2xx(sip_t **ack, dialog_t *dialog)
+generating_ack_for_2xx(osip_msg_t **ack, dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(ack, "ACK", dialog, "UDP");

@@ -45,9 +45,9 @@ char *jidentity_get_identity(int fid);
 char *jidentity_get_registrar(int fid);
 void  jidentity_unload();
 
-int   eXosip_build_initial_invite(sip_t **invite, char *to, char *from,
+int   eXosip_build_initial_invite(osip_msg_t **invite, char *to, char *from,
 			       char *route, char *subject);
-void  eXosip_start_call    (sip_t *invite);
+void  eXosip_start_call    (osip_msg_t *invite);
 
 void  eXosip_answer_call   (int jid, int status);
 void  eXosip_on_hold_call  (int jid);

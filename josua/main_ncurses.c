@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.2 2003-03-12 20:53:52 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.3 2003-03-18 09:56:50 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -503,7 +503,7 @@ struct colordata color[]= {
 int use_color = 0; /* 0: yes,      1: no */
 
 /*
-  jmsip_t *jmsip_context;
+  jmosip_msg_t *jmsip_context;
 */
 
 static int cursesareon= 0;
@@ -1340,7 +1340,7 @@ int main(int argc, const char *const *argv) {
 
   if (cfg.to[0]!='\0')
     { /* start a command line call, if needed */
-      sip_t *invite;
+      osip_msg_t *invite;
       i = eXosip_build_initial_invite(&invite,
 				      cfg.to,
 				      cfg.identity,
@@ -1367,7 +1367,7 @@ int main(int argc, const char *const *argv) {
 }
 
 void __josua_message() {
-  //  sip_t *message;
+  //  osip_msg_t *message;
   char buf[120];
 
   int c;
@@ -1425,7 +1425,7 @@ void __josua_message() {
 }
 
 void __josua_start_call() {
-  sip_t *invite;
+  osip_msg_t *invite;
   int i;
   char buf[120];
 

@@ -311,9 +311,9 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
 {
   /* eXosip_call_t *jc;
      header_t *subject; */
-  sip_t *message;
+  osip_msg_t *message;
   transaction_t *transaction;
-  sipevent_t *sipevent;
+  osip_event_t *sipevent;
   int i;
 
   i = generating_message(&message, to, from, route, buff);
@@ -346,14 +346,14 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
   transaction_set_your_instance(transaction, new_jinfo(NULL, NULL));
 }
 
-void eXosip_start_call    (sip_t *invite)
+void eXosip_start_call    (osip_msg_t *invite)
 {
   //  static int static_jcid = 0; /* This value is used as a unique id for call */
 
   eXosip_call_t *jc;
   header_t *subject;
   transaction_t *transaction;
-  sipevent_t *sipevent;
+  osip_event_t *sipevent;
   int i;
   sdp_t *sdp;
   char *body;
@@ -452,8 +452,8 @@ void eXosip_on_hold_call  (int jid)
   eXosip_call_t *jc = NULL;
 
   transaction_t *transaction;
-  sipevent_t *sipevent;
-  sip_t *invite;
+  osip_event_t *sipevent;
+  osip_msg_t *invite;
   int i;
   sdp_t *sdp;
   char *body;
@@ -546,9 +546,9 @@ void eXosip_off_hold_call (int jid)
 
 int eXosip_create_transaction(eXosip_call_t *jc,
 			     eXosip_dialog_t *jd,
-			     sip_t *request)
+			     osip_msg_t *request)
 {
-  sipevent_t *sipevent;
+  osip_event_t *sipevent;
   transaction_t *tr;
   int i;
   i = transaction_init(&tr,
@@ -577,7 +577,7 @@ int eXosip_create_transaction(eXosip_call_t *jc,
 void eXosip_transfer_call(int jid, char *refer_to)
 {
   int i;
-  sip_t *request;
+  osip_msg_t *request;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   if (jid<=0)
@@ -600,9 +600,9 @@ void eXosip_transfer_call(int jid, char *refer_to)
 }
 
 int eXosip_create_cancel_transaction(eXosip_call_t *jc,
-				    eXosip_dialog_t *jd, sip_t *request)
+				    eXosip_dialog_t *jd, osip_msg_t *request)
 {
-  sipevent_t *sipevent;
+  osip_event_t *sipevent;
   transaction_t *tr;
   int i;
   i = transaction_init(&tr,
@@ -629,7 +629,7 @@ int eXosip_create_cancel_transaction(eXosip_call_t *jc,
 void eXosip_terminate_call(int cid, int jid)
 {
   int i;
-  sip_t *request;
+  osip_msg_t *request;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   if (jid>0)
@@ -679,8 +679,8 @@ void eXosip_terminate_call(int cid, int jid)
 void eXosip_register      (int rid)
 {
   transaction_t *transaction;
-  sipevent_t *sipevent;
-  sip_t *reg;
+  osip_event_t *sipevent;
+  osip_msg_t *reg;
   int i;
 
   eXosip_reg_t *jr;
