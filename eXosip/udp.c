@@ -76,7 +76,7 @@ void eXosip_send_default_answer(eXosip_dialog_t *jd,
 }
 
 void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
-		       osip_transaction_t *transaction, osip_event_t *evt)
+			osip_transaction_t *transaction, osip_event_t *evt)
 {
   osip_event_t *evt_answer;
   osip_message_t *answer;
@@ -1769,7 +1769,7 @@ void eXosip_release_terminated_calls ( void )
 	      }
 	      eXosip_call_free(jc);
 	    }
-	  if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED)
+	  else if (jc->c_inc_tr!=NULL && jc->c_inc_tr->state!=IST_TERMINATED)
 	    {  }
 	  else if (jc->c_out_tr!=NULL && jc->c_out_tr->state!=ICT_TERMINATED)
 	    {  }
