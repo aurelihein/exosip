@@ -198,7 +198,7 @@ eXosip_find_last_out_refer(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 int
 eXosip_call_init(eXosip_call_t **jc)
 {
-  *jc = (eXosip_call_t *)smalloc(sizeof(eXosip_call_t));
+  *jc = (eXosip_call_t *)osip_malloc(sizeof(eXosip_call_t));
   if (*jc == NULL) return -1;
   memset(*jc, '\0', sizeof(eXosip_call_t));
   return 0;
@@ -208,7 +208,7 @@ void
 eXosip_call_free(eXosip_call_t *jc)
 {
   /* ... */
-  sfree(jc);
+  osip_free(jc);
 }
 
 void

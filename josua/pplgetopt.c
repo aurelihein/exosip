@@ -103,7 +103,7 @@ ppl_getopt_init (ppl_getopt_t ** os, int argc, const char *const *argv)
 {
   void *argv_buff;
 
-  *os = (ppl_getopt_t *) smalloc (sizeof (ppl_getopt_t));
+  *os = (ppl_getopt_t *) osip_malloc (sizeof (ppl_getopt_t));
   (*os)->reset = 0;
   (*os)->errfn = (ppl_getopt_err_fn_t *) (fprintf);
   (*os)->errarg = (void *) (stderr);
@@ -115,7 +115,7 @@ ppl_getopt_init (ppl_getopt_t ** os, int argc, const char *const *argv)
      that's the primary purpose of this function.  But people might
      want to use this function with arrays other than the main argv,
      and we shouldn't touch the caller's data.  So we copy. */
-  argv_buff = (char *) smalloc ((argc + 1) * sizeof (const char *));
+  argv_buff = (char *) osip_malloc ((argc + 1) * sizeof (const char *));
   memcpy (argv_buff, argv, argc * sizeof (const char *));
   (*os)->argv = argv_buff;
   (*os)->argv[argc] = NULL;

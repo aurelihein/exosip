@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.3 2003-03-23 23:58:55 aymeric Exp $";
+static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.4 2003-03-24 18:17:47 aymeric Exp $";
 
 #ifndef NCURSES_SUPPORT
 
@@ -56,7 +56,7 @@ void __jmsip_on_hold_call(char *command);
 void __jmsip_bye_call(char *command);
 void __jmsip_cancel_call(char *command);
 void __jmosip_message_transfert_call(char *command);
-void __jmsip_setup(char *comman);
+void __jmsip_set_up(char *comman);
 void __jmsip_quit(char *command);
 void __jmsip_help(char *command);
 
@@ -70,8 +70,8 @@ void exosip_lst_dialog_contact(int jid);      /* show call contact [jid]  */
 void exosip_lst_dialog_payloads(int jid);     /* show call payloads [jid] */
 
 /* some external methods */
-void *smalloc(size_t size);
-void  sfree(void *ptr);
+void *osip_malloc(size_t size);
+void  osip_free(void *ptr);
 
 #ifndef JD_EMPTY
 
@@ -98,10 +98,10 @@ char *
 simple_readline (int descr)
 {
   int i = 0;
-  char *tmp = (char *) smalloc (201);
+  char *tmp = (char *) osip_malloc (201);
 
   fgets (tmp, 200, stdin);
-  sclrspace (tmp);
+  osip_clrspace (tmp);
   return tmp;
 }
 #else
@@ -120,7 +120,7 @@ simple_readline (int descr)
       char *tmp;
       int i;
 
-      tmp = (char *) smalloc (201);
+      tmp = (char *) osip_malloc (201);
       i = read (descr, tmp, 200);
       if (0==i)
 	{
@@ -134,7 +134,7 @@ simple_readline (int descr)
 	}
       tmp[i] = '\0';
       if (i > 0)
-        sclrspace (tmp);
+        osip_clrspace (tmp);
       return tmp;
     }
   return NULL;
@@ -167,7 +167,7 @@ void __jmsip_menu() {
           else if (strlen (tmp) >= 9 && 0 == strncmp (tmp, "register ", 9))
             __jmsip_register(tmp+8);
           else if (strlen (tmp) >= 6 && 0 == strncmp (tmp, "setup ", 6))
-            __jmsip_setup(tmp+6);
+            __jmsip_set_up(tmp+6);
           else if (strlen (tmp) >= 4 && 0 == strncmp (tmp, "help", 4))
             __jmsip_help(tmp+4);
           else if (strlen (tmp) == 1 && 0 == strncmp (tmp, "q", 1))
@@ -179,7 +179,7 @@ void __jmsip_menu() {
 	      fprintf (stdout, "error: %s: type!\n", tmp);
 	      fprintf (stdout, "    type help for commands!\n");
 	    }
-          sfree (tmp);
+          osip_free (tmp);
       } else
         exit (1);
     }
@@ -188,7 +188,7 @@ void __jmsip_menu() {
 typedef struct _main_config_t {
   char  config_file[256];    /* -F <config file>   */
   char  identity_file[256];  /* -I <identity file> */
-  char  osip_contact_file[256];   /* -C <contact file>  */
+  char  contact_file[256];   /* -C <contact file>  */
   char  log_file[256];       /* -L <log file>      */
   int   debug_level;         /* -d <verbose level>   */
   int   port;                /* -p <SIP port>  default is 5060 */
@@ -273,7 +273,7 @@ int main(int argc, const char *const *argv) {
             snprintf(cfg.identity_file, 255, optarg);
             break;
           case 'C':
-            snprintf(cfg.osip_contact_file, 255, optarg);
+            snprintf(cfg.contact_file, 255, optarg);
             break;
           case 'L':
             snprintf(cfg.log_file, 255, optarg);
@@ -353,8 +353,8 @@ int main(int argc, const char *const *argv) {
       TRACE_INITIALIZE (cfg.debug_level, log_file);
     }
 
-  sfree ((void *) (opt->argv));
-  sfree ((void *) opt);
+  osip_free ((void *) (opt->argv));
+  osip_free ((void *) opt);
 
   if (cfg.identity[0]=='\0')
     {
@@ -370,7 +370,7 @@ int main(int argc, const char *const *argv) {
       exit(0);
     }
 
-  jfreind_load();
+  jfriend_load();
   jidentity_load();
 
   if (interactive_mode != 1)
@@ -391,7 +391,7 @@ int main(int argc, const char *const *argv) {
 
 
 int
-jmsip_get_and_set_next_token (char **dest, char *buf, char **next)
+jmsip_get_and___osip_set_next_token (char **dest, char *buf, char **next)
 {
   char *end;
   char *start;
@@ -413,8 +413,8 @@ jmsip_get_and_set_next_token (char **dest, char *buf, char **next)
   if (end == start)
     return -1;                  /* empty value (or several space!) */
 
-  *dest = smalloc (end - (start) + 1);
-  sstrncpy (*dest, start, end - start);
+  *dest = osip_malloc (end - (start) + 1);
+  osip_strncpy (*dest, start, end - start);
 
   *next = end + 1;              /* return the position right after the separator */
   return 0;
@@ -430,38 +430,38 @@ void __jmsip_message(char *command) {
   char *result;
   char *next;
 
-  sclrspace(command);
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  osip_clrspace(command);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       fprintf(stderr, "jmsip: bad arguments. (1)");
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(to, "%s", result);
-  sfree(result);
+  osip_free(result);
 
   command = next;
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       fprintf(stderr, "jmsip: bad arguments. (2)");
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(mymessage, "%s", result);
-  sfree(result);
+  osip_free(result);
 
   command = next;
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       jmsip_message(to, cfg.identity, cfg.route, mymessage);
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(route, "%s", result);
-  sfree(result);
+  osip_free(result);
   
   jmsip_message(to, cfg.identity, route, mymessage);
 }
@@ -478,19 +478,19 @@ void __jmsip_start_call(char *command) {
   char *result;
   char *next;
 
-  sclrspace(command);
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  osip_clrspace(command);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       fprintf(stderr, "jmsip: bad arguments. (1)");
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(to, "%s", result);
-  sfree(result);
+  osip_free(result);
 
   command = next;
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       i = jmsip_build_initial_invite(&invite,
@@ -504,12 +504,12 @@ void __jmsip_start_call(char *command) {
       jmsip_unlock();
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(route, "%s", result);
-  sfree(result);
+  osip_free(result);
 
   command = next;
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       i = jmsip_build_initial_invite(&invite, to, cfg.identity, route, cfg.subject);
@@ -519,9 +519,9 @@ void __jmsip_start_call(char *command) {
       jmsip_unlock();
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(subject, "%s", result);
-  sfree(result);
+  osip_free(result);
   
   i = jmsip_build_initial_invite(&invite, to, cfg.identity, route, subject);
   if (i!=0) return;
@@ -535,15 +535,15 @@ void __jmsip_answer_call(char *command) {
   int c, i;
   char *tmp;
 
-  sclrspace(command);
+  osip_clrspace(command);
   tmp = strchr(command+1, ' ');
 
-  sclrspace(tmp+1);
-  c = satoi(tmp+1);
+  osip_clrspace(tmp+1);
+  c = osip_atoi(tmp+1);
   if (c==-1) return;
   tmp[0]='\0';
 
-  i = satoi(command);
+  i = osip_atoi(command);
   if (i==-1) return;
 
   jmsip_lock();
@@ -556,8 +556,8 @@ void __jmsip_answer_call(char *command) {
 void __jmsip_on_hold_call(char *command) {
   int c;
 
-  sclrspace(command);
-  c = satoi(command);
+  osip_clrspace(command);
+  c = osip_atoi(command);
   if (c==-1) return;
 
   jmsip_lock();
@@ -570,15 +570,15 @@ void __jmsip_bye_call(char *command) {
   int c, i;
   char *tmp;
 
-  sclrspace(command);
+  osip_clrspace(command);
   tmp = strchr(command+1, ' ');
 
-  sclrspace(tmp+1);
-  i = satoi(tmp+1);
+  osip_clrspace(tmp+1);
+  i = osip_atoi(tmp+1);
   if (i==-1) return;
   tmp[0]='\0';
 
-  c = satoi(command);
+  c = osip_atoi(command);
   if (c==-1) return;
 
   jmsip_lock();
@@ -590,8 +590,8 @@ void __jmsip_bye_call(char *command) {
 void __jmsip_cancel_call(char *command) {
   int c;
 
-  sclrspace(command);
-  c = satoi(command);
+  osip_clrspace(command);
+  c = osip_atoi(command);
   if (c==-1) return;
 
   jmsip_lock();
@@ -605,16 +605,16 @@ void __jmosip_message_transfert_call(char *command) {
   char *tmp;
   char refer_to[121];
 
-  sclrspace(command);
+  osip_clrspace(command);
   tmp = strchr(command+1, ' ');
 
-  sclrspace(tmp+1);
+  osip_clrspace(tmp+1);
   if (tmp[1]=='\0')
     return ;
   snprintf(refer_to, 120, "%s", tmp+1);
   tmp[0]='\0';
 
-  c = satoi(command);
+  c = osip_atoi(command);
   if (c==-1) return;  
 
   jmsip_lock();
@@ -629,8 +629,8 @@ void __jmsip_register(char *command) {
   int jid;
   static int previous_jid = -2;
 
-  sclrspace(command);
-  jid = satoi(command);
+  osip_clrspace(command);
+  jid = osip_atoi(command);
 
   if (jid==-1) return;
 
@@ -652,7 +652,7 @@ void __jmsip_register(char *command) {
   jmsip_unlock();
 }
 
-void __jmsip_setup(char *command) {
+void __jmsip_set_up(char *command) {
 
   char identity[100];
   char registrar[100];
@@ -664,27 +664,27 @@ void __jmsip_setup(char *command) {
   char *result;
   char *next;
 
-  sclrspace(command);
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  osip_clrspace(command);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       fprintf(stderr, "jmsip: bad arguments. (1)");
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(identity, "%s", result);
-  sfree(result);
+  osip_free(result);
 
   command = next;
-  i = jmsip_get_and_set_next_token(&result, command, &next);
+  i = jmsip_get_and___osip_set_next_token(&result, command, &next);
   if (i != 0)
     {
       fprintf(stderr, "jmsip: bad arguments. (2)");
       return;
     }
-  sclrspace(result);
+  osip_clrspace(result);
   sprintf(registrar, "%s", result);
-  sfree(result);
+  osip_free(result);
 
   sprintf(realm, "%s", "\"\"");
   sprintf(userid, "%s", "\"\"");
@@ -706,7 +706,7 @@ void __jmsip_help(char *command) {
   fprintf(stdout, "                   cancel 1.\n");
   fprintf(stdout, " bye       terminate a pending call.\n");
   fprintf(stdout, "                   bye 1 1.\n");
-  fprintf(stdout, " message   send a message to a freind.\n");
+  fprintf(stdout, " message   send a message to a friend.\n");
   fprintf(stdout, "                   message <sip:joe@192.168.1.2> my_message_sample_one_word_only.\n");
   fprintf(stdout, " register  register identities.\n");
   fprintf(stdout, "                   register 1   (from the list of identity)\n");
@@ -757,7 +757,7 @@ static char *state_tab[] = {
   j->state must be set
   j->d_dialog must exist
   j->d_dialog->remote_uri must exist
-  j->d_dialog->remote_osip_contact_uri must exist
+  j->d_dialog->remote_contact_uri must exist
   j->d_200Ok must exist (or ack if SDP wasn't in INVITE))
   j->ack must exist
   j->audio_lines
@@ -779,7 +779,7 @@ void _show_dialog_with(jmsip_osip_dialog_t *jd)       /* show call callee [jid] 
   int i;
   if (jd->d_dialog==NULL)
     return ;
-  i = osip_to_2char(jd->d_dialog->remote_uri, &tmp);
+  i = osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
   if (i!=0)
     fprintf(jmsip.j_output, "\tWith   :  %s\n", tmp);
   else
@@ -792,13 +792,13 @@ void _show_dialog_contact(jmsip_osip_dialog_t *jd)       /* show call callee [ji
   int i;
   if (jd->d_dialog==NULL)
     return ;
-  if (jd->d_dialog->remote_osip_contact_uri==NULL)
+  if (jd->d_dialog->remote_contact_uri==NULL)
     {
       fprintf(jmsip.j_output, "\tContact:  **unknown**\n");
       return ;
     }
 
-  i = osip_contact_2char(jd->d_dialog->remote_osip_contact_uri, &tmp);
+  i = osip_contact_to_str(jd->d_dialog->remote_contact_uri, &tmp);
 
   if (i==0)
     fprintf(jmsip.j_output, "\tContact:  %s\n", tmp);

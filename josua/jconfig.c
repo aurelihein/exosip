@@ -50,7 +50,7 @@ josua_config_create(char *identity,
   static int id = 0;
   id++;
 
-  jc = (josua_config_t*) smalloc(sizeof(josua_config_t));
+  jc = (josua_config_t*) osip_malloc(sizeof(josua_config_t));
   jc->id = id;
   snprintf(jc->identity, 100, identity);
   snprintf(jc->proxy, 100, identity);
@@ -72,7 +72,7 @@ josua_config_addrealm(char *realm,
 {
   josua_realm_t *jr;
 
-  jr = (josua_realm_t*) smalloc(sizeof(josua_config_t));
+  jr = (josua_realm_t*) osip_malloc(sizeof(josua_config_t));
   snprintf(jr->realm, 100, realm);
   snprintf(jr->username, 100, username);
   snprintf(jr->password, 100, password);

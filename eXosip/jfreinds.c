@@ -31,10 +31,10 @@ extern eXosip_t eXosip;
 #endif
 
 #ifndef EXOSIP_ADDFREINDS_SH
-#define EXOSIP_ADDFREINDS_SH "eXosip_addfreind.sh"
+#define EXOSIP_ADDFREINDS_SH "eXosip_addfriend.sh"
 #endif
 
-void freinds_add(char *nickname, char *home,
+void friends_add(char *nickname, char *home,
 		 char *work, char *email, char *e164)
 {
   char command[256];
@@ -97,7 +97,7 @@ void freinds_add(char *nickname, char *home,
 
 
 int
-jfreind_get_and_set_next_token (char **dest, char *buf, char **next)
+jfriend_get_and___osip_set_next_token (char **dest, char *buf, char **next)
 {
   char *end;
   char *start;
@@ -120,8 +120,8 @@ jfreind_get_and_set_next_token (char **dest, char *buf, char **next)
   if (end == start)
     return -1;                  /* empty value (or several space!) */
 
-  *dest = smalloc (end - (start) + 1);
-  sstrncpy (*dest, start, end - start);
+  *dest = osip_malloc (end - (start) + 1);
+  osip_strncpy (*dest, start, end - start);
 
   *next = end + 1;   /* return the position right after the separator
  */
@@ -129,94 +129,94 @@ jfreind_get_and_set_next_token (char **dest, char *buf, char **next)
 }
 
 
-int jfreind_init(jfreind_t **fr, char *ch)
+int jfriend_init(jfriend_t **fr, char *ch)
 {
   char *next;
   int i;
 
-  *fr = (jfreind_t *)smalloc(sizeof(jfreind_t));
+  *fr = (jfriend_t *)osip_malloc(sizeof(jfriend_t));
   if (*fr==NULL) return -1;
 
-  i = jfreind_get_and_set_next_token(&((*fr)->f_nick), ch, &next);
+  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_nick), ch, &next);
   if (i != 0)
     goto jf_error1;
-  sclrspace ((*fr)->f_nick);
+  osip_clrspace ((*fr)->f_nick);
   ch = next;
 
-  i = jfreind_get_and_set_next_token(&((*fr)->f_home), next, &next);
+  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_home), next, &next);
   if (i != 0)
     goto jf_error2;
-  sclrspace ((*fr)->f_home);
+  osip_clrspace ((*fr)->f_home);
   ch = next;
 
-  i = jfreind_get_and_set_next_token(&((*fr)->f_work), ch, &next);
+  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_work), ch, &next);
   if (i != 0)
     goto jf_error3;
-  sclrspace ((*fr)->f_work);
+  osip_clrspace ((*fr)->f_work);
   ch = next;
 
-  i = jfreind_get_and_set_next_token(&((*fr)->f_email), ch, &next);
+  i = jfriend_get_and___osip_set_next_token(&((*fr)->f_email), ch, &next);
   if (i != 0)
     goto jf_error4;
-  sclrspace ((*fr)->f_email);
+  osip_clrspace ((*fr)->f_email);
 
-  (*fr)->f_e164 = sgetcopy(next);
-  sclrspace ((*fr)->f_e164);
+  (*fr)->f_e164 = osip_strdup(next);
+  osip_clrspace ((*fr)->f_e164);
 
   return 0;
 
  jf_error4:
-  sfree((*fr)->f_work);
+  osip_free((*fr)->f_work);
  jf_error3:
-  sfree((*fr)->f_home);
+  osip_free((*fr)->f_home);
  jf_error2:
-  sfree((*fr)->f_nick);
+  osip_free((*fr)->f_nick);
  jf_error1:
-  sfree(*fr);
+  osip_free(*fr);
   *fr = NULL;
   return -1;
 }
 
 
 void
-jfreind_unload()
+jfriend_unload()
 {
-  jfreind_t *fr;
-  if (eXosip.j_freinds==NULL) return;
-  for (fr=eXosip.j_freinds; fr!=NULL; fr=eXosip.j_freinds)
+  jfriend_t *fr;
+  if (eXosip.j_friends==NULL) return;
+  for (fr=eXosip.j_friends; fr!=NULL; fr=eXosip.j_friends)
     {
-    REMOVE_ELEMENT(eXosip.j_freinds,fr);
-    sfree(fr->f_nick);
-    sfree(fr->f_home);
-    sfree(fr->f_work);
-    sfree(fr->f_email);
-    sfree(fr->f_e164);
-    sfree(fr);
+    REMOVE_ELEMENT(eXosip.j_friends,fr);
+    osip_free(fr->f_nick);
+    osip_free(fr->f_home);
+    osip_free(fr->f_work);
+    osip_free(fr->f_email);
+    osip_free(fr->f_e164);
+    osip_free(fr);
     }
 
-  sfree(eXosip.j_freinds);
-  eXosip.j_freinds=NULL;
+  osip_free(eXosip.j_friends);
+  eXosip.j_friends=NULL;
   return;
 }
 
 int
-jfreind_load()
+jfriend_load()
 {
   FILE *file;
   char *s; 
-  jfreind_t *fr;
+  jfriend_t *fr;
   int pos;
   char *home;
   char filename[255];
 
-  jfreind_unload();
+  jfriend_unload();
   home = getenv("HOME");
   sprintf(filename, "%s/%s/%s", home, EXOSIP_ETC_DIR, "jm_contact");
   
 
   file = fopen(filename, "r");
   if (file==NULL) return -1;
-  s = (char *)smalloc(255*sizeof(char));
+  s = (char *)osip_malloc(255*sizeof(char));
   pos = 0;
   while (NULL!=fgets(s, 254, file))
     {
@@ -227,24 +227,24 @@ jfreind_load()
       tmp++; /* first usefull characters */
       pos++;
 
-      jfreind_init(&fr, tmp);
+      jfriend_init(&fr, tmp);
       if (fr!=NULL)
-	{ ADD_ELEMENT(eXosip.j_freinds, fr); }
+	{ ADD_ELEMENT(eXosip.j_friends, fr); }
     }
-  sfree(s);
+  osip_free(s);
   fclose(file);
 
   return 0; /* ok */
 }
 
 char *
-jfreind_get_home(int fid)
+jfriend_get_home(int fid)
 {
-  jfreind_t *fr;
-  for (fr = eXosip.j_freinds; fr!=NULL ; fr=fr->next)
+  jfriend_t *fr;
+  for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
     {
       if (fid==0)
-	return sgetcopy(fr->f_home);
+	return osip_strdup(fr->f_home);
       fid--;
     }
   return NULL;

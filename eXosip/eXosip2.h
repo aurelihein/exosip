@@ -34,9 +34,9 @@ void  eXosip_quit();
 int   eXosip_lock();
 int   eXosip_unlock();
 
-int   jfreind_load();
-char *jfreind_get_home(int fid);
-void  jfreind_unload();
+int   jfriend_load();
+char *jfriend_get_home(int fid);
+void  jfriend_unload();
 
 void  identitys_add(char *identity, char *registrar, char *realm,
 		   char *userid, char *password);

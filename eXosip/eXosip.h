@@ -68,10 +68,10 @@ struct eXosip_osip_dialog_t {
   int              d_timer;
   osip_message_t           *d_200Ok;
   osip_message_t           *d_ack;
-  osip_osip_losip_ist_t          *media_lines;
+  osip_list_t          *media_lines;
 
-  osip_osip_losip_ist_t          *d_inc_trs;
-  osip_osip_losip_ist_t          *d_out_trs;
+  osip_list_t          *d_inc_trs;
+  osip_list_t          *d_out_trs;
 
   eXosip_osip_dialog_t *next;
   eXosip_osip_dialog_t *parent;
@@ -115,7 +115,7 @@ struct eXosip_call_t {
   osip_transaction_t   *c_inc_tr;
   osip_transaction_t   *c_out_tr;
 
-  sdp_negociation_ctx_t   *c_ctx;
+  sdp_negotiation_ctx_t   *c_ctx;
 
   eXosip_call_t   *next;
   eXosip_call_t   *parent;
@@ -153,9 +153,9 @@ struct eXosip_reg_t {
   eXosip_reg_t   *parent;
 };
 
-typedef struct jfreind_t jfreind_t;
+typedef struct jfriend_t jfriend_t;
 
-struct jfreind_t {
+struct jfriend_t {
   int            f_id;
   char          *f_nick;
   char          *f_home;
@@ -163,8 +163,8 @@ struct jfreind_t {
   char          *f_email;
   char          *f_e164;
 
-  jfreind_t     *next;
-  jfreind_t     *parent;
+  jfriend_t     *next;
+  jfriend_t     *parent;
 };
 
 typedef struct jidentity_t jidentity_t;
@@ -188,7 +188,7 @@ struct eXosip_t {
   FILE          *j_input;
   FILE          *j_output;
   eXosip_call_t *j_calls;
-  osip_osip_losip_ist_t        *j_transactions;
+  osip_list_t        *j_transactions;
 
   eXosip_reg_t  *j_reg;
 
@@ -199,7 +199,7 @@ struct eXosip_t {
   void          *j_thread;
 
   /* configuration informations */
-  jfreind_t     *j_freinds;
+  jfriend_t     *j_friends;
   jidentity_t   *j_identitys;
 };
 
@@ -211,20 +211,20 @@ struct jinfo_t {
 };
 
 
-void freinds_add(char *nickname, char *home,
+void friends_add(char *nickname, char *home,
 		 char *work, char *email, char *e164);
 
 char *eXosip_guess_ip_for_via ();
 
-int    eXosip_sdp_negociation_init();
+int    eXosip_sdp_negotiation_init();
 sdp_message_t *eXosip_get_local_sdp_info(osip_transaction_t *invite_tr);
 int    eXosip_set_callbacks(osip_t *osip);
 char  *osip_to_tag_new_random();
-unsigned int osip_via_branch_new_random();
+unsigned int via_branch_new_random();
 jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_osip_dialog_t *jd);
 
-int  eXosip_dialog_init_as_uac(eXosip_osip_dialog_t **jd, osip_message_t *_200Ok);
-int  eXosip_dialog_init_as_uas(eXosip_osip_dialog_t **jd, osip_message_t *_invite, osip_message_t *_200Ok);
+int  eXosip_osip_dialog_init_as_uac(eXosip_osip_dialog_t **jd, osip_message_t *_200Ok);
+int  eXosip_osip_dialog_init_as_uas(eXosip_osip_dialog_t **jd, osip_message_t *_invite, osip_message_t *_200Ok);
 void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd);
 void eXosip_osip_dialog_set_state(eXosip_osip_dialog_t *jd, int state);
 void eXosip_delete_early_dialog(eXosip_osip_dialog_t *jd);
@@ -273,7 +273,7 @@ int  eXosip_call_init(eXosip_call_t **jc);
 void eXosip_call_free(eXosip_call_t *jc);
 void eXosip_call_set_subject(eXosip_call_t *jc, char *subject);
 int  eXosip_read_message(int max_message_nb, int sec_max, int usec_max);
-void eXosip_free_terminated_calls ( void );
+void eXosip_release_terminated_calls ( void );
 
 
 

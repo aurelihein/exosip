@@ -108,7 +108,7 @@ void identitys_add(char *identity, char *registrar,
 
 
 int
-jidentity_get_and_set_next_token (char **dest, char *buf, char **next)
+jidentity_get_and___osip_set_next_token (char **dest, char *buf, char **next)
 {
   char *end;
   char *start;
@@ -131,8 +131,8 @@ jidentity_get_and_set_next_token (char **dest, char *buf, char **next)
   if (end == start)
     return -1;                  /* empty value (or several space!) */
 
-  *dest = smalloc (end - (start) + 1);
-  sstrncpy (*dest, start, end - start);
+  *dest = osip_malloc (end - (start) + 1);
+  osip_strncpy (*dest, start, end - start);
 
   *next = end + 1;   /* return the position right after the separator
  */
@@ -145,45 +145,45 @@ int jidentity_init(jidentity_t **fr, char *ch)
   char *next;
   int i;
 
-  *fr = (jidentity_t *)smalloc(sizeof(jidentity_t));
+  *fr = (jidentity_t *)osip_malloc(sizeof(jidentity_t));
   if (*fr==NULL) return -1;
 
-  i = jidentity_get_and_set_next_token(&((*fr)->i_identity), ch, &next);
+  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_identity), ch, &next);
   if (i != 0)
     goto ji_error1;
-  sclrspace ((*fr)->i_identity);
+  osip_clrspace ((*fr)->i_identity);
   ch = next;
 
-  i = jidentity_get_and_set_next_token(&((*fr)->i_registrar), next, &next);
+  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_registrar), next, &next);
   if (i != 0)
     goto ji_error2;
-  sclrspace ((*fr)->i_registrar);
+  osip_clrspace ((*fr)->i_registrar);
   ch = next;
 
-  i = jidentity_get_and_set_next_token(&((*fr)->i_realm), ch, &next);
+  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_realm), ch, &next);
   if (i != 0)
     goto ji_error3;
-  sclrspace ((*fr)->i_realm);
+  osip_clrspace ((*fr)->i_realm);
   ch = next;
 
-  i = jidentity_get_and_set_next_token(&((*fr)->i_userid), ch, &next);
+  i = jidentity_get_and___osip_set_next_token(&((*fr)->i_userid), ch, &next);
   if (i != 0)
     goto ji_error4;
-  sclrspace ((*fr)->i_userid);
+  osip_clrspace ((*fr)->i_userid);
 
-  (*fr)->i_pwd = sgetcopy(next);
-  sclrspace ((*fr)->i_pwd);
+  (*fr)->i_pwd = osip_strdup(next);
+  osip_clrspace ((*fr)->i_pwd);
 
   return 0;
 
  ji_error4:
-  sfree((*fr)->i_realm);
+  osip_free((*fr)->i_realm);
  ji_error3:
-  sfree((*fr)->i_registrar);
+  osip_free((*fr)->i_registrar);
  ji_error2:
-  sfree((*fr)->i_identity);
+  osip_free((*fr)->i_identity);
  ji_error1:
-  sfree(*fr);
+  osip_free(*fr);
   *fr = NULL;
   return -1;
 }
@@ -197,15 +197,15 @@ jidentity_unload()
   for (fr=eXosip.j_identitys; fr!=NULL; fr=eXosip.j_identitys)
     {
     REMOVE_ELEMENT(eXosip.j_identitys,fr);
-    sfree(fr->i_identity);
-    sfree(fr->i_registrar);
-    sfree(fr->i_realm);
-    sfree(fr->i_userid);
-    sfree(fr->i_pwd);
-    sfree(fr);
+    osip_free(fr->i_identity);
+    osip_free(fr->i_registrar);
+    osip_free(fr->i_realm);
+    osip_free(fr->i_userid);
+    osip_free(fr->i_pwd);
+    osip_free(fr);
     }
 
-  sfree(eXosip.j_identitys);
+  osip_free(eXosip.j_identitys);
   eXosip.j_identitys=NULL;
   return;
 }
@@ -226,7 +226,7 @@ jidentity_load()
 
   file = fopen(filename, "r");
   if (file==NULL) return -1;
-  s = (char *)smalloc(255*sizeof(char));
+  s = (char *)osip_malloc(255*sizeof(char));
   pos = 0;
   while (NULL!=fgets(s, 254, file))
     {
@@ -241,7 +241,7 @@ jidentity_load()
       if (fr!=NULL)
 	{ ADD_ELEMENT(eXosip.j_identitys, fr); }
     }
-  sfree(s);
+  osip_free(s);
   fclose(file);
 
   return 0; /* ok */
@@ -254,7 +254,7 @@ jidentity_get_registrar(int fid)
   for (fr = eXosip.j_identitys; fr!=NULL ; fr=fr->next)
     {
       if (fid==0)
-	return sgetcopy(fr->i_registrar);
+	return osip_strdup(fr->i_registrar);
       fid--;
     }
   return NULL;
@@ -267,7 +267,7 @@ jidentity_get_identity(int fid)
   for (fr = eXosip.j_identitys; fr!=NULL ; fr=fr->next)
     {
       if (fid==0)
-	return sgetcopy(fr->i_identity);
+	return osip_strdup(fr->i_identity);
       fid--;
     }
   return NULL;

@@ -70,10 +70,10 @@ char *eXosip_guess_ip_for_via ()
 		if (0 == ppl_dns_get_local_fqdn(&servername, &serverip, &netmask,
 						best_interface_index))
 		{
-			sstrncpy(def_gateway, serverip, strlen(serverip));
-			sfree(servername);
-			sfree(serverip);
-			sfree(netmask);
+			osip_strncpy(def_gateway, serverip, strlen(serverip));
+			osip_free(servername);
+			osip_free(serverip);
+			osip_free(netmask);
 			return def_gateway;
 		}
 		return NULL;
@@ -107,10 +107,10 @@ char *eXosip_guess_ip_for_via ()
 								 &netmask,
 								 ipfwdt->table[ipf_cnt].dwForwardIfIndex))
 				{
-					sstrncpy(def_gateway, serverip, strlen(serverip));
-					sfree(servername);
-					sfree(serverip);
-					sfree(netmask);
+					osip_strncpy(def_gateway, serverip, strlen(serverip));
+					osip_free(servername);
+					osip_free(serverip);
+					osip_free(netmask);
 					return def_gateway;
 				}
 				return NULL;
@@ -173,8 +173,8 @@ ppl_dns_get_local_fqdn (char **servername, char **serverip,
 							if (ipt->table[pos].dwIndex == WIN32_interface)
 							{
 								*servername = NULL; /* no name on win32? */
-								*serverip   = sgetcopy(inet_ntoa(addr));
-								*netmask    = sgetcopy(inet_ntoa(mask));
+								*serverip   = osip_strdup(inet_ntoa(addr));
+								*netmask    = osip_strdup(inet_ntoa(mask));
 								OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
 									"Interface ethernet: %s/%s\r\n", *serverip, *netmask));
 								break;
@@ -201,7 +201,7 @@ ppl_dns_get_local_fqdn (char **servername, char **serverip,
 
 #if defined WIN32
 #include <winsock.h>
-#else if 
+#else 
 // end andrea
 #include <sys/types.h>
 #include <sys/socket.h>

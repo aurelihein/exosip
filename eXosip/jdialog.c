@@ -61,66 +61,66 @@ int eXosip_dialog_set_200ok(eXosip_osip_dialog_t *jd, osip_message_t *_200Ok)
 }
 
 
-int eXosip_dialog_init_as_uac(eXosip_osip_dialog_t **_jd, osip_message_t *_200Ok)
+int eXosip_osip_dialog_init_as_uac(eXosip_osip_dialog_t **_jd, osip_message_t *_200Ok)
 {
   int i;
   eXosip_osip_dialog_t *jd;
   *_jd = NULL;
-  jd = (eXosip_osip_dialog_t *) smalloc(sizeof(eXosip_osip_dialog_t));
+  jd = (eXosip_osip_dialog_t *) osip_malloc(sizeof(eXosip_osip_dialog_t));
   jd->d_id  = -1; /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
 
-  i = dialog_init_as_uac(&(jd->d_dialog), _200Ok);
+  i = osip_dialog_init_as_uac(&(jd->d_dialog), _200Ok);
   if (i!=0)
     {
-      sfree(jd);
+      osip_free(jd);
       return -1;
     }
 
-  jd->media_lines = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
-  osip_losip_ist_init(jd->media_lines);
+  jd->media_lines = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+  osip_list_init(jd->media_lines);
 
   jd->d_timer = time(NULL);
   jd->d_200Ok = NULL;
   jd->d_ack   = NULL;
   jd->next    = NULL;
   jd->parent  = NULL;
-  jd->d_out_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
-  osip_losip_ist_init(jd->d_out_trs);
-  jd->d_inc_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
-  osip_losip_ist_init(jd->d_inc_trs);
+  jd->d_out_trs = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+  osip_list_init(jd->d_out_trs);
+  jd->d_inc_trs = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+  osip_list_init(jd->d_inc_trs);
 
   *_jd = jd;
   return 0;
 }
 
-int eXosip_dialog_init_as_uas(eXosip_osip_dialog_t **_jd, osip_message_t *_invite, osip_message_t *_200Ok)
+int eXosip_osip_dialog_init_as_uas(eXosip_osip_dialog_t **_jd, osip_message_t *_invite, osip_message_t *_200Ok)
 {
   int i;
   eXosip_osip_dialog_t *jd;
   *_jd = NULL;
-  jd = (eXosip_osip_dialog_t *) smalloc(sizeof(eXosip_osip_dialog_t));
+  jd = (eXosip_osip_dialog_t *) osip_malloc(sizeof(eXosip_osip_dialog_t));
   jd->d_id  = -1; /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
-  i = dialog_init_as_uas(&(jd->d_dialog), _invite, _200Ok);
+  i = osip_dialog_init_as_uas(&(jd->d_dialog), _invite, _200Ok);
   if (i!=0)
     {
-      sfree(jd);
+      osip_free(jd);
       return -1;
     }
 
-  jd->media_lines = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
-  osip_losip_ist_init(jd->media_lines);
+  jd->media_lines = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+  osip_list_init(jd->media_lines);
 
   jd->d_timer = time(NULL);
   jd->d_200Ok = NULL;
   jd->d_ack   = NULL;
   jd->next    = NULL;
   jd->parent  = NULL;
-  jd->d_out_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
-  osip_losip_ist_init(jd->d_out_trs);
-  jd->d_inc_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
-  osip_losip_ist_init(jd->d_inc_trs);
+  jd->d_out_trs = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+  osip_list_init(jd->d_out_trs);
+  jd->d_inc_trs = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+  osip_list_init(jd->d_inc_trs);
 
   *_jd = jd;
   return 0;
@@ -138,7 +138,7 @@ void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd)
     {
       char *tmp = osip_list_get(jd->media_lines, 0);
       osip_list_remove(jd->media_lines, 0);
-      sfree(tmp);
+      osip_free(tmp);
     }
 
   while (!osip_list_eol(jd->d_inc_trs, 0))
@@ -160,5 +160,5 @@ void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd)
 	osip_remove_ict(eXosip.j_osip, tr);
       osip_transaction_free2(tr);
     }
-  sfree(jd);
+  osip_free(jd);
 }

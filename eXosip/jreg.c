@@ -26,14 +26,14 @@
 
 int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
 {
-  *jr = (eXosip_reg_t*) smalloc(sizeof(eXosip_reg_t));
+  *jr = (eXosip_reg_t*) osip_malloc(sizeof(eXosip_reg_t));
   if (*jr==NULL) return -1;
 
   (*jr)->r_id         = -1;
   (*jr)->r_reg_period = 3600;      /* delay between registration */
-  (*jr)->r_aor        = sgetcopy(from);      /* sip identity */
-  (*jr)->r_contact    = sgetcopy(contact);   /* sip identity */
-  (*jr)->r_registrar  = sgetcopy(proxy);     /* registrar */
+  (*jr)->r_aor        = osip_strdup(from);      /* sip identity */
+  (*jr)->r_contact    = osip_strdup(contact);   /* sip identity */
+  (*jr)->r_registrar  = osip_strdup(proxy);     /* registrar */
   (*jr)->r_realms     = NULL;      /* list of realms */
   (*jr)->r_last_tr    = NULL;
 
@@ -45,10 +45,10 @@ int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
 void eXosip_reg_free(eXosip_reg_t *jreg)
 {
 
-  sfree(jreg->r_aor);
-  sfree(jreg->r_contact);
-  sfree(jreg->r_registrar);
-  sfree(jreg->r_realms);
+  osip_free(jreg->r_aor);
+  osip_free(jreg->r_contact);
+  osip_free(jreg->r_registrar);
+  osip_free(jreg->r_realms);
 
   if (jreg->r_last_tr->state==IST_TERMINATED ||
       jreg->r_last_tr->state==ICT_TERMINATED ||
@@ -66,5 +66,5 @@ void eXosip_reg_free(eXosip_reg_t *jreg)
       osip_transaction_free(jreg->r_last_tr);
     }
   
-  sfree(jreg);
+  osip_free(jreg);
 }

@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.4 2003-03-23 23:58:55 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.5 2003-03-24 18:17:47 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -68,7 +68,7 @@ void __josua_on_hold_call();
 void __josua_off_hold_call();
 void __josua_terminate_call();
 void __josua_transfer_call();
-void __josua_setup();
+void __josua_set_up();
 void __josua_quit();
 
 void __josua_register();
@@ -111,7 +111,7 @@ static const menu_t josua_menu[]= {
   { "register","r",	" [R]egister",  MENU_RG,
     " Register your location.",	        &__josua_register  },
   { "set",	"s",	" [S]etup",     MENU_SETUP,
-    " Configure user agents and identities.",    &__josua_setup  },
+    " Configure user agents and identities.",    &__josua_set_up  },
   { "quit",	"q",	"[Q]uit",      MENU_DEFAULT,
     "Quit jack' Open Sip User Agent.",  &__josua_quit    },
   { 0 }
@@ -132,7 +132,7 @@ typedef struct nctab_t {
   short  editable;
 } nctab_t;
 
-#define JOSUA_NONEDITABLE  0 /* feild is ediatable */
+#define JOSUA_NONEDITABLE  0 /* field is ediatable */
 #define JOSUA_EDITABLE     1
 
 #define COLORPAIR_NEWCALL       5  /* color pair for new call */
@@ -666,7 +666,7 @@ char *nctab_findvalue(nctab_t (*nctab)[], int nctab_size, char *field)
    int      colorpair   ncurses color pair.
 */   
 int
-nctab_getvalues(nctab_t (*nctab)[],
+nctab_get_values(nctab_t (*nctab)[],
 		int    nctab_size,
 		int    colorpair)
 {
@@ -741,19 +741,19 @@ void print_calls()
 	    {
 	      if (jd->d_dialog->state==DIALOG_EARLY)
 		{
-		  osip_to_2char(jd->d_dialog->remote_uri, &tmp);
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
 		  sprintf(buf,"C%i D%i: Pending Call To: %-80.80s\n",
 			  jc->c_id, jd->d_id,
 			  tmp);
-		  sfree(tmp);
+		  osip_free(tmp);
 		}
 	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
 		{
-		  osip_to_2char(jd->d_dialog->remote_uri, &tmp);
+		  osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
 		  sprintf(buf,"C%i D%i: Established Call To: %-80.80s\n",
 			  jc->c_id, jd->d_id,
 			  tmp);
-		  sfree(tmp);
+		  osip_free(tmp);
 		}
 	    }
 	  else 
@@ -776,14 +776,14 @@ void print_calls()
 		  eXosip_unlock();
 		  return;
 		}
-	      osip_from_2char(tr->orig_request->from, &tmp);
+	      osip_from_to_str(tr->orig_request->from, &tmp);
 	    }
 	  if (tr->orig_request==NULL) /* info not yet available */
 	    {}
-	  else osip_to_2char(tr->orig_request->to, &tmp);
+	  else osip_to_to_str(tr->orig_request->to, &tmp);
 
 	  sprintf(buf,"C%i D-1: with: %-80.80s\n", jc->c_id, tmp);
-	  sfree(tmp);
+	  osip_free(tmp);
 	  mvaddnstr(yline,0,buf,x-1);
 	  yline++;
 	}
@@ -802,7 +802,7 @@ void print_calls()
 }
 
 
-void print_freind(int i, jfreind_t *fr, int so)
+void print_friend(int i, jfriend_t *fr, int so)
 {
   int y,x;
   char buf[120];
@@ -907,7 +907,7 @@ void print_menu(int menu)
       nctab_print(&nctab_josuasetup,
 		  TABSIZE_JOSUASETUP, 
 		  COLORPAIR_JOSUASETUP);
-      // print_setup_menu();
+      // print_set_up_menu();
     }
   else if (menu==MENU_MG)
     {
@@ -944,11 +944,11 @@ void print_menu(int menu)
 }
 
 
-int __josua_choose_freind_in_list() {
+int __josua_choose_friend_in_list() {
 #define C(x) ((x)-'a'+1)
   int c, i;
   int cursor=0;
-  jfreind_t *fr;
+  jfriend_t *fr;
   int max;
 
   curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
@@ -956,12 +956,12 @@ int __josua_choose_freind_in_list() {
   clear();
 
   i=0;
-  if (eXosip.j_freinds!=NULL)
+  if (eXosip.j_friends!=NULL)
     {
       i=1;
-      print_freind(0, eXosip.j_freinds, 1);
-      for (fr = eXosip.j_freinds->next; fr!=NULL; fr=fr->next, i++)
-	print_freind(i, eXosip.j_freinds, 0);
+      print_friend(0, eXosip.j_friends, 1);
+      for (fr = eXosip.j_friends->next; fr!=NULL; fr=fr->next, i++)
+	print_friend(i, eXosip.j_friends, 0);
     }
 
   cursor = 0;
@@ -984,25 +984,25 @@ int __josua_choose_freind_in_list() {
     }
     
     if (c==C('n') || c==KEY_DOWN || c==' ' || c=='j') {
-      print_freind(cursor, eXosip.j_freinds, 0);
+      print_friend(cursor, eXosip.j_friends, 0);
       cursor++; cursor %= max;
-      print_freind(cursor, eXosip.j_freinds, 1);
+      print_friend(cursor, eXosip.j_friends, 1);
     } else if (c==C('p') || c==KEY_UP || c==C('h') ||
                c==KEY_BACKSPACE || c==KEY_DC || c=='k') {
-      print_freind(cursor, eXosip.j_freinds, 0);
+      print_friend(cursor, eXosip.j_friends, 0);
       cursor+= max-1; cursor %= max;
-      print_freind(cursor, eXosip.j_freinds, 1);
+      print_friend(cursor, eXosip.j_friends, 1);
 
     } else if (c=='\n' || c=='\r' || c==KEY_ENTER) {
       clear(); refresh();
-      print_freind(cursor, eXosip.j_freinds, 1);
+      print_friend(cursor, eXosip.j_friends, 1);
       return cursor;
     } else if (isdigit(c)) {
       char buf[2]; buf[0]=c; buf[1]=0; c=atoi(buf);
       if (c < max) {
-	print_freind(cursor, eXosip.j_freinds, 0);
+	print_friend(cursor, eXosip.j_friends, 0);
 	cursor=c;
-	print_freind(cursor, eXosip.j_freinds, 1);
+	print_friend(cursor, eXosip.j_friends, 1);
       } else {
         beep();
       }
@@ -1149,7 +1149,7 @@ void __josua_menu() {
 typedef struct _main_config_t {
   char  config_file[256];    /* -f <config file>   */
   char  identity_file[256];  /* -I <identity file> */
-  char  osip_contact_file[256];   /* -C <contact file>  */
+  char  contact_file[256];   /* -C <contact file>  */
   char  log_file[256];       /* -L <log file>      */
   int   debug_level;         /* -d <verbose level>   */
   int   port;                /* -p <SIP port>  default is 5060 */
@@ -1230,7 +1230,7 @@ int main(int argc, const char *const *argv) {
             snprintf(cfg.identity_file, 255, optarg);
             break;
           case 'C':
-            snprintf(cfg.osip_contact_file, 255, optarg);
+            snprintf(cfg.contact_file, 255, optarg);
             break;
           case 'L':
             snprintf(cfg.log_file, 255, optarg);
@@ -1317,8 +1317,8 @@ int main(int argc, const char *const *argv) {
       TRACE_INITIALIZE (cfg.debug_level, log_file);
     }
 
-  sfree ((void *) (opt->argv));
-  sfree ((void *) opt);
+  osip_free ((void *) (opt->argv));
+  osip_free ((void *) opt);
 
   if (cfg.identity[0]=='\0')
     {
@@ -1335,7 +1335,7 @@ int main(int argc, const char *const *argv) {
       exit(0);
     }
 
-  jfreind_load();
+  jfriend_load();
   jidentity_load();
 
   if (cfg.to[0]!='\0')
@@ -1375,12 +1375,12 @@ void __josua_message() {
 
   int jid;
   char *tmp;
-  jid = __josua_choose_freind_in_list();
+  jid = __josua_choose_friend_in_list();
   if (jid==-1) tmp = NULL;
   else
     {
       eXosip_lock();
-      tmp = jfreind_get_home(jid);
+      tmp = jfriend_get_home(jid);
       eXosip_unlock();
     }
 
@@ -1402,7 +1402,7 @@ void __josua_message() {
       snprintf(nctab_newmessage[2].value, 99, "%s", tmp);
     }
 
-  c = nctab_getvalues(&nctab_newmessage,
+  c = nctab_get_values(&nctab_newmessage,
 		      TABSIZE_NEWMESSAGE,
 		      COLORPAIR_NEWMESSAGE);
 
@@ -1434,12 +1434,12 @@ void __josua_start_call() {
 
   int jid;
   char *tmp;
-  jid = __josua_choose_freind_in_list();
+  jid = __josua_choose_friend_in_list();
   if (jid==-1) tmp = NULL;
   else
     {
       eXosip_lock();
-      tmp = jfreind_get_home(jid);
+      tmp = jfriend_get_home(jid);
       eXosip_unlock();
     }
   
@@ -1456,7 +1456,7 @@ void __josua_start_call() {
       snprintf(nctab_newcall[2].value, 99, "%s", tmp);
     }
 
-  c = nctab_getvalues(&nctab_newcall,
+  c = nctab_get_values(&nctab_newcall,
 		      TABSIZE_NEWCALL,
 		      COLORPAIR_NEWCALL);
 
@@ -1491,16 +1491,16 @@ void __josua_answer_call() {
   int c;
   int cid;
 
-  c = nctab_getvalues(&nctab_answercall,
+  c = nctab_get_values(&nctab_answercall,
 		      TABSIZE_ANSWERCALL,
 		      COLORPAIR_ANSWERCALL);
 
   if (c!='y') return;
 
-  c = satoi(nctab_findvalue(&nctab_answercall,
+  c = osip_atoi(nctab_findvalue(&nctab_answercall,
 			    TABSIZE_ANSWERCALL,
 			    "code"));
-  cid = satoi(nctab_findvalue(&nctab_answercall,
+  cid = osip_atoi(nctab_findvalue(&nctab_answercall,
 			      TABSIZE_ANSWERCALL,
 			      "id"));
   if (cid==-1) return;
@@ -1515,13 +1515,13 @@ void __josua_answer_call() {
 void __josua_on_hold_call() {
   int c;
 
-  c = nctab_getvalues(&nctab_onholdcall,
+  c = nctab_get_values(&nctab_onholdcall,
 		      TABSIZE_ONHOLDCALL,
 		      COLORPAIR_ONHOLDCALL);
 
   if (c!='y') return;
 
-  c = satoi(nctab_findvalue(&nctab_onholdcall,
+  c = osip_atoi(nctab_findvalue(&nctab_onholdcall,
 			    TABSIZE_ONHOLDCALL,
 			    "id"));
   if (c==-1) return;
@@ -1534,13 +1534,13 @@ void __josua_on_hold_call() {
 void __josua_off_hold_call() {
   int c;
 
-  c = nctab_getvalues(&nctab_offholdcall,
+  c = nctab_get_values(&nctab_offholdcall,
 		      TABSIZE_OFFHOLDCALL,
 		      COLORPAIR_OFFHOLDCALL);
 
   if (c!='y') return;
 
-  c = satoi(nctab_findvalue(&nctab_offholdcall,
+  c = osip_atoi(nctab_findvalue(&nctab_offholdcall,
 			    TABSIZE_OFFHOLDCALL,
 			    "id"));
   if (c==-1) return;
@@ -1554,13 +1554,13 @@ void __josua_terminate_call() {
 
   int c;
 
-  c = nctab_getvalues(&nctab_terminatecall,
+  c = nctab_get_values(&nctab_terminatecall,
 		  TABSIZE_TERMINATECALL,
 		  COLORPAIR_TERMINATECALL);
 
   if (c!='y') return;
 
-  c = satoi(nctab_findvalue(&nctab_terminatecall,
+  c = osip_atoi(nctab_findvalue(&nctab_terminatecall,
 			    TABSIZE_TERMINATECALL,
 			    "id"));
   if (c==-1) return;
@@ -1575,13 +1575,13 @@ void __josua_transfer_call() {
   int cid;
   int c;
 
-  c = nctab_getvalues(&nctab_transfercall,
+  c = nctab_get_values(&nctab_transfercall,
 		      TABSIZE_TRANSFERCALL, 
 		      COLORPAIR_TRANSFERCALL);
   
   if (c!='y') return;
 
-  cid = satoi(nctab_findvalue(&nctab_transfercall,
+  cid = osip_atoi(nctab_findvalue(&nctab_transfercall,
 			      TABSIZE_TRANSFERCALL,
 			      "id"));
 
@@ -1622,14 +1622,14 @@ void __josua_register() {
   eXosip_unlock();
 }
 
-void __josua_setup() {
+void __josua_set_up() {
 
   osip_to_t *_to;
   osip_uri_t *_url;
   int c;
   int i;
 
-  c = nctab_getvalues(&nctab_josuasetup,
+  c = nctab_get_values(&nctab_josuasetup,
 		      TABSIZE_JOSUASETUP, 
 		      COLORPAIR_JOSUASETUP);
   

@@ -46,17 +46,17 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   /* initialise osip_message_t structure */
   /* yet done... */
 
-  response->strtline->sipversion = (char *)smalloc(8*sizeof(char));
+  response->strtline->sipversion = (char *)osip_malloc(8*sizeof(char));
   sprintf(response->strtline->sipversion,"SIP/2.0");
-  response->strtline->statuscode = (char *)smalloc(5*sizeof(char));
+  response->strtline->statuscode = (char *)osip_malloc(5*sizeof(char));
   sprintf(response->strtline->statuscode,"%i",status);
-  response->strtline->reasonphrase = msg_getreason(status);
+  response->strtline->reasonphrase = osip_parser_get_reason(status);
   if (response->strtline->reasonphrase==NULL)
     {
       if (0==strcmp(response->strtline->statuscode, "101"))
-	response->strtline->reasonphrase = sgetcopy("Dialog Establishement");
+	response->strtline->reasonphrase = osip_strdup("Dialog Establishement");
       else
-	response->strtline->reasonphrase = sgetcopy("Unknown code");
+	response->strtline->reasonphrase = osip_strdup("Unknown code");
     }
   response->strtline->rquri     = NULL;
   response->strtline->sipmethod = NULL;
@@ -70,7 +70,7 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
     {  /* we only add a tag if it does not already contains one! */
       if ((dialog!=NULL) && (dialog->local_tag!=NULL))
 	/* it should contain the local TAG we created */
-	{ osip_to_set_tag(response->to, sgetcopy(dialog->local_tag)); }
+	{ osip_to_set_tag(response->to, osip_strdup(dialog->local_tag)); }
       else
 	{
 	  if (status!=100)
@@ -117,22 +117,22 @@ complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t
   */
   while (!osip_list_eol(request->record_routes, pos))
     {
-      osip_record_osip_route_t *rr;
-      osip_record_osip_route_t *rr2;
+      osip_record_route_t *rr;
+      osip_record_route_t *rr2;
       rr = osip_list_get(request->record_routes, pos);
-      i = osip_record_osip_route_clone(rr, &rr2);
+      i = osip_record_route_clone(rr, &rr2);
       if (i!=0) return -1;
       osip_list_add(response->record_routes, rr2, -1);
       pos++;
     }
-  msg_setcontact(response, contact);
+  osip_parser_set_contact(response, contact);
   return 0;
 }
 
 char *
 generating_sdp_answer(osip_message_t *request)
 {
-  sdp_negociation_ctx_t *context;
+  sdp_negotiation_ctx_t *context;
   sdp_message_t *remote_sdp;
   sdp_message_t *local_sdp = NULL;
   int i;
@@ -143,7 +143,7 @@ generating_sdp_answer(osip_message_t *request)
       osip_body_t *body;
       body = (osip_body_t *)osip_list_get(request->bodies,0);
       
-      /* remote_sdp = (sdp_message_t *) smalloc(sizeof(sdp_message_t)); */
+      /* remote_sdp = (sdp_message_t *) osip_malloc(sizeof(sdp_message_t)); */
       i = sdp_message_init(&remote_sdp);
       if (i!=0) return NULL;
       
@@ -153,21 +153,21 @@ generating_sdp_answer(osip_message_t *request)
       i = sdp_message_parse(remote_sdp,body->body);
       if (i!=0) return NULL;      
 
-      i = sdp_negociation_ctx_init(&context);
+      i = sdp_negotiation_ctx_init(&context);
       if (i!=0)
 	{
 	  sdp_message_free(remote_sdp);
 	  return NULL;
 	}
-      i = sdp_negociation_ctx_set_remote_sdp(context, remote_sdp);
+      i = sdp_negotiation_ctx_set_remote_sdp(context, remote_sdp);
 
-      i = sdp_negociation_ctx_execute_negociation(context);
+      i = sdp_negotiation_ctx_execute_negotiation(context);
       if (i==200)
 	{
-	  local_sdp = sdp_negociation_ctx_get_local_sdp(context);
-	  i = sdp_message_2char(local_sdp, &local_body);
+	  local_sdp = sdp_negotiation_ctx_get_local_sdp(context);
+	  i = sdp_message_to_str(local_sdp, &local_body);
 
-	  sdp_negociation_ctx_free(context);
+	  sdp_negotiation_ctx_free(context);
 	  if (i!=0) {
 	    OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not parse local SDP answer %i\n",i));
 	    return NULL;
@@ -182,7 +182,7 @@ generating_sdp_answer(osip_message_t *request)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: while building answer to SDP (%i)\n",i));
 	}
-      sdp_negociation_ctx_free(context);
+      sdp_negotiation_ctx_free(context);
     } 
   return NULL;
 }
@@ -200,7 +200,7 @@ generating_1xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
       return;
     }
 
-  msg_setcontent_length(response, "0");
+  osip_parser_set_content_length(response, "0");
 
   return ;
 }
@@ -223,43 +223,43 @@ generating_2xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for options\n"));
       code = 500; /* ? which code to use? */
-      sfree(body); /* not used */
+      osip_free(body); /* not used */
       return;
     }
 
   if (code==488)
     {
-      msg_setcontent_length(response, "0");
+      osip_parser_set_content_length(response, "0");
       /*  send message to transaction layer */
-      sfree(body);      
+      osip_free(body);      
       return;
     }
 
-  i = msg_setbody(response, body);
+  i = osip_parser_set_body(response, body);
   if (i!=0) {
     goto g2atii_error_1;
   }
-  size = (char *) smalloc(6*sizeof(char));
+  size = (char *) osip_malloc(6*sizeof(char));
   sprintf(size,"%i",strlen(body));
-  i = msg_setcontent_length(response, size);
-  sfree(size);
+  i = osip_parser_set_content_length(response, size);
+  osip_free(size);
   if (i!=0) goto g2atii_error_1;
-  i = msg_setheader(response, "content-type", "application/sdp");
+  i = osip_parser_set_header(response, "content-type", "application/sdp");
   if (i!=0) goto g2atii_error_1;
 
   /* response should contains the allow and supported headers */
-  msg_setallow(response, "INVITE");
-  msg_setallow(response, "ACK");
-  msg_setallow(response, "OPTIONS");
-  msg_setallow(response, "CANCEL");
-  msg_setallow(response, "BYE");
+  osip_parser_set_allow(response, "INVITE");
+  osip_parser_set_allow(response, "ACK");
+  osip_parser_set_allow(response, "OPTIONS");
+  osip_parser_set_allow(response, "CANCEL");
+  osip_parser_set_allow(response, "BYE");
 
 
-  sfree(body);
+  osip_free(body);
   return ;
 
  g2atii_error_1:
-  sfree(body);
+  osip_free(body);
   msg_free(response);
   return ;
 }
@@ -282,7 +282,7 @@ generating_3456xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction
       /* ... */
     }
 
-  msg_setcontent_length(response, "0");
+  osip_parser_set_content_length(response, "0");
   /*  send message to transaction layer */
 
   return ;
@@ -313,7 +313,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
       return;
     }
 
-  msg_setcontent_length(response, "0");
+  osip_parser_set_content_length(response, "0");
   /*  send message to transaction layer */
 
   if (code>100)
@@ -321,16 +321,16 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
       /* request that estabish a dialog: */
       /* 12.1.1 UAS Behavior */
       char *contact;
-      contact = (char *) smalloc(50);
+      contact = (char *) osip_malloc(50);
       sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
 	      localip,
 	      localport);
       i = complete_answer_that_establish_a_dialog(response, tr->orig_request, contact);
-      sfree(contact);
+      osip_free(contact);
 
       if (jd==NULL)
 	{
-	  i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
+	  i = eXosip_osip_dialog_init_as_uas(&jd, tr->orig_request, response);
 	  if (i!=0)
 	    {
 	      fprintf(stderr, "eXosip: cannot create dialog!\n");
@@ -384,61 +384,61 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"ERROR: Could not create response for invite\n"));
       code = 500; /* ? which code to use? */
-      sfree(body); /* not used */
+      osip_free(body); /* not used */
       return;
     }
 
   if (code==488)
     {
-      msg_setcontent_length(response, "0");
+      osip_parser_set_content_length(response, "0");
       /*  TODO: send message to transaction layer */
-      sfree(body);      
+      osip_free(body);      
       evt_answer = osip_new_outgoing_sipmessage(response);
       evt_answer->transactionid = tr->transactionid;
       osip_transaction_add_event(tr, evt_answer);
       return;
     }
 
-  i = msg_setbody(response, body);
+  i = osip_parser_set_body(response, body);
   if (i!=0) {
     goto g2atii_error_1;
   }
-  size = (char *) smalloc(6*sizeof(char));
+  size = (char *) osip_malloc(6*sizeof(char));
   sprintf(size,"%i",strlen(body));
-  i = msg_setcontent_length(response, size);
-  sfree(size);
+  i = osip_parser_set_content_length(response, size);
+  osip_free(size);
   if (i!=0) goto g2atii_error_1;
-  i = msg_setheader(response, "content-type", "application/sdp");
+  i = osip_parser_set_header(response, "content-type", "application/sdp");
   if (i!=0) goto g2atii_error_1;
 
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
   {
     char *contact;
-    contact = (char *) smalloc(50);
+    contact = (char *) osip_malloc(50);
     sprintf(contact, "<sip:%s@%s:%s>", tr->orig_request->to->url->username,
 	    localip,
 	    localport);
     i = complete_answer_that_establish_a_dialog(response, tr->orig_request,
 						contact);
-    sfree(contact);
+    osip_free(contact);
     if (i!=0) goto g2atii_error_1;; /* ?? */
   }
   /* response should contains the allow and supported headers */
-  msg_setallow(response, "INVITE");
-  msg_setallow(response, "ACK");
-  msg_setallow(response, "OPTIONS");
-  msg_setallow(response, "CANCEL");
-  msg_setallow(response, "BYE");
+  osip_parser_set_allow(response, "INVITE");
+  osip_parser_set_allow(response, "ACK");
+  osip_parser_set_allow(response, "OPTIONS");
+  osip_parser_set_allow(response, "CANCEL");
+  osip_parser_set_allow(response, "BYE");
 
-  sfree(body);
+  osip_free(body);
   /* THIS RESPONSE MUST BE SENT RELIABILY until the final ACK is received !! */
   /* this response must be stored at the upper layer!!! (it will be destroyed*/
   /* right after being sent! */
 
   if (jd==NULL)
     {
-      i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
+      i = eXosip_osip_dialog_init_as_uas(&jd, tr->orig_request, response);
       if (i!=0)
 	{
 	  fprintf(stderr, "eXosip: cannot create dialog!\n");
@@ -457,7 +457,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
   return ;
 
  g2atii_error_1:
-  sfree(body);
+  osip_free(body);
   msg_free(response);
   return ;
 }
@@ -488,7 +488,7 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int cod
       /* ... */
     }
 
-  msg_setcontent_length(response, "0");
+  osip_parser_set_content_length(response, "0");
   /*  send message to transaction layer */
 
   evt_answer = osip_new_outgoing_sipmessage(response);

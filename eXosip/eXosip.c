@@ -46,17 +46,17 @@ char   *localport;
 int
 eXosip_lock()
 {
-  return osip_mutex_get((struct osip_mutex_t*)eXosip.j_mutexlock);
+  return osip_mutex_lock((struct osip_mutex_t*)eXosip.j_mutexlock);
 }
 
 int
 eXosip_unlock()
 {
-  return osip_mutex_tryget((struct osip_mutex_t*)eXosip.j_mutexlock);
+  return osip_mutex_unlock((struct osip_mutex_t*)eXosip.j_mutexlock);
 }
 
 void
-eXosip_kill_transaction (osip_osip_losip_ist_t * transactions)
+eXosip_kill_transaction (osip_list_t * transactions)
 {
   osip_transaction_t *transaction;
 
@@ -73,7 +73,7 @@ eXosip_kill_transaction (osip_osip_losip_ist_t * transactions)
     {
       transaction = osip_list_get (transactions, 0);
       osip_transaction_free (transaction);
-      sfree (transaction);
+      osip_free (transaction);
     }
 }
 
@@ -87,7 +87,7 @@ void eXosip_quit()
   i = osip_thread_join((struct osip_thread_t*)eXosip.j_thread);
   if (i!=0)
     fprintf(stderr, "eXosip: can't terminate thread!");
-  sfree((struct osip_thread_t*)eXosip.j_thread);
+  osip_free((struct osip_thread_t*)eXosip.j_thread);
 
   eXosip.j_input = 0;
   eXosip.j_output = 0;
@@ -100,12 +100,12 @@ void eXosip_quit()
   
   osip_mutex_destroy((struct osip_mutex_t*)eXosip.j_mutexlock);
 
-  sdp_negociation_free();  
+  sdp_negotiation_free();  
 
   if (eXosip.j_input)
     fclose(eXosip.j_input);
   if (eXosip.j_output)
-    sfree(eXosip.j_output);
+    osip_free(eXosip.j_output);
   if (eXosip.j_socket)
     close(eXosip.j_socket);
 
@@ -116,19 +116,19 @@ void eXosip_quit()
     }
 
   /* should be moved to method with an argument */
-  jfreind_unload();
+  jfriend_unload();
   jidentity_unload();
 
   /*    
   for (jid = eXosip.j_identitys; jid!=NULL; jid = eXosip.j_identitys)
     {
       REMOVE_ELEMENT(eXosip.j_identitys, jid);
-      eXosip_freind_free(jid);
+      eXosip_friend_free(jid);
     }
 
-  for (jfr = eXosip.j_freinds; jfr!=NULL; jfr = eXosip.j_freinds)
+  for (jfr = eXosip.j_friends; jfr!=NULL; jfr = eXosip.j_friends)
     {
-      REMOVE_ELEMENT(eXosip.j_freinds, jfr);
+      REMOVE_ELEMENT(eXosip.j_friends, jfr);
       eXosip_reg_free(jfr);
     }
   */
@@ -152,10 +152,10 @@ void eXosip_quit()
     }
 
   eXosip_kill_transaction (eXosip.j_osip->osip_ict_transactions);
-  eXosip_kill_transaction (eXosip.j_osip->nosip_ict_transactions);
+  eXosip_kill_transaction (eXosip.j_osip->osip_nict_transactions);
   eXosip_kill_transaction (eXosip.j_osip->osip_ist_transactions);
-  eXosip_kill_transaction (eXosip.j_osip->nosip_ist_transactions);
-  osip_free (eXosip.j_osip);
+  eXosip_kill_transaction (eXosip.j_osip->osip_nist_transactions);
+  osip_release (eXosip.j_osip);
 
   return ;
 }
@@ -182,7 +182,7 @@ int eXosip_execute ( void )
   osip_nist_execute(eXosip.j_osip);
   
   // free all Calls that are in the TERMINATED STATE? */
-  eXosip_free_terminated_calls();
+  eXosip_release_terminated_calls();
 
   eXosip_unlock();
 
@@ -217,7 +217,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
 #ifdef ENABLE_DEBUG
       fprintf(stderr, "eXosip: No ethernet interface found!\n");
       fprintf(stderr, "eXosip: using 127.0.0.1 (debug mode)!\n");
-      localip = sgetcopy("127.0.0.1");
+      localip = osip_strdup("127.0.0.1");
 #else
       fprintf(stderr, "eXosip: No ethernet interface found!\n");
       return -1;
@@ -229,8 +229,8 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_calls = NULL;
   eXosip.j_stop_ua = 0;
   eXosip.j_thread = NULL;
-  eXosip.j_transactions = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
-  osip_losip_ist_init(eXosip.j_transactions);
+  eXosip.j_transactions = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
+  osip_list_init(eXosip.j_transactions);
   eXosip.j_reg = NULL;
 
   eXosip.j_mutexlock = (struct osip_mutex_t*)osip_mutex_init();
@@ -241,7 +241,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
       return -1;
     }
 
-  eXosip_sdp_negociation_init();
+  eXosip_sdp_negotiation_init();
 
   osip_set_application_context(osip, &eXosip);
   
@@ -269,7 +269,7 @@ int eXosip_init(FILE *input, FILE *output, int port)
     }
   }
 
-  localport = (char*)smalloc(10);
+  localport = (char*)osip_malloc(10);
   sprintf(localport, "%i", port);
 
   eXosip.j_thread = (void*) osip_thread_create(20000,eXosip_thread, NULL);
@@ -359,29 +359,29 @@ void eXosip_start_call    (osip_message_t *invite)
   
   sdp_build_offer(NULL, &sdp, "10500", NULL);
 
-  i = sdp_message_2char(sdp, &body);
+  i = sdp_message_to_str(sdp, &body);
   if (body!=NULL)
     {
-      size= (char *)smalloc(7*sizeof(char));
+      size= (char *)osip_malloc(7*sizeof(char));
       sprintf(size,"%i",strlen(body));
-      msg_setcontent_length(invite, size);
-      sfree(size);
+      osip_parser_set_content_length(invite, size);
+      osip_free(size);
       
-      msg_setbody(invite, body);
-      sfree(body);
-      msg_setcontent_type(invite, "application/sdp");
+      osip_parser_set_body(invite, body);
+      osip_free(body);
+      osip_parser_set_content_type(invite, "application/sdp");
     }
   else
-    msg_setcontent_length(invite, "0");
+    osip_parser_set_content_length(invite, "0");
 
-  jc = (eXosip_call_t *) smalloc(sizeof(eXosip_call_t));
-  i = msg_getsubject(invite, 0, &subject);
+  jc = (eXosip_call_t *) osip_malloc(sizeof(eXosip_call_t));
+  i = osip_parser_get_subject(invite, 0, &subject);
   snprintf(jc->c_subject, 99, "%s", subject->hvalue);
   jc->c_dialogs = NULL;
   
-  sdp_negociation_ctx_init(&(jc->c_ctx));
-  sdp_negociation_ctx_set_mycontext(jc->c_ctx, jc);
-  sdp_negociation_ctx_set_local_sdp(jc->c_ctx, sdp);  
+  sdp_negotiation_ctx_init(&(jc->c_ctx));
+  sdp_negotiation_ctx_set_mycontext(jc->c_ctx, jc);
+  sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
 
   jc->c_inc_tr = NULL;
   jc->c_out_tr = NULL;
@@ -476,7 +476,7 @@ void eXosip_on_hold_call  (int jid)
   sdp = eXosip_get_local_sdp_info(transaction);
   if (sdp==NULL)
     return;
-  i = sdp_put_on_hold(sdp);
+  i = sdp_message_put_on_hold(sdp);
   if (i!=0)
     {
       sdp_message_free(sdp);
@@ -489,25 +489,25 @@ void eXosip_on_hold_call  (int jid)
     return;
   }
 
-  i = sdp_message_2char(sdp, &body);
+  i = sdp_message_to_str(sdp, &body);
   if (body!=NULL)
     {
-      size= (char *)smalloc(7*sizeof(char));
+      size= (char *)osip_malloc(7*sizeof(char));
       sprintf(size,"%i",strlen(body));
-      msg_setcontent_length(invite, size);
-      sfree(size);
+      osip_parser_set_content_length(invite, size);
+      osip_free(size);
       
-      msg_setbody(invite, body);
-      sfree(body);
-      msg_setcontent_type(invite, "application/sdp");
+      osip_parser_set_body(invite, body);
+      osip_free(body);
+      osip_parser_set_content_type(invite, "application/sdp");
     }
   else
-    msg_setcontent_length(invite, "0");
+    osip_parser_set_content_length(invite, "0");
 
   if (jc->c_subject!=NULL)
-    msg_setsubject(invite, jc->c_subject);
+    osip_parser_set_subject(invite, jc->c_subject);
   else
-    msg_setsubject(invite, jc->c_subject);
+    osip_parser_set_subject(invite, jc->c_subject);
 
   i = osip_transaction_init(&transaction,
 		       ICT,
@@ -522,9 +522,9 @@ void eXosip_on_hold_call  (int jid)
   
   
   {
-    sdp_message_t *old_sdp = sdp_negociation_ctx_get_local_sdp(jc->c_ctx);
+    sdp_message_t *old_sdp = sdp_negotiation_ctx_get_local_sdp(jc->c_ctx);
     sdp_message_free(old_sdp);
-    sdp_negociation_ctx_set_local_sdp(jc->c_ctx, sdp);  
+    sdp_negotiation_ctx_set_local_sdp(jc->c_ctx, sdp);  
   }
 
   osip_list_add(jd->d_out_trs, transaction, 0);
@@ -706,24 +706,24 @@ void eXosip_register      (int rid)
 
 	  /* modify the REGISTER request */
 	  {
-	    int osip_cseq_num = satoi(reg->cseq->number);
+	    int osip_cseq_num = osip_atoi(reg->cseq->number);
 	    int length   = strlen(reg->cseq->number);
-	    char *tmp    = (char *)smalloc(90*sizeof(char));
+	    char *tmp    = (char *)osip_malloc(90*sizeof(char));
 	    osip_via_t *via   = (osip_via_t *) osip_list_get (reg->vias, 0);
 	    osip_list_remove(reg->vias, 0);
 	    osip_via_free(via);
 	    sprintf(tmp, "SIP/2.0/UDP %s:%s;branch=z9hG4bK%u",
 		    localip,
 		    localport,
-		    osip_via_branch_new_random());
+		    via_branch_new_random());
 	    osip_via_init(&via);
 	    osip_via_parse(via, tmp);
 	    osip_list_add(reg->vias, via, 0);
-	    sfree(tmp);
+	    osip_free(tmp);
 
 	    osip_cseq_num++;
-	    sfree(reg->cseq->number);
-	    reg->cseq->number = (char*)smalloc(length+2); /* +2 like for 9 to 10 */
+	    osip_free(reg->cseq->number);
+	    reg->cseq->number = (char*)osip_malloc(length+2); /* +2 like for 9 to 10 */
 	    sprintf(reg->cseq->number, "%i", osip_cseq_num);
 	    
 	  }

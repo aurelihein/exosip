@@ -27,7 +27,7 @@
 
 #if defined WIN32
 #include <winsock.h>
-#else if 
+#else 
 // end andrea
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -52,7 +52,7 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
     {
       host = sip->strtline->rquri->host;
       if (sip->strtline->rquri->port!=NULL)
-	port = satoi(sip->strtline->rquri->port);
+	port = osip_atoi(sip->strtline->rquri->port);
       else
 	port = 5060;
     }
@@ -71,7 +71,7 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
   addr.sin_family      = AF_INET;
 
 
-  i = msg_2char(sip, &message);
+  i = msg_to_str(sip, &message);
 
   if (i!=0) {
     return -1;
@@ -95,13 +95,13 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 	       ALSO, UAS may not have any other options than retry always
 	       on the same port.
 	    */
-	    sfree(message);
+	    osip_free(message);
 	    return 1;
 	  }
 	else
 	  {
 	    /* SIP_NETWORK_ERROR; */
-	    sfree(message);
+	    osip_free(message);
 	    return -1;
 	  }
     }
@@ -111,7 +111,7 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO4,NULL,"number of message sent: %i\n", num));
     }
 
-  sfree(message);
+  osip_free(message);
   return 0;
   
 }
@@ -268,7 +268,7 @@ void cb_sndunkrequest(int type, osip_transaction_t *tr,osip_message_t *sip)
 
 jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_osip_dialog_t *jd)
 {
-  jinfo_t *ji = (jinfo_t *) smalloc(sizeof(jinfo_t));
+  jinfo_t *ji = (jinfo_t *) osip_malloc(sizeof(jinfo_t));
   if (ji==NULL) return NULL;
   ji->jd = jd;
   ji->jc = jc;
@@ -292,7 +292,7 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 			 INVITE (else it would be attached to a "jd" element. */
 	{
 	  /* allocate a jd */
-	  i = eXosip_dialog_init_as_uac(&jd, sip);
+	  i = eXosip_osip_dialog_init_as_uac(&jd, sip);
 	  if (i!=0)
 	    {
 	      fprintf(stderr, "eXosip: cannot establish a dialog\n");
@@ -305,7 +305,7 @@ void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 	}
       else
 	{
-	  osip_dialog_update_osip_route_set_as_uac(jd->d_dialog, sip);
+	  osip_dialog_update_route_set_as_uac(jd->d_dialog, sip);
 	}
       if ( jd!=NULL)
 	jd->d_STATE = JD_TRYING;
@@ -460,7 +460,7 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 		     INVITE (else it would be attached to a "jd" element. */
     {
       /* allocate a jd */
-      i = eXosip_dialog_init_as_uac(&jd, sip);
+      i = eXosip_osip_dialog_init_as_uac(&jd, sip);
       if (i!=0)
 	{
 	  fprintf(stderr, "eXosip: cannot establish a dialog\n");
@@ -472,7 +472,7 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
     }
   else
     {
-      osip_dialog_update_osip_route_set_as_uac(jd->d_dialog, sip);
+      osip_dialog_update_route_set_as_uac(jd->d_dialog, sip);
       osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
     }
 
@@ -492,19 +492,19 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
       return ;
     }
 
-    msg_getroute(ack, 0, &route);
+    osip_parser_get_route(ack, 0, &route);
     if (route!=NULL)
       {
 	port = 5060;
 	if (route->url->port!=NULL)
-	  port = satoi(route->url->port);
+	  port = osip_atoi(route->url->port);
 	host = route->url->host;
       }
     else
       {
 	port = 5060;
 	if (ack->strtline->rquri->port!=NULL)
-	  port = satoi(ack->strtline->rquri->port);
+	  port = osip_atoi(ack->strtline->rquri->port);
 	host = ack->strtline->rquri->host;
       }
 
@@ -783,7 +783,7 @@ eXosip_set_callbacks(osip_t *osip)
 {
   // register all callbacks
 
-  osip_setcb_send_message(osip, &cb_udp_snd_message);
+  osip_set_cb_send_message(osip, &cb_udp_snd_message);
   
   osip_set_kill_transaction_callback(osip ,OSIP_ICT_KILL_TRANSACTION,
 				 &cb_ict_kill_transaction);
@@ -837,7 +837,7 @@ eXosip_set_callbacks(osip_t *osip)
   osip_set_msg_callback(osip ,OSIP_NICT_OPTIONS_SENT,   &cb_sndoptions);
   osip_set_msg_callback(osip ,OSIP_NICT_SUBSCRIBE_SENT, &cb_sndsubscribe);
   osip_set_msg_callback(osip ,OSIP_NICT_NOTIFY_SENT,    &cb_sndnotify);
-  /*  osip_setcb_nict_sndprack   (osip,&cb_sndprack); */
+  /*  osip_set_cb_nict_sndprack   (osip,&cb_sndprack); */
   osip_set_msg_callback(osip ,OSIP_NICT_UNKNOWN_REQUEST_SENT, &cb_sndunkrequest);
 
   osip_set_msg_callback(osip ,OSIP_ICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
