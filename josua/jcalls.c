@@ -113,6 +113,7 @@ static int __call_init()
   ortp_set_debug_file("oRTP",NULL);
   rtp_profile_set_payload(&av_profile,115,&lpc1015);
   rtp_profile_set_payload(&av_profile,110,&speex_nb);
+  rtp_profile_set_payload(&av_profile,111,&speex_wb);
 #endif
   return 0;
 }
