@@ -59,11 +59,9 @@ EXPORTS
 	jfriend_unload @56
 	jidentity_get_identity @57
 	jidentity_get_registrar @58
-	jidentity_init @59
 	jidentity_load @60
 	jidentity_unload @61
 	jsubscriber_get_uri @62
-	jsubscriber_init @63
 	jsubscriber_load @64
 	jsubscriber_unload @65
 	subscribers_add @66
