@@ -667,6 +667,13 @@ eXosip_automatic_refresh()
 		/* automatic refresh */
 		eXosip_register(jr->r_id, jr->r_reg_period);
 	      }
+	    else if (now-jr->r_last_tr->birth_time>120 &&
+		     (jr->r_last_tr->last_response==NULL
+		      || (!MSG_IS_STATUS_2XX(jr->r_last_tr->last_response))))
+	      {
+		/* automatic refresh */
+		eXosip_register(jr->r_id, jr->r_reg_period);
+	      }
 	  }
       }
 }
