@@ -152,7 +152,6 @@ void eXosip_quit()
   eXosip_kill_transaction (eXosip.j_osip->ist_transactions);
   eXosip_kill_transaction (eXosip.j_osip->nist_transactions);
   osip_free (eXosip.j_osip);
-  osip_global_free ();
 
   return ;
 }
@@ -233,11 +232,6 @@ int eXosip_init(FILE *input, FILE *output, int port)
   eXosip.j_mutexlock = (struct smutex_t*)smutex_init();
 
   if (-1==osip_init(&osip))
-    {
-      fprintf(stderr, "eXosip: Cannot initialize osip!\n");
-      return -1;
-    }
-  if (-1==osip_global_init())
     {
       fprintf(stderr, "eXosip: Cannot initialize osip!\n");
       return -1;
