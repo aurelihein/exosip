@@ -146,6 +146,12 @@ void eXosip_get_localip_for(char *host, char **localip);
 int eXosip_add_authentication_info(const char *username, const char *userid,
 				   const char *passwd, const char *ha1,
 				   const char *realm);
+				   
+/**
+ * Clear all authentication credentials stored in eXosip.
+ *
+ */
+int eXosip_clear_authentication_info(void);
 
 /**
  * Remove an audio payload.
@@ -258,6 +264,15 @@ int   eXosip_initiate_call    (osip_message_t *invite, void *reference,
  * @param body 			  The body.
  */
 int   eXosip_initiate_call_with_body    (osip_message_t *invite, const char *body_type, const char *body, void *reference);
+
+
+/**
+ * When a call failed to initiate due to authorization reasons (407), retry the call using the authentication information
+ * previously stored in eXosip using eXosip_add_authentication_info()
+ * 
+ * @param cid The eXosip call id as returned by eXosip_initiate_call*()
+ */
+int   eXosip_retry_call  (int cid);
 
 /**
  * Initiate a blind transfer outside of a call.

@@ -416,6 +416,22 @@ int jcall_requestfailure(eXosip_event_t *je)
 	  && jcalls[k].did==je->did)
 	break;
     }
+
+  if (je->status_code==407 ||
+      je->status_code==401)
+    {
+      static int oddnumber=0;
+      if (oddnumber==0)
+	{
+	  eXosip_add_authentication_info("0123456789", "0123456789",
+					 "secret", NULL,
+					 "atosc.org");
+	  eXosip_retry_call(je->cid);
+	  eXosip_clear_authentication_info();
+	  oddnumber=1;
+	} else oddnumber=0;
+    }
+
   if (k==MAX_NUMBER_OF_CALLS)
     return -1;
 
