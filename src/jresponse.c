@@ -236,7 +236,7 @@ generating_no_sdp_answer(eXosip_call_t *jc, eXosip_dialog_t *jd,
   
   osip_negotiation_ctx_set_local_sdp(jc->c_ctx, local_sdp);  
   
-  printf("200 OK w/ SDP (RESPONSE TO INVITE w/ NO SDP)=\n%s\n", local_body);
+  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO3,NULL,"200 OK w/ SDP (RESPONSE TO INVITE w/ NO SDP)=\n%s\n", local_body));
   
   return local_body;
 }
