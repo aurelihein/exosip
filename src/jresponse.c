@@ -388,6 +388,14 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       fprintf(stderr, "eXosip: cannot find transaction to answer");
       return -1;
     }
+  /* is the transaction already answered? */
+  if (tr->state==IST_COMPLETED
+      || tr->state==IST_CONFIRMED
+      || tr->state==IST_TERMINATED)
+    {
+      fprintf(stderr, "eXosip: transaction already answered\n");
+      return -1;
+    }
 
   if (jd==NULL)
     i = _eXosip_build_response_default(&response, NULL, code, tr->orig_request);
@@ -452,6 +460,15 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   if (jd!=NULL && jd->d_dialog==NULL)
     {  /* element previously removed */
       fprintf(stderr, "eXosip: cannot answer this closed transaction\n");
+      return -1;
+    }
+
+  /* is the transaction already answered? */
+  if (tr->state==IST_COMPLETED
+      || tr->state==IST_CONFIRMED
+      || tr->state==IST_TERMINATED)
+    {
+      fprintf(stderr, "eXosip: transaction already answered\n");
       return -1;
     }
 
@@ -552,6 +569,15 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       fprintf(stderr, "eXosip: cannot find transaction to answer");
       return -1;
     }
+  /* is the transaction already answered? */
+  if (tr->state==IST_COMPLETED
+      || tr->state==IST_CONFIRMED
+      || tr->state==IST_TERMINATED)
+    {
+      fprintf(stderr, "eXosip: transaction already answered\n");
+      return -1;
+    }
+
   i = _eXosip_build_response_default(&response, jd->d_dialog, code, tr->orig_request);
   if (i!=0)
     {

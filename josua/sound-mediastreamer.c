@@ -37,6 +37,23 @@ int os_sound_init()
 
 int os_sound_start(jcall_t *ca)
 {
+  /* creates the couple of encoder/decoder */
+  PayloadType *pt;
+  pt=rtp_profile_get_payload(&av_profile,ca->payload);
+  if (pt==NULL){
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			    "undefined payload type\n"));
+    return -1;
+  }
+  if (ms_encoder_new_with_string_id(pt->mime_type)==NULL
+      || ms_decoder_new_with_string_id(pt->mime_type)==NULL)
+    {
+      /* No registered codec for this payload...*/
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			      "No decoder availlable for payload %i\n", ca->payload));
+      return -1;
+    }
+
   ca->audio=audio_stream_start(&av_profile,
 			       10500,
 			       ca->remote_sdp_audio_ip,
@@ -48,7 +65,10 @@ int os_sound_start(jcall_t *ca)
 
 void os_sound_close(jcall_t *ca)
 {
-  audio_stream_stop(ca->audio);
+  if (ca->audio!=NULL)
+    {
+      audio_stream_stop(ca->audio);
+    }
 }
 
 #endif
