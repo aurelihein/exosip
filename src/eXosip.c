@@ -2061,7 +2061,7 @@ int eXosip_register      (int rid, int registration_period)
 	      osip_header_t *exp;
 	      osip_message_header_get_byname(reg, "expires", 0, &exp);
 	      osip_free(exp->hvalue);
-	      exp->hvalue = (char*)malloc(10);
+	      exp->hvalue = (char*)osip_malloc(10);
 	      snprintf(exp->hvalue, 9, "%i", jr->r_reg_period);
 	    }
 
