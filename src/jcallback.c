@@ -1041,7 +1041,7 @@ void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 	  }
 	
 	size = (char *) osip_malloc(6*sizeof(char));
-	sprintf(size,"%i",strlen(body));
+	sprintf(size,"%li",strlen(body));
 	osip_free(body);  
 	i = osip_message_set_content_length(ack, size);
 	osip_free(size);

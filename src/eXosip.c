@@ -676,7 +676,7 @@ int eXosip_initiate_call(osip_message_t *invite, void *reference,
       if (body!=NULL)
 	{
 	  size= (char *)osip_malloc(7*sizeof(char));
-	  sprintf(size,"%i",strlen(body));
+	  sprintf(size,"%li",strlen(body));
 	  osip_message_set_content_length(invite, size);
 	  osip_free(size);
 	  
@@ -933,7 +933,7 @@ int eXosip_on_hold_call  (int jid)
   if (body!=NULL)
     {
       size= (char *)osip_malloc(7*sizeof(char));
-      sprintf(size,"%i",strlen(body));
+      sprintf(size,"%li",strlen(body));
       osip_message_set_content_length(invite, size);
       osip_free(size);
       
@@ -1028,7 +1028,7 @@ int eXosip_off_hold_call (int jid)
   if (body!=NULL)
     {
       size= (char *)osip_malloc(7*sizeof(char));
-      sprintf(size,"%i",strlen(body));
+      sprintf(size,"%li",strlen(body));
       osip_message_set_content_length(invite, size);
       osip_free(size);
       
