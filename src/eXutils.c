@@ -107,8 +107,8 @@ ppl_dns_get_local_fqdn (char **servername, char **serverip,
 	return 0;
 }
 
-void
-eXosip_guess_ip_for_via (char *alocalip)
+int
+eXosip_guess_ip_for_via (int family, char *address, int size)
 {
 	/* w2000 and W95/98 */
 	unsigned long  best_interface_index;
@@ -119,7 +119,7 @@ eXosip_guess_ip_for_via (char *alocalip)
 	DWORD siz_ipfwd_table = 0;
 	unsigned int ipf_cnt;
 
-	alocalip[0] = '\0';
+	address[0] = '\0';
 	best_interface_index = -1;
 	/* w2000 and W95/98 only */
 	hr = GetBestInterface(inet_addr("217.12.3.11"),&best_interface_index);
@@ -150,13 +150,13 @@ eXosip_guess_ip_for_via (char *alocalip)
 		if (0 == ppl_dns_get_local_fqdn(&servername, &serverip, &netmask,
 						best_interface_index))
 		{
-			osip_strncpy(alocalip, serverip, strlen(serverip));
+			osip_strncpy(address, serverip, size);
 			osip_free(servername);
 			osip_free(serverip);
 			osip_free(netmask);
-			return;
+			return 0;
 		}
-		return;
+		return -1;
 	}
 
 
@@ -165,7 +165,7 @@ eXosip_guess_ip_for_via (char *alocalip)
 	{
 		OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
 			"Allocation error\r\n"));
-		return ;
+		return -1;
 	}
 
 
@@ -187,19 +187,19 @@ eXosip_guess_ip_for_via (char *alocalip)
 								 &netmask,
 								 ipfwdt->table[ipf_cnt].dwForwardIfIndex))
 				{
-					osip_strncpy(alocalip, serverip, strlen(serverip));
+					osip_strncpy(address, serverip, size);
 					osip_free(servername);
 					osip_free(serverip);
 					osip_free(netmask);
-					return ;
+					return 0;
 				}
-				return ;
+				return -1;
 			}
 		}
 
 	}
 	/* no default gateway interface found */
-	return ;
+	return -1;
 }
 
 

@@ -93,6 +93,12 @@ int eXosip_force_localip(const char *localip);
 void  eXosip_quit(void);
 
 /**
+ * Wake Up the eXosip_event_wait method.
+ * 
+ */
+void  __eXosip_wakeup_event(void);
+
+/**
  * This method is used to modify the sdp connection address
  * When you are behind a NAT. (EXPERIMENTAL)
  * 

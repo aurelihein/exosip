@@ -22,8 +22,6 @@
 #include <mpatrol.h>
 #endif
 
-#ifdef NEW_TIMER
-
 #include "jpipe.h"
 
 #ifndef WIN32
@@ -31,6 +29,7 @@
 jpipe_t * jpipe ()
 {
   jpipe_t *my_pipe = (jpipe_t *) malloc (sizeof (jpipe_t));
+  if (my_pipe==NULL) return NULL;
 
   if (0 != pipe (my_pipe->pipes))
     {
@@ -86,7 +85,7 @@ int jpipe_get_read_descr (jpipe_t * apipe)
 
 jpipe_t * jpipe ()
 {
-  jsocket_t s = 0;
+  int s = 0;
   int timeout = 0;
   static int aport = 10500;
   struct sockaddr_in raddr;
@@ -105,7 +104,7 @@ jpipe_t * jpipe ()
   my_pipe->pipes[1] = (int) socket (PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (0 > my_pipe->pipes[1])
     {
-      jsocket_close (s);
+      closesocket(s);
       free (my_pipe);
       return NULL;
     }
@@ -117,8 +116,7 @@ jpipe_t * jpipe ()
   while (aport++ && j-- > 0)
     {
       raddr.sin_port = htons ((short) aport);
-      if (jsocket_bind
-	  (s, (struct sockaddr *) &raddr, sizeof (raddr)) < 0)
+      if (bind (s, (struct sockaddr *) &raddr, sizeof (raddr)) < 0)
 	{
 	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
 				  "Failed to bind one local socket %i!\n",
@@ -132,10 +130,9 @@ jpipe_t * jpipe ()
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
 			      "Failed to bind a local socket, aborting!\n"));
-      jsocket_close (s);
-      jsocket_close (my_pipe->pipes[1]);
+      closesocket (s);
+      closesocket (my_pipe->pipes[1]);
       free (my_pipe);
-      exit (0);
     }
 
   j = listen(s,1);
@@ -143,10 +140,9 @@ jpipe_t * jpipe ()
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
 			      "Failed to listen on a local socket, aborting!\n"));
-      jsocket_close (s);
-      jsocket_close (my_pipe->pipes[1]);
+      closesocket(s);
+      closesocket(my_pipe->pipes[1]);
       free (my_pipe);
-      exit (0);
     }
 
   j = setsockopt (my_pipe->pipes[1],
@@ -158,10 +154,9 @@ jpipe_t * jpipe ()
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		   "udp plugin; cannot set O_NONBLOCK to the file desciptor!\n"));
-      jsocket_close (s);
-      jsocket_close (my_pipe->pipes[1]);
+      closesocket(s);
+      closesocket(my_pipe->pipes[1]);
       free (my_pipe);
-      exit (0);
     }
 
   connect (my_pipe->pipes[1], (struct sockaddr *) &raddr, sizeof (raddr));
@@ -173,10 +168,9 @@ jpipe_t * jpipe ()
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		   "udp plugin; Failed to call accept!\n"));
-      jsocket_close (s);
-      jsocket_close (my_pipe->pipes[1]);
+      closesocket(s);
+      closesocket(my_pipe->pipes[1]);
       free (my_pipe);
-      exit (0);
     }
 
   return my_pipe;
@@ -186,8 +180,8 @@ int jpipe_close (jpipe_t * apipe)
 {
   if (apipe == NULL)
     return -1;
-  jsocket_close (apipe->pipes[0]);
-  jsocket_close (apipe->pipes[1]);
+  closesocket (apipe->pipes[0]);
+  closesocket (apipe->pipes[1]);
   free (apipe);
   return 0;
 }
@@ -197,7 +191,7 @@ int jpipe_close (jpipe_t * apipe)
  * Write in a pipe.
  */
 int
-jpipe_write (jpipe_t * apipe, const void *buf, size_t count)
+jpipe_write (jpipe_t * apipe, const void *buf, int count)
 {
   if (apipe == NULL)
     return -1;
@@ -207,7 +201,7 @@ jpipe_write (jpipe_t * apipe, const void *buf, size_t count)
 /**
  * Read in a pipe.
  */
-int jpipe_read (jpipe_t * apipe, void *buf, size_t count)
+int jpipe_read (jpipe_t * apipe, void *buf, int count)
 {
   if (apipe == NULL)
     return -1;
@@ -223,7 +217,5 @@ int jpipe_get_read_descr (jpipe_t * apipe)
     return -1;
   return apipe->pipes[0];
 }
-
-#endif
 
 #endif

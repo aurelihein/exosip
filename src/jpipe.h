@@ -21,13 +21,17 @@
 #ifndef _JPIPE_H_
 #define _JPIPE_H_
 
-#ifndef WIN32
 #include <eXosip/eXosip.h>
+
+#ifndef WIN32
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 /**
  * @file jpipe.h
@@ -64,9 +68,9 @@ extern "C"
  * Structure for storing a pipe descriptor
  * @defvar ppl_pipe_t
  */
-  typedef struct ppl_pipe_t ppl_pipe_t;
+  typedef struct jpipe_t jpipe_t;
 
-  struct ppl_pipe_t
+  struct jpipe_t
   {
     int pipes[2];
   };

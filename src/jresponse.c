@@ -423,9 +423,7 @@ eXosip_answer_options_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   return 0;
 }
 
@@ -498,9 +496,7 @@ eXosip_answer_options_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   return 0;
 }
 
@@ -545,9 +541,7 @@ eXosip_answer_options_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
 
   return 0;
 }
@@ -609,9 +603,7 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   
   return 0;
 }
@@ -666,9 +658,7 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
       evt_answer = osip_new_outgoing_sipmessage(response);
       evt_answer->transactionid = tr->transactionid;
       osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
       return 0;
     }
 
@@ -712,9 +702,7 @@ eXosip_answer_invite_2xx_with_body(eXosip_call_t *jc, eXosip_dialog_t *jd, int c
   osip_transaction_add_event(tr, evt_answer);
 
   osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   return 0;
 
  g2atii_error_1:
@@ -791,9 +779,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
       evt_answer = osip_new_outgoing_sipmessage(response);
       evt_answer->transactionid = tr->transactionid;
       osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
-  __eXosip_wakeup();
-#endif
+	  __eXosip_wakeup();
       return 0;
     }
 
@@ -843,9 +829,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code, char 
   osip_transaction_add_event(tr, evt_answer);
 
   osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   return 0;
 
  g2atii_error_1:
@@ -896,9 +880,7 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   return 0;
 }
 
@@ -949,9 +931,7 @@ eXosip_notify_answer_subscribe_1xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   return ;
 }
 
@@ -1015,9 +995,7 @@ eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
 
   osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
   return ;
@@ -1057,8 +1035,6 @@ eXosip_notify_answer_subscribe_3456xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, 
   evt_answer->transactionid = tr->transactionid;
 
   osip_transaction_add_event(tr, evt_answer);
-#ifdef NEW_TIMER
   __eXosip_wakeup();
-#endif
   return ;
 }

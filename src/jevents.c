@@ -712,6 +712,7 @@ eXosip_event_add(eXosip_event_t *je)
 {
   int i = osip_fifo_add(eXosip.j_events, (void *) je);
   osip_cond_signal((struct osip_cond *)eXosip.j_cond);
+  __eXosip_wakeup_event();
   return i;
 }
 
@@ -753,7 +754,7 @@ __eXosip_clock_gettime(unsigned int clock_id, struct timespec *time)
 eXosip_event_t *
 eXosip_event_wait(int tv_s, int tv_ms)
 {
-  eXosip_event_t *je;
+  eXosip_event_t *je = NULL;
 
 #if 0 /* this does not seems to work. by now */
 #if defined (CLOCK_REALTIME) || defined (WIN32) || defined (_WIN32_WCE)
@@ -792,17 +793,32 @@ eXosip_event_wait(int tv_s, int tv_ms)
 #endif
 #else
   /* basic replacement */
-  for (;;)
     {
-      int i = 10;
+	  fd_set fdset;
+	  struct timeval tv;
+	  int max, i;
+      FD_ZERO(&fdset);
+      FD_SET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+      max = jpipe_get_read_descr(eXosip.j_socketctl_event);
+	  tv.tv_sec = tv_s;
+	  tv.tv_usec = tv_ms*1000;
+
       je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
       if (je!=NULL) return je;
-      i--;
-      if (i==0) return NULL;
-      if (tv_s==0 && tv_ms<=500)
-	return NULL;
-      osip_usleep(50000);
-    }
+
+      if (tv_s==0 && tv_ms==0)
+		return NULL;
+
+	  i = select(max+1, &fdset, NULL, NULL, &tv);
+      if (FD_ISSET (jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset))
+	  {
+		  char buf[500];
+		  jpipe_read (eXosip.j_socketctl_event, buf, 499);
+	  }
+
+      je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+      if (je!=NULL) return je;
+	}
 #endif
 
   return je;
