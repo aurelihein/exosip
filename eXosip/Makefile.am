@@ -11,7 +11,7 @@ jnotify.c      jsubscribers.c          jsubscribe.c    jevents.c \
 sdp_offans.c   sdpcontext.c sdphandler.c    \
 bodyhandler.c  bodycontext.c
 
-libeXosip_la_LDFLAGS = -O -Wall
+libeXosip_la_LDFLAGS = -version-info $(LIBEXOSIP_SO_VERSION)
 libeXosip_la_LIBADD = -lfsmtl2 -losip2  @EXOSIP_LIB@ @PTHREAD_LIBS@
 
 INCLUDES = -I$(top_srcdir)

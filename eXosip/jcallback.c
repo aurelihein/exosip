@@ -618,8 +618,9 @@ void eXosip_update_audio_session(osip_transaction_t *transaction)
       pid = fork();
       if (pid==0)
 	{
-	  int ret = system(tmp);
-	  
+	  int ret;
+#ifndef USE_EXECL
+	  ret = system(tmp);
 	  if (WIFSIGNALED(ret) &&
 	      (WTERMSIG(ret) == SIGINT || WTERMSIG(ret) == SIGQUIT))
 	    {
@@ -630,6 +631,12 @@ void eXosip_update_audio_session(osip_transaction_t *transaction)
 	      OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"Could not start audio\n", tmp));
 	    }
 	  exit(0);
+#else
+	  char _remoteipport[100];
+	  snprintf(_remoteipport, 100, "%s:%s", remaddr, remote_port);
+	  ret = execl("mediastream","--local", local_port,
+			  "--remote", _remoteipport, "--payload", payload);
+#endif
 	}
 #endif
 
