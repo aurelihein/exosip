@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.1.1.1 2003-03-11 21:22:13 aymeric Exp $
+# $Id: autogen.sh,v 1.2 2003-07-21 21:56:51 aymeric Exp $
 #
 DIE=0
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 test "$srcdir" = "." && srcdir=`pwd`
 
-PROJECT=eXosip
+PROJECT=src
 
 # failure subroutine.
 # syntax: do-something || fail
@@ -46,7 +46,7 @@ if test "$DIE" -eq 1; then
     exit 1
 fi
 
-test -f eXosip/eXosip.h || {
+test -f include/eXosip/eXosip.h || {
         echo "You must run this script in the top-level $PROJECT directory"
         exit 1
 }

@@ -1,7 +1,7 @@
 
 EXTRA_DIST = README autogen.sh eX_script eXosip_addfriend.sh eXosip_addidentity.sh eXosip_addsubscriber.sh
 
-SUBDIRS = eXosip josua scripts
+SUBDIRS = scripts src include josua
 
 josuarpm:
 	rpm -ba josua.spec

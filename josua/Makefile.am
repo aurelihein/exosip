@@ -38,19 +38,19 @@ josua_LDFLAGS = -O  -Wall
 if COMPILE_MEDIASTREAMER
 
 josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
-$(top_builddir)/eXosip/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex
-#$(top_builddir)/eXosip/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex $(GLIB_LIBS)
+$(top_builddir)/src/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex
+#$(top_builddir)/src/libeXosip.la -lortp  -lm -lmediastreamer -lmsspeex $(GLIB_LIBS)
 
 else
 if COMPILE_ORTP
 
 josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
-$(top_builddir)/eXosip/libeXosip.la -lortp  -lm -lortp
+$(top_builddir)/src/libeXosip.la -lortp  -lm -lortp
 
 else
 
 josua_LDADD = -losip2 @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ \
-$(top_builddir)/eXosip/libeXosip.la -lortp  -lm 
+$(top_builddir)/src/libeXosip.la -lortp  -lm 
 
 endif
 endif
