@@ -26,12 +26,12 @@
 
 extern eXosip_t eXosip;
 
-void eXosip_dialog_set_state(eXosip_dialog_t *jd, int state)
+void eXosip_osip_dialog_set_state(eXosip_osip_dialog_t *jd, int state)
 {
   jd->d_STATE = state;
 }
 
-int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd)
+int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_osip_dialog_t **jd)
 {
   for (*jc=eXosip.j_calls; *jc!=NULL; *jc=(*jc)->next)
     {
@@ -48,25 +48,25 @@ int eXosip_dialog_find(int jid, eXosip_call_t **jc, eXosip_dialog_t **jd)
   return -1;
 }
 
-int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, osip_msg_t *_200Ok)
+int eXosip_dialog_set_200ok(eXosip_osip_dialog_t *jd, osip_message_t *_200Ok)
 {
   int i;
   if (jd==NULL) return -1;
   i = msg_clone(_200Ok, &(jd->d_200Ok));
   if (i!=0) {
-    eXosip_dialog_free(jd);
+    eXosip_osip_dialog_free(jd);
     return -1;
   }
   return 0;
 }
 
 
-int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, osip_msg_t *_200Ok)
+int eXosip_dialog_init_as_uac(eXosip_osip_dialog_t **_jd, osip_message_t *_200Ok)
 {
   int i;
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   *_jd = NULL;
-  jd = (eXosip_dialog_t *) smalloc(sizeof(eXosip_dialog_t));
+  jd = (eXosip_osip_dialog_t *) smalloc(sizeof(eXosip_osip_dialog_t));
   jd->d_id  = -1; /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
 
@@ -77,29 +77,29 @@ int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, osip_msg_t *_200Ok)
       return -1;
     }
 
-  jd->media_lines = (list_t*) smalloc(sizeof(list_t));
-  list_init(jd->media_lines);
+  jd->media_lines = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
+  osip_losip_ist_init(jd->media_lines);
 
   jd->d_timer = time(NULL);
   jd->d_200Ok = NULL;
   jd->d_ack   = NULL;
   jd->next    = NULL;
   jd->parent  = NULL;
-  jd->d_out_trs = (list_t*) smalloc(sizeof(list_t));
-  list_init(jd->d_out_trs);
-  jd->d_inc_trs = (list_t*) smalloc(sizeof(list_t));
-  list_init(jd->d_inc_trs);
+  jd->d_out_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
+  osip_losip_ist_init(jd->d_out_trs);
+  jd->d_inc_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
+  osip_losip_ist_init(jd->d_inc_trs);
 
   *_jd = jd;
   return 0;
 }
 
-int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, osip_msg_t *_invite, osip_msg_t *_200Ok)
+int eXosip_dialog_init_as_uas(eXosip_osip_dialog_t **_jd, osip_message_t *_invite, osip_message_t *_200Ok)
 {
   int i;
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   *_jd = NULL;
-  jd = (eXosip_dialog_t *) smalloc(sizeof(eXosip_dialog_t));
+  jd = (eXosip_osip_dialog_t *) smalloc(sizeof(eXosip_osip_dialog_t));
   jd->d_id  = -1; /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
   i = dialog_init_as_uas(&(jd->d_dialog), _invite, _200Ok);
@@ -109,56 +109,56 @@ int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, osip_msg_t *_invite, osip_m
       return -1;
     }
 
-  jd->media_lines = (list_t*) smalloc(sizeof(list_t));
-  list_init(jd->media_lines);
+  jd->media_lines = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
+  osip_losip_ist_init(jd->media_lines);
 
   jd->d_timer = time(NULL);
   jd->d_200Ok = NULL;
   jd->d_ack   = NULL;
   jd->next    = NULL;
   jd->parent  = NULL;
-  jd->d_out_trs = (list_t*) smalloc(sizeof(list_t));
-  list_init(jd->d_out_trs);
-  jd->d_inc_trs = (list_t*) smalloc(sizeof(list_t));
-  list_init(jd->d_inc_trs);
+  jd->d_out_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
+  osip_losip_ist_init(jd->d_out_trs);
+  jd->d_inc_trs = (osip_osip_losip_ist_t*) smalloc(sizeof(osip_osip_losip_ist_t));
+  osip_losip_ist_init(jd->d_inc_trs);
 
   *_jd = jd;
   return 0;
 }
 
-void eXosip_dialog_free(eXosip_dialog_t *jd)
+void eXosip_osip_dialog_free(eXosip_osip_dialog_t *jd)
 {
   int i;
   msg_free(jd->d_200Ok);
   msg_free(jd->d_ack);
 
-  dialog_free(jd->d_dialog);
+  osip_dialog_free(jd->d_dialog);
 
-  while (!list_eol(jd->media_lines, 0))
+  while (!osip_list_eol(jd->media_lines, 0))
     {
-      char *tmp = list_get(jd->media_lines, 0);
-      list_remove(jd->media_lines, 0);
+      char *tmp = osip_list_get(jd->media_lines, 0);
+      osip_list_remove(jd->media_lines, 0);
       sfree(tmp);
     }
 
-  while (!list_eol(jd->d_inc_trs, 0))
+  while (!osip_list_eol(jd->d_inc_trs, 0))
     {
-      transaction_t *tr = list_get(jd->d_inc_trs, 0);
-      list_remove(jd->d_inc_trs, 0);
+      osip_transaction_t *tr = osip_list_get(jd->d_inc_trs, 0);
+      osip_list_remove(jd->d_inc_trs, 0);
       i = osip_remove_nist(eXosip.j_osip, tr);
       if (i!=0)
 	osip_remove_ist(eXosip.j_osip, tr);
-      transaction_free2(tr);
+      osip_transaction_free2(tr);
     }
 
-  while (!list_eol(jd->d_out_trs, 0))
+  while (!osip_list_eol(jd->d_out_trs, 0))
     {
-      transaction_t *tr = list_get(jd->d_out_trs, 0);
-      list_remove(jd->d_out_trs, 0);
+      osip_transaction_t *tr = osip_list_get(jd->d_out_trs, 0);
+      osip_list_remove(jd->d_out_trs, 0);
       i = osip_remove_nict(eXosip.j_osip, tr);
       if (i!=0)
 	osip_remove_ict(eXosip.j_osip, tr);
-      transaction_free2(tr);
+      osip_transaction_free2(tr);
     }
   sfree(jd);
 }

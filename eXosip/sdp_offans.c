@@ -26,7 +26,7 @@
 
 char   *localip;
 
-int eXosip_sdp_accept_audio_codec(sdp_context_t *context,
+int eXosip_sdp_accept_audio_codec(sdp_negociation_ctx_t *context,
 			      char *port, char *number_of_port,
 			      int audio_qty, char *payload)
 {    
@@ -36,14 +36,14 @@ int eXosip_sdp_accept_audio_codec(sdp_context_t *context,
   return -1;
 }
   
-int eXosip_sdp_accept_video_codec(sdp_context_t *context,
+int eXosip_sdp_accept_video_codec(sdp_negociation_ctx_t *context,
 			      char *port, char *number_of_port,
 			      int video_qty, char *payload)
 {
   return -1;
 }
 
-int eXosip_sdp_accept_other_codec(sdp_context_t *context,
+int eXosip_sdp_accept_other_codec(sdp_negociation_ctx_t *context,
 			      char *type, char *port,
 			      char *number_of_port, char *payload)
 {
@@ -51,66 +51,66 @@ int eXosip_sdp_accept_other_codec(sdp_context_t *context,
   return -1;
 }
 
-char *eXosip_sdp_get_audio_port(sdp_context_t *context, int pos_media)
+char *eXosip_sdp_get_audio_port(sdp_negociation_ctx_t *context, int pos_media)
 {
   return sgetcopy("34954");
 }
 
-int eXosip_sdp_config_init()
+int eXosip_sdp_negociation_init()
 {
 
-  int i = sdp_config_init();
+  int i = sdp_negociation_init();
   if (i!=0) {
     return -1;
   }
-  sdp_config_set_o_username(sgetcopy("userX"));
-  sdp_config_set_o_session_id(sgetcopy("20000001"));
-  sdp_config_set_o_session_version(sgetcopy("20000001"));
-  sdp_config_set_o_nettype(sgetcopy("IN"));
-  sdp_config_set_o_addrtype(sgetcopy("IP4"));
-  sdp_config_set_o_addr(sgetcopy(localip));
+  sdp_negociation_set_o_username(sgetcopy("userX"));
+  sdp_negociation_set_o_session_id(sgetcopy("20000001"));
+  sdp_negociation_set_o_session_version(sgetcopy("20000001"));
+  sdp_negociation_set_o_nettype(sgetcopy("IN"));
+  sdp_negociation_set_o_addrtype(sgetcopy("IP4"));
+  sdp_negociation_set_o_addr(sgetcopy(localip));
   
-  sdp_config_set_c_nettype(sgetcopy("IN"));
-  sdp_config_set_c_addrtype(sgetcopy("IP4"));
-  sdp_config_set_c_addr(sgetcopy(localip));
+  sdp_negociation_set_c_nettype(sgetcopy("IN"));
+  sdp_negociation_set_c_addrtype(sgetcopy("IP4"));
+  sdp_negociation_set_c_addr(sgetcopy(localip));
   
   /* ALL CODEC MUST SHARE THE SAME "C=" line and proto as the media 
      will appear on the same "m" line... */
-  sdp_config_add_support_for_audio_codec(sgetcopy("0"),
+  sdp_negociation_add_support_for_audio_codec(sgetcopy("0"),
 					 NULL,
 					 sgetcopy("RTP/AVP"),
 					 NULL, NULL, NULL,
 					 NULL,NULL,
 					 sgetcopy("0 PCMU/8000"));
-  sdp_config_add_support_for_audio_codec(sgetcopy("3"),
+  sdp_negociation_add_support_for_audio_codec(sgetcopy("3"),
 					 NULL,
 					 sgetcopy("RTP/AVP"),
 					 NULL, NULL, NULL,
 					 NULL,NULL,
 					 sgetcopy("3 GSM/8000"));
-  sdp_config_add_support_for_audio_codec(sgetcopy("8"),
+  sdp_negociation_add_support_for_audio_codec(sgetcopy("8"),
 					 NULL,
 					 sgetcopy("RTP/AVP"),
 					 NULL, NULL, NULL,
 					 NULL,NULL,
 					 sgetcopy("8 PCMA/8000"));
   
-  sdp_config_set_fcn_accept_audio_codec(&eXosip_sdp_accept_audio_codec);
-  sdp_config_set_fcn_accept_video_codec(&eXosip_sdp_accept_video_codec);
+  sdp_negociation_set_fcn_accept_audio_codec(&eXosip_sdp_accept_audio_codec);
+  sdp_negociation_set_fcn_accept_video_codec(&eXosip_sdp_accept_video_codec);
   
-  sdp_config_set_fcn_accept_other_codec(&eXosip_sdp_accept_other_codec);
-  sdp_config_set_fcn_get_audio_port(&eXosip_sdp_get_audio_port);
+  sdp_negociation_set_fcn_accept_other_codec(&eXosip_sdp_accept_other_codec);
+  sdp_negociation_set_fcn_get_audio_port(&eXosip_sdp_get_audio_port);
 
   return 0;
 }
 
-sdp_t *
-eXosip_get_local_sdp_info(transaction_t *invite_tr)
+sdp_message_t *
+eXosip_get_local_sdp_info(osip_transaction_t *invite_tr)
 {
-  content_type_t *ctt;
+  content_osip_event_type_t *ctt;
   mime_version_t *mv;
-  osip_msg_t *message;
-  sdp_t *sdp;
+  osip_message_t *message;
+  sdp_message_t *sdp;
   char  *oldbody;
   int pos;
 
@@ -143,15 +143,15 @@ eXosip_get_local_sdp_info(transaction_t *invite_tr)
     }
   
   pos=0;
-  while (!list_eol(invite_tr->last_response->bodies, pos))
+  while (!osip_list_eol(invite_tr->last_response->bodies, pos))
     {
       int i;
-      oldbody = list_get(invite_tr->last_response->bodies, pos);
+      oldbody = osip_list_get(invite_tr->last_response->bodies, pos);
       pos++;
-      sdp_init(&sdp);
-      i = sdp_parse(sdp,oldbody);
+      sdp_message_init(&sdp);
+      i = sdp_message_parse(sdp,oldbody);
       if (i==0) return sdp;
-      sdp_free(sdp);
+      sdp_message_free(sdp);
       sdp = NULL;
     }
   return NULL;

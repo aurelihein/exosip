@@ -33,7 +33,7 @@ char *register_callid_number = NULL;
 /* by now this should lead to identical call-id when application are
    started at the same time...   */
 char *
-call_id_new_random()
+osip_call_id_new_random()
 {
   char *tmp = (char *)smalloc(33);
   unsigned int number = new_random_number();
@@ -42,19 +42,19 @@ call_id_new_random()
 }
 
 char *
-from_tag_new_random()
+osip_from_tag_new_random()
 {
-  return call_id_new_random();
+  return osip_call_id_new_random();
 }
 
 char *
-to_tag_new_random()
+osip_to_tag_new_random()
 {
-  return call_id_new_random();
+  return osip_call_id_new_random();
 }
 
 unsigned int
-via_branch_new_random()
+osip_via_branch_new_random()
 {
   return new_random_number();
 }
@@ -65,7 +65,7 @@ via_branch_new_random()
    transport is either "TCP" or "UDP" (by now, only UDP is implemented!)
 */
 int
-generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
+generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
 				 char *to, char *transport, char *from,
 				 char *proxy)
 {
@@ -73,12 +73,12 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
      A valid request contains at a minimum "To, From, Call-iD, Cseq,
      Max-Forwards and Via
   */
-  static int register_cseq_number = 1; /* always start registration with 1 */
+  static int register_osip_cseq_number = 1; /* always start registration with 1 */
   int i;
-  osip_msg_t *request;
+  osip_message_t *request;
 
   if (register_callid_number==NULL)
-    register_callid_number = call_id_new_random();
+    register_callid_number = osip_call_id_new_random();
 
   i = msg_init(&request);
   if (i!=0) return -1;
@@ -91,8 +91,8 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
 
   if (0==strcmp("REGISTER", method_name))
     {
-      url_init(&(request->strtline->rquri));
-      i = url_parse(request->strtline->rquri, proxy);
+      osip_uri_init(&(request->strtline->rquri));
+      i = osip_uri_parse(request->strtline->rquri, proxy);
       if (i!=0)
 	goto brood_error_1;
       msg_setto(request, from);
@@ -111,26 +111,26 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
 	   /* if the pre-existing route set contains a "lr" (compliance
 	      with bis-08) then the rquri should contains the remote target
 	      URI */
-	  url_param_t *lr_param;
-	  route_t *o_proxy;
+	  osip_uri_param_t *lr_param;
+	  osip_route_t *o_proxy;
 #ifndef __VXWORKS_OS__
-	  route_init(&o_proxy);
+	  osip_route_init(&o_proxy);
 #else
-	  route_init2(&o_proxy);
+	  osip_route_init2(&o_proxy);
 #endif
-	  i = route_parse(o_proxy, proxy);
+	  i = osip_route_parse(o_proxy, proxy);
 	  if (i!=0) {
-	    route_free(o_proxy);
+	    osip_route_free(o_proxy);
 	    goto brood_error_1;
 	  }
 
 	  url_uparam_getbyname(o_proxy->url, "lr", &lr_param);
 	  if (lr_param!=NULL) /* to is the remote target URI in this case! */
 	    {
-	      url_clone(request->to->url, &(request->strtline->rquri));
+	      osip_uri_clone(request->to->url, &(request->strtline->rquri));
 	      /* "[request] MUST includes a Route header field containing
 	       the route set values in order." */
-	      list_add(request->routes, o_proxy, 0);
+	      osip_list_add(request->routes, o_proxy, 0);
 	    }
 	  else
 	    /* if the first URI of route set does not contain "lr", the rquri
@@ -139,7 +139,7 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
 	      url_uparam_getbyname(o_proxy->url, "lr", &lr_param);
 	      request->strtline->rquri = o_proxy->url;
 	      o_proxy->url = NULL;
-	      route_free(o_proxy);
+	      osip_route_free(o_proxy);
 	      /* add the route set */
 	      /* "The UAC MUST add a route header field containing
 		 the remainder of the route set values in order.
@@ -152,7 +152,7 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
       else /* No route set (outbound proxy) is used */
 	{
 	  /* The UAC must put the remote target URI (to field) in the rquri */
-	    i = url_clone(request->to->url, &(request->strtline->rquri));
+	    i = osip_uri_clone(request->to->url, &(request->strtline->rquri));
 	    if (i!=0) goto brood_error_1;
 	}
     }
@@ -160,47 +160,47 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
   /* set To and From */
   msg_setfrom(request, from);
   /* add a tag */
-  from_set_tag(request->from, from_tag_new_random());
+  osip_from_set_tag(request->from, osip_from_tag_new_random());
   
   /* set the cseq and call_id header */
   if (0==strcmp("REGISTER", method_name))
     {
-      call_id_t *callid;
-      cseq_t *cseq;
+      osip_call_id_t *callid;
+      osip_cseq_t *cseq;
       char *num;
 
       /* call-id is always the same for REGISTRATIONS */
-      i = call_id_init(&callid);
+      i = osip_call_id_init(&callid);
       if (i!=0) goto brood_error_1;
-      call_id_setnumber(callid, sgetcopy(register_callid_number));
-      call_id_sethost(callid, sgetcopy(localip));
+      osip_call_id_setnumber(callid, sgetcopy(register_callid_number));
+      osip_call_id_sethost(callid, sgetcopy(localip));
       request->call_id = callid;
 
-      i = cseq_init(&cseq);
+      i = osip_cseq_init(&cseq);
       if (i!=0) goto brood_error_1;
       num = (char *)smalloc(20); /* should never be more than 10 chars... */
-      sprintf(num, "%i", register_cseq_number);
-      cseq_setnumber(cseq, num);
-      cseq_setmethod(cseq, sgetcopy(method_name));
+      sprintf(num, "%i", register_osip_cseq_number);
+      osip_cseq_setnumber(cseq, num);
+      osip_cseq_setmethod(cseq, sgetcopy(method_name));
       request->cseq = cseq;
 
-      register_cseq_number++;
+      register_osip_cseq_number++;
     }
   else
     {
       /* set the call-id */
-      call_id_t *callid;
-      cseq_t *cseq;
-      i = call_id_init(&callid);
+      osip_call_id_t *callid;
+      osip_cseq_t *cseq;
+      i = osip_call_id_init(&callid);
       if (i!=0) goto brood_error_1;
-      call_id_setnumber(callid, call_id_new_random());
-      call_id_sethost(callid, sgetcopy(localip));
+      osip_call_id_setnumber(callid, osip_call_id_new_random());
+      osip_call_id_sethost(callid, sgetcopy(localip));
       request->call_id = callid;
 
-      i = cseq_init(&cseq);
+      i = osip_cseq_init(&cseq);
       if (i!=0) goto brood_error_1;
-      cseq_setnumber(cseq, sgetcopy("20")); /* always start with 20... :-> */
-      cseq_setmethod(cseq, sgetcopy(method_name));
+      osip_cseq_setnumber(cseq, sgetcopy("20")); /* always start with 20... :-> */
+      osip_cseq_setmethod(cseq, sgetcopy(method_name));
       request->cseq = cseq;
     }
 
@@ -212,7 +212,7 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
     sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 	    localip,
 	    localport,
-	    via_branch_new_random() );
+	    osip_via_branch_new_random() );
     msg_setvia(request, tmp);
     sfree(tmp);
   }
@@ -222,11 +222,11 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
   if (0==strcmp("INVITE", method_name))
     {
       char *contact;
-      from_t *a_from;
+      osip_from_t *a_from;
       int i;
       contact = (char *) smalloc(50);
-      i = from_init(&a_from);
-      i = from_parse(a_from, from);
+      i = osip_from_init(&a_from);
+      i = osip_from_parse(a_from, from);
 
       if (localport==NULL)
 	sprintf(contact, "<sip:%s@%s>", a_from->url->username,
@@ -263,10 +263,10 @@ generating_request_out_of_dialog(osip_msg_t **dest, char *method_name,
 }
 
 int
-generating_register(osip_msg_t **reg, char *from,
+generating_register(osip_message_t **reg, char *from,
 		    char *proxy, char *contact)
 {
-  from_t *a_from;
+  osip_from_t *a_from;
   int i;
   i = generating_request_out_of_dialog(reg, "REGISTER", NULL, "UDP",
 				       from, proxy);
@@ -276,8 +276,8 @@ generating_register(osip_msg_t **reg, char *from,
   if (contact==NULL)
     {
       contact = (char *) smalloc(50);
-      i = from_init(&a_from);
-      i = from_parse(a_from, from);
+      i = osip_from_init(&a_from);
+      i = osip_from_parse(a_from, from);
 	  
       if (localport==NULL)
 	sprintf(contact, "<sip:%s@%s>", a_from->url->username,
@@ -301,7 +301,7 @@ generating_register(osip_msg_t **reg, char *from,
 
 /* this method can't be called unless the previous
    INVITE transaction is over. */
-int eXosip_build_initial_invite(osip_msg_t **invite, char *to, char *from,
+int eXosip_build_initial_invite(osip_message_t **invite, char *to, char *from,
 				char *route, char *subject)
 {
   int i;
@@ -348,7 +348,7 @@ int eXosip_build_initial_invite(osip_msg_t **invite, char *to, char *from,
 
 /* this method can't be called unless the previous
    INVITE transaction is over. */
-int generating_message(osip_msg_t **message, char *to, char *from,
+int generating_message(osip_message_t **message, char *to, char *from,
 		       char *route, char *buff)
 {
   int i;
@@ -388,7 +388,7 @@ int generating_message(osip_msg_t **message, char *to, char *from,
 
 
 int
-generating_options(osip_msg_t **options, char *from, char *to, char *sdp, char *proxy)
+generating_options(osip_message_t **options, char *from, char *to, char *sdp, char *proxy)
 {
   int i;
   i = generating_request_out_of_dialog(options, "OPTIONS", to, "UDP",
@@ -413,46 +413,46 @@ generating_options(osip_msg_t **options, char *from, char *to, char *sdp, char *
 
 
 int
-dialog_fill_route_set(dialog_t *dialog, osip_msg_t *request)
+dialog_fill_osip_route_set(osip_dialog_t *dialog, osip_message_t *request)
 {
   /* if the pre-existing route set contains a "lr" (compliance
      with bis-08) then the rquri should contains the remote target
      URI */
   int i;
   int pos=0;
-  url_param_t *lr_param;
-  route_t *route;
+  osip_uri_param_t *lr_param;
+  osip_route_t *route;
   char *last_route;
   /* AMD bug: fixed 17/06/2002 */
 
   if (dialog->type==CALLER)
     {
-      pos = list_size(dialog->route_set)-1;
-      route = (route_t*)list_get(dialog->route_set, pos);
+      pos = osip_list_size(dialog->osip_route_set)-1;
+      route = (osip_route_t*)osip_list_get(dialog->osip_route_set, pos);
     }
   else
-    route = (route_t*)list_get(dialog->route_set, 0);
+    route = (osip_route_t*)osip_list_get(dialog->osip_route_set, 0);
     
   url_uparam_getbyname(route->url, "lr", &lr_param);
   if (lr_param!=NULL) /* the remote target URI is the rquri! */
     {
-      i = url_clone(dialog->remote_contact_uri->url,
+      i = osip_uri_clone(dialog->remote_osip_contact_uri->url,
 		    &(request->strtline->rquri));
       if (i!=0) return -1;
       /* "[request] MUST includes a Route header field containing
 	 the route set values in order." */
       /* AMD bug: fixed 17/06/2002 */
       pos=0; /* first element is at index 0 */
-      while (!list_eol(dialog->route_set, pos))
+      while (!osip_list_eol(dialog->osip_route_set, pos))
 	{
-	  route_t *route2;
-	  route = list_get(dialog->route_set, pos);
-	  i = route_clone(route, &route2);
+	  osip_route_t *route2;
+	  route = osip_list_get(dialog->osip_route_set, pos);
+	  i = osip_route_clone(route, &route2);
 	  if (i!=0) return -1;
 	  if (dialog->type==CALLER)
-	    list_add(request->routes, route2, 0);
+	    osip_list_add(request->routes, route2, 0);
 	  else
-	    list_add(request->routes, route2, -1);
+	    osip_list_add(request->routes, route2, -1);
 	  pos++;
 	}
       return 0;
@@ -462,34 +462,34 @@ dialog_fill_route_set(dialog_t *dialog, osip_msg_t *request)
      is set to the first uri of route set */
   
   
-  i = url_clone(route->url, &(request->strtline->rquri));
+  i = osip_uri_clone(route->url, &(request->strtline->rquri));
   if (i!=0) return -1;
   /* add the route set */
   /* "The UAC MUST add a route header field containing
      the remainder of the route set values in order. */
   pos=0; /* yes it is */
   
-  while (!list_eol(dialog->route_set, pos)) /* not the first one in the list */
+  while (!osip_list_eol(dialog->osip_route_set, pos)) /* not the first one in the list */
     {
-      route_t *route2;
-      route = list_get(dialog->route_set, pos);
-      i = route_clone(route, &route2);
+      osip_route_t *route2;
+      route = osip_list_get(dialog->osip_route_set, pos);
+      i = osip_route_clone(route, &route2);
       if (i!=0) return -1;
       if (dialog->type==CALLER)
 	{
 	  if (pos!=0)
-	    list_add(request->routes, route2, 0);
+	    osip_list_add(request->routes, route2, 0);
 	}
       else
 	{
-	  if (!list_eol(dialog->route_set, pos+1))
-	    list_add(request->routes, route2, -1);
+	  if (!osip_list_eol(dialog->osip_route_set, pos+1))
+	    osip_list_add(request->routes, route2, -1);
 	}
 	  pos++;
     }
       /* The UAC MUST then place the remote target URI into
 	 the route header field as the last value */
-  i = url_2char(dialog->remote_contact_uri->url, &last_route);
+  i = osip_uri_2char(dialog->remote_osip_contact_uri->url, &last_route);
   if (i!=0) return -1;
   i = msg_setroute(request, last_route);
   if (i!=0) { sfree(last_route); return -1; }
@@ -500,16 +500,16 @@ dialog_fill_route_set(dialog_t *dialog, osip_msg_t *request)
 }
 
 int
-_eXosip_build_request_within_dialog(osip_msg_t **dest, char *method_name,
-				   dialog_t *dialog, char *transport)
+_eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
+				   osip_dialog_t *dialog, char *transport)
 {
   int i;
-  osip_msg_t *request;
+  osip_message_t *request;
 
   i = msg_init(&request);
   if (i!=0) return -1;
 
-  if (dialog->remote_contact_uri==NULL)
+  if (dialog->remote_osip_contact_uri==NULL)
     {
       /* this dialog is probably not established! or the remote UA
 	 is not compliant with the latest RFC
@@ -524,22 +524,22 @@ _eXosip_build_request_within_dialog(osip_msg_t **dest, char *method_name,
   request->strtline->reasonphrase = NULL;
 
   /* and the request uri???? */
-  if (list_eol(dialog->route_set, 0))
+  if (osip_list_eol(dialog->osip_route_set, 0))
     {
       /* The UAC must put the remote target URI (to field) in the rquri */
-      i = url_clone(dialog->remote_contact_uri->url, &(request->strtline->rquri));
+      i = osip_uri_clone(dialog->remote_osip_contact_uri->url, &(request->strtline->rquri));
       if (i!=0) goto grwd_error_1;
     }
   else
     {
       /* fill the request-uri, and the route headers. */
-      dialog_fill_route_set(dialog, request);
+      dialog_fill_osip_route_set(dialog, request);
     }
   
   /* To and From already contains the proper tag! */
-  i = to_clone(dialog->remote_uri, &(request->to));
+  i = osip_to_clone(dialog->remote_uri, &(request->to));
   if (i!=0) goto grwd_error_1;
-  i = from_clone(dialog->local_uri, &(request->from));
+  i = osip_from_clone(dialog->local_uri, &(request->from));
   if (i!=0) goto grwd_error_1;
 
   /* set the cseq and call_id header */
@@ -547,27 +547,27 @@ _eXosip_build_request_within_dialog(osip_msg_t **dest, char *method_name,
 
   if (0==strcmp("ACK", method_name))
     {
-      cseq_t *cseq;
+      osip_cseq_t *cseq;
       char *tmp;
-      i = cseq_init(&cseq);
+      i = osip_cseq_init(&cseq);
       if (i!=0) goto grwd_error_1;
       tmp = smalloc(20);
       sprintf(tmp,"%i", dialog->local_cseq);
-      cseq_setnumber(cseq, tmp);
-      cseq_setmethod(cseq, sgetcopy(method_name));
+      osip_cseq_setnumber(cseq, tmp);
+      osip_cseq_setmethod(cseq, sgetcopy(method_name));
       request->cseq = cseq;
     }
   else
     {
-      cseq_t *cseq;
+      osip_cseq_t *cseq;
       char *tmp;
-      i = cseq_init(&cseq);
+      i = osip_cseq_init(&cseq);
       if (i!=0) goto grwd_error_1;
       dialog->local_cseq++; /* we should we do that?? */
       tmp = smalloc(20);
       sprintf(tmp,"%i", dialog->local_cseq);
-      cseq_setnumber(cseq, tmp);
-      cseq_setmethod(cseq, sgetcopy(method_name));
+      osip_cseq_setnumber(cseq, tmp);
+      osip_cseq_setmethod(cseq, sgetcopy(method_name));
       request->cseq = cseq;
     }
   
@@ -581,7 +581,7 @@ _eXosip_build_request_within_dialog(osip_msg_t **dest, char *method_name,
     char *tmp = (char *)smalloc(90*sizeof(char));
     sprintf(tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
 	    localip ,localport,
-	    via_branch_new_random());
+	    osip_via_branch_new_random());
     msg_setvia(request, tmp);
     sfree(tmp);
   }
@@ -633,7 +633,7 @@ _eXosip_build_request_within_dialog(osip_msg_t **dest, char *method_name,
 
 /* this request is only build within a dialog!! */
 int
-generating_bye(osip_msg_t **bye, dialog_t *dialog)
+generating_bye(osip_message_t **bye, osip_dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(bye, "BYE", dialog, "UDP");
@@ -645,7 +645,7 @@ generating_bye(osip_msg_t **bye, dialog_t *dialog)
 
 /* this request is only build within a dialog! (but should not!) */
 int
-generating_refer(osip_msg_t **refer, dialog_t *dialog, char *refer_to)
+generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to)
 {
   int i;
   i = _eXosip_build_request_within_dialog(refer, "REFER", dialog, "UDP");
@@ -659,7 +659,7 @@ generating_refer(osip_msg_t **refer, dialog_t *dialog, char *refer_to)
 
 /* this request can be inside or outside a dialog */
 int
-generating_options_within_dialog(osip_msg_t **options, dialog_t *dialog, char *sdp)
+generating_options_within_dialog(osip_message_t **options, osip_dialog_t *dialog, char *sdp)
 {
   int i;
   i = _eXosip_build_request_within_dialog(options, "OPTIONS", dialog, "UDP");
@@ -683,7 +683,7 @@ generating_options_within_dialog(osip_msg_t **options, dialog_t *dialog, char *s
 }
 
 int
-generating_info(osip_msg_t **info, dialog_t *dialog)
+generating_info(osip_message_t **info, osip_dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(info, "INFO", dialog, "UDP");
@@ -694,10 +694,10 @@ generating_info(osip_msg_t **info, dialog_t *dialog)
 
 /* It is RECOMMENDED to only cancel INVITE request */
 int
-generating_cancel(osip_msg_t **dest, osip_msg_t *request_cancelled)
+generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
 {
   int i;
-  osip_msg_t *request;
+  osip_message_t *request;
   
   i = msg_init(&request);
   if (i!=0) return -1;
@@ -708,44 +708,44 @@ generating_cancel(osip_msg_t **dest, osip_msg_t *request_cancelled)
   msg_setstatuscode(request, NULL);
   msg_setreasonphrase(request, NULL);
 
-  i = url_clone(request_cancelled->strtline->rquri, &(request->strtline->rquri));
+  i = osip_uri_clone(request_cancelled->strtline->rquri, &(request->strtline->rquri));
   if (i!=0) goto gc_error_1;
   
-  i = to_clone(request_cancelled->to, &(request->to));
+  i = osip_to_clone(request_cancelled->to, &(request->to));
   if (i!=0) goto gc_error_1;
-  i = from_clone(request_cancelled->from, &(request->from));
+  i = osip_from_clone(request_cancelled->from, &(request->from));
   if (i!=0) goto gc_error_1;
   
   /* set the cseq and call_id header */
-  i = call_id_clone(request_cancelled->call_id, &(request->call_id));
+  i = osip_call_id_clone(request_cancelled->call_id, &(request->call_id));
   if (i!=0) goto gc_error_1;
-  i = cseq_clone(request_cancelled->cseq, &(request->cseq));
+  i = osip_cseq_clone(request_cancelled->cseq, &(request->cseq));
   if (i!=0) goto gc_error_1;
   sfree(request->cseq->method);
   request->cseq->method = sgetcopy("CANCEL");
   
   /* copy ONLY the top most Via Field (this method is also used by proxy) */
   {
-    via_t *via;
-    via_t *via2;
+    osip_via_t *via;
+    osip_via_t *via2;
     i = msg_getvia(request_cancelled, 0, &via);
     if (i!=0) goto gc_error_1;
-    i = via_clone(via, &via2);
+    i = osip_via_clone(via, &via2);
     if (i!=0) goto gc_error_1;
-    list_add(request->vias, via2, -1);
+    osip_list_add(request->vias, via2, -1);
   }
 
   /* add the same route-set than in the previous request */
   {
     int pos=0;
-    route_t *route;
-    route_t *route2;
-    while (!list_eol(request_cancelled->routes, pos))
+    osip_route_t *route;
+    osip_route_t *route2;
+    while (!osip_list_eol(request_cancelled->routes, pos))
       {
-	route = (route_t*) list_get(request_cancelled->routes, pos);
-	i = route_clone(route, &route2);
+	route = (osip_route_t*) osip_list_get(request_cancelled->routes, pos);
+	i = osip_route_clone(route, &route2);
 	if (i!=0) goto gc_error_1;
-	list_add(request->routes, route2, -1);
+	osip_list_add(request->routes, route2, -1);
 	pos++;
       }
   }
@@ -765,7 +765,7 @@ generating_cancel(osip_msg_t **dest, osip_msg_t *request_cancelled)
 
 
 int
-generating_ack_for_2xx(osip_msg_t **ack, dialog_t *dialog)
+generating_ack_for_2xx(osip_message_t **ack, osip_dialog_t *dialog)
 {
   int i;
   i = _eXosip_build_request_within_dialog(ack, "ACK", dialog, "UDP");

@@ -40,11 +40,11 @@ int eXosip_call_find(int cid, eXosip_call_t **jc)
   return -1;
 }
 
-transaction_t *
-eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
+osip_transaction_t *
+eXosip_find_last_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 {
-  transaction_t *inc_tr;
-  transaction_t *out_tr;
+  osip_transaction_t *inc_tr;
+  osip_transaction_t *out_tr;
   inc_tr = eXosip_find_last_inc_invite(jc, jd);
   out_tr = eXosip_find_last_inc_invite(jc, jd);
   if (inc_tr==NULL)
@@ -57,18 +57,18 @@ eXosip_find_last_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
   return out_tr;
 }
 
-transaction_t *
-eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
+osip_transaction_t *
+eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 {
-  transaction_t *inc_tr;
+  osip_transaction_t *inc_tr;
   int pos;
   inc_tr = NULL;
   pos=0;
   if (jd!=NULL)
     {
-      while (!list_eol(jd->d_inc_trs, pos))
+      while (!osip_list_eol(jd->d_inc_trs, pos))
 	{
-	  inc_tr = list_get(jd->d_inc_trs, pos);
+	  inc_tr = osip_list_get(jd->d_inc_trs, pos);
 	  if (0==strcmp(inc_tr->cseq->method, "INVITE"))
 	    break;
 	  else inc_tr = NULL;
@@ -84,10 +84,10 @@ eXosip_find_last_inc_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
   return inc_tr;
 }
 
-transaction_t *
-eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
+osip_transaction_t *
+eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 {
-  transaction_t *out_tr;
+  osip_transaction_t *out_tr;
   int pos;
   out_tr = NULL;
   pos=0;
@@ -95,9 +95,9 @@ eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
 
   if (jd!=NULL)
     {
-      while (!list_eol(jd->d_out_trs, pos))
+      while (!osip_list_eol(jd->d_out_trs, pos))
 	{
-	  out_tr = list_get(jd->d_out_trs, pos);
+	  out_tr = osip_list_get(jd->d_out_trs, pos);
 	  if (0==strcmp(out_tr->cseq->method, "INVITE"))
 	    break;
 	  else out_tr = NULL;
@@ -111,18 +111,18 @@ eXosip_find_last_out_invite(eXosip_call_t *jc, eXosip_dialog_t *jd )
   return out_tr;
 }
 
-transaction_t *
-eXosip_find_last_inc_bye(eXosip_call_t *jc, eXosip_dialog_t *jd )
+osip_transaction_t *
+eXosip_find_last_inc_bye(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 {
-  transaction_t *inc_tr;
+  osip_transaction_t *inc_tr;
   int pos;
   inc_tr = NULL;
   pos=0;
   if (jd!=NULL)
     {
-      while (!list_eol(jd->d_inc_trs, pos))
+      while (!osip_list_eol(jd->d_inc_trs, pos))
 	{
-	  inc_tr = list_get(jd->d_inc_trs, pos);
+	  inc_tr = osip_list_get(jd->d_inc_trs, pos);
 	  if (0==strcmp(inc_tr->cseq->method, "BYE"))
 	    return inc_tr;
 	  pos++;
@@ -132,18 +132,18 @@ eXosip_find_last_inc_bye(eXosip_call_t *jc, eXosip_dialog_t *jd )
   return NULL;
 }
 
-transaction_t *
-eXosip_find_last_out_bye(eXosip_call_t *jc, eXosip_dialog_t *jd )
+osip_transaction_t *
+eXosip_find_last_out_bye(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 {
-  transaction_t *out_tr;
+  osip_transaction_t *out_tr;
   int pos;
   out_tr = NULL;
   pos=0;
   if (jd!=NULL)
     {
-      while (!list_eol(jd->d_out_trs, pos))
+      while (!osip_list_eol(jd->d_out_trs, pos))
 	{
-	  out_tr = list_get(jd->d_out_trs, pos);
+	  out_tr = osip_list_get(jd->d_out_trs, pos);
 	  if (0==strcmp(out_tr->cseq->method, "BYE"))
 	    return out_tr;
 	  pos++;
@@ -153,18 +153,18 @@ eXosip_find_last_out_bye(eXosip_call_t *jc, eXosip_dialog_t *jd )
   return NULL;
 }
 
-transaction_t *
-eXosip_find_last_inc_refer(eXosip_call_t *jc, eXosip_dialog_t *jd )
+osip_transaction_t *
+eXosip_find_last_inc_refer(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 {
-  transaction_t *inc_tr;
+  osip_transaction_t *inc_tr;
   int pos;
   inc_tr = NULL;
   pos=0;
   if (jd!=NULL)
     {
-      while (!list_eol(jd->d_inc_trs, pos))
+      while (!osip_list_eol(jd->d_inc_trs, pos))
 	{
-	  inc_tr = list_get(jd->d_inc_trs, pos);
+	  inc_tr = osip_list_get(jd->d_inc_trs, pos);
 	  if (0==strcmp(inc_tr->cseq->method, "REFER"))
 	    return inc_tr;
 	  pos++;
@@ -174,18 +174,18 @@ eXosip_find_last_inc_refer(eXosip_call_t *jc, eXosip_dialog_t *jd )
   return NULL;
 }
 
-transaction_t *
-eXosip_find_last_out_refer(eXosip_call_t *jc, eXosip_dialog_t *jd )
+osip_transaction_t *
+eXosip_find_last_out_refer(eXosip_call_t *jc, eXosip_osip_dialog_t *jd )
 {
-  transaction_t *out_tr;
+  osip_transaction_t *out_tr;
   int pos;
   out_tr = NULL;
   pos=0;
   if (jd!=NULL)
     {
-      while (!list_eol(jd->d_out_trs, pos))
+      while (!osip_list_eol(jd->d_out_trs, pos))
 	{
-	  out_tr = list_get(jd->d_out_trs, pos);
+	  out_tr = osip_list_get(jd->d_out_trs, pos);
 	  if (0==strcmp(out_tr->cseq->method, "REFER"))
 	    return out_tr;
 	  pos++;

@@ -34,16 +34,16 @@ eXosip_build_response_default(int jid, int status)
 }
 
 int
-_eXosip_build_response_default(osip_msg_t **dest, dialog_t *dialog,
-			     int status, osip_msg_t *request)
+_eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
+			     int status, osip_message_t *request)
 {
-  generic_param_t *tag;
-  osip_msg_t *response;
+  osip_generic_param_t *tag;
+  osip_message_t *response;
   int pos;
   int i;
 
   i = msg_init(&response);
-  /* initialise osip_msg_t structure */
+  /* initialise osip_message_t structure */
   /* yet done... */
 
   response->strtline->sipversion = (char *)smalloc(8*sizeof(char));
@@ -61,41 +61,41 @@ _eXosip_build_response_default(osip_msg_t **dest, dialog_t *dialog,
   response->strtline->rquri     = NULL;
   response->strtline->sipmethod = NULL;
 
-  i = to_clone(request->to, &(response->to));
+  i = osip_to_clone(request->to, &(response->to));
   if (i!=0) goto grd_error_1;
 
 
-  i = to_get_tag(response->to,&tag);
+  i = osip_to_get_tag(response->to,&tag);
   if (i!=0)
     {  /* we only add a tag if it does not already contains one! */
       if ((dialog!=NULL) && (dialog->local_tag!=NULL))
 	/* it should contain the local TAG we created */
-	{ to_set_tag(response->to, sgetcopy(dialog->local_tag)); }
+	{ osip_to_set_tag(response->to, sgetcopy(dialog->local_tag)); }
       else
 	{
 	  if (status!=100)
-	    to_set_tag(response->to, to_tag_new_random());
+	    osip_to_set_tag(response->to, osip_to_tag_new_random());
 	}
     }
 
-  i = from_clone(request->from, &(response->from));
+  i = osip_from_clone(request->from, &(response->from));
   if (i!=0) goto grd_error_1;
 
   pos = 0;
-  while (!list_eol(request->vias,pos))
+  while (!osip_list_eol(request->vias,pos))
     {
-      via_t *via;
-      via_t *via2;
-      via = (via_t *)list_get(request->vias,pos);
-      i = via_clone(via, &via2);
+      osip_via_t *via;
+      osip_via_t *via2;
+      via = (osip_via_t *)osip_list_get(request->vias,pos);
+      i = osip_via_clone(via, &via2);
       if (i!=-0) goto grd_error_1;
-      list_add(response->vias, via2, -1);
+      osip_list_add(response->vias, via2, -1);
       pos++;
     }
 
-  i = call_id_clone(request->call_id, &(response->call_id));
+  i = osip_call_id_clone(request->call_id, &(response->call_id));
   if (i!=0) goto grd_error_1;
-  i = cseq_clone(request->cseq, &(response->cseq));
+  i = osip_cseq_clone(request->cseq, &(response->cseq));
   if (i!=0) goto grd_error_1;
     
   *dest = response;
@@ -107,7 +107,7 @@ _eXosip_build_response_default(osip_msg_t **dest, dialog_t *dialog,
 }
 
 int
-complete_answer_that_establish_a_dialog(osip_msg_t *response, osip_msg_t *request, char *contact)
+complete_answer_that_establish_a_dialog(osip_message_t *response, osip_message_t *request, char *contact)
 {
   int i;
   int pos=0;
@@ -115,14 +115,14 @@ complete_answer_that_establish_a_dialog(osip_msg_t *response, osip_msg_t *reques
      copy all record-route in response
      add a contact with global scope
   */
-  while (!list_eol(request->record_routes, pos))
+  while (!osip_list_eol(request->record_routes, pos))
     {
-      record_route_t *rr;
-      record_route_t *rr2;
-      rr = list_get(request->record_routes, pos);
-      i = record_route_clone(rr, &rr2);
+      osip_record_osip_route_t *rr;
+      osip_record_osip_route_t *rr2;
+      rr = osip_list_get(request->record_routes, pos);
+      i = osip_record_osip_route_clone(rr, &rr2);
       if (i!=0) return -1;
-      list_add(response->record_routes, rr2, -1);
+      osip_list_add(response->record_routes, rr2, -1);
       pos++;
     }
   msg_setcontact(response, contact);
@@ -130,44 +130,44 @@ complete_answer_that_establish_a_dialog(osip_msg_t *response, osip_msg_t *reques
 }
 
 char *
-generating_sdp_answer(osip_msg_t *request)
+generating_sdp_answer(osip_message_t *request)
 {
-  sdp_context_t *context;
-  sdp_t *remote_sdp;
-  sdp_t *local_sdp = NULL;
+  sdp_negociation_ctx_t *context;
+  sdp_message_t *remote_sdp;
+  sdp_message_t *local_sdp = NULL;
   int i;
   char *local_body;
   local_body = NULL;
   if (MSG_IS_INVITE(request)||MSG_IS_OPTIONS(request))
     {
-      body_t *body;
-      body = (body_t *)list_get(request->bodies,0);
+      osip_body_t *body;
+      body = (osip_body_t *)osip_list_get(request->bodies,0);
       
-      /* remote_sdp = (sdp_t *) smalloc(sizeof(sdp_t)); */
-      i = sdp_init(&remote_sdp);
+      /* remote_sdp = (sdp_message_t *) smalloc(sizeof(sdp_message_t)); */
+      i = sdp_message_init(&remote_sdp);
       if (i!=0) return NULL;
       
       /* WE ASSUME IT IS A SDP BODY AND THAT    */
       /* IT IS THE ONLY ONE, OF COURSE, THIS IS */
       /* NOT TRUE */
-      i = sdp_parse(remote_sdp,body->body);
+      i = sdp_message_parse(remote_sdp,body->body);
       if (i!=0) return NULL;      
 
-      i = sdp_context_init(&context);
+      i = sdp_negociation_ctx_init(&context);
       if (i!=0)
 	{
-	  sdp_free(remote_sdp);
+	  sdp_message_free(remote_sdp);
 	  return NULL;
 	}
-      i = sdp_context_set_remote_sdp(context, remote_sdp);
+      i = sdp_negociation_ctx_set_remote_sdp(context, remote_sdp);
 
-      i = sdp_context_execute_negociation(context);
+      i = sdp_negociation_ctx_execute_negociation(context);
       if (i==200)
 	{
-	  local_sdp = sdp_context_get_local_sdp(context);
-	  i = sdp_2char(local_sdp, &local_body);
+	  local_sdp = sdp_negociation_ctx_get_local_sdp(context);
+	  i = sdp_message_2char(local_sdp, &local_body);
 
-	  sdp_context_free(context);
+	  sdp_negociation_ctx_free(context);
 	  if (i!=0) {
 	    OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: Could not parse local SDP answer %i\n",i));
 	    return NULL;
@@ -182,15 +182,15 @@ generating_sdp_answer(osip_msg_t *request)
 	{
 	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,"ERROR: while building answer to SDP (%i)\n",i));
 	}
-      sdp_context_free(context);
+      sdp_negociation_ctx_free(context);
     } 
   return NULL;
 }
 
 void
-generating_1xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
+generating_1xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t *tr, int code)
 {
-  osip_msg_t *response;
+  osip_message_t *response;
   int i;
 
   i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
@@ -206,9 +206,9 @@ generating_1xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
 }
 
 void
-generating_2xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
+generating_2xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t *tr, int code)
 {
-  osip_msg_t *response;
+  osip_message_t *response;
   int i;
   char *size;
   char *body;
@@ -265,9 +265,9 @@ generating_2xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
 }
 
 void
-generating_3456xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int code)
+generating_3456xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t *tr, int code)
 {
-  osip_msg_t *response;
+  osip_message_t *response;
   int i;
   i = _eXosip_build_response_default(&response, dialog, code, tr->orig_request);
   if (i!=0)
@@ -289,12 +289,12 @@ generating_3456xx_answer_to_options(dialog_t *dialog, transaction_t *tr, int cod
 }
 
 void
-eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
+eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
-  osip_msg_t *response;
+  osip_message_t *response;
   int i;
-  transaction_t *tr;
+  osip_transaction_t *tr;
   tr = eXosip_find_last_inc_invite(jc, jd);
   if (tr==NULL)
     {
@@ -342,20 +342,20 @@ eXosip_answer_invite_1xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer = osip_new_outgoing_sipmessage(response);
   evt_answer->transactionid = tr->transactionid;
 
-  transaction_add_event(tr, evt_answer);
+  osip_transaction_add_event(tr, evt_answer);
   
   return ;
 }
 
 void
-eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
+eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
-  osip_msg_t *response;
+  osip_message_t *response;
   int i;
   char *size;
   char *body;
-  transaction_t *tr;
+  osip_transaction_t *tr;
   tr = eXosip_find_last_inc_invite(jc, jd);
 
   if (tr==NULL || tr->orig_request==NULL)
@@ -395,7 +395,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
       sfree(body);      
       evt_answer = osip_new_outgoing_sipmessage(response);
       evt_answer->transactionid = tr->transactionid;
-      transaction_add_event(tr, evt_answer);
+      osip_transaction_add_event(tr, evt_answer);
       return;
     }
 
@@ -451,9 +451,9 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer = osip_new_outgoing_sipmessage(response);
   evt_answer->transactionid = tr->transactionid;
 
-  transaction_add_event(tr, evt_answer);
+  osip_transaction_add_event(tr, evt_answer);
 
-  dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
+  osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
   return ;
 
  g2atii_error_1:
@@ -463,12 +463,12 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 }
 
 void
-eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
+eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_osip_dialog_t *jd, int code)
 {
   osip_event_t *evt_answer;
-  osip_msg_t *response;
+  osip_message_t *response;
   int i;
-  transaction_t *tr;
+  osip_transaction_t *tr;
   tr = eXosip_find_last_inc_invite(jc, jd);
   if (tr==NULL)
     {
@@ -494,7 +494,7 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
   evt_answer = osip_new_outgoing_sipmessage(response);
   evt_answer->transactionid = tr->transactionid;
 
-  transaction_add_event(tr, evt_answer);
+  osip_transaction_add_event(tr, evt_answer);
   return ;
 }
 

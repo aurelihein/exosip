@@ -37,7 +37,7 @@
 
 extern eXosip_t eXosip;
 
-int cb_udp_snd_message(transaction_t *tr, osip_msg_t *sip, char *host,
+int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
 		       int port, int out_socket)
 {
   static int num = 0;
@@ -116,7 +116,7 @@ int cb_udp_snd_message(transaction_t *tr, osip_msg_t *sip, char *host,
   
 }
 
-void cb_ict_kill_transaction(int type, transaction_t *tr)
+void cb_ict_kill_transaction(int type, osip_transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_ict_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -128,7 +128,7 @@ void cb_ict_kill_transaction(int type, transaction_t *tr)
     }
 }
 
-void cb_ist_kill_transaction(int type, transaction_t *tr)
+void cb_ist_kill_transaction(int type, osip_transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_ist_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -139,7 +139,7 @@ void cb_ist_kill_transaction(int type, transaction_t *tr)
     }
 }
 
-void cb_nict_kill_transaction(int type, transaction_t *tr)
+void cb_nict_kill_transaction(int type, osip_transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_nict_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -150,7 +150,7 @@ void cb_nict_kill_transaction(int type, transaction_t *tr)
     }
 }
 
-void cb_nist_kill_transaction(int type, transaction_t *tr)
+void cb_nist_kill_transaction(int type, osip_transaction_t *tr)
 {
   int i;
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_nist_kill_transaction (id=%i)\r\n", tr->transactionid));
@@ -161,112 +161,112 @@ void cb_nist_kill_transaction(int type, transaction_t *tr)
     }
 }
   
-void cb_rcvinvite  (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvinvite  (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvinvite (id=%i)\n", tr->transactionid));
 }
 
-void cb_rcvack     (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvack     (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvack (id=%i)\n", tr->transactionid));
 }
 
-void cb_rcvack2    (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvack2    (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvack2 (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_rcvregister(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvregister(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvbye (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvbye     (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvbye     (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvbye (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvcancel  (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvcancel  (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvcancel (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvinfo    (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvinfo    (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvinfo (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvoptions (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvoptions (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvoptions (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvnotify  (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvnotify  (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvnotify (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvsubscribe (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvsubscribe (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvsubscribe (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvunkrequest(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcvunkrequest(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvunkrequest (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndinvite  (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndinvite  (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndinvite (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndack     (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndack     (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndack (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_sndregister(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndregister(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndregister (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndbye     (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndbye     (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndbye (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndcancel  (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndcancel  (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndcancel (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndinfo    (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndinfo    (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndinfo (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndoptions (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndoptions (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndoptions (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndnotify  (int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndnotify  (int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndnotify (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndsubscribe(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndsubscribe(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndsubscibe (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndunkrequest(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_sndunkrequest(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndunkrequest (id=%i)\r\n", tr->transactionid));
 }
 
-jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd)
+jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_osip_dialog_t *jd)
 {
   jinfo_t *ji = (jinfo_t *) smalloc(sizeof(jinfo_t));
   if (ji==NULL) return NULL;
@@ -275,11 +275,11 @@ jinfo_t *new_jinfo(eXosip_call_t *jc, eXosip_dialog_t *jd)
   return ji;
 }
 
-void cb_rcv1xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv1xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -301,11 +301,11 @@ void cb_rcv1xx(int type, transaction_t *tr,osip_msg_t *sip)
 
 	  ADD_ELEMENT(jc->c_dialogs, jd);
 	  jinfo->jd = jd;
-	  transaction_set_your_instance(tr, jinfo);
+	  osip_transaction_set_your_instance(tr, jinfo);
 	}
       else
 	{
-	  dialog_update_route_set_as_uac(jd->d_dialog, sip);
+	  osip_dialog_update_osip_route_set_as_uac(jd->d_dialog, sip);
 	}
       if ( jd!=NULL)
 	jd->d_STATE = JD_TRYING;
@@ -323,11 +323,11 @@ void cb_rcv1xx(int type, transaction_t *tr,osip_msg_t *sip)
 }
 
 
-sdp_t *eXosip_get_remote_sdp(transaction_t *transaction)
+sdp_message_t *eXosip_get_remote_sdp(osip_transaction_t *transaction)
 {
-  osip_msg_t *message;
-  body_t *body;
-  sdp_t *sdp;
+  osip_message_t *message;
+  osip_body_t *body;
+  sdp_message_t *sdp;
   int pos = 0;
   int i;
   if (transaction->ist_context!=NULL)
@@ -338,28 +338,28 @@ sdp_t *eXosip_get_remote_sdp(transaction_t *transaction)
     message = transaction->last_response;
 
   sdp=NULL;
-  body = (body_t *)list_get(message->bodies,0);
+  body = (osip_body_t *)osip_list_get(message->bodies,0);
   while (body!=NULL)
     {
-      i = sdp_init(&sdp);
+      i = sdp_message_init(&sdp);
       if (i!=0)
 	{ sdp = NULL; break; }
-      i = sdp_parse(sdp,body->body);
+      i = sdp_message_parse(sdp,body->body);
       if (i==0)
 	return sdp;
-      sdp_free(sdp);
+      sdp_message_free(sdp);
       sdp = NULL;
       pos++;
-      body = (body_t *)list_get(message->bodies,pos);
+      body = (osip_body_t *)osip_list_get(message->bodies,pos);
     }
   return NULL;
 }
 
-sdp_t *eXosip_get_local_sdp(transaction_t *transaction)
+sdp_message_t *eXosip_get_local_sdp(osip_transaction_t *transaction)
 {
-  osip_msg_t *message;
-  body_t *body;
-  sdp_t *sdp;
+  osip_message_t *message;
+  osip_body_t *body;
+  sdp_message_t *sdp;
   int i;
   int pos = 0;
   if (transaction->ict_context!=NULL)
@@ -370,28 +370,28 @@ sdp_t *eXosip_get_local_sdp(transaction_t *transaction)
     message = transaction->last_response;
 
   sdp=NULL;
-  body = (body_t *)list_get(message->bodies,0);
+  body = (osip_body_t *)osip_list_get(message->bodies,0);
   while (body!=NULL)
     {
-      i = sdp_init(&sdp);
+      i = sdp_message_init(&sdp);
       if (i!=0)
 	{ sdp = NULL; break; }
-      i = sdp_parse(sdp,body->body);
+      i = sdp_message_parse(sdp,body->body);
       if (i==0)
 	return sdp;
-      sdp_free(sdp);
+      sdp_message_free(sdp);
       sdp = NULL;
       pos++;
-      body = (body_t *)list_get(message->bodies,pos);
+      body = (osip_body_t *)osip_list_get(message->bodies,pos);
     }
   return NULL;
 }
 
-void eXosip_update_audio_session(transaction_t *transaction)
+void eXosip_update_audio_session(osip_transaction_t *transaction)
 {
   char *remaddr;
-  sdp_t *remote_sdp;
-  sdp_t *local_sdp;
+  sdp_message_t *remote_sdp;
+  sdp_message_t *local_sdp;
   char *remote_port;
   char *local_port;
   char *payload;
@@ -405,26 +405,26 @@ void eXosip_update_audio_session(transaction_t *transaction)
   local_sdp = eXosip_get_local_sdp(transaction);
   if (local_sdp==NULL)
     {
-      sdp_free(remote_sdp);
+      sdp_message_free(remote_sdp);
       return ;
     }
-  remaddr=sdp_c_addr_get(remote_sdp,-1,0);
+  remaddr=sdp_message_c_addr_get(remote_sdp,-1,0);
   if (remaddr==NULL){
-    remaddr=sdp_c_addr_get(remote_sdp,0,0);
+    remaddr=sdp_message_c_addr_get(remote_sdp,0,0);
   }
 
   pos=0;
-  local_port=sdp_m_port_get(local_sdp,pos);
-  media_type = sdp_m_media_get(local_sdp,pos);
+  local_port=sdp_message_m_port_get(local_sdp,pos);
+  media_type = sdp_message_m_media_get(local_sdp,pos);
   while ((local_port!=NULL&&media_type!=NULL)&&
 	 (0==strncmp(local_port,"0", 1)||0!=strcmp(media_type,"audio")))
     { /* If we have refused some media lines, the port is set to 0 */
       pos++;
-      media_type = sdp_m_media_get(local_sdp,pos);
-      local_port=sdp_m_port_get(local_sdp,pos);
+      media_type = sdp_message_m_media_get(local_sdp,pos);
+      local_port=sdp_message_m_port_get(local_sdp,pos);
     }
-  remote_port = sdp_m_port_get(remote_sdp,pos);
-  payload = sdp_m_payload_get(local_sdp,pos,0);
+  remote_port = sdp_message_m_port_get(remote_sdp,pos);
+  payload = sdp_message_m_payload_get(local_sdp,pos,0);
   if (remote_port!=NULL && media_type!=NULL) /* if codec has been found */
     {
       int i;
@@ -442,16 +442,16 @@ void eXosip_update_audio_session(transaction_t *transaction)
     {
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"Could not create audio session.\r\n"));
     }
-  sdp_free(local_sdp);
-  sdp_free(remote_sdp);
+  sdp_message_free(local_sdp);
+  sdp_message_free(remote_sdp);
 }
 
-void cb_rcv2xx_4invite(transaction_t *tr,osip_msg_t *sip)
+void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 {
   int i;
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   if (jinfo==NULL)
     return;
   jd = jinfo->jd;
@@ -468,12 +468,12 @@ void cb_rcv2xx_4invite(transaction_t *tr,osip_msg_t *sip)
 	}
       ADD_ELEMENT(jc->c_dialogs, jd);
       jinfo->jd = jd;
-      transaction_set_your_instance(tr, jinfo);
+      osip_transaction_set_your_instance(tr, jinfo);
     }
   else
     {
-      dialog_update_route_set_as_uac(jd->d_dialog, sip);
-      dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
+      osip_dialog_update_osip_route_set_as_uac(jd->d_dialog, sip);
+      osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
     }
 
 
@@ -482,10 +482,10 @@ void cb_rcv2xx_4invite(transaction_t *tr,osip_msg_t *sip)
   eXosip_dialog_set_200ok(jd, sip);
 
   {
-    route_t *route;
+    osip_route_t *route;
     char *host;
     int port;
-    osip_msg_t *ack;
+    osip_message_t *ack;
     i = _eXosip_build_request_within_dialog(&ack, "ACK", jd->d_dialog, "UDP");
     if (i!=0) {
       jd->d_STATE = JD_ESTABLISHED;
@@ -523,11 +523,11 @@ void cb_rcv2xx_4invite(transaction_t *tr,osip_msg_t *sip)
 
 }
 
-void cb_rcv2xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcv2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv2xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -544,7 +544,7 @@ void cb_rcv2xx(int type, transaction_t *tr,osip_msg_t *sip)
     }
 }
 
-void eXosip_delete_early_dialog(eXosip_dialog_t *jd)
+void eXosip_delete_early_dialog(eXosip_osip_dialog_t *jd)
 {
   if (jd == NULL) /* bug? */
       return;
@@ -552,17 +552,17 @@ void eXosip_delete_early_dialog(eXosip_dialog_t *jd)
   /* an early dialog was created, but the call is not established */
   if (jd->d_dialog!=NULL && jd->d_dialog->state==DIALOG_EARLY)
     {
-      dialog_free(jd->d_dialog);
+      osip_dialog_free(jd->d_dialog);
       jd->d_dialog = NULL;
-      eXosip_dialog_set_state(jd, JD_TERMINATED);
+      eXosip_osip_dialog_set_state(jd, JD_TERMINATED);
     }    
 }
 
-void cb_rcv3xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcv3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv3xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL) return;
   jd = jinfo->jd;
@@ -576,11 +576,11 @@ void cb_rcv3xx(int type, transaction_t *tr,osip_msg_t *sip)
     }
 }
 
-void cb_rcv4xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcv4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv4xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -597,11 +597,11 @@ void cb_rcv4xx(int type, transaction_t *tr,osip_msg_t *sip)
     }
 }
 
-void cb_rcv5xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcv5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv5xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -616,11 +616,11 @@ void cb_rcv5xx(int type, transaction_t *tr,osip_msg_t *sip)
 
 }
 
-void cb_rcv6xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_rcv6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcv6xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -635,11 +635,11 @@ void cb_rcv6xx(int type, transaction_t *tr,osip_msg_t *sip)
 
 }
 
-void cb_snd1xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_snd1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_snd1xx (id=%i)\r\n", tr->transactionid));
 
   if (jinfo==NULL)
@@ -650,11 +650,11 @@ void cb_snd1xx(int type, transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_TRYING;
 }
 
-void cb_snd2xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_snd2xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_snd2xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -669,11 +669,11 @@ void cb_snd2xx(int type, transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_ESTABLISHED;
 }
 
-void cb_snd3xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_snd3xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_snd3xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -687,11 +687,11 @@ void cb_snd3xx(int type, transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_REDIRECTED;
 }
 
-void cb_snd4xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_snd4xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_snd4xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -705,11 +705,11 @@ void cb_snd4xx(int type, transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_CLIENTERROR;
 }
 
-void cb_snd5xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_snd5xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_snd5xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -723,11 +723,11 @@ void cb_snd5xx(int type, transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_SERVERERROR;
 }
 
-void cb_snd6xx(int type, transaction_t *tr,osip_msg_t *sip)
+void cb_snd6xx(int type, osip_transaction_t *tr,osip_message_t *sip)
 {
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
   eXosip_call_t *jc;
-  jinfo_t *jinfo =  (jinfo_t *)transaction_get_your_instance(tr);
+  jinfo_t *jinfo =  (jinfo_t *)osip_transaction_get_your_instance(tr);
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_snd6xx (id=%i)\r\n", tr->transactionid));
   if (jinfo==NULL)
     return;
@@ -741,37 +741,37 @@ void cb_snd6xx(int type, transaction_t *tr,osip_msg_t *sip)
   jd->d_STATE = JD_GLOBALFAILURE;
 }
 
-void cb_rcvresp_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
+void cb_rcvresp_retransmission(int type, osip_transaction_t *tr, osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvresp_retransmission (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndreq_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
+void cb_sndreq_retransmission(int type, osip_transaction_t *tr, osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndreq_retransmission (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_sndresp_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
+void cb_sndresp_retransmission(int type, osip_transaction_t *tr, osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_sndresp_retransmission (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_rcvreq_retransmission(int type, transaction_t *tr, osip_msg_t *sip)
+void cb_rcvreq_retransmission(int type, osip_transaction_t *tr, osip_message_t *sip)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_rcvreq_retransmission (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_killtransaction(int type, transaction_t *tr)
+void cb_killtransaction(int type, osip_transaction_t *tr)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_killtransaction (id=%i)\r\n", tr->transactionid));
 }
 
-void cb_endoftransaction(int type, transaction_t *tr)
+void cb_endoftransaction(int type, osip_transaction_t *tr)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_endoftransaction (id=%i)\r\n", tr->transactionid));
 }
   
-void cb_transport_error(int type, transaction_t *tr, int error)
+void cb_transport_error(int type, osip_transaction_t *tr, int error)
 {
   OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"cb_transport_error (id=%i)\r\n", tr->transactionid));
 }

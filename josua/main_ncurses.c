@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.3 2003-03-18 09:56:50 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.4 2003-03-23 23:58:55 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -503,7 +503,7 @@ struct colordata color[]= {
 int use_color = 0; /* 0: yes,      1: no */
 
 /*
-  jmosip_msg_t *jmsip_context;
+  jmosip_message_t *jmsip_context;
 */
 
 static int cursesareon= 0;
@@ -721,7 +721,7 @@ void print_calls()
   int yline;
   int y,x;
   eXosip_call_t *jc;
-  eXosip_dialog_t *jd;
+  eXosip_osip_dialog_t *jd;
 
   cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
   getmaxyx(stdscr,y,x);
@@ -741,7 +741,7 @@ void print_calls()
 	    {
 	      if (jd->d_dialog->state==DIALOG_EARLY)
 		{
-		  to_2char(jd->d_dialog->remote_uri, &tmp);
+		  osip_to_2char(jd->d_dialog->remote_uri, &tmp);
 		  sprintf(buf,"C%i D%i: Pending Call To: %-80.80s\n",
 			  jc->c_id, jd->d_id,
 			  tmp);
@@ -749,7 +749,7 @@ void print_calls()
 		}
 	      else /* if (jd->d_dialog->state!=DIALOG_EARLY) */
 		{
-		  to_2char(jd->d_dialog->remote_uri, &tmp);
+		  osip_to_2char(jd->d_dialog->remote_uri, &tmp);
 		  sprintf(buf,"C%i D%i: Established Call To: %-80.80s\n",
 			  jc->c_id, jd->d_id,
 			  tmp);
@@ -766,7 +766,7 @@ void print_calls()
 	}
       if (jc->c_dialogs==NULL)
 	{
-	  transaction_t *tr = jc->c_out_tr;
+	  osip_transaction_t *tr = jc->c_out_tr;
 	  char *tmp;
 	  if (tr==NULL)
 	    {
@@ -776,11 +776,11 @@ void print_calls()
 		  eXosip_unlock();
 		  return;
 		}
-	      from_2char(tr->orig_request->from, &tmp);
+	      osip_from_2char(tr->orig_request->from, &tmp);
 	    }
 	  if (tr->orig_request==NULL) /* info not yet available */
 	    {}
-	  else to_2char(tr->orig_request->to, &tmp);
+	  else osip_to_2char(tr->orig_request->to, &tmp);
 
 	  sprintf(buf,"C%i D-1: with: %-80.80s\n", jc->c_id, tmp);
 	  sfree(tmp);
@@ -1149,7 +1149,7 @@ void __josua_menu() {
 typedef struct _main_config_t {
   char  config_file[256];    /* -f <config file>   */
   char  identity_file[256];  /* -I <identity file> */
-  char  contact_file[256];   /* -C <contact file>  */
+  char  osip_contact_file[256];   /* -C <contact file>  */
   char  log_file[256];       /* -L <log file>      */
   int   debug_level;         /* -d <verbose level>   */
   int   port;                /* -p <SIP port>  default is 5060 */
@@ -1230,7 +1230,7 @@ int main(int argc, const char *const *argv) {
             snprintf(cfg.identity_file, 255, optarg);
             break;
           case 'C':
-            snprintf(cfg.contact_file, 255, optarg);
+            snprintf(cfg.osip_contact_file, 255, optarg);
             break;
           case 'L':
             snprintf(cfg.log_file, 255, optarg);
@@ -1340,7 +1340,7 @@ int main(int argc, const char *const *argv) {
 
   if (cfg.to[0]!='\0')
     { /* start a command line call, if needed */
-      osip_msg_t *invite;
+      osip_message_t *invite;
       i = eXosip_build_initial_invite(&invite,
 				      cfg.to,
 				      cfg.identity,
@@ -1367,7 +1367,7 @@ int main(int argc, const char *const *argv) {
 }
 
 void __josua_message() {
-  //  osip_msg_t *message;
+  //  osip_message_t *message;
   char buf[120];
 
   int c;
@@ -1425,7 +1425,7 @@ void __josua_message() {
 }
 
 void __josua_start_call() {
-  osip_msg_t *invite;
+  osip_message_t *invite;
   int i;
   char buf[120];
 
@@ -1624,8 +1624,8 @@ void __josua_register() {
 
 void __josua_setup() {
 
-  to_t *_to;
-  url_t *_url;
+  osip_to_t *_to;
+  osip_uri_t *_url;
   int c;
   int i;
 
@@ -1636,21 +1636,21 @@ void __josua_setup() {
   if (c!='y') return;
 
 
-  i = to_init(&_to);
+  i = osip_to_init(&_to);
   if (i!=0) return;
-  i = to_parse(_to, nctab_findvalue(&nctab_josuasetup,
+  i = osip_to_parse(_to, nctab_findvalue(&nctab_josuasetup,
 				    TABSIZE_JOSUASETUP,
 				    "identity"));
-  to_free(_to);
+  osip_to_free(_to);
   _to = NULL;
   if (i!=0) return;
 
-  i = url_init(&_url);
+  i = osip_uri_init(&_url);
   if (i!=0) return;
-  i = url_parse(_url, nctab_findvalue(&nctab_josuasetup,
+  i = osip_uri_parse(_url, nctab_findvalue(&nctab_josuasetup,
 				    TABSIZE_JOSUASETUP,
 				    "registrar"));
-  url_free(_url);
+  osip_uri_free(_url);
   _url = NULL;
   if (i!=0) return;
 

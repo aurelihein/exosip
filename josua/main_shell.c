@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.2 2003-03-18 09:56:50 aymeric Exp $";
+static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.3 2003-03-23 23:58:55 aymeric Exp $";
 
 #ifndef NCURSES_SUPPORT
 
@@ -45,7 +45,7 @@ static char rcsid[] = "main_shell:  $Id: main_shell.c,v 1.2 2003-03-18 09:56:50 
 
 #include "ppl_getopt.h"
 
-extern jmosip_msg_t jmsip;
+extern jmosip_message_t jmsip;
 
 
 
@@ -55,7 +55,7 @@ void __jmsip_answer_call(char *command);
 void __jmsip_on_hold_call(char *command);
 void __jmsip_bye_call(char *command);
 void __jmsip_cancel_call(char *command);
-void __jmosip_msg_transfert_call(char *command);
+void __jmosip_message_transfert_call(char *command);
 void __jmsip_setup(char *comman);
 void __jmsip_quit(char *command);
 void __jmsip_help(char *command);
@@ -65,9 +65,9 @@ void __jmsip_register(char *command);
 void show_dialog(int jid);              /* show call [jid]          */
 void show_dialog_caller(int jid);       /* show call caller [jid]   */
 void show_dialog_callee(int jid);       /* show call callee [jid]   */
-void list_dialog_info_header(int jid);  /* show call info   [jid]   */
-void list_dialog_contact(int jid);      /* show call contact [jid]  */
-void list_dialog_payloads(int jid);     /* show call payloads [jid] */
+void exosip_lst_dialog_info_header(int jid);  /* show call info   [jid]   */
+void exosip_lst_dialog_contact(int jid);      /* show call contact [jid]  */
+void exosip_lst_dialog_payloads(int jid);     /* show call payloads [jid] */
 
 /* some external methods */
 void *smalloc(size_t size);
@@ -161,7 +161,7 @@ void __jmsip_menu() {
           else if (strlen (tmp) >= 7 && 0 == strncmp (tmp, "cancel ", 7))
             __jmsip_cancel_call(tmp+7);
           else if (strlen (tmp) >= 6 && 0 == strncmp (tmp, "refer ", 6))
-            __jmosip_msg_transfert_call(tmp+6);
+            __jmosip_message_transfert_call(tmp+6);
           else if (strlen (tmp) >= 8 && 0 == strncmp (tmp, "message ", 8))
             __jmsip_message(tmp+8);
           else if (strlen (tmp) >= 9 && 0 == strncmp (tmp, "register ", 9))
@@ -188,7 +188,7 @@ void __jmsip_menu() {
 typedef struct _main_config_t {
   char  config_file[256];    /* -F <config file>   */
   char  identity_file[256];  /* -I <identity file> */
-  char  contact_file[256];   /* -C <contact file>  */
+  char  osip_contact_file[256];   /* -C <contact file>  */
   char  log_file[256];       /* -L <log file>      */
   int   debug_level;         /* -d <verbose level>   */
   int   port;                /* -p <SIP port>  default is 5060 */
@@ -273,7 +273,7 @@ int main(int argc, const char *const *argv) {
             snprintf(cfg.identity_file, 255, optarg);
             break;
           case 'C':
-            snprintf(cfg.contact_file, 255, optarg);
+            snprintf(cfg.osip_contact_file, 255, optarg);
             break;
           case 'L':
             snprintf(cfg.log_file, 255, optarg);
@@ -468,7 +468,7 @@ void __jmsip_message(char *command) {
 
 /* call <url> <subject> <route> */
 void __jmsip_start_call(char *command) {
-  osip_msg_t *invite;
+  osip_message_t *invite;
   char to[100];
   char subject[100];
   char route[100];
@@ -582,7 +582,7 @@ void __jmsip_bye_call(char *command) {
   if (c==-1) return;
 
   jmsip_lock();
-  jmosip_msg_terminate_call(c, i);
+  jmosip_message_terminate_call(c, i);
   jmsip_unlock();
 }
 
@@ -595,12 +595,12 @@ void __jmsip_cancel_call(char *command) {
   if (c==-1) return;
 
   jmsip_lock();
-  jmosip_msg_terminate_call(c, -1);
+  jmosip_message_terminate_call(c, -1);
   jmsip_unlock();
 }
 
 /* refer <jid> <sip_url> */
-void __jmosip_msg_transfert_call(char *command) {
+void __jmosip_message_transfert_call(char *command) {
   int c;
   char *tmp;
   char refer_to[121];
@@ -618,7 +618,7 @@ void __jmosip_msg_transfert_call(char *command) {
   if (c==-1) return;  
 
   jmsip_lock();
-  jmosip_msg_transfert_call(c, refer_to);
+  jmosip_message_transfert_call(c, refer_to);
   jmsip_unlock();
   
 }
@@ -757,7 +757,7 @@ static char *state_tab[] = {
   j->state must be set
   j->d_dialog must exist
   j->d_dialog->remote_uri must exist
-  j->d_dialog->remote_contact_uri must exist
+  j->d_dialog->remote_osip_contact_uri must exist
   j->d_200Ok must exist (or ack if SDP wasn't in INVITE))
   j->ack must exist
   j->audio_lines
@@ -765,7 +765,7 @@ static char *state_tab[] = {
 
 */
 
-void _show_dialog_state(jmsip_dialog_t *jd)       /* show call callee [jid] */
+void _show_dialog_state(jmsip_osip_dialog_t *jd)       /* show call callee [jid] */
 {
   if (0<=jd->d_STATE && jd->d_STATE<=JD_MAX)
     fprintf(jmsip.j_output, "\tState  :  %s\n", state_tab[jd->d_STATE]);
@@ -773,32 +773,32 @@ void _show_dialog_state(jmsip_dialog_t *jd)       /* show call callee [jid] */
     fprintf(jmsip.j_output, "\tState  :  **UNDEFINED**\n");
 }
 
-void _show_dialog_with(jmsip_dialog_t *jd)       /* show call callee [jid] */
+void _show_dialog_with(jmsip_osip_dialog_t *jd)       /* show call callee [jid] */
 {
   char *tmp;
   int i;
   if (jd->d_dialog==NULL)
     return ;
-  i = to_2char(jd->d_dialog->remote_uri, &tmp);
+  i = osip_to_2char(jd->d_dialog->remote_uri, &tmp);
   if (i!=0)
     fprintf(jmsip.j_output, "\tWith   :  %s\n", tmp);
   else
     fprintf(jmsip.j_output, "\tWith   :  **error in remote_uri**\n");
 }
 
-void _show_dialog_contact(jmsip_dialog_t *jd)       /* show call callee [jid] */
+void _show_dialog_contact(jmsip_osip_dialog_t *jd)       /* show call callee [jid] */
 {
   char *tmp;
   int i;
   if (jd->d_dialog==NULL)
     return ;
-  if (jd->d_dialog->remote_contact_uri==NULL)
+  if (jd->d_dialog->remote_osip_contact_uri==NULL)
     {
       fprintf(jmsip.j_output, "\tContact:  **unknown**\n");
       return ;
     }
 
-  i = contact_2char(jd->d_dialog->remote_contact_uri, &tmp);
+  i = osip_contact_2char(jd->d_dialog->remote_osip_contact_uri, &tmp);
 
   if (i==0)
     fprintf(jmsip.j_output, "\tContact:  %s\n", tmp);
@@ -807,15 +807,15 @@ void _show_dialog_contact(jmsip_dialog_t *jd)       /* show call callee [jid] */
   return ;
 }
 
-void _show_dialog_media(jmsip_dialog_t *jd, int ml)  /* show call callee [jid] */
+void _show_dialog_media(jmsip_osip_dialog_t *jd, int ml)  /* show call callee [jid] */
 {
   char *tmp;
-  tmp = list_get(jd->media_lines, ml);
+  tmp = osip_list_get(jd->media_lines, ml);
   fprintf(jmsip.j_output, "%s\n", tmp);
 }
 
 
-void _show_dialog(jmsip_dialog_t *jd, char *subject)       /* show call callee [jid] */
+void _show_dialog(jmsip_osip_dialog_t *jd, char *subject)       /* show call callee [jid] */
 {
   char *tmp;
   int pos;
@@ -832,9 +832,9 @@ void _show_dialog(jmsip_dialog_t *jd, char *subject)       /* show call callee [
   _show_dialog_contact(jd);
   
   pos=0;
-  while (!list_eol(jd->media_lines, pos))
+  while (!osip_list_eol(jd->media_lines, pos))
     {
-      tmp = list_get(jd->media_lines, pos);
+      tmp = osip_list_get(jd->media_lines, pos);
       pos++;
       fprintf(jmsip.j_output, "%s\n", tmp);
     }
@@ -844,7 +844,7 @@ void _show_dialog(jmsip_dialog_t *jd, char *subject)       /* show call callee [
 void show()
 {
   jmsip_call_t *jc;
-  jmsip_dialog_t *jd;
+  jmsip_osip_dialog_t *jd;
   jmsip_update();
   for (jc=jmsip.j_calls; jc!=NULL; jc=jc->next)
     {
@@ -858,7 +858,7 @@ void show()
 void show_dialog(int jid)              /* show call [jid] */
 {
   jmsip_call_t *jc;
-  jmsip_dialog_t *jd;
+  jmsip_osip_dialog_t *jd;
   for (jc=jmsip.j_calls; jc!=NULL; jc=jc->next)
     {
       for (jd=jc->c_dialogs; jd!=NULL; jd=jd->next)
@@ -874,7 +874,7 @@ void show_dialog(int jid)              /* show call [jid] */
 
 void show_dialog_state(int jid)       /* show call caller [jid] */
 {
-  jmsip_dialog_t *jd;
+  jmsip_osip_dialog_t *jd;
   jmsip_call_t *jc;
   jmsip_dialog_find(jid, &jc, &jd);
   if (jd==NULL) return;
@@ -883,7 +883,7 @@ void show_dialog_state(int jid)       /* show call caller [jid] */
 
 void show_dialog_with(int jid)       /* show call caller [jid] */
 {
-  jmsip_dialog_t *jd;
+  jmsip_osip_dialog_t *jd;
   jmsip_call_t *jc;
   jmsip_dialog_find(jid, &jc, &jd);
   if (jd==NULL) return;
@@ -892,7 +892,7 @@ void show_dialog_with(int jid)       /* show call caller [jid] */
 
 void show_dialog_contact(int jid)       /* show call caller [jid] */
 {
-  jmsip_dialog_t *jd;
+  jmsip_osip_dialog_t *jd;
   jmsip_call_t *jc;
   jmsip_dialog_find(jid, &jc, &jd);
   if (jd==NULL) return;
@@ -901,7 +901,7 @@ void show_dialog_contact(int jid)       /* show call caller [jid] */
 
 void show_dialog_media(int jid, int ml)       /* show call caller [jid] */
 {
-  jmsip_dialog_t *jd;
+  jmsip_osip_dialog_t *jd;
   jmsip_call_t *jc;
   jmsip_dialog_find(jid, &jc, &jd);
   if (jd==NULL) return;
