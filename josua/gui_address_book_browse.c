@@ -1,0 +1,183 @@
+/*
+ * josua - Jack's open sip User Agent
+ *
+ * Copyright (C) 2002,2003   Aymeric Moizard <jack@atosc.org>
+ *
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2,
+ * or (at your option) any later version.
+ *
+ * This is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with dpkg; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#include "gui_address_book_browse.h"
+#include "gui_address_book_newentry.h"
+
+extern eXosip_t eXosip;
+
+gui_t gui_window_address_book_browse = {
+  GUI_OFF,
+  20,
+  -999,
+  10,
+  -6,
+  NULL,
+  &window_address_book_browse_print,
+  &window_address_book_browse_run_command,
+  NULL,
+  &window_address_book_browse_draw_commands,
+  -1,
+  -1,
+  -1
+};
+
+
+int cursor_address_book_browse = 0;
+int cursor_address_book_start  = 0;
+int show_mail=-1;
+
+void window_address_book_browse_draw_commands()
+{
+  int x,y;
+  char *address_book_browse_commands[] = {
+    "<",  "PrevWindow",
+    ">",  "NextWindow",
+    "^X", "StartCall" ,
+    "d",  "DeleteEntry" ,
+    "t",  "Toggle",
+    NULL
+  };
+  getmaxyx(stdscr,y,x);
+  josua_print_command(address_book_browse_commands,
+		      y-5,
+		      0);
+}
+
+int window_address_book_browse_print()
+{
+  jfriend_t *fr;
+  int y,x;
+  char buf[250];
+  int pos;
+  int pos_fr;
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+
+  getmaxyx(stdscr,y,x);
+  pos_fr = 0;
+
+  for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+    {
+      if (cursor_address_book_start==pos_fr)
+	break;
+      pos_fr++;
+    }
+
+  pos = 0;
+  for (; fr!=NULL ; fr=fr->next)
+    {
+      if (pos==y+gui_window_address_book_browse.y1
+	  -gui_window_address_book_browse.y0)
+	break;
+      if (show_mail!=0)
+	{
+	  snprintf(buf, gui_window_address_book_browse.x1 - gui_window_address_book_browse.x0,
+		   "%c%c %10.10s  %-80.80s",
+		   (cursor_address_book_browse==pos) ? '-' : ' ',
+		   (cursor_address_book_browse==pos) ? '>' : ' ',
+		   fr->f_nick, fr->f_home);
+	}
+      else
+	{
+	  snprintf(buf, gui_window_address_book_browse.x1 - gui_window_address_book_browse.x0,
+		   "%c%c %10.10s  %-80.80s",
+		   (cursor_address_book_browse==pos) ? '-' : ' ',
+		   (cursor_address_book_browse==pos) ? '>' : ' ',
+		   fr->f_nick, fr->f_email);
+	}
+      attrset(COLOR_PAIR(5));
+      attrset((pos==cursor_address_book_browse) ? A_REVERSE : A_NORMAL);
+      mvaddnstr(pos+gui_window_address_book_browse.y0,
+		gui_window_address_book_browse.x0,
+		buf,
+		x-gui_window_address_book_browse.x0-1);
+      pos++;
+    }
+  refresh();
+
+  window_address_book_browse_draw_commands();
+  return 0;
+}
+
+int window_address_book_browse_run_command(int c)
+{
+  jfriend_t *fr;
+  int y, x;
+  int pos;
+  int max;
+  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
+
+  getmaxyx(stdscr,y,x);
+
+  max=0;
+  for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+    {
+      max++;
+    }
+  
+  switch (c)
+    {
+    case KEY_DOWN:
+      /* cursor_address_book_browse++;
+	 cursor_address_book_browse %= max; */
+      if (cursor_address_book_browse<y+gui_window_address_book_browse.y1
+	  -gui_window_address_book_browse.y0-1)
+	cursor_address_book_browse++;
+      else if (cursor_address_book_start<max-(
+	       y+gui_window_address_book_browse.y1
+	       -gui_window_address_book_browse.y0))
+	cursor_address_book_start++;
+      else beep();
+      break;
+    case KEY_UP:
+      if (cursor_address_book_browse>0)
+	cursor_address_book_browse--;
+      else if (cursor_address_book_start>0)
+	cursor_address_book_start--;
+      else beep();
+      break;
+    case '\n':
+    case '\r':
+    case KEY_ENTER:
+      /* address_book_browse selected! */
+      pos=0;
+      for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
+	{
+	  pos++;
+	  if (cursor_address_book_browse==pos)
+	    break;
+	}
+      if (fr!=NULL)
+	{
+	}
+      break;
+    case 't':
+      if (show_mail!=0)
+	show_mail=0;
+      else show_mail=-1;
+    default:
+      beep();
+      return -1;
+    }
+
+  if (gui_window_address_book_browse.on_off==GUI_ON)
+    window_address_book_browse_print();
+  return 0;
+}
