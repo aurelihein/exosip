@@ -315,7 +315,15 @@ int   eXosip_retry_call  (int cid);
  * @param to        SIP url for callee.
  * @param route     Route header for REFER. (optionnal)
  */
-int eXosip_transfer_call_out_of_dialog(char *refer_to, char *from, char *to, char *route);
+  int eXosip_transfer_call_out_of_dialog(char *refer_to, char *from, char *to, char *route);
+
+/**
+ * Set redirection url before a call to eXosip_answer_call.
+ * 
+ * @param jid          dialog id of call.
+ * @param contact      contact address.
+ */
+  int eXosip_set_redirection_address (int jid, char *contact);
 
 /**
  * Answer call.

@@ -158,6 +158,9 @@ struct eXosip_call_t {
 
   osip_negotiation_ctx_t  *c_ctx;
   char                     c_sdp_port[10];
+
+  char                     c_redirection[1024]; /* contact for 3xx answers */
+
   eXosip_call_t           *next;
   eXosip_call_t           *parent;
 };

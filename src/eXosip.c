@@ -1286,6 +1286,28 @@ int eXosip_answer_call_with_body(int jid, int status, const char *bodytype, cons
   return 0;
 }
 
+int eXosip_set_redirection_address (int jid, char *contact)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  if (jid>0)
+    {
+      eXosip_call_dialog_find(jid, &jc, &jd);
+    }
+  if (jd==NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+         "eXosip: No call here?\n"));
+      return -1;
+    }
+  if (contact==NULL)
+    memset(jc->c_redirection, '\0', 1024);
+  else
+    snprintf(jc->c_redirection, 1024, "%s", contact);
+  return 0;
+}
+
 int eXosip_answer_call   (int jid, int status, char *local_sdp_port)
 {
   int i = -1;

@@ -1,3 +1,12 @@
+eXosip (0.9.0)
+	* This ChangeLog has not been updated seriously... Many changes have been
+	* done but they don't appear here. Sorry.
+	* status of libexosip:
+	*   call transfer : OK
+	*   redirection of calls (3XX) : OK
+	*   SUB/NOTIFY for presence : nearly OK (usable)
+	*   authenthication (REGISTER and INVITE only) : ok
+	
 eXosip (0.8.0)
 	* fix processing of 180 Ringing?
 	* fix bug when BYE is processed before a 2xx for INVITE.

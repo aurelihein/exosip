@@ -568,6 +568,7 @@ eXosip_answer_options_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
     {
       /* Should add contact fields */
       /* ... */
+      osip_message_set_contact(response, jc->c_redirection);
     }
 
   osip_message_set_content_length(response, "0");
@@ -1081,6 +1082,7 @@ eXosip_answer_invite_3456xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
     {
       /* Should add contact fields */
       /* ... */
+      osip_message_set_contact(response, jc->c_redirection);
     }
 
   osip_message_set_content_length(response, "0");
