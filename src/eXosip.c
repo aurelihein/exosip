@@ -1301,6 +1301,38 @@ static int eXosip_create_transaction(eXosip_call_t *jc,
   return 0;
 }
 
+int eXosip_transfer_call_out_of_dialog(char *refer_to, char *from, char *to, char *proxy)
+{
+  osip_message_t *refer;
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  int i;
+  i = generating_refer_outside_dialog(&refer, refer_to, from, to, proxy);
+  if (i!=0) return -1;
+
+  i = osip_transaction_init(&transaction,
+		       NICT,
+		       eXosip.j_osip,
+		       refer);
+  if (i!=0)
+    {
+      osip_message_free(refer);
+      return -1;
+    }
+  
+  osip_list_add(eXosip.j_transactions, transaction, 0);
+  
+  sipevent = osip_new_outgoing_sipmessage(refer);
+  sipevent->transactionid =  transaction->transactionid;
+  
+  osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
+  osip_transaction_add_event(transaction, sipevent);
+#ifdef NEW_TIMER
+  __eXosip_wakeup();
+#endif  
+  return 0;
+}
+
 int eXosip_transfer_call(int jid, char *refer_to)
 {
   int i;

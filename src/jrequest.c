@@ -900,6 +900,20 @@ generating_bye(osip_message_t **bye, osip_dialog_t *dialog)
 
 /* this request is only build within a dialog! (but should not!) */
 int
+generating_refer_outside_dialog(osip_message_t **refer, char *refer_to, char *from, char *to, char *proxy)
+{
+  int i;
+  i = generating_request_out_of_dialog(refer, "REFER", to, "UDP",
+				       from, proxy);
+  if (i!=0) return -1;
+
+  osip_message_set_header(*refer, "Refer-to", refer_to);
+
+  return 0;
+}
+
+/* this request is only build within a dialog! (but should not!) */
+int
 generating_refer(osip_message_t **refer, osip_dialog_t *dialog, char *refer_to)
 {
   int i;
