@@ -160,6 +160,10 @@ SOURCE=..\..\src\sdp_offans.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\jauth.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\udp.c
 # End Source File
 # End Group
