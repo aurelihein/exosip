@@ -96,6 +96,10 @@ SOURCE=..\..\eXosip\eXosip.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\eXosip.def
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\eXosip\eXutils.c
 # End Source File
 # Begin Source File

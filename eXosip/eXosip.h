@@ -57,6 +57,11 @@
 
 #endif
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /* struct _BodyHandler; */
 
 /* struct _BodyHandler *sdp_handler_new (); */
@@ -501,5 +506,9 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn, eXosip_dialog_t *jd,
       element->parent = f;                            \
       element->next   = NULL;                         \
     }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

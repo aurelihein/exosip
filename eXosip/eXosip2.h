@@ -27,6 +27,11 @@
 
 #include <osipparser2/osip_parser.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /* This is used to initiate the Extented/Open/Sip library */
 int   eXosip_init(FILE *input, FILE *output, int port);
 void  eXosip_update();
@@ -76,5 +81,9 @@ void  eXosip_subscribe_close(int sid);
 /* This is to manage incoming subscription */
 void  eXosip_notify_accept_subscribe   (int nid, int code, int subscription_status, int online_status);
 void  eXosip_notify(int nid, int subscription_status, int online_status);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
