@@ -262,6 +262,21 @@ int eXosip_init(FILE *input, FILE *output, int port)
   
   eXosip.j_osip = osip;
 
+#ifdef WIN32
+   /* Initializing windows socket library */
+   {
+     WORD wVersionRequested;
+     WSADATA wsaData;
+
+     wVersionRequested = MAKEWORD(1,1);
+     if(i = WSAStartup(wVersionRequested,  &wsaData))
+       {
+	 fprintf(stderr, "eXosip: Unable to initialize WINSOCK, reason: %d\n",i);
+	 /* return -1; It might be already initilized?? */
+       }
+   }
+#endif
+
   /* open the UDP listener */
           
   eXosip.j_socket = (int)socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);

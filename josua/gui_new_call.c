@@ -36,6 +36,13 @@ gui_t gui_window_new_call = {
   -1
 };
 
+static char static_to[200] = { '\0' };
+
+void window_new_call_with_to(char *_to)
+{
+  snprintf(static_to, 200, _to);
+}
+
 int window_new_call_print()
 {
   int y,x;
@@ -84,6 +91,15 @@ int window_new_call_print()
 	    gui_window_new_call.x0,
 	    buf,
 	    x-gui_window_new_call.x0-1);
+  attrset(COLOR_PAIR(0));
+
+  mvaddnstr(gui_window_new_call.y0+1,
+	    gui_window_new_call.x0+10,
+	    static_to,
+	    x-gui_window_new_call.x0-1-10);
+  
+
+  attrset(COLOR_PAIR(1));
   snprintf(buf,
 	   x - gui_window_new_call.x0,
 	   "Subject : ");
@@ -169,6 +185,9 @@ int window_new_call_run_command(int c)
     case 4:  /* Ctrl-D */
       {
 	char buf[200];
+
+	if (static_to[0]!='\0' && gui_window_new_call.ycursor==1)
+	  static_to[0]='\0';
 	attrset(COLOR_PAIR(0));
 	snprintf(buf, 199, "%199.199s", " ");
 	mvaddnstr(gui_window_new_call.y0+gui_window_new_call.ycursor,
@@ -179,6 +198,8 @@ int window_new_call_run_command(int c)
       }
       break;
     case 5:  /* Ctrl-E */
+      if (static_to[0]!='\0')
+	static_to[0]='\0';
       gui_window_new_call.xcursor=10;
       gui_window_new_call.ycursor=1;
       window_new_call_print();

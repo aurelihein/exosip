@@ -32,7 +32,7 @@ extern eXosip_t eXosip;
 #endif
 
 #ifndef EXOSIP_ADDSUBSCRIBERS_SH
-#define EXOSIP_ADDSUBSCRIBERS_SH "./eXosip_addsubscriber.sh"
+#define EXOSIP_ADDSUBSCRIBERS_SH "eXosip_addsubscriber.sh"
 #endif
 
 void subscribers_add(char *nickname, char *uri, int black_list)

@@ -21,6 +21,9 @@
 #include "gui_address_book_browse.h"
 #include "gui_address_book_newentry.h"
 
+#include "gui_menu.h"
+#include "gui_new_call.h"
+
 extern eXosip_t eXosip;
 
 gui_t gui_window_address_book_browse = {
@@ -155,17 +158,22 @@ int window_address_book_browse_run_command(int c)
     case '\n':
     case '\r':
     case KEY_ENTER:
-      /* address_book_browse selected! */
+    case 24: /* ctrl-X */
+      /* start call */
       pos=0;
       for (fr = eXosip.j_friends; fr!=NULL ; fr=fr->next)
 	{
-	  pos++;
-	  if (cursor_address_book_browse==pos)
+	  if (cursor_address_book_browse+cursor_address_book_start==pos)
 	    break;
+	  pos++;
 	}
       if (fr!=NULL)
 	{
+	  window_new_call_with_to(fr->f_home);
 	}
+
+      __show_initiate_session();
+
       break;
     case 't':
       if (show_mail!=0)
@@ -174,9 +182,6 @@ int window_address_book_browse_run_command(int c)
       break;
     case 'd':
       /* delete entry */
-      break;
-    case 24:
-      /* start call */
       break;
     default:
       beep();
