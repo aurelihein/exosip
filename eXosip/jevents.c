@@ -38,6 +38,48 @@ eXosip_event_init_for_call(int type,
   if (je==NULL) return NULL;
   je->jc = jc;
   je->jd = jd;
+
+  /* fill in usefull info */
+  if (type==EXOSIP_CALL_NEW
+      || type==EXOSIP_CALL_PROCEEDING
+      || type==EXOSIP_CALL_RINGING
+      || type==EXOSIP_CALL_ANSWERED
+      || type==EXOSIP_CALL_PROCEEDING
+      || type==EXOSIP_CALL_DISCONNECTED)
+    {
+      if (jd->d_dialog!=NULL)
+	{
+	  osip_transaction_t *tr;
+	  osip_header_t *subject;
+	  char *tmp;
+	  if (jd->d_dialog->remote_uri!=NULL)
+	    {
+	      osip_to_to_str(jd->d_dialog->remote_uri, &tmp);
+	      if (tmp!=NULL)
+		{
+		  snprintf(je->to, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  if (jd->d_dialog->local_uri!=NULL)
+	    {
+	      osip_to_to_str(jd->d_dialog->local_uri, &tmp);
+	      if (tmp!=NULL)
+		{
+		  snprintf(je->from, 255, "%s", tmp);
+		  osip_free(tmp);
+		}
+	    }
+	  tr = eXosip_find_last_invite(jc, jd);
+	  if (tr!=NULL && tr->orig_request!=NULL)
+	    {
+	      osip_parser_get_subject(tr->orig_request, 0, &subject);
+	      if (subject!=NULL && subject->hvalue!=NULL)
+		snprintf(je->subject, 256, "%s", subject->hvalue);
+	    }
+	}
+    }
+
   return je;
 }
 
@@ -107,6 +149,10 @@ eXosip_event_init(eXosip_event_t **je, int type)
     {
       sprintf((*je)->textinfo, "Call is over!");
     }
+  else
+    {
+      (*je)->textinfo[0] = '\0';
+    }
   return 0;
 }
 
@@ -150,14 +196,22 @@ eXosip_event_get_subscribeinfo(eXosip_event_t *je)
 int
 eXosip_event_add(eXosip_event_t *je)
 {
-  return osip_fifo_add(eXosip.j_event, (void *) je);
+  return osip_fifo_add(eXosip.j_events, (void *) je);
 }
 
 eXosip_event_t *
-eXosip_event_wait(int tv_s, int tv_ms, int event_type)
+eXosip_event_wait(int tv_s, int tv_ms)
 {
   eXosip_event_t *je;
-  je = (eXosip_event_t *) osip_fifo_get(eXosip.j_event);
+  je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+  return je;
+}
+
+eXosip_event_t *
+eXosip_event_get()
+{
+  eXosip_event_t *je;
+  je = (eXosip_event_t *) osip_fifo_get(eXosip.j_events);
   return je;
 }
 

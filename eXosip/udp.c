@@ -100,6 +100,8 @@ void eXosip_process_bye(eXosip_call_t *jc, eXosip_dialog_t *jd,
     je = eXosip_event_init_for_call(EXOSIP_CALL_DISCONNECTED, jc, jd);
     if (eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_DISCONNECTED](EXOSIP_CALL_DISCONNECTED, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);    
   }
 }
 
@@ -360,6 +362,8 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
     je = eXosip_event_init_for_call(EXOSIP_CALL_HOLD, jc, jd);
     if (eXosip.j_call_callbacks[EXOSIP_CALL_HOLD]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_HOLD](EXOSIP_CALL_HOLD, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);    
   }
 }
 
@@ -374,6 +378,8 @@ void eXosip_process_invite_off_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
     je = eXosip_event_init_for_call(EXOSIP_CALL_OFFHOLD, jc, jd);
     if (eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_OFFHOLD](EXOSIP_CALL_OFFHOLD, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);    
   }
 
 }
@@ -460,6 +466,8 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
     je = eXosip_event_init_for_call(EXOSIP_CALL_NEW, jc, jd);
     if (eXosip.j_call_callbacks[EXOSIP_CALL_NEW]!=NULL)
       eXosip.j_call_callbacks[EXOSIP_CALL_NEW](EXOSIP_CALL_NEW, je);
+    else if (eXosip.j_runtime_mode==EVENT_MODE)
+      eXosip_event_add(je);    
   }
 }
 

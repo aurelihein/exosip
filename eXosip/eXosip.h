@@ -231,6 +231,11 @@ struct jsubscriber_t {
   jsubscriber_t   *parent;
 };
 
+#define DEFAULT_MODE  0
+#define CALLBACK_MODE 1
+#define EVENT_MODE    2
+void eXosip_set_mode(int mode);
+
 typedef enum eXosip_event_type_t {
 
   /* Registration Info */
@@ -262,7 +267,10 @@ typedef enum eXosip_event_type_t {
 typedef struct eXosip_event {
   eXosip_event_type_t type;
 
-  char                *textinfo;
+  char                textinfo[150];
+  char                to[256];
+  char                from[256];
+  char                subject[256];
   /* For a high level usage of the eXosip stack? (API is enough?) */
   /* int did;
      int cid;
@@ -295,7 +303,8 @@ eXosip_reg_t *eXosip_event_get_reginfo(eXosip_event_t *je);
 eXosip_notify_t *eXosip_event_get_notifyinfo(eXosip_event_t *je);
 eXosip_subscribe_t *eXosip_event_get_subscribeinfo(eXosip_event_t *je);
 int eXosip_event_add(eXosip_event_t *je);
-eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms, int event_type);
+eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms);
+eXosip_event_t *eXosip_event_get();
 
 typedef void (* eXosip_callback_t) (int type, eXosip_event_t *);
 
@@ -328,9 +337,9 @@ struct eXosip_t {
   jfriend_t          *j_friends;
   jidentity_t        *j_identitys;
 
+  int                 j_runtime_mode;
   eXosip_callback_t   j_call_callbacks[EXOSIP_CALLBACK_COUNT];
-
-  osip_fifo_t      *j_event;
+  osip_fifo_t        *j_events;
 };
 
 typedef struct jinfo_t jinfo_t;

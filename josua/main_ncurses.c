@@ -18,7 +18,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.21 2003-04-22 11:04:28 aymeric Exp $";
+static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.22 2003-04-22 23:03:58 aymeric Exp $";
 
 #ifdef NCURSES_SUPPORT
 
@@ -82,6 +82,7 @@ typedef struct menu_t {
 
 
 void __josua_message();
+void __josua_manage_call();
 void __josua_start_call();
 void __josua_answer_call();
 void __josua_on_hold_call();
@@ -98,14 +99,15 @@ void __josua_register();
 
 #define MENU_DEFAULT 0
 #define MENU_MG      1
-#define MENU_MC      2
-#define MENU_TR      3
-#define MENU_RG      4
-#define MENU_SETUP   5
-#define MENU_AN      6
-#define MENU_TC      7
-#define MENU_HLD     8
-#define MENU_OHLD    9
+#define MENU_IN      2
+#define MENU_MC      3
+#define MENU_TR      4
+#define MENU_RG      5
+#define MENU_SETUP   6
+#define MENU_AN      7
+#define MENU_TC      8
+#define MENU_HLD     9
+#define MENU_OHLD    10
 
 /********************************/
 /***** Main Menu definition *****/
@@ -115,7 +117,9 @@ void __josua_register();
 static const menu_t josua_menu[]= {
   { "message",	"m",	" [M]ini-message", MENU_MG,
     " Exchange Mini-message.", &__josua_message },
-  { "invite",	"i",	" [I]nvite", MENU_MC,
+  /*  { "Call Management",	"i",	" [I]nvite", MENU_MC,
+      " Cancel, Answer and Disconnect calls.", &__josua_manage_call },*/
+  { "invite",	"i",	" [I]nvite", MENU_IN,
     " Make a call.",                     &__josua_start_call },
   { "answer",	"a",	" [A]nswer", MENU_AN,
     " Answer a call.",                     &__josua_answer_call },
@@ -749,6 +753,8 @@ nctab_get_values(nctab_t (*nctab)[],
   return c;
 }
 
+static char log_buf3[200] = { '\0' };
+static char log_buf2[200] = { '\0' };
 static char log_buf1[200] = { '\0' };
 static struct osip_mutex *log_mutex = NULL;
 
@@ -758,12 +764,12 @@ void josua_printf_show()
   int x, y;
   getmaxyx(stdscr,y,x);
 
-  attrset(COLOR_PAIR(4));
   if (log_buf1!='\0')
     {
       int xpos;
       osip_mutex_lock(log_mutex);
       snprintf(buf1,199, "%80.80s", " ");
+      attrset(COLOR_PAIR(4));
       mvaddnstr(y-1,0,buf1,x-1);
       xpos = (x - strlen(log_buf1))/2;
       if (xpos<0)
@@ -772,15 +778,43 @@ void josua_printf_show()
       mvaddnstr(y-1,xpos,log_buf1,x-1);
       osip_mutex_unlock(log_mutex);
     }
+  if (log_buf2!='\0')
+    {
+      int xpos;
+      osip_mutex_lock(log_mutex);
+      snprintf(buf1,199, "%80.80s", " ");
+      attrset(COLOR_PAIR(4));
+      mvaddnstr(y-2,0,buf1,x-1);
+      xpos = (x - strlen(log_buf2))/2;
+      if (xpos<0)
+	xpos = 0;
+      attrset(COLOR_PAIR(5));
+      mvaddnstr(y-2,xpos,log_buf2,x-1);
+      osip_mutex_unlock(log_mutex);
+    }
+  if (log_buf3!='\0')
+    {
+      int xpos;
+      osip_mutex_lock(log_mutex);
+      snprintf(buf1,199, "%80.80s", " ");
+      attrset(COLOR_PAIR(4));
+      mvaddnstr(y-3,0,buf1,x-1);
+      xpos = (x - strlen(log_buf3))/2;
+      if (xpos<0)
+	xpos = 0;
+      attrset(COLOR_PAIR(5));
+      mvaddnstr(y-3,xpos,log_buf3,x-1);
+      osip_mutex_unlock(log_mutex);
+    }
 }
 
 void josua_printf(char *chfr, ...)
 {
   va_list ap;  
-  char buf1[200];
+  char buf1[256];
   
   VA_START (ap, chfr);
-  vsnprintf(buf1,199, chfr, ap);
+  vsnprintf(buf1,255, chfr, ap);
 
   if (log_mutex==NULL)
     {
@@ -789,11 +823,44 @@ void josua_printf(char *chfr, ...)
 
   osip_mutex_lock(log_mutex);
   // snprintf(log_buf1,199, "%80.80s\n", buf1);
-  snprintf(log_buf1,199, "[%s]", buf1);
+  if (log_buf1=='\0')
+    snprintf(log_buf1,255, "[%s]", buf1);
+  else if (log_buf2=='\0')
+    {
+      if (log_buf1!='\0')
+	snprintf(log_buf2,255, "%s", log_buf1);
+      snprintf(log_buf1,255, "[%s]", buf1);
+    }
+  else
+    {
+      if (log_buf2!='\0')
+	snprintf(log_buf3,255, "%s", log_buf2);
+      snprintf(log_buf2,255, "%s", log_buf1);
+      snprintf(log_buf1,255, "[%s]", buf1);
+    }
+    
   osip_mutex_unlock(log_mutex);
 
   va_end (ap);
 
+}
+
+void
+josua_event_get()
+{
+  /* use events to print some info */
+  eXosip_event_t *je;
+  for (;;)
+    {
+      je = eXosip_event_wait(0,0);
+      if (je==NULL)
+	break;
+      if (je->textinfo[0]!='\0')
+	{
+	  josua_printf(je->textinfo);
+	}
+      eXosip_event_free(je);
+    }
 }
 
 static int cur_pos = 0;
@@ -1180,7 +1247,7 @@ void print_menu(int menu)
 
   if (menu==MENU_DEFAULT)
     {}
-  else if (menu==MENU_MC)
+  else if (menu==MENU_IN)
     {
       nctab_print(&nctab_newcall,
 		  TABSIZE_NEWCALL, 
@@ -1569,21 +1636,23 @@ void __josua_menu() {
   for (;;) {
     //refresh();
     do
-      {	
+      {
 	print_calls();
 	print_notifies();
 	print_subscribes();
+	josua_event_get();
 	josua_printf_show();
 	refresh();
 	halfdelay(1);
 	c= getch();
       }
-    while (c == ERR && errno == EINTR);
+    while (c == ERR && (errno == EINTR || errno == EAGAIN));
 
     if (c==ERR)  {
       if(errno != 0)
 	{
 	  fprintf(stderr, "failed to getch in main menu\n");
+	  perror("hello");
 	  exit(1);
 	}
       else {
@@ -1804,6 +1873,9 @@ int main(int argc, const char *const *argv) {
       exit(0);
     }
 
+  /* register callbacks? */
+  eXosip_set_mode(EVENT_MODE);
+
   if (cfg.to[0]!='\0')
     { /* start a command line call, if needed */
       if (send_subscription==0)
@@ -1904,6 +1976,16 @@ void __josua_message() {
 
 }
 
+/*
+void
+__josua_manage_call() {
+
+  // print the list of calls 
+  print_calls();
+  
+}
+*/
+
 void __josua_start_call() {
   osip_message_t *invite;
   int i;
@@ -1923,7 +2005,7 @@ void __josua_start_call() {
       eXosip_unlock();
     }
   
-  print_menu(MENU_MC); dme(1,1);
+  print_menu(MENU_IN); dme(1,1);
 
   getmaxyx(stdscr,y,x);
 

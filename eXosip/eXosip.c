@@ -168,7 +168,7 @@ void eXosip_quit()
   eXosip_kill_transaction (eXosip.j_osip->osip_nist_transactions);
   osip_release (eXosip.j_osip);
 
-  osip_fifo_free(eXosip.j_event);
+  osip_fifo_free(eXosip.j_events);
 
   return ;
 }
@@ -294,13 +294,19 @@ int eXosip_init(FILE *input, FILE *output, int port)
     }
 
   /* To be changed in osip! */
-  eXosip.j_event = (osip_fifo_t*) osip_malloc(sizeof(osip_fifo_t));
-  osip_fifo_init(eXosip.j_event);
+  eXosip.j_events = (osip_fifo_t*) osip_malloc(sizeof(osip_fifo_t));
+  osip_fifo_init(eXosip.j_events);
 
   jfriend_load();
   jidentity_load();
   jsubscriber_load();
   return 0;
+}
+
+void
+eXosip_set_mode(int mode)
+{
+  eXosip.j_runtime_mode = mode;
 }
 
 void

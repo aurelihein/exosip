@@ -1,5 +1,5 @@
 eXosip (0.6.2)
-	* New Event oriented or Callback oriented interface with applications.
+	* New Event oriented interface with applications.
 	* support for both MSN or compliant UAs.
 	* SUBSCRIBE/NOTIFY for SIMPLE support.
 	* script for adding/updating subscribers. (eXosip_addsubscriber.sh)
