@@ -81,7 +81,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   if (register_callid_number==NULL)
     register_callid_number = osip_call_id_new_random();
 
-  i = msg_init(&request);
+  i = osip_message_init(&request);
   if (i!=0) return -1;
 
   /* prepare the request-line */
@@ -288,7 +288,7 @@ generating_request_out_of_dialog(osip_message_t **dest, char *method_name,
   return 0;
 
  brood_error_1:
-  msg_free(request);
+  osip_message_free(request);
   *dest = NULL;
   return -1;
 }
@@ -548,7 +548,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   int i;
   osip_message_t *request;
 
-  i = msg_init(&request);
+  i = osip_message_init(&request);
   if (i!=0) return -1;
 
   if (dialog->remote_contact_uri==NULL)
@@ -556,7 +556,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
       /* this dialog is probably not established! or the remote UA
 	 is not compliant with the latest RFC
       */
-      msg_free(request);
+      osip_message_free(request);
       return -1;
     }
   /* prepare the request-line */
@@ -677,7 +677,7 @@ _eXosip_build_request_within_dialog(osip_message_t **dest, char *method_name,
   /* grwd_error_2: */
   dialog->local_cseq--;
  grwd_error_1:
-  msg_free(request);
+  osip_message_free(request);
   *dest = NULL;
   return -1;
 }
@@ -739,7 +739,7 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
   int i;
   osip_message_t *request;
   
-  i = msg_init(&request);
+  i = osip_message_init(&request);
   if (i!=0) return -1;
   
   /* prepare the request-line */
@@ -797,7 +797,7 @@ generating_cancel(osip_message_t **dest, osip_message_t *request_cancelled)
   return 0;
 
  gc_error_1:
-  msg_free(request);
+  osip_message_free(request);
   *dest = NULL;
   return -1;
 }

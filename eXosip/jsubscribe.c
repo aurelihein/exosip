@@ -186,7 +186,7 @@ void eXosip_subscribe_send_subscribe(eXosip_subscribe_t *js,
   if (i!=0)
     {
       /* TODO: release the j_call.. */
-      msg_free(subscribe);
+      osip_message_free(subscribe);
       return ;
     }
   

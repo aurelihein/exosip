@@ -42,7 +42,7 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   int pos;
   int i;
 
-  i = msg_init(&response);
+  i = osip_message_init(&response);
   /* initialise osip_message_t structure */
   /* yet done... */
 
@@ -133,7 +133,7 @@ _eXosip_build_response_default(osip_message_t **dest, osip_dialog_t *dialog,
   return 0;
 
  grd_error_1:
-  msg_free(response);
+  osip_message_free(response);
   return -1;
 }
 
@@ -284,7 +284,7 @@ generating_2xx_answer_osip_to_options(osip_dialog_t *dialog, osip_transaction_t 
 
  g2atii_error_1:
   osip_free(body);
-  msg_free(response);
+  osip_message_free(response);
   return ;
 }
 
@@ -476,7 +476,7 @@ eXosip_answer_invite_2xx(eXosip_call_t *jc, eXosip_dialog_t *jd, int code)
 
  g2atii_error_1:
   osip_free(body);
-  msg_free(response);
+  osip_message_free(response);
   return ;
 }
 
@@ -644,7 +644,7 @@ eXosip_notify_answer_subscribe_2xx(eXosip_notify_t *jn, eXosip_dialog_t *jd, int
   return ;
 
  g2atii_error_1:
-  msg_free(response);
+  osip_message_free(response);
   return ;
 }
 

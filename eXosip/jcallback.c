@@ -80,7 +80,7 @@ int cb_udp_snd_message(osip_transaction_t *tr, osip_message_t *sip, char *host,
   addr.sin_family      = AF_INET;
 
 
-  i = msg_to_str(sip, &message);
+  i = osip_message_to_str(sip, &message);
 
   if (i!=0) {
     return -1;
@@ -604,7 +604,7 @@ void eXosip_update_audio_session(osip_transaction_t *transaction)
   if (remote_port!=NULL && media_type!=NULL) /* if codec has been found */
     {
       char tmp[256];
-      sprintf(tmp, "mediastream --local %s --remote %s:%s --payload %s 2&>1 > debug_rtp" , local_port, remaddr, remote_port, payload);
+      sprintf(tmp, "mediastream --local %s --remote %s:%s --payload %s > debug_rtp 2>&1" , local_port, remaddr, remote_port, payload);
       OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,"audio command %s\n", tmp));
 
 #ifdef TEST_AUDIO

@@ -328,14 +328,14 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       sdp_message_free(local_sdp);
       if (i!=0) {
 	eXosip_send_default_answer(jd, transaction, evt, 500);
-	msg_free(answer);
+	osip_message_free(answer);
 	return ;
       } 
       i = osip_parser_set_body(answer, local_body);
       if (i!=0) {
 	eXosip_send_default_answer(jd, transaction, evt, 500);
 	osip_free(local_body);
-	msg_free(answer);
+	osip_message_free(answer);
 	return;
       }
       size = (char *) osip_malloc(6*sizeof(char));
@@ -346,7 +346,7 @@ void eXosip_process_invite_on_hold(eXosip_call_t *jc, eXosip_dialog_t *jd,
       i = osip_parser_set_header(answer, "content-type", "application/sdp");
       if (i!=0) {
 	eXosip_send_default_answer(jd, transaction, evt, 500);
-	msg_free(answer);
+	osip_message_free(answer);
 	return;
       }	
 
@@ -414,7 +414,7 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   i = complete_answer_that_establish_a_dialog(answer, evt->sip, contact);
   if (i!=0)
     {
-      msg_free(answer);
+      osip_message_free(answer);
       osip_free(contact);
       fprintf(stderr, "eXosip: cannot complete answer!\n");
       return ;
@@ -423,7 +423,7 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   i = eXosip_dialog_init_as_uas(&jd, evt->sip, answer);
   if (i!=0)
     {
-      msg_free(answer);
+      osip_message_free(answer);
       fprintf(stderr, "eXosip: cannot create dialog!\n");
       osip_free(contact);
       return ;
@@ -449,7 +449,7 @@ void eXosip_process_new_invite(osip_transaction_t *transaction, osip_event_t *ev
   osip_free(contact);
   if (i!=0)
     {
-      msg_free(answer);
+      osip_message_free(answer);
       fprintf(stderr, "eXosip: cannot complete answer!\n");
       return ;
     }
@@ -640,7 +640,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   i = complete_answer_that_establish_a_dialog(answer, evt->sip, contact);
   if (i!=0)
     {
-      msg_free(answer);
+      osip_message_free(answer);
       osip_free(contact);
       fprintf(stderr, "eXosip: cannot complete answer!\n");
       jn->n_inc_tr = transaction;
@@ -651,7 +651,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
   i = eXosip_dialog_init_as_uas(&jd, evt->sip, answer);
   if (i!=0)
     {
-      msg_free(answer);
+      osip_message_free(answer);
       fprintf(stderr, "eXosip: cannot create dialog!\n");
       osip_free(contact);
       jn->n_inc_tr = transaction;
@@ -696,7 +696,7 @@ void eXosip_process_new_subscribe(osip_transaction_t *transaction,
     osip_free(contact);
     if (i!=0)
       {
-	msg_free(answer);
+	osip_message_free(answer);
 	return;
       }
   }
@@ -741,7 +741,7 @@ void eXosip_process_subscribe_within_call(eXosip_notify_t *jn,
     osip_free(contact);
     if (i!=0)
       {
-	//msg_free(answer);
+	//osip_message_free(answer);
 	//return;
 	/* this info is yet known by the remote UA,
 	   so we don't have to exit here */
@@ -973,7 +973,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
   else
     { /* We should handle late response and 200 OK before coming here. */
       ctx_type = -1;
-      msg_free(evt->sip);
+      osip_message_free(evt->sip);
       osip_free(evt);
       return ;	
     }
@@ -987,7 +987,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 			   evt->sip);
       if (i!=0)
 	{
-	  msg_free(evt->sip);
+	  osip_message_free(evt->sip);
 	  osip_free(evt);
 	  return ;
 	}
@@ -1000,7 +1000,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 	{
 	  __eXosip_delete_jinfo(transaction);
 	  osip_transaction_free(transaction);
-	  msg_free(evt->sip);
+	  osip_message_free(evt->sip);
 	  osip_free(evt);
 	  return ;
 	}
@@ -1254,7 +1254,7 @@ void eXosip_process_newrequest (osip_event_t *evt)
 
 void eXosip_process_response_out_of_transaction (osip_event_t *evt)
 {
-  msg_free(evt->sip);
+  osip_message_free(evt->sip);
   osip_free(evt);
 }
 
@@ -1336,7 +1336,7 @@ int eXosip_read_message   ( int max_message_nb, int sec_max, int usec_max )
 		{
 		  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_ERROR,NULL,
 			      "Could not parse SIP message\n"));
-		  msg_free(sipevent->sip);
+		  osip_message_free(sipevent->sip);
 		  osip_free(sipevent);
 		}
 	    }

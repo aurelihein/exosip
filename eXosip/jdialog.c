@@ -80,7 +80,7 @@ int eXosip_dialog_set_200ok(eXosip_dialog_t *jd, osip_message_t *_200Ok)
 {
   int i;
   if (jd==NULL) return -1;
-  i = msg_clone(_200Ok, &(jd->d_200Ok));
+  i = osip_message_clone(_200Ok, &(jd->d_200Ok));
   if (i!=0) {
     return -1;
   }
@@ -117,6 +117,7 @@ int eXosip_dialog_init_as_uac(eXosip_dialog_t **_jd, osip_message_t *_200Ok)
   jd->d_inc_trs = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
   osip_list_init(jd->d_inc_trs);
 
+  jd->d_bh = sdp_handler_new();
   *_jd = jd;
   return 0;
 }
@@ -154,14 +155,15 @@ int eXosip_dialog_init_as_uas(eXosip_dialog_t **_jd, osip_message_t *_invite, os
   jd->d_dialog->local_cseq = 1;
 #endif
 
+  jd->d_bh = sdp_handler_new();
   *_jd = jd;
   return 0;
 }
 
 void eXosip_dialog_free(eXosip_dialog_t *jd)
 {
-  msg_free(jd->d_200Ok);
-  msg_free(jd->d_ack);
+  osip_message_free(jd->d_200Ok);
+  osip_message_free(jd->d_ack);
 
   osip_dialog_free(jd->d_dialog);
 

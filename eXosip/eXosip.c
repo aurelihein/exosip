@@ -400,7 +400,7 @@ void eXosip_message    (char *to, char *from, char *route, char *buff)
     {
       /* TODO: release the j_call.. */
 
-      msg_free(message);
+      osip_message_free(message);
       return ;
     }
   
@@ -457,7 +457,7 @@ void eXosip_start_call    (osip_message_t *invite)
   if (i!=0)
     {
       /* TODO: release the j_call.. */
-      msg_free(invite);
+      osip_message_free(invite);
       return ;
     }
   
@@ -576,7 +576,7 @@ void eXosip_on_hold_call  (int jid)
   if (i!=0)
     {
       /* TODO: release the j_call.. */
-      msg_free(invite);
+      osip_message_free(invite);
       return ;
     }
   
@@ -617,7 +617,7 @@ int eXosip_create_transaction(eXosip_call_t *jc,
     {
       /* TODO: release the j_call.. */
 
-      msg_free(request);
+      osip_message_free(request);
       return -1;
     }
   
@@ -671,7 +671,7 @@ int eXosip_create_cancel_transaction(eXosip_call_t *jc,
     {
       /* TODO: release the j_call.. */
 
-      msg_free(request);
+      osip_message_free(request);
       return -1;
     }
   
@@ -808,7 +808,7 @@ void eXosip_register      (int rid)
     {
       /* TODO: release the j_call.. */
 
-      msg_free(reg);
+      osip_message_free(reg);
       return ;
     }
 
@@ -817,7 +817,7 @@ void eXosip_register      (int rid)
   /* send REGISTER */
   sipevent = osip_new_outgoing_sipmessage(reg);
   sipevent->transactionid =  transaction->transactionid;
-  msg_force_update(reg);
+  osip_message_force_update(reg);
   
   osip_transaction_add_event(transaction, sipevent);
 
@@ -868,7 +868,7 @@ void eXosip_subscribe    (char *to, char *from, char *route)
 		       subscribe);
   if (i!=0)
     {
-      msg_free(subscribe);
+      osip_message_free(subscribe);
       return ;
     }
 
@@ -1015,7 +1015,7 @@ void eXosip_notify_send_notify(eXosip_notify_t *jn,
   if (i!=0)
     {
       /* TODO: release the j_call.. */
-      msg_free(notify);
+      osip_message_free(notify);
       return ;
     }
   

@@ -57,6 +57,9 @@
 
 #endif
 
+struct _BodyHandler;
+
+struct _BodyHandler *sdp_handler_new ();
 
 typedef struct eXosip_dialog_t eXosip_dialog_t;
 
@@ -73,6 +76,8 @@ struct eXosip_dialog_t {
 
   osip_list_t     *d_inc_trs;
   osip_list_t     *d_out_trs;
+
+  struct _BodyHandler     *d_bh;
 
   eXosip_dialog_t *next;
   eXosip_dialog_t *parent;
