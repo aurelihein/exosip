@@ -729,23 +729,34 @@ void eXosip_terminate_call(int cid, int jid)
       eXosip_call_find(cid, &jc);      
     }
 
+  if (jc==NULL)
+    {
+      return;
+    }
   if (jd==NULL || jd->d_dialog==NULL)
     {
-      osip_transaction_t *tr;
       fprintf(stderr, "eXosip: No established dialog!");
+      return ;
+    }
+  if (jd!=NULL && jd->d_dialog!=NULL)
+    {
+      osip_transaction_t *tr;
+      fprintf(stderr, "eXosip: Cancel established dialog!");
       /* #warning TODO: choose the latest not the first one. */
-      tr=jc->c_out_tr;
+      tr=eXosip_find_last_out_invite(jc, jd);
       if (tr!=NULL && tr->last_response!=NULL && MSG_IS_STATUS_1XX(tr->last_response))
 	{
 	  i = generating_cancel(&request, tr->orig_request);
 	  if (i!=0)
-	    fprintf(stderr, "eXosip: cannot terminate this call! ");
-	  return;
+	    {
+	      fprintf(stderr, "eXosip: cannot terminate this call! ");
+	      return;
+	    }
 	  i = eXosip_create_cancel_transaction(jc, jd, request);
 	  if (i!=0)
 	    fprintf(stderr, "eXosip: cannot initiate SIP transaction! ");
+	  return;
 	}
-      return;
     }
   i = generating_bye(&request, jd->d_dialog);
   if (i!=0)
