@@ -701,12 +701,25 @@ static void cb_rcv1xx(int type, osip_transaction_t *tr,osip_message_t *sip)
       if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "INVITE")
 	   && sip->status_code < 180)
 	{
-	  report_call_event_with_status(EXOSIP_CALL_PROCEEDING, jc, jd, sip);
+	  eXosip_event_t *je;
+	  je = eXosip_event_init_for_call(EXOSIP_CALL_PROCEEDING, jc, jd);
+	  if (je!=NULL)
+	    {
+	      if (sip->status_code>100)
+		eXosip_event_add_sdp_info(je, sip);
+	      report_event_with_status(je, sip);
+	    }
 	}
       else if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "INVITE")
 		&& sip->status_code >= 180)
 	{
-	  report_call_event_with_status(EXOSIP_CALL_RINGING, jc, jd, sip);
+	  eXosip_event_t *je;
+	  je = eXosip_event_init_for_call(EXOSIP_CALL_RINGING, jc, jd);
+	  if (je!=NULL)
+	    {
+	      eXosip_event_add_sdp_info(je, sip);
+	      report_event_with_status(je, sip);
+	    }
 	}
       else if ( jd!=NULL && MSG_IS_RESPONSE_FOR(sip, "SUBSCRIBE"))
 	{
