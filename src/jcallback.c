@@ -1081,25 +1081,37 @@ static void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
       }
 
     osip_message_get_route(ack, 0, &route);
-    if (route!=NULL)
+    if (route != NULL && route->url!=NULL)
       {
-	port = 5060;
-	if (route->url->port!=NULL)
-	  port = osip_atoi(route->url->port);
+	osip_uri_param_t *lr_param;
+	osip_uri_uparam_get_byname(route->url, "lr", &lr_param);
+	if (lr_param==NULL)
+	  {
+	    /* using uncompliant proxy: destination is the request-uri */
+	    route = NULL;
+	  }
+      }
+    
+    if (route != NULL)
+      {
+	int port = 5060;
+	
+	if (route->url->port != NULL)
+	  port = osip_atoi (route->url->port);
 	host = route->url->host;
       }
     else
       {
-	port = 5060;
-	if (ack->req_uri->port!=NULL)
-	  port = osip_atoi(ack->req_uri->port);
+	int port = 5060;
+	
+	if (ack->req_uri->port != NULL)
+	  port = osip_atoi (invite->req_uri->port);
 	host = ack->req_uri->host;
       }
-
+    
     cb_udp_snd_message(NULL, ack, host, port, eXosip.j_socket);
-
+    
     jd->d_ack  = ack;
-
   }
 
   {

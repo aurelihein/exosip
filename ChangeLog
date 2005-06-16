@@ -1,4 +1,5 @@
 eXosip (0.9.1)
+	* fix destination of ACK with strict routing proxy.
 	* add publish support through a nice API.
 	
 eXosip (0.9.0)
