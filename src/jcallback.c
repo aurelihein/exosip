@@ -1105,7 +1105,7 @@ static void cb_rcv2xx_4invite(osip_transaction_t *tr,osip_message_t *sip)
 	int port = 5060;
 	
 	if (ack->req_uri->port != NULL)
-	  port = osip_atoi (invite->req_uri->port);
+	  port = osip_atoi (ack->req_uri->port);
 	host = ack->req_uri->host;
       }
     
