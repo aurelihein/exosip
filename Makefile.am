@@ -1,5 +1,5 @@
 
-EXTRA_DIST = README autogen.sh eX_script eXosip_addfriend.sh eXosip_addidentity.sh eXosip_addsubscriber.sh
+EXTRA_DIST = README autogen.sh eXosip_addfriend.sh eXosip_addidentity.sh eXosip_addsubscriber.sh
 
 SUBDIRS = scripts platform src include josua tools phapi miniua
 
