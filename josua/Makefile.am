@@ -32,7 +32,7 @@ gui_insubscriptions_list.c  gui_subscriptions_list.c \
 gui_loglines.c              gui_topline.c            \
 gui_menu.c                  \
 gui_new_call.c              \
-gui_menu.h               gui_subscriptions_list.h \
+gui_menu.h                  gui_subscriptions_list.h \
 gui.h                       gui_new_call.h           gui_topline.h          \
 gui_address_book_browse.h   gui_new_identity.h       \
 gui_address_book_newentry.h gui_online.h             \
@@ -42,9 +42,13 @@ gui_loglines.h              gui_setup.h
 
 libjosua_la_SOURCES = \
 commands.c	jinsubscriptions.c jsubscriptions.c       \
-  jcalls.c                               jconfig.c commands.h      jcalls.h               \
-  jconfig.h  jinsubscriptions.h        jsubscriptions.h ppl_getopt.h pplgetopt.c         \
-sound-mediastreamer.c sound-ortp.c            sound-ucl.c        sound-win32.c  sound_conv.c  sound-mac.c
+jcalls.c        jconfig.c          commands.h       jcalls.h \
+jconfig.h       jinsubscriptions.h jsubscriptions.h ppl_getopt.h pplgetopt.c   \
+sound-mediastreamer.c sound-ortp.c sound-ucl.c      sound-win32.c  \
+sound_conv.c    sound-mac.c \
+jfriends.h      jfriends.c  \
+jidentity.h     jidentity.c \
+sdptools.h      sdptools.c
 
 
 libjosua_la_includedir=$(includedir)/josua
@@ -76,9 +80,9 @@ endif
 endif
 endif
 
-josua_LDADD = $(top_builddir)/src/libeXosip.la libjosua.la $(libdir)/libosip2.la $(libdir)/libosipparser2.la -lrt $(MORE_MYADD)
+josua_LDADD = $(top_builddir)/src/libeXosip2.la libjosua.la $(libdir)/libosip2.la $(libdir)/libosipparser2.la -lrt $(MORE_MYADD)
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(includedir) $(MORE_INCLUDES)
 
-libjosua_la_LIBADD = $(top_builddir)/src/libeXosip.la $(libdir)/libosip2.la $(libdir)/libosipparser2.la  $(MORE_MYADD)
+libjosua_la_LIBADD = $(top_builddir)/src/libeXosip2.la $(libdir)/libosip2.la $(libdir)/libosipparser2.la  $(MORE_MYADD)
 

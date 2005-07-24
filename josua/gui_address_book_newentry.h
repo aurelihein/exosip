@@ -23,11 +23,10 @@
 
 #include "gui.h"
 
-int window_address_book_newentry_print();
-int window_address_book_newentry_run_command(int c);
-void window_address_book_newentry_draw_commands();
+int window_address_book_newentry_print (void);
+int window_address_book_newentry_run_command (int c);
+void window_address_book_newentry_draw_commands (void);
 
 extern gui_t gui_window_address_book_newentry;
 
 #endif
-

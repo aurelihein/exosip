@@ -1,21 +1,21 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.33 $)dnl
+AC_REVISION($Revision: 1.34 $)dnl
 AC_PREREQ(2.50)
-AC_INIT(include/eXosip/eXosip.h)
+AC_INIT(include/eXosip2/eXosip.h)
 
 dnl require at least autoconf v 2.00
 dnl AC_COPYRIGHT (COPYRIGHT-NOTICE)
 
-AC_MSG_NOTICE([eXosip                            The Extended Open SIP library.])
+AC_MSG_NOTICE([eXosip2                           The Extended Open SIP library.])
 AC_MSG_NOTICE([Copyright (C) 2002,2003,2004,2005 Aymeric MOIZARD - <jack@atosc.org>])
 
 dnl *********************************************************************
 dnl Source packaging numbers
-EXOSIP_MAJOR_VERSION=0
+EXOSIP_MAJOR_VERSION=1
 EXOSIP_MINOR_VERSION=9
-EXOSIP_MICRO_VERSION=0
+EXOSIP_MICRO_VERSION=1
 
-SONAME_MAJOR_VERSION=3
+SONAME_MAJOR_VERSION=5
 SONAME_MINOR_VERSION=0
 SONAME_MICRO_VERSION=0
 
@@ -33,7 +33,7 @@ else
  VERSION="$EXOSIP_VERSION-$PRERELEASE"
 fi
 
-PACKAGE=libeXosip
+PACKAGE=libeXosip2
 
 AC_MSG_RESULT([Configuring ${PACKAGE} ${VERSION}])
 OS=`uname|sed -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'`
@@ -66,39 +66,40 @@ AC_PROG_LIBTOOL
 dnl declare --enable-* args and collect ac_help strings
 
 AC_ARG_ENABLE(josua,
-[  --enable-josua          compile josua.],
+[  --disable-josua         compile josua (yes).],
 enable_josua=$enableval,enable_josua="yes")
 
 AC_ARG_ENABLE(tools,
-[  --enable-tools          compile tools programs.],
+[  --disable-tools         compile tools programs (yes).],
 enable_tools=$enableval,enable_tools="yes")
 
 AC_ARG_ENABLE(glib,
-[  --enable-glib           compile josua with glib (yes).],
+[  --disable-glib          compile josua with glib (yes).],
 enable_glib=$enableval,enable_glib="yes")
 
-AC_ARG_ENABLE(ms,
-[  --enable-ms             compile with mediastreamer (yes).],
-enable_ms=$enableval,enable_ms="yes")
+dnl AC_ARG_ENABLE(ms,
+dnl [  --disable-ms            compile with mediastreamer (yes).],
+dnl enable_ms=$enableval,enable_ms="yes")
+enable_ms="no"
 
 AC_ARG_ENABLE(ortp,
-[  --enable-ortp           compile for ortp only (no).],
-enable_ortp=$enableval,enable_ortp="no")
+[  --disable-ortp           compile with ortp (yes).],
+enable_ortp=$enableval,enable_ortp="yes")
 
 AC_ARG_ENABLE(ucl,
-[  --enable-ucl            compile for ucl only (no).],
+[  --enable-ucl            compile with ucl (no).],
 enable_ucl=$enableval,enable_ucl="no")
 
 AC_ARG_ENABLE(debug,
-[  --enable-debug         turn on debugging (yes).],
+[  --disable-debug         turn on debugging (yes).],
 enable_debug=$enableval,enable_debug="yes")
 
 AC_ARG_ENABLE(trace,
-[  --enable-trace         turn on trace (yes).],
+[  --disable-trace         turn on trace (yes).],
 enable_trace=$enableval,enable_trace="yes")
 
 AC_ARG_ENABLE(mpatrol,
-[  --enable-mpatrol        turn on memory leak detection with patrol.],
+[  --enable-mpatrol        turn on memory leak detection with patrol (no).],
 enable_mpatrol=$enableval,enable_mpatrol="no")
 
 dnl support for linux-thread or posix thread (pthread.h)
@@ -120,27 +121,6 @@ AC_ARG_ENABLE(ncurses,
 [  --disable-ncurses       turn off ncurses support.],
 disable_ncurses=$enableval,disable_ncurses="yes")
 
-AC_ARG_ENABLE(ntimer,
-[  --enable-ntimer         enable new timer facility. (default yes)],
-enable_ntimer=$enableval,enable_ntimer="yes")
-
-AC_ARG_ENABLE(phapi,
-[  --disable-phapi       turn off phapi library generation.],
-disable_phapi=$enableval,disable_phapi="no")
-
-AC_ARG_ENABLE(miniua,
-[  --enable-miniua          compile miniua.],
-enable_miniua=$enableval,enable_miniua="no")
-
-AC_ARG_ENABLE(gsm,
-[  --disable-gsm       turn on gsm codec support.],
-disable_gsm=$enableval,disable_gsm="no")
-
-AC_ARG_ENABLE(ilbc,
-[  --disable-ilbc       turn on ilbc codec support.],
-disable_ilbc=$enableval,disable_ilbc="no")
-
-
 JOSUA_FLAGS="-DOSIP_AT_OSIP_DOT_ORG"
 
 dnl compile with mt support
@@ -153,6 +133,13 @@ fi
 
 EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
 
+dnl Disable mediastreamer, ortp and ucl if josua is disabled.
+if test "x$enable_josua" = "xno"; then
+  enable_ms="no"
+  enable_ortp="no"
+  enable_ucl="no"
+fi
+
 if test "x$enable_ucl" = "xyes"; then
   enable_glib="no"
   enable_ms="no"
@@ -163,10 +150,23 @@ if test "x$enable_ortp" = "xyes"; then
   enable_ms="no"
 fi
 
-if test "x$enable_phapi" != "xyes"; then
-  enable_miniua="no"
+if test "x$enable_ms" = "xyes"; then
+   AC_CHECK_HEADERS([mediastreamer.h],
+                   [AC_DEFINE([HAVE_MEDIASTREAMER_H], [], [Define to 1 if you have <mediastreamer.h> header file])],
+                   [AC_MSG_ERROR([mediastreamer library not installed. Please install or use --disable-josua])])
 fi
 
+if test "x$enable_ortp" = "xyes"; then
+   AC_CHECK_HEADERS([ortp/ortp.h],
+                   [AC_DEFINE([HAVE_ORTP_ORTP_H], [], [Define to 1 if you have <ortp/ortp.h> header file])],
+                   [AC_MSG_ERROR([oRTP library not installed. Please install or use --disable-josua])])
+fi
+
+if test "x$enable_ucl" = "xyes"; then
+   AC_CHECK_HEADERS([uclmmbase/uclconf.h],
+                   [AC_DEFINE([HAVE_UCLMMBASE_UCLCONF_H], [], [Define to 1 if you have <uclmmbase/uclconf.h> header file])],
+                   [AC_MSG_ERROR([ucl common RTP library not installed. Please install or use --disable-josua])])
+fi
 
 AM_CONDITIONAL(COMPILE_JOSUA, test "x$enable_josua" = "xyes")
 AM_CONDITIONAL(COMPILE_TOOLS, test "x$enable_tools" = "xyes")
@@ -174,10 +174,6 @@ AM_CONDITIONAL(ORTP_SUPPORT, test "x$enable_ortp" = "xyes")
 AM_CONDITIONAL(UCL_SUPPORT, test "x$enable_ucl" = "xyes")
 AM_CONDITIONAL(MEDIASTREAMER_SUPPORT, test "x$enable_ms" = "xyes")
 AM_CONDITIONAL(GLIB_SUPPORT, test "x$enable_glib" = "xyes")
-AM_CONDITIONAL(COMPILE_PHAPI, test "x$enable_phapi" = "xyes")
-AM_CONDITIONAL(COMPILE_MINIUA, test "x$enable_miniua" = "xyes")
-AM_CONDITIONAL(COMPILE_GSM, test "x$disable_gsm" != "xyes")
-AM_CONDITIONAL(COMPILE_ILBC, test "x$disable_ilbc" != "xyes")
 
 if test "x$enable_semaphore" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DHAVE_SEMAPHORE_H"
@@ -224,18 +220,7 @@ fi
 
 if test "x$enable_mpatrol" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DENABLE_MPATROL"
-  EXOSIP_LIB="$EXOSIP_LIB -lmpatrolmt -lbfd -lelf"
-fi
-
-if test "x$enable_ntimer" = "xyes"; then
-  EXOSIP_FLAGS="$EXOSIP_FLAGS -DNEW_TIMER"
-fi
-
-if test "x$disable_gsm" = "xyes"; then
-  EXOSIP_FLAGS="$EXOSIP_FLAGS -DNO_GSM"
-fi
-if test "x$disable_ilbc" = "xyes"; then
-  EXOSIP_FLAGS="$EXOSIP_FLAGS -DNO_ILBC"
+  EXOSIP_LIB="$EXOSIP_LIB -lmpatrolmt -lelf"
 fi
 
 dnl Checks for libraries.
@@ -251,7 +236,7 @@ if test "x$enable_josua" = "xyes"; then
   AC_CHECK_HEADERS(ncurses.h)
 fi
 
-EXOSIP_FLAGS="$EXOSIP_FLAGS -DUSE_TMP_BUFFER"
+EXOSIP_FLAGS="$EXOSIP_FLAGS"
 
 AC_CACHE_CHECK([whether -Wall works], Wall_flag, [
   saved_CPPFLAGS=$CPPFLAGS
@@ -383,15 +368,15 @@ AC_OUTPUT(
  Makefile
  scripts/Makefile
  platform/Makefile
+ platform/vsnet/Makefile
  platform/windows/Makefile
  include/Makefile
- include/eXosip/Makefile
+ include/eXosip2/Makefile
  src/Makefile
  josua/Makefile
  tools/Makefile 
- phapi/Makefile
- phapi/gsm/Makefile
- phapi/ilbc/Makefile
- miniua/Makefile
+ help/Makefile
+ help/doxygen/Makefile
+ help/doxygen/doxygen.dox
 )
 

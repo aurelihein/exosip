@@ -1,3 +1,3 @@
 
-SUBDIRS = eXosip
+SUBDIRS = eXosip2
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: autogen.sh,v 1.3 2004-12-28 20:38:11 aymeric Exp $
+# $Id: autogen.sh,v 1.4 2005-07-24 00:15:35 aymeric Exp $
 #
 DIE=0
 srcdir=`dirname $0`
@@ -46,7 +46,7 @@ if test "$DIE" -eq 1; then
     exit 1
 fi
 
-test -f include/eXosip/eXosip.h || {
+test -f include/eXosip2/eXosip.h || {
         echo "You must run this script in the top-level $PROJECT directory"
         exit 1
 }

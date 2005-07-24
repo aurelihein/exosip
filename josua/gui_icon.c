@@ -20,15 +20,15 @@
 
 #include "gui_icon.h"
 
-static const char *icons[]= {
+static const char *icons[] = {
 #define JD_EMPTY          0
-    "             ___  " ,
-    " WELCOME    /  /  " ,
-    "           /__/   " ,
-    "   TO     //      " ,
-    "         //       " ,
-    " JOSUA  / \\_      " ,
-    "        |__/      "
+  "             ___  ",
+  " WELCOME    /  /  ",
+  "           /__/   ",
+  "   TO     //      ",
+  "         //       ",
+  " JOSUA  / \\_      ",
+  "        |__/      "
 };
 
 gui_t gui_window_icon = {
@@ -48,28 +48,29 @@ gui_t gui_window_icon = {
   NULL
 };
 
-int window_icon_print()
+int
+window_icon_print ()
 {
-  int y,x;
+  int y, x;
   char buf[250];
   int i;
-  curseson(); cbreak(); noecho(); nonl(); keypad(stdscr,TRUE);
 
-  gui_print_box(&gui_window_icon, -1, 1);
+  curseson ();
+  cbreak ();
+  noecho ();
+  nonl ();
+  keypad (stdscr, TRUE);
 
-  getmaxyx(gui_window_icon.win,y,x);
-  wattrset(gui_window_icon.win, A_NORMAL);
-  wattrset(gui_window_icon.win, COLOR_PAIR(1));
+  gui_print_box (&gui_window_icon, -1, 1);
 
-  for (i=1; i<y-1; i++)
+  getmaxyx (gui_window_icon.win, y, x);
+  wattrset (gui_window_icon.win, A_NORMAL);
+  wattrset (gui_window_icon.win, COLOR_PAIR (1));
+
+  for (i = 1; i < y - 1; i++)
     {
-      snprintf(buf, x,
-	       "%s",icons[i-1]);
-      mvaddnstr(i+1,
-		0,
-		buf,
-		x-1);
+      snprintf (buf, x, "%s", icons[i - 1]);
+      mvaddnstr (i + 1, 0, buf, x - 1);
     }
   return 0;
 }
-

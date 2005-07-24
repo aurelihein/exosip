@@ -1,7 +1,7 @@
 Project    : eXosip - the eXtended osip Library.
 Email      : jack@atosc.org
 License    : GPL
-Home Page  : http://savannah.gnu.org
+Home Page  : http://savannah.gnu.org/projects/exosip
 
 eXosip is a GPL library that  extend  the  capability  of
 the oSIP library. It aims  to  implement  a  simple  high
@@ -11,10 +11,19 @@ and common extensions.
 Once completed, this eXtended library should  provide  an
 API for call management, messaging and presence features.
 
-rfc that are to be implemented:
-  rfc3261: SIP
-  rfcxxxx: MESSAGE request.
-  rfcxxxx: SIMPLE support.
+Features:
+--------
+
+eXosip has support for:
+ * registrations. (REGISTER)
+ * call initiation and modification. (INVITE, re-INVITE)
+ * other methods within calls (INFO, OPTIONS, UPDATE)
+ * call transfer. (REFER)
+ * reliability for provisionnal response. (PRACK)
+ * sip event package. (SUBSCRIBE/NOTIFY)
+ * event state publication. (PUBLISH)
+ * instant messaging. (MESSAGE)
+
 
 Installation procedure:
 -----------------------
@@ -22,10 +31,24 @@ Installation procedure:
 The program is known to run on linux, but might work
 on any unix and windows systems.
 
-./configure
-make
-su -c 'make install'
+   $> ./configure
+   $> make
+   $> su -c 'make install'
 
+YOU NEED ORTP or the UCL Common RTP library to compile
+the test program (josua).
+
+DISABLE JOSUA:
+   $> ./configure --disable-josua
+   $> make
+
+ENABLE JOSUA with ucl:
+   $> ./configure --enable-ucl
+   $> make
+
+ENABLE JOSUA with ortp:
+   $> ./configure --enable-ortp
+   $> make
 
 Contact information:
 --------------------

@@ -314,7 +314,7 @@ extern "C"
  *
  * Corrected Win32 to accept "a/b\\stuff", "a:stuff"
  */
-const char * ppl_filename_of_pathname (const char *pathname);
+  const char *ppl_filename_of_pathname (const char *pathname);
 
 /**
  * Initialize the arguments for parsing by ppl_getopt().
@@ -326,7 +326,7 @@ const char * ppl_filename_of_pathname (const char *pathname);
  * The errfn is initialized to fprintf(stderr... but may be overridden.
  */
   ppl_status_t ppl_getopt_init (ppl_getopt_t ** os,
-				int argc, const char *const *argv);
+                                int argc, const char *const *argv);
 
 /**
  * Parse the options initialized by ppl_getopt_init().
@@ -345,7 +345,7 @@ const char * ppl_filename_of_pathname (const char *pathname);
  * </PRE>
  */
   ppl_status_t ppl_getopt (ppl_getopt_t * os, const char *opts,
-                                         char *option_ch, const char **option_arg);
+                           char *option_ch, const char **option_arg);
 
 /**
  * Parse the options initialized by ppl_getopt_init(), accepting long
@@ -373,9 +373,8 @@ const char * ppl_filename_of_pathname (const char *pathname);
  * at the end (the original argv is unaffected).
  */
   ppl_status_t ppl_getopt_long (ppl_getopt_t * os,
-                                              const ppl_getopt_option_t * opts,
-                                              int *option_ch,
-                                              const char **option_arg);
+                                const ppl_getopt_option_t * opts,
+                                int *option_ch, const char **option_arg);
 /** @} */
 
 #ifdef __cplusplus

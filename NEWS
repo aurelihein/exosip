@@ -1,3 +1,29 @@
+Mar 2005    : 1.9.X
+  eXosip was first made to build a SIP interface for a PBX. Available
+  as a library, it appears soon that it was really difficult to use
+  the original version without changes in other kind of SIP applications.
+  Mainly, the API and the session negotiator was not providing enough
+  flexibility.
+
+  eXosip2 is an attempt to resolv those issues and at the time of
+  writing this NEWS file, it appears that I'm now close to the
+  initial goal: provide a flexible library for EndPoint control
+  with no limitation in terms of functionnalities and evolutions.
+
+  Main Changes:
+  1: the media/session information must now be handled by the application.
+      -> no negotiation issue any more
+      -> eXosip provide a basic API to quickly extract SDP information,
+         but this is kept optionnal.
+      -> no limitation about the attachment or the media to be supported.
+
+  2: the API has been refined to provide the flexibility you need. Thus,
+     you now have entire control on messages so that you can support a
+     lot of SIP extensions. Basically each action contains 3 steps:
+      -> Ask eXosip to build a default SIP message (request or answer)
+      -> Modify it (add body, session info, extra headers...)
+      -> Ask eXosip to send the message.
+
 Jun 2004    : 0.7.6
   eXosip is now quite stable. However, eXosip is not as extensible
   and powerfull as I was expecting at the beguining. This is why

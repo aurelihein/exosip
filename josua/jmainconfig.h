@@ -21,20 +21,23 @@
  */
 
 
-typedef struct _main_config_t {
-  char  config_file[256];    /* -f <config file>   */
-  char  identity_file[256];  /* -I <identity file> */
-  char  contact_file[256];   /* -C <contact file>  */
-  char  log_file[256];       /* -L <log file>      */
-  int   debug_level;         /* -d <verbose level>   */
-  int   port;                /* -p <SIP port>  default is 5060 */
-  char  identity[256];       /* -i <from url>  local identity */
+typedef struct _main_config_t
+{
+  char config_file[256];        /* -f <config file>   */
+  char identity_file[256];      /* -I <identity file> */
+  char nat_address[256];        /* -c <nat address>  */
+  char log_file[256];           /* -L <log file>      */
+  int debug_level;              /* -d <verbose level>   */
+  int port;                     /* -p <SIP port>  default is 5060 */
+  char identity[256];           /* -i <from url>  local identity */
 
   /* the application can command to make a new call */
-  char  to[255];             /* -t <sipurl to call>!  */
-  char  route[256];          /* -r <sipurl for route> */
-  char  subject[256];        /* -s <subject>          */
-  int   timeout;        /* -T <delay> connection is closed after 60s */
+  char to[255];                 /* -t <sipurl to call>!  */
+  char route[256];              /* -r <sipurl for route> */
+  char subject[256];            /* -s <subject>          */
+  int  proto;                   /* -t 0 (udp) 1 (tcp) 2 (tls) */
+
+  char service_route[2048];
 } main_config_t;
 
 extern main_config_t cfg;

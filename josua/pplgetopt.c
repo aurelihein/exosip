@@ -191,7 +191,8 @@ ppl_getopt (ppl_getopt_t * os, const char *opts, char *optch, const char **optar
             }
           if (os->errfn)
             {
-              (os->errfn) (os->errarg, "%s: option requires an argument -- %c\n",
+              (os->errfn) (os->errarg,
+                           "%s: option requires an argument -- %c\n",
                            ppl_filename_of_pathname (*os->argv), os->opt);
             }
           *optch = os->opt;

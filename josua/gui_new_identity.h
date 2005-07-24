@@ -23,11 +23,10 @@
 
 #include "gui.h"
 
-int window_new_identity_print();
-int window_new_identity_run_command(int c);
-void window_new_identity_draw_commands();
+int window_new_identity_print (void);
+int window_new_identity_run_command (int c);
+void window_new_identity_draw_commands (void);
 
 extern gui_t gui_window_new_identity;
 
 #endif
-

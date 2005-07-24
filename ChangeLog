@@ -1,5 +1,16 @@
+eXosip2 (1.9.0)
+	* new developpement branch for eXosip2
+	* new API for more flexibility
+	* media negotiation must now be handled outside of eXosip2
+	* initial support for:
+	* INVITE, INFO, re-INVITE, ACK, outgoing PRACK,
+	  BYE, CANCEL, REFER, NOTIFY within a call.
+	* OPTIONS, MESSAGE, REGISTER, PUBLISH outside of calls.
+	* API ready for outgoing SUBSCRIBE/incoming NOTIFY
+	* API nearly ready for incoming SUBSCRIBE/outgoing NOTIFY
+	* sdp nego: INVITE/200ok or 200ok/ACK
+
 eXosip (0.9.1)
-	* fix destination of ACK with strict routing proxy.
 	* add publish support through a nice API.
 	
 eXosip (0.9.0)

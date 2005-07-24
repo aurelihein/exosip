@@ -23,9 +23,9 @@
 
 #include "gui.h"
 
-int window_registrations_list_print();
-int window_registrations_list_run_command(int c);
-void window_registrations_list_draw_commands();
+int window_registrations_list_print (void);
+int window_registrations_list_run_command (int c);
+void window_registrations_list_draw_commands (void);
 
 extern gui_t gui_window_registrations_list;
 

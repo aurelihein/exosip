@@ -41,8 +41,7 @@
 #include "config.h"
 #include <osip2/osip_mt.h>
 
-#include <eXosip/eXosip.h>
-#include <eXosip/eXosip_cfg.h>
+#include <eXosip2/eXosip.h>
 #include "jcalls.h"
 #include "jsubscriptions.h"
 #include "jinsubscriptions.h"
@@ -51,7 +50,8 @@
 #include "ppl_getopt.h"
 
 
-typedef struct gui {
+typedef struct gui
+{
 #define GUI_DISABLED -1
 #define GUI_ON        0
 #define GUI_OFF       1
@@ -60,11 +60,11 @@ typedef struct gui {
   int x1;
   int y0;
   int y1;
-  int (*gui_clear)();
-  int (*gui_print)();
-  int (*gui_run_command)(int);
-  int (*gui_key_pressed)();
-  void (*gui_draw_commands)();
+  int (*gui_clear) ();
+  int (*gui_print) ();
+  int (*gui_run_command) (int);
+  int (*gui_key_pressed) ();
+  void (*gui_draw_commands) ();
 
   int xcursor;
   int ycursor;
@@ -83,19 +83,19 @@ typedef struct gui {
 extern gui_t *gui_windows[10];
 extern gui_t *active_gui;
 
-int   gui_start();
-int   josua_event_get();
-void  josua_printf(char *chfr, ...);
+int gui_start (void);
+int josua_event_get (void);
+void josua_printf (char *chfr, ...);
 
 /* usefull method */
-int   josua_gui_clear();
-int   josua_gui_print();
-int   josua_gui_run_command(int c);
-int   josua_clear_box_and_commands(gui_t *box);
-int   josua_print_command(char **commands, int ypos, int xpos);
-WINDOW *gui_print_box(gui_t *box, int draw, int color);
+int josua_gui_clear (void);
+int josua_gui_print (void);
+int josua_gui_run_command (int c);
+int josua_clear_box_and_commands (gui_t * box);
+int josua_print_command (char **commands, int ypos, int xpos);
+WINDOW *gui_print_box (gui_t * box, int draw, int color);
 
-void curseson();
-void cursesoff();
+void curseson (void);
+void cursesoff (void);
 
 #endif

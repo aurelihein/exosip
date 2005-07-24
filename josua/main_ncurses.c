@@ -18,17 +18,18 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* static char rcsid[] = "main_ncurses:  $Id: main_ncurses.c,v 1.61 2005-02-10 15:19:52 aymeric Exp $"; */
-
 #ifdef NCURSES_SUPPORT
 
 #include "gui.h"
 #include "gui_online.h"
 
+#include "jfriends.h"
+#include "jidentity.h"
+
 /* extern eXosip_t eXosip; */
 
 main_config_t cfg = {
-  "\0", "\0", "\0", "\0", 1, 5060, "\0", "\0", "\0", "\0", 60
+  "\0", "\0", "\0", "\0", 1, 5060, "\0", "\0", "\0", "\0", 0, "\0"
 };
 
 #if defined(__DATE__) && defined(__TIME__)
@@ -37,519 +38,589 @@ static const char server_built[] = __DATE__ " " __TIME__;
 static const char server_built[] = "unknown";
 #endif
 
-int
-josua_event_get()
+static void usage (int code);
+
+static void log_event (eXosip_event_t * je);
+
+static void
+log_event (eXosip_event_t * je)
 {
-  int counter =0;
+  char buf[100];
+
+  buf[0] = '\0';
+  if (je->type == EXOSIP_CALL_NOANSWER)
+    {
+      snprintf (buf, 99, "<- (%i %i) No answer", je->cid, je->did);
+  } else if (je->type == EXOSIP_CALL_CLOSED)
+    {
+      snprintf (buf, 99, "<- (%i %i) Call Closed", je->cid, je->did);
+  } else if (je->type == EXOSIP_CALL_RELEASED)
+    {
+      snprintf (buf, 99, "<- (%i %i) Call released", je->cid, je->did);
+  } else if (je->type == EXOSIP_MESSAGE_NEW
+	     && je->request!=NULL && MSG_IS_MESSAGE(je->request))
+    {
+      char *tmp = NULL;
+
+      if (je->request != NULL)
+        {
+	  osip_body_t *body;
+          osip_from_to_str (je->request->from, &tmp);
+
+	  osip_message_get_body (je->request, 0, &body);
+	  if (body != NULL && body->body != NULL)
+	    {
+	      snprintf (buf, 99, "<- (%i) from: %s TEXT: %s",
+			je->tid, tmp, body->body);
+	    }
+          osip_free (tmp);
+      } else
+        {
+          snprintf (buf, 99, "<- (%i) New event for unknown request?", je->tid);
+        }
+  } else if (je->type == EXOSIP_MESSAGE_NEW)
+    {
+      char *tmp = NULL;
+
+      osip_from_to_str (je->request->from, &tmp);
+      snprintf (buf, 99, "<- (%i) %s from: %s",
+                je->tid, je->request->sip_method, tmp);
+      osip_free (tmp);
+  } else if (je->type == EXOSIP_MESSAGE_PROCEEDING
+             || je->type == EXOSIP_MESSAGE_ANSWERED
+             || je->type == EXOSIP_MESSAGE_REDIRECTED
+             || je->type == EXOSIP_MESSAGE_REQUESTFAILURE
+             || je->type == EXOSIP_MESSAGE_SERVERFAILURE
+             || je->type == EXOSIP_MESSAGE_GLOBALFAILURE)
+    {
+      if (je->response != NULL && je->request != NULL)
+        {
+          char *tmp = NULL;
+
+          osip_to_to_str (je->request->to, &tmp);
+          snprintf (buf, 99, "<- (%i) [%i %s for %s] to: %s",
+                    je->tid, je->response->status_code,
+                    je->response->reason_phrase, je->request->sip_method, tmp);
+          osip_free (tmp);
+      } else if (je->request != NULL)
+        {
+          snprintf (buf, 99, "<- (%i) Error for %s request",
+                    je->tid, je->request->sip_method);
+      } else
+        {
+          snprintf (buf, 99, "<- (%i) Error for unknown request", je->tid);
+        }
+  } else if (je->response == NULL && je->request != NULL && je->cid > 0)
+    {
+      char *tmp = NULL;
+
+      osip_from_to_str (je->request->from, &tmp);
+      snprintf (buf, 99, "<- (%i %i) %s from: %s",
+                je->cid, je->did, je->request->cseq->method, tmp);
+      osip_free (tmp);
+  } else if (je->response != NULL && je->cid > 0)
+    {
+      char *tmp = NULL;
+
+      osip_to_to_str (je->request->to, &tmp);
+      snprintf (buf, 99, "<- (%i %i) [%i %s] for %s to: %s",
+                je->cid, je->did, je->response->status_code,
+                je->response->reason_phrase, je->request->sip_method, tmp);
+      osip_free (tmp);
+  } else if (je->response == NULL && je->request != NULL && je->rid > 0)
+    {
+      char *tmp = NULL;
+
+      osip_from_to_str (je->request->from, &tmp);
+      snprintf (buf, 99, "<- (%i) %s from: %s",
+                je->rid, je->request->cseq->method, tmp);
+      osip_free (tmp);
+  } else if (je->response != NULL && je->rid > 0)
+    {
+      char *tmp = NULL;
+
+      osip_from_to_str (je->request->from, &tmp);
+      snprintf (buf, 99, "<- (%i) [%i %s] from: %s",
+                je->rid, je->response->status_code,
+                je->response->reason_phrase, tmp);
+      osip_free (tmp);
+  } else if (je->response == NULL && je->request != NULL && je->sid > 0)
+    {
+      char *tmp = NULL;
+      char *stat = NULL;
+      osip_header_t *sub_state;
+
+      osip_message_header_get_byname (je->request, "subscription-state",
+                                      0, &sub_state);
+      if (sub_state != NULL && sub_state->hvalue != NULL)
+        stat = sub_state->hvalue;
+
+      osip_uri_to_str (je->request->from->url, &tmp);
+      snprintf (buf, 99, "<- (%i) [%s] %s from: %s",
+                je->sid, stat, je->request->cseq->method, tmp);
+      osip_free (tmp);
+  } else if (je->response != NULL && je->sid > 0)
+    {
+      char *tmp = NULL;
+
+      osip_uri_to_str (je->request->to->url, &tmp);
+      snprintf (buf, 99, "<- (%i) [%i %s] from: %s",
+                je->sid, je->response->status_code,
+                je->response->reason_phrase, tmp);
+      osip_free (tmp);
+  } else if (je->response == NULL && je->request != NULL)
+    {
+      char *tmp = NULL;
+
+      osip_from_to_str (je->request->from, &tmp);
+      snprintf (buf, 99, "<- (c=%i|d=%i|s=%i|n=%i) %s from: %s",
+                je->cid, je->did, je->sid, je->nid,
+                je->request->sip_method, tmp);
+      osip_free (tmp);
+  } else if (je->response != NULL)
+    {
+      char *tmp = NULL;
+
+      osip_from_to_str (je->request->from, &tmp);
+      snprintf (buf, 99, "<- (c=%i|d=%i|s=%i|n=%i) [%i %s] for %s from: %s",
+                je->cid, je->did, je->sid, je->nid,
+                je->response->status_code, je->response->reason_phrase,
+		je->request->sip_method, tmp);
+      osip_free (tmp);
+  } else
+    {
+      snprintf (buf, 99, "<- (c=%i|d=%i|s=%i|n=%i|t=%i) %s",
+                je->cid, je->did, je->sid, je->nid, je->tid, je->textinfo);
+    }
+
+  josua_printf (buf);
+}
+
+int
+josua_event_get ()
+{
+  int counter = 0;
+
   /* use events to print some info */
   eXosip_event_t *je;
+
   for (;;)
     {
-      char buf[100];
-      je = eXosip_event_wait(0,50);
-      eXosip_automatic_refresh();
-      if (je==NULL)
-	break;
+      je = eXosip_event_wait (0, 50);
+      eXosip_lock();
+      eXosip_automatic_action ();
+      eXosip_unlock();
+      if (je == NULL)
+        break;
       counter++;
-      if (je->type==EXOSIP_CALL_NEW)
-	{
-	  snprintf(buf, 99, "<- (%i %i) INVITE from: %s",
-		   je->cid, je->did,
-		   je->remote_uri);
-	  josua_printf(buf);
+      log_event (je);
+      if (je->type == EXOSIP_CALL_INVITE)
+        {
+          call_new (je);
+      } else if (je->type == EXOSIP_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_REFER(je->request))
+        {
+          int i;
+	  if (je->tid > 0)
+            {
+              osip_message_t *answer;
 
-#if 0
-	  if (je->remote_sdp_audio_ip[0]!='\0')
+              eXosip_lock ();
+              i = eXosip_message_build_answer (je->tid, 200, &answer);
+              if (i == 0)
+                {
+                  eXosip_message_send_answer (je->tid, 200, answer);
+                }
+              eXosip_unlock ();
+            }
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_REFER(je->request))
+        {
+          int i;
+
+          /* accepte call transfer */
+          if (je->cid > 0 && je->did > 0)
+            {
+              osip_message_t *answer;
+
+              eXosip_lock ();
+              i = eXosip_call_build_answer (je->tid, 202, &answer);
+              if (i == 0)
+                {
+                  i = eXosip_call_send_answer (je->tid, 202, answer);
+                }
+              eXosip_unlock ();
+
+              eXosip_lock ();
+              if (i == 0)
+                {
+                  osip_message_t *notify;
+
+                  i =
+                    eXosip_call_build_notify (je->did,
+                                              EXOSIP_SUBCRSTATE_ACTIVE, &notify);
+                  if (i == 0)
+                    {
+                      osip_message_set_header (notify, "Event", "refer");
+                      osip_message_set_content_type (notify, "message/sipfrag");
+                      osip_message_set_body (notify, "SIP/2.0 100 Trying",
+                                             strlen ("SIP/2.0 100 Trying"));
+                      i = eXosip_call_send_request (je->did, notify);
+
+                    }
+                  if (i != 0)
+                    beep ();
+                }
+              eXosip_unlock ();
+          } else if (je->tid > 0)       /* bug?? */
+            {
+              osip_message_t *answer;
+
+              eXosip_lock ();
+              i = eXosip_message_build_answer (je->tid, 400, &answer);
+              if (i == 0)
+                {
+                  eXosip_message_send_answer (je->tid, 400, answer);
+                }
+              eXosip_unlock ();
+            }
+
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_UPDATE(je->request))
+        {
+          int i;
+
+          /* accepte call transfer */
+          if (je->cid > 0 && je->did > 0)
+            {
+              osip_message_t *answer;
+
+              eXosip_lock ();
+              i = eXosip_call_build_answer (je->tid, 200, &answer);
+              if (i == 0)
+                {
+                  i = eXosip_call_send_answer (je->tid, 200, answer);
+                }
+              eXosip_unlock ();
+
+          } else if (je->tid > 0)       /* bug?? */
+            {
+              osip_message_t *answer;
+
+              eXosip_lock ();
+              i = eXosip_message_build_answer (je->tid, 400, &answer);
+              if (i == 0)
+                {
+                  eXosip_message_send_answer (je->tid, 400, answer);
+                }
+              eXosip_unlock ();
+            }
+
+      } else if (je->type == EXOSIP_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_NOTIFY(je->request))
+	{
+          int i;
+	  if (je->tid > 0)
+            {
+              osip_message_t *answer;
+	      
+              eXosip_lock ();
+              i = eXosip_message_build_answer (je->tid, 501, &answer);
+              if (i == 0)
+                {
+                  eXosip_message_send_answer (je->tid, 501, answer);
+                }
+              eXosip_unlock ();
+            }
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_NOTIFY(je->request))
+        {
+	  /* already answered! */
+      } else if (je->type == EXOSIP_CALL_ACK)
+        {
+          char buf[100];
+
+          snprintf (buf, 99, "<- (%i %i) ACK received", je->cid, je->did);
+          josua_printf (buf);
+          call_ack (je);
+      } else if (je->type == EXOSIP_CALL_ANSWERED)
+        {
+          call_answered (je);
+      } else if (je->type == EXOSIP_CALL_PROCEEDING)
+        {
+          call_proceeding (je);
+      } else if (je->type == EXOSIP_CALL_RINGING)
+        {
+          call_ringing (je);
+      } else if (je->type == EXOSIP_CALL_REDIRECTED)
+        {
+          call_redirected (je);
+      } else if (je->type == EXOSIP_CALL_REQUESTFAILURE)
+        {
+          call_requestfailure (je);
+      } else if (je->type == EXOSIP_CALL_SERVERFAILURE)
+        {
+          call_serverfailure (je);
+      } else if (je->type == EXOSIP_CALL_GLOBALFAILURE)
+        {
+          call_globalfailure (je);
+      } else if (je->type == EXOSIP_CALL_NOANSWER)
+	{
+      } else if (je->type == EXOSIP_CALL_CLOSED)
+        {
+          call_closed (je);
+      } else if (je->type == EXOSIP_CALL_RELEASED)
+        {
+          call_closed (je);
+      } else if (je->type == EXOSIP_CALL_REINVITE)
+        {
+          call_modified (je);
+      } else if (je->type == EXOSIP_REGISTRATION_SUCCESS)
+        {
+          if (je->response != NULL)
+            josua_registration_status = je->response->status_code;
+          else
+            josua_registration_status = 0;
+          if (je->request != NULL && je->request->req_uri != NULL &&
+              je->request->req_uri->host != NULL)
+            snprintf (josua_registration_server, 100, "sip:%s",
+                      je->request->req_uri->host);
+          if (je->response != NULL && je->response->reason_phrase != NULL
+              && je->response->reason_phrase != '\0')
+            snprintf (josua_registration_reason_phrase, 100, "%s",
+                      je->response->reason_phrase);
+          else
+            josua_registration_reason_phrase[0] = '\0';
+
+	  if (je->response!=NULL)
 	    {
-	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
-		       je->remote_sdp_audio_ip,
-		       je->remote_sdp_audio_port);
-	      josua_printf(buf);
+	      _josua_set_service_route(je->response);
 	    }
-#endif
-	  jcall_new(je);
-	}
-      else if (je->type==EXOSIP_CALL_REFERED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) REFER refer-to: %s",
-		   je->cid, je->did,
-		   je->refer_to);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_CALL_REFER_STATUS)
-	{
-	  snprintf(buf, 99, "<- (%i %i) NOTIFY(refer) from: %s",
-		   je->cid, je->did,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  snprintf(buf, 99, "<- (%i %i) status: %s",
-		   je->cid, je->did,
-		   je->sdp_body);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_CALL_ACK)
-	{
-	  snprintf(buf, 99, "<- (%i %i) ACK from: %s",
-		   je->cid, je->did,
-		   je->remote_uri);
-	  josua_printf(buf);
 
-	  jcall_ack(je);
-	}
-      else if (je->type==EXOSIP_CALL_ANSWERED)
+      } else if (je->type == EXOSIP_REGISTRATION_FAILURE)
+        {
+          if (je->response != NULL)
+            josua_registration_status = je->response->status_code;
+          else
+            josua_registration_status = 0;
+          if (je->request != NULL && je->request->req_uri != NULL &&
+              je->request->req_uri->host != NULL)
+            snprintf (josua_registration_server, 100, "sip:%s",
+                      je->request->req_uri->host);
+          if (je->response != NULL && je->response->reason_phrase != NULL
+              && je->response->reason_phrase != '\0')
+            snprintf (josua_registration_reason_phrase, 100, "%s",
+                      je->response->reason_phrase);
+          else
+            josua_registration_reason_phrase[0] = '\0';
+      } else if (je->type == EXOSIP_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_OPTIONS(je->request))
 	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-#if 0
-	  if (je->remote_sdp_audio_ip[0]!='\0')
-	    {
-	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
-		       je->remote_sdp_audio_ip,
-		       je->remote_sdp_audio_port);
-	      josua_printf(buf);
-	    }
-#endif
-	  jcall_answered(je);
-	}
-      else if (je->type==EXOSIP_CALL_PROCEEDING)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
+          int k;
 
-#if 0
-	  if (je->remote_sdp_audio_ip[0]!='\0')
+	  /* outside of any call */
+	  for (k = 0; k < MAX_NUMBER_OF_CALLS; k++)
 	    {
-	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
-		       je->remote_sdp_audio_ip,
-		       je->remote_sdp_audio_port);
-	      josua_printf(buf);
-	    }
-#endif
-	  jcall_proceeding(je);
-	}
-      else if (je->type==EXOSIP_CALL_RINGING)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-#if 0
-	  if (je->remote_sdp_audio_ip[0]!='\0')
-	    {
-	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
-		       je->remote_sdp_audio_ip,
-		       je->remote_sdp_audio_port);
-	      josua_printf(buf);
-	    }
-#endif
-	  jcall_ringing(je);
-	}
-      else if (je->type==EXOSIP_CALL_REDIRECTED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jcall_redirected(je);
-	}
-      else if (je->type==EXOSIP_CALL_REQUESTFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jcall_requestfailure(je);
-	}
-      else if (je->type==EXOSIP_CALL_SERVERFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jcall_serverfailure(je);
-	}
-      else if (je->type==EXOSIP_CALL_GLOBALFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jcall_globalfailure(je);
-	}
-      else if (je->type==EXOSIP_CALL_CLOSED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) BYE from: %s",
-		   je->cid, je->did, je->remote_uri);
-	  josua_printf(buf);
-	  jcall_closed(je);
-	}
-      else if (je->type==EXOSIP_CALL_HOLD)
-	{
-	  snprintf(buf, 99, "<- (%i %i) INVITE (On Hold) from: %s",
-		   je->cid, je->did, je->remote_uri);
-	  josua_printf(buf);
-	  jcall_onhold(je);
-	}
-      else if (je->type==EXOSIP_CALL_OFFHOLD)
-	{
-	  snprintf(buf, 99, "<- (%i %i) INVITE (Off Hold) from: %s",
-		   je->cid, je->did, je->remote_uri);
-	  josua_printf(buf);
-	  jcall_offhold(je);
-	}
-      else if (je->type==EXOSIP_REGISTRATION_SUCCESS)
-	{
-	  snprintf(buf, 99, "<- (%i) [%i %s] %s for REGISTER %s",
-		   je->rid,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri,
-		   je->req_uri);
-	  josua_printf(buf);
-
-	  josua_registration_status = je->status_code;
-	  snprintf(josua_registration_server, 100, "%s", je->req_uri);
-	  if (je->reason_phrase!='\0')
-	    snprintf(josua_registration_reason_phrase, 100, "%s", je->reason_phrase);
-	  else josua_registration_reason_phrase[0] = '\0';
-	}
-      else if (je->type==EXOSIP_REGISTRATION_FAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i) [%i %s] %s for REGISTER %s",
-		   je->rid,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri,
-		   je->req_uri);
-	  josua_printf(buf);
-	  josua_registration_status = je->status_code;
-	  snprintf(josua_registration_server, 100, "%s", je->req_uri);
-	  if (je->reason_phrase!='\0')
-	    snprintf(josua_registration_reason_phrase, 100, "%s", je->reason_phrase);
-	  else josua_registration_reason_phrase[0] = '\0';
-	  
-	}
-      else if (je->type==EXOSIP_OPTIONS_NEW)
-	{
-	  int k;
-	  snprintf(buf, 99, "<- (%i %i) OPTIONS from: %s",
-		   je->cid, je->did,
-		   je->remote_uri);
-	  josua_printf(buf);
-
-	  /* answer the OPTIONS method */
-	  /* 1: search for an existing call */
-	  for (k=0;k<MAX_NUMBER_OF_CALLS;k++)
-	    {
-	      if (jcalls[k].state != NOT_USED
-		  || jcalls[k].cid==je->cid)
+	      if (calls[k].state != NOT_USED)
 		break;
 	    }
-	  eXosip_lock();
-	  if (jcalls[k].cid==je->cid)
+	  eXosip_lock ();
+	  if (k == MAX_NUMBER_OF_CALLS)
 	    {
-	      /* already answered! */
+	      eXosip_options_send_answer (je->tid, 200, NULL);
+	    } else
+	      {
+		/* answer 486 ok */
+		eXosip_options_send_answer (je->tid, 486, NULL);
+	      }
+	  eXosip_unlock ();
+	  
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_OPTIONS(je->request))
+        {
+          int k;
+
+          /* answer the OPTIONS method */
+          /* 1: search for an existing call */
+          if (je->cid != 0)
+            {
+              osip_message_t *answer;
+              int i;
+
+              for (k = 0; k < MAX_NUMBER_OF_CALLS; k++)
+                {
+                  if (calls[k].state != NOT_USED && calls[k].did == je->did)
+                    break;
+                }
+              eXosip_lock ();
+              i = eXosip_call_build_answer (je->tid, 200, &answer);
+              if (i == 0)
+                {
+                  eXosip_call_send_answer (je->tid, 200, answer);
+                }
+              eXosip_unlock ();
+           }
+	  else /* bug? */
+            {
+              eXosip_lock ();
+	      eXosip_options_send_answer (je->tid, 400, NULL);
+              eXosip_unlock ();
+            }
+      } else if (je->type == EXOSIP_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_INFO(je->request))
+	{
+	  int i;
+	  /* what's the purpose of sending INFO outside dialog? */
+	  eXosip_lock ();
+	  i = eXosip_message_send_answer (je->tid, 501, NULL);
+	  eXosip_unlock ();
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_INFO(je->request))
+        {
+          if (je->cid != 0)
+            {
+              osip_message_t *answer;
+              int i;
+
+              eXosip_lock ();
+              i = eXosip_call_build_answer (je->tid, 200, &answer);
+              if (i == 0)
+                {
+                  eXosip_call_send_answer (je->tid, 200, answer);
+                }
+              eXosip_unlock ();
 	    }
-	  else if (k==MAX_NUMBER_OF_CALLS)
+	  else /* bug? */
+            {
+              int i;
+	      
+              eXosip_lock ();
+              i = eXosip_call_send_answer (je->tid, 400, NULL);
+              eXosip_unlock ();
+            }
+      } else if (je->type == EXOSIP_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_MESSAGE(je->request))
+        {
+          /* answer 2xx */
+          eXosip_lock ();
+          eXosip_message_send_answer (je->tid, 200, NULL);
+          eXosip_unlock ();
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
+		 && je->request!=NULL && MSG_IS_MESSAGE(je->request))
+        {
+          /* answer 2xx */
+          if (je->cid != 0)
+            {
+              osip_message_t *answer;
+              int i;
+
+              eXosip_lock ();
+              i = eXosip_call_build_answer (je->tid, 200, &answer);
+              if (i == 0)
+                {
+                  eXosip_call_send_answer (je->tid, 200, answer);
+                }
+              eXosip_unlock ();
+	    }
+	  else /* bug? */
+            {
+              int i;
+	      
+              eXosip_lock ();
+              i = eXosip_call_send_answer (je->tid, 400, NULL);
+              eXosip_unlock ();
+            }
+      } else if (je->type == EXOSIP_SUBSCRIPTION_ANSWERED)
+        {
+          jsubscription_answered (je);
+      } else if (je->type == EXOSIP_SUBSCRIPTION_PROCEEDING)
+        {
+          jsubscription_proceeding (je);
+      } else if (je->type == EXOSIP_SUBSCRIPTION_REDIRECTED)
+        {
+          jsubscription_redirected (je);
+      } else if (je->type == EXOSIP_SUBSCRIPTION_REQUESTFAILURE)
+        {
+          jsubscription_requestfailure (je);
+
+          if ((je->response != NULL && je->response->status_code == 407)
+              || (je->response != NULL && je->response->status_code == 401))
+            {
+              static int oddnumber = 0;
+
+              if (oddnumber == 0)
+                {
+                  /* eXosip_subscribe_refresh(je->sid, "600"); */
+                  oddnumber = 1;
+              } else
+                oddnumber = 0;
+            }
+      } else if (je->type == EXOSIP_SUBSCRIPTION_SERVERFAILURE)
+        {
+          jsubscription_serverfailure (je);
+      } else if (je->type == EXOSIP_SUBSCRIPTION_GLOBALFAILURE)
+        {
+          jsubscription_globalfailure (je);
+      } else if (je->type == EXOSIP_SUBSCRIPTION_NOTIFY)
+        {
+          jsubscription_notify (je);
+      } else if (je->type == EXOSIP_IN_SUBSCRIPTION_NEW)
+        {
+          /* search for the user to see if he has been
+             previously accepted or not! */
+
+          jinsubscription_new (je);
+      } else if (je->type == EXOSIP_MESSAGE_NEW
+		 && je->request!=NULL)
+	{
+	  osip_message_t *answer;
+	  int i;
+	  eXosip_lock ();
+	  i = eXosip_message_build_answer (je->tid, 405, &answer);
+	  if (i == 0)
 	    {
-	      /* answer 200 ok */
-	      eXosip_answer_options(je->cid, je->did, 200);
+	      eXosip_message_send_answer (je->tid, 405, answer);
 	    }
-	  else
-	    {
-	      /* answer 486 ok */
-	      eXosip_answer_options(je->cid, je->did, 486);
+	  eXosip_unlock ();
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
+		 && je->request!=NULL)
+	{
+	  int i;
+          /* answer 2xx */
+          if (je->cid != 0)
+            {
+              osip_message_t *answer;
+
+              eXosip_lock ();
+              i = eXosip_call_build_answer (je->tid, 405, &answer);
+              if (i == 0)
+                {
+                  eXosip_call_send_answer (je->tid, 405, answer);
+                }
+              eXosip_unlock ();
 	    }
-	  eXosip_unlock();
+	  else /* bug? */
+            {
+              osip_message_t *answer;
 
-#if 0
-	  if (je->remote_sdp_audio_ip[0]!='\0')
-	    {
-	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
-		       je->remote_sdp_audio_ip,
-		       je->remote_sdp_audio_port);
-	      josua_printf(buf);
-	    }
-#endif
+              eXosip_lock ();
+              i = eXosip_message_build_answer (je->tid, 405, &answer);
+              if (i == 0)
+                {
+                  eXosip_message_send_answer (je->tid, 405, answer);
+                }
+              eXosip_unlock ();
+            }
 	}
-      else if (je->type==EXOSIP_OPTIONS_ANSWERED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-#if 0
-	  if (je->remote_sdp_audio_ip[0]!='\0')
-	    {
-	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
-		       je->remote_sdp_audio_ip,
-		       je->remote_sdp_audio_port);
-	      josua_printf(buf);
-	    }
-#endif
-	}
-      else if (je->type==EXOSIP_OPTIONS_PROCEEDING)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-
-#if 0
-	  if (je->remote_sdp_audio_ip[0]!='\0')
-	    {
-	      snprintf(buf, 99, "<- Remote sdp info: %s:%i",
-		       je->remote_sdp_audio_ip,
-		       je->remote_sdp_audio_port);
-	      josua_printf(buf);
-	    }
-#endif
-	}
-      else if (je->type==EXOSIP_OPTIONS_REDIRECTED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_OPTIONS_REQUESTFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_OPTIONS_SERVERFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_OPTIONS_GLOBALFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_INFO_NEW)
-	{
-	  snprintf(buf, 99, "<- (%i %i) INFO from: %s",
-		   je->cid, je->did,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_INFO_ANSWERED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_INFO_PROCEEDING)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_INFO_REDIRECTED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_INFO_REQUESTFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_INFO_SERVERFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-      else if (je->type==EXOSIP_INFO_GLOBALFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s",
-		   je->cid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	}
-
-      else if (je->type==EXOSIP_SUBSCRIPTION_ANSWERED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
-		   je->sid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-
-	  snprintf(buf, 99, "<- (%i %i) online=%i [status: %i reason:%i]",
-		   je->sid, je->did, 
-		   je->online_status,
-		   je->ss_status,
-		   je->ss_reason);
-	  josua_printf(buf);
-
-	  jsubscription_answered(je);
-	}
-      else if (je->type==EXOSIP_SUBSCRIPTION_PROCEEDING)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
-		   je->sid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-
-	  jsubscription_proceeding(je);
-	}
-      else if (je->type==EXOSIP_SUBSCRIPTION_REDIRECTED)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
-		   je->sid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jsubscription_redirected(je);
-	}
-      else if (je->type==EXOSIP_SUBSCRIPTION_REQUESTFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
-		   je->sid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jsubscription_requestfailure(je);
-
-	  if (je->status_code==407 ||
-	      je->status_code==401)
-	    {
-	      static int oddnumber=0;
-	      if (oddnumber==0)
-		{
-		  eXosip_subscribe_refresh(je->sid, "600");
-		  oddnumber=1;
-		} else oddnumber=0;
-	    }
-	}
-      else if (je->type==EXOSIP_SUBSCRIPTION_SERVERFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
-		   je->sid, je->did, 
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jsubscription_serverfailure(je);
-	}
-      else if (je->type==EXOSIP_SUBSCRIPTION_GLOBALFAILURE)
-	{
-	  snprintf(buf, 99, "<- (%i %i) [%i %s] %s for SUBSCRIBE",
-		   je->sid, je->did,
-		   je->status_code,
-		   je->reason_phrase,
-		   je->remote_uri);
-	  josua_printf(buf);
-	  jsubscription_globalfailure(je);
-	}
-      else if (je->type==EXOSIP_SUBSCRIPTION_NOTIFY)
-	{
-	  snprintf(buf, 99, "<- (%i %i) NOTIFY from: %s",
-		   je->sid, je->did,
-		   je->remote_uri);
-	  josua_printf(buf);
-
-	  snprintf(buf, 99, "<- (%i %i) online=%i [status: %i reason:%i]",
-		   je->sid, je->did, 
-		   je->online_status,
-		   je->ss_status,
-		   je->ss_reason);
-	  josua_printf(buf);
-
-	  jsubscription_notify(je);
-	}
-      else if (je->type==EXOSIP_IN_SUBSCRIPTION_NEW)
-	{
-	  snprintf(buf, 99, "<- (%i %i) SUBSCRIBE from: %s",
-		   je->nid, je->did,
-		   je->remote_uri);
-	  josua_printf(buf);
-
-	  /* search for the user to see if he has been
-	     previously accepted or not! */
-
-	  eXosip_notify(je->did, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_AWAY);
-	  jinsubscription_new(je);
-	}
-      else if (je->textinfo[0]!='\0')
-	{
-	  snprintf(buf, 99, "(%i %i %i %i) %s", je->cid, je->sid, je->nid, je->did, je->textinfo);
-	  josua_printf(buf);
-	}
-
-	
-      eXosip_event_free(je);
+      eXosip_event_free (je);
     }
-  if (counter>0)
+  if (counter > 0)
     return 0;
   return -1;
 }
 
 
-void
+static void
 usage (int code)
 {
   printf ("\n\
@@ -560,7 +631,7 @@ usage:\n\
 \t [-6] Use IPv6\n\
 \t [-f <config file>]\n\
 \t [-I <identity file>]\n\
-\t [-C <contact file>]\n\
+\t [-c <nat address>]\n\
 \t [-L <log file>]\n\
 \t [-f <from url>]\n\
 \t [-d <verbose level>]\n\
@@ -574,12 +645,14 @@ usage:\n\
 \t [-r <sipurl for route>]\n\
 \t [-s <subject>]\n\
 \t [-S]                       Send a subscription\n\
-\t [-T <delay>]               close calls after 60s as a default timeout.\n");
-    exit (code);
+\t [-T <proto>]               0 (udp) 1 (tcp) 2 (tls).\n");
+  exit (code);
 }
 
 
-int main(int argc, const char *const *argv) {
+int
+main (int argc, const char *const *argv)
+{
 
   /* deal with options */
   FILE *log_file = NULL;
@@ -589,6 +662,7 @@ int main(int argc, const char *const *argv) {
   ppl_status_t rv;
   const char *optarg;
   int send_subscription = 0;
+  int ipv6only=0;
 
   if (argc > 1 && strlen (argv[1]) == 1 && 0 == strncmp (argv[1], "-", 2))
     usage (0);
@@ -597,28 +671,29 @@ int main(int argc, const char *const *argv) {
 
   ppl_getopt_init (&opt, argc, argv);
 
-#define __APP_BASEARGS "F:I:C:L:f:d:p:t:r:s:T:6vVSh?X"
+#define __APP_BASEARGS "F:I:c:L:f:d:p:t:r:s:T:6vVSh?X"
   while ((rv = ppl_getopt (opt, __APP_BASEARGS, &c, &optarg)) == PPL_SUCCESS)
     {
       switch (c)
         {
           case '6':
-	    eXosip_enable_ipv6(1); /* enable IPv6 */
+	    ipv6only = 1;
+            eXosip_enable_ipv6 (1);     /* enable IPv6 */
             break;
           case 'F':
-            snprintf(cfg.config_file, 255, optarg);
+            snprintf (cfg.config_file, 255, optarg);
             break;
           case 'I':
-            snprintf(cfg.identity_file, 255, optarg);
+            snprintf (cfg.identity_file, 255, optarg);
             break;
-          case 'C':
-            snprintf(cfg.contact_file, 255, optarg);
+          case 'c':
+            snprintf (cfg.nat_address, 255, optarg);
             break;
           case 'L':
-            snprintf(cfg.log_file, 255, optarg);
+            snprintf (cfg.log_file, 255, optarg);
             break;
           case 'f':
-            snprintf(cfg.identity, 255, optarg);
+            snprintf (cfg.identity, 255, optarg);
             break;
           case 'd':
             cfg.debug_level = atoi (optarg);
@@ -627,19 +702,19 @@ int main(int argc, const char *const *argv) {
             cfg.port = atoi (optarg);
             break;
           case 't':
-            snprintf(cfg.to, 255, optarg);
+            snprintf (cfg.to, 255, optarg);
             break;
           case 'r':
-            snprintf(cfg.route, 255, optarg);
+            snprintf (cfg.route, 255, optarg);
             break;
           case 's':
-            snprintf(cfg.subject, 255, optarg);
+            snprintf (cfg.subject, 255, optarg);
             break;
           case 'S':
-	    send_subscription = 1;
+            send_subscription = 1;
             break;
           case 'T':
-            cfg.timeout = atoi(optarg);
+            cfg.proto = atoi (optarg);
             break;
           case 'v':
           case 'V':
@@ -651,7 +726,7 @@ int main(int argc, const char *const *argv) {
             printf ("josua: version:     %s\n", VERSION);
             printf ("build: %s\n", server_built);
             usage (0);
-	    break;
+            break;
           default:
             /* bad cmdline option?  then we die */
             usage (1);
@@ -696,103 +771,103 @@ int main(int argc, const char *const *argv) {
   osip_free ((void *) (opt->argv));
   osip_free ((void *) opt);
 
-  if (cfg.identity[0]=='\0')
+  if (cfg.identity[0] == '\0')
     {
       fprintf (stderr, "josua: specify an identity\n");
-      fclose(log_file);
-      exit(1);
+      fclose (log_file);
+      exit (1);
     }
 
-  i = eXosip_init(stdin, stdout, cfg.port);
-  if (i!=0)
+  i = eXosip_init ();
+  if (i != 0)
     {
       fprintf (stderr, "josua: could not initialize eXosip\n");
-      fclose(log_file);
-      exit(0);
-    }
-  
-  /* reset all payload to fit application capabilities */
-  eXosip_sdp_negotiation_remove_audio_payloads();
-  eXosip_sdp_negotiation_add_codec(osip_strdup("0"),
-				   NULL,
-				   osip_strdup("RTP/AVP"),
-				   NULL, NULL, NULL,
-				   NULL,NULL,
-				   osip_strdup("0 PCMU/8000"));
-
-  eXosip_sdp_negotiation_add_codec(osip_strdup("8"),
-				   NULL,
-				   osip_strdup("RTP/AVP"),
-				   NULL, NULL, NULL,
-				   NULL,NULL,
-				   osip_strdup("8 PCMA/8000"));
-    
-  eXosip_sdp_negotiation_add_codec(osip_strdup("3"),
-				   NULL,
-				   osip_strdup("RTP/AVP"),
-				   NULL, NULL, NULL,
-				   NULL,NULL,
-				   osip_strdup("3 GSM/8000"));
-  
-  eXosip_sdp_negotiation_add_codec(osip_strdup("110"),
-				   NULL,
-				   osip_strdup("RTP/AVP"),
-				   NULL, NULL, NULL,
-				   NULL,NULL,
-				   osip_strdup("110 speex/8000"));
-  
-  eXosip_sdp_negotiation_add_codec(osip_strdup("111"),
-				   NULL,
-				   osip_strdup("RTP/AVP"),
-				   NULL, NULL, NULL,
-				   NULL,NULL,
-				   osip_strdup("111 speex/16000"));
-  /* Those attributes should be added for speex
-     b=AS:110 20
-     b=AS:111 20
-  */
-
-  /* register callbacks? */
-  eXosip_set_mode(EVENT_MODE);
-
-  if (cfg.to[0]!='\0')
-    { /* start a command line call, if needed */
-      if (send_subscription==0)
-	{
-	  osip_message_t *invite;
-	  i = eXosip_build_initial_invite(&invite,
-					  cfg.to,
-					  cfg.identity,
-					  cfg.route,
-					  cfg.subject);
-	  if (i!=0)
-	    {
-	      fprintf (stderr, "josua: (bad arguments?)\n");
-	      exit(0);
-	    }
-	  eXosip_lock();
-	  eXosip_initiate_call(invite, NULL, NULL, "10500");
-	  eXosip_unlock();
-	}
-      else
-	{
-	  eXosip_lock();
-	  eXosip_subscribe(cfg.to,
-			   cfg.identity,
-			   cfg.route);
-	  eXosip_unlock();
-	}
+      fclose (log_file);
+      exit (0);
     }
 
-  josua_printf("Welcome To Josua (%s - port=%i)", cfg.identity, cfg.port);
+  jfriend_load ();
+  jidentity_load ();
 
-  gui_start();
+  if (cfg.proto==0) cfg.proto = IPPROTO_UDP;
+  if (cfg.proto==1) cfg.proto = IPPROTO_TCP;
+  if (cfg.proto==2) cfg.proto = IPPROTO_TCP;
+
+  if (cfg.proto!=0)
+    {
+      fprintf (stderr, "josua: TCP and TLS support is unfinished: please report bugs or patch\n");
+    }
+
+  if (ipv6only==0)
+    i = eXosip_listen_addr(cfg.proto, "0.0.0.0", cfg.port, AF_INET, 0);
+  else
+    i = eXosip_listen_addr(cfg.proto, "::", cfg.port, AF_INET6, 0);
+
+  if (i != 0)
+    {
+      eXosip_quit ();
+      fprintf (stderr, "josua: could not initialize transport layer\n");
+      fclose (log_file);
+      exit (0);
+    }
+
+  if (cfg.nat_address[0] != '\0')
+    {
+      eXosip_masquerade_contact (cfg.nat_address, cfg.port);
+    }
+
+  if (cfg.to[0] != '\0')
+    {                           /* start a command line call, if needed */
+      if (send_subscription == 0)
+        {
+          osip_message_t *invite;
+
+          i = eXosip_call_build_initial_invite (&invite,
+                                                cfg.to,
+                                                cfg.identity,
+                                                cfg.route, cfg.subject);
+          if (i != 0)
+            {
+              fprintf (stderr, "josua: (bad arguments?)\n");
+              exit (0);
+            }
+          eXosip_lock ();
+          eXosip_call_send_initial_invite (invite);
+          eXosip_unlock ();
+      } else
+        {
+          osip_message_t *sub;
+
+          i = eXosip_subscribe_build_initial_request (&sub, cfg.to,
+                                                      cfg.identity,
+                                                      cfg.route, "presence", 1800);
+          if (i != 0)
+            {
+              return -1;
+            }
+#ifdef SUPPORT_MSN
+          osip_message_set_accept (sub, "application/xpidf+xml");
+#else
+          osip_message_set_accept (sub, "application/pidf+xml");
+#endif
+
+          eXosip_lock ();
+          i = eXosip_subscribe_send_initial_request (sub);
+          eXosip_unlock ();
+        }
+    }
+
+  josua_printf ("Welcome To Josua (%s - port=%i)", cfg.identity, cfg.port);
+
+  gui_start ();
 
 
-  fclose(log_file);
-  exit(1);
-  return(0);
+  jfriend_unload ();
+  jidentity_unload ();
+
+  fclose (log_file);
+  exit (1);
+  return (0);
 }
 
 #endif
-

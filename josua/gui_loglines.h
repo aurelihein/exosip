@@ -28,9 +28,8 @@ extern char log_buf2[200];
 extern char log_buf1[200];
 extern struct osip_mutex *log_mutex;
 
-int window_loglines_print();
+int window_loglines_print (void);
 
 extern gui_t gui_window_loglines;
 
 #endif
-
