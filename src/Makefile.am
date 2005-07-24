@@ -1,6 +1,6 @@
 
 
-lib_LTLIBRARIES = libeXosip.la
+lib_LTLIBRARIES = libeXosip2.la
 
 #
 # Other flags to add someday:
@@ -11,14 +11,22 @@ lib_LTLIBRARIES = libeXosip.la
 #
 AM_CFLAGS = @EXOSIP_FLAGS@ @CFLAGS@  @PTHREAD_CFLAGS@
 
-libeXosip_la_SOURCES =       eXosip.c  \
-jrequest.c jresponse.c    jcallback.c  jdialog.c   udp.c  \
-jcall.c jreg.c jfreinds.c jidentity.c  eXutils.c          \
-jnotify.c      jsubscribers.c          jsubscribe.c    jevents.c \
-sdp_offans.c   misc.c                  eXosip2.h         \
-jpipe.c        jpipe.h                 jauth.c     jpublish.c
+libeXosip2_la_SOURCES =      \
+eXosip.c         eXconf.c    \
+eXregister_api.c eXsubscription_api.c    \
+eXcall_api.c     eXoptions_api.c         \
+eXrefer_api.c    eXmessage_api.c         \
+eXinsubscription_api.c  eXpublish_api.c     \
+eXtransport.c    \
+jrequest.c       jresponse.c   \
+jcallback.c      jdialog.c               udp.c        \
+jcall.c          jreg.c                  eXutils.c    \
+jnotify.c        jsubscribe.c            jevents.c    \
+misc.c           eXosip2.h     \
+jpipe.c          jpipe.h                 jauth.c      \
+sdp_offans.c     jpublish.c
 
-libeXosip_la_LDFLAGS = -L$(prefix)/lib -version-info $(LIBEXOSIP_SO_VERSION)
-libeXosip_la_LIBADD = -losip2  @EXOSIP_LIB@ @PTHREAD_LIBS@
+libeXosip2_la_LDFLAGS = -L$(prefix)/lib -version-info $(LIBEXOSIP_SO_VERSION)
+libeXosip2_la_LIBADD = -losip2  @EXOSIP_LIB@ @PTHREAD_LIBS@
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include -I$(includedir)

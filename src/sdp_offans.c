@@ -26,308 +26,179 @@
 
 extern eXosip_t eXosip;
 
-osip_list_t *supported_codec = NULL;
+sdp_message_t *_eXosip_get_remote_sdp (osip_transaction_t * invite_tr);
+sdp_message_t *_eXosip_get_local_sdp (osip_transaction_t * invite_tr);
 
-int eXosip_sdp_accept_audio_codec(osip_negotiation_ctx_t *context,
-				  char *port, char *number_of_port,
-				  int audio_qty, char *payload);
-int eXosip_sdp_accept_video_codec(osip_negotiation_ctx_t *context,
-				  char *port, char *number_of_port,
-				  int video_qty, char *payload);
-int eXosip_sdp_accept_other_codec(osip_negotiation_ctx_t *context,
-				  char *type, char *port,
-				  char *number_of_port, char *payload);
 
-char *eXosip_sdp_get_audio_port(osip_negotiation_ctx_t *context, int pos_media);
-
-int eXosip_sdp_accept_audio_codec(osip_negotiation_ctx_t *context,
-				  char *port, char *number_of_port,
-				  int audio_qty, char *payload)
+sdp_message_t *
+eXosip_get_remote_sdp (int jid)
 {
-  int pos;
-  for (pos=0;!osip_list_eol(supported_codec, pos);pos++)
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  osip_transaction_t *invite_tr = NULL;
+
+  if (jid > 0)
     {
-      char *_payload;
-      _payload = osip_list_get(supported_codec, pos);
-      if (0==strcmp(payload,_payload))
-	{
-	  /* 
-	     We have to look at the rtpmap attributes in context->remote
-	     to check if we support this stuff.
-	  */
-
-	  return 0;
-	}
+      eXosip_call_dialog_find (jid, &jc, &jd);
     }
-  return -1;
-}
-  
-int eXosip_sdp_accept_video_codec(osip_negotiation_ctx_t *context,
-				  char *port, char *number_of_port,
-				  int video_qty, char *payload)
-{
-  return -1;
-}
-
-int eXosip_sdp_accept_other_codec(osip_negotiation_ctx_t *context,
-				  char *type, char *port,
-				  char *number_of_port, char *payload)
-{
-  /* ... */
-  return -1;
-}
-
-char *eXosip_sdp_get_audio_port(osip_negotiation_ctx_t *context, int pos_media)
-{
-  eXosip_call_t *jc = (eXosip_call_t*)osip_negotiation_ctx_get_mycontext(context);
-  if (jc==NULL)
-    return osip_strdup("10500");
-  else if (jc->c_sdp_port[0]=='\0')
-    return osip_strdup("10500");
-  else return osip_strdup(jc->c_sdp_port);
-}
-
-int eXosip_sdp_negotiation_replace(osip_negotiation_t *sn)
-{
-  if (eXosip.osip_negotiation!=NULL)
-    osip_negotiation_free(eXosip.osip_negotiation);
-  eXosip.osip_negotiation = sn;
-  return 0;
-}
-
-void
-eXosip_sdp_negotiation_ctx_set_mycontext(struct eXosip_call_t *jc, void *arg)
-{
-	osip_negotiation_ctx_set_mycontext(jc->c_ctx, arg);
-}
-
-void eXosip_sdp_negotiation_remove_audio_payloads()
-{
-  if (supported_codec==NULL)
-    return;
-  for (;!osip_list_eol(supported_codec, 0);)
+  if (jc == NULL)
     {
-      char *p;
-      p = (char *) osip_list_get(supported_codec, 0);
-      osip_free(p);
-      osip_list_remove(supported_codec, 0);
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No call here?\n"));
+      return NULL;
     }
-  osip_negotiation_remove_audio_payloads(eXosip.osip_negotiation);
-}
+  invite_tr = eXosip_find_last_invite (jc, jd);
+  if (invite_tr == NULL)
+    return NULL;
 
-void eXosip_sdp_negotiation_add_codec(char *payload, char *number_of_port,
-				      char *proto, char *c_nettype,
-				      char *c_addrtype, char *c_addr,
-				      char *c_addr_multicast_ttl,
-				      char *c_addr_multicast_int,
-				      char *a_rtpmap)
-{
-  osip_negotiation_add_support_for_audio_codec(eXosip.osip_negotiation,
-					       payload,
-					       number_of_port,
-					       proto,
-					       c_nettype,
-					       c_addrtype,
-					       c_addr,
-					       c_addr_multicast_ttl,
-					       c_addr_multicast_int,
-					       a_rtpmap);
-  osip_list_add(supported_codec, osip_strdup(payload), -1);
-}
-
-int eXosip_sdp_negotiation_init(osip_negotiation_t **sn)
-{
-  int i = osip_negotiation_init(sn);
-  if (i!=0) {
-    return -1;
-  }
-  if (supported_codec==NULL)
-    {
-      supported_codec = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
-      osip_list_init(supported_codec);
-    }
-  osip_negotiation_set_o_username(*sn, osip_strdup("userX"));
-  osip_negotiation_set_o_session_id(*sn, osip_strdup("20000001"));
-  osip_negotiation_set_o_session_version(*sn, osip_strdup("20000001"));
-  osip_negotiation_set_o_nettype(*sn, osip_strdup("IN"));
-  osip_negotiation_set_o_addrtype(*sn, osip_strdup("IP4"));
-  osip_negotiation_set_o_addr(*sn, osip_strdup(eXosip.localip));
-  
-  osip_negotiation_set_c_nettype(*sn, osip_strdup("IN"));
-  osip_negotiation_set_c_addrtype(*sn, osip_strdup("IP4"));
-  osip_negotiation_set_c_addr(*sn, osip_strdup(eXosip.localip));
-  
-  /* ALL CODEC MUST SHARE THE SAME "C=" line and proto as the media 
-     will appear on the same "m" line... */
-
-  osip_negotiation_set_fcn_accept_audio_codec(*sn, &eXosip_sdp_accept_audio_codec);
-  osip_negotiation_set_fcn_accept_video_codec(*sn, &eXosip_sdp_accept_video_codec);
-  
-  osip_negotiation_set_fcn_accept_other_codec(*sn, &eXosip_sdp_accept_other_codec);
-  osip_negotiation_set_fcn_get_audio_port(*sn, &eXosip_sdp_get_audio_port);
-
-  return 0;
-}
-
-void eXosip_sdp_negotiation_free(osip_negotiation_t *sn)
-{
-  if (sn==NULL)
-    return;
-  osip_list_ofchar_free(supported_codec);
-  supported_codec = NULL;
-  osip_negotiation_free(sn);
+  return _eXosip_get_remote_sdp (invite_tr);
 }
 
 sdp_message_t *
-eXosip_get_local_sdp_info(osip_transaction_t *invite_tr)
+eXosip_get_local_sdp (int jid)
 {
-  osip_content_type_t *ctt;
-  osip_mime_version_t *mv;
-  osip_message_t *message;
-  sdp_message_t *sdp;
-  osip_body_t *oldbody;
-  int pos;
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  osip_transaction_t *invite_tr = NULL;
 
+  if (jid > 0)
+    {
+      eXosip_call_dialog_find (jid, &jc, &jd);
+    }
+  if (jc == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No call here?\n"));
+      return NULL;
+    }
+  invite_tr = eXosip_find_last_invite (jc, jd);
+  if (invite_tr == NULL)
+    return NULL;
+
+  return _eXosip_get_local_sdp (invite_tr);
+}
+
+sdp_message_t *
+_eXosip_get_remote_sdp (osip_transaction_t * invite_tr)
+{
+  osip_message_t *message;
+
+  if (invite_tr == NULL)
+    return NULL;
+  if (invite_tr->ctx_type == IST)
+    message = invite_tr->orig_request;
+  else if (invite_tr->ctx_type == ICT)
+    message = invite_tr->last_response;
+  else
+    return NULL;
+  return eXosip_get_sdp_info (message);
+}
+
+sdp_message_t *
+_eXosip_get_local_sdp (osip_transaction_t * invite_tr)
+{
+  osip_message_t *message;
+
+  if (invite_tr == NULL)
+    return NULL;
   if (invite_tr->ctx_type == IST)
     message = invite_tr->last_response;
   else if (invite_tr->ctx_type == ICT)
     message = invite_tr->orig_request;
-  else return NULL; /* BUG -> NOT AN INVITE TRANSACTION!! */
+  else
+    return NULL;
+  return eXosip_get_sdp_info (message);
+}
 
-  if (message==NULL) return NULL;
+sdp_message_t *
+eXosip_get_sdp_info (osip_message_t * message)
+{
+  osip_content_type_t *ctt;
+  osip_mime_version_t *mv;
+  sdp_message_t *sdp;
+  osip_body_t *oldbody;
+  int pos;
+
+  if (message == NULL)
+    return NULL;
 
   /* get content-type info */
-  ctt = osip_message_get_content_type(message);
-  mv  = osip_message_get_mime_version(message);
-  if (mv==NULL && ctt==NULL)
-    return NULL; /* previous message was not correct or empty */
-  if (mv!=NULL)
+  ctt = osip_message_get_content_type (message);
+  mv = osip_message_get_mime_version (message);
+  if (mv == NULL && ctt == NULL)
+    return NULL;                /* previous message was not correct or empty */
+  if (mv != NULL)
     {
       /* look for the SDP body */
       /* ... */
-    }
-  else if (ctt!=NULL)
+  } else if (ctt != NULL)
     {
-      if (ctt->type==NULL || ctt->subtype==NULL)
-	/* it can be application/sdp or mime... */
-	return NULL;
-      if (osip_strcasecmp(ctt->type, "application")!=0 ||
-	  osip_strcasecmp(ctt->subtype, "sdp")!=0 )
-	{ return NULL; }
+      if (ctt->type == NULL || ctt->subtype == NULL)
+        /* it can be application/sdp or mime... */
+        return NULL;
+      if (osip_strcasecmp (ctt->type, "application") != 0 ||
+          osip_strcasecmp (ctt->subtype, "sdp") != 0)
+        {
+          return NULL;
+        }
     }
-  
-  pos=0;
-  while (!osip_list_eol(message->bodies, pos))
+
+  pos = 0;
+  while (!osip_list_eol (message->bodies, pos))
     {
       int i;
-      oldbody = (osip_body_t *) osip_list_get(message->bodies, pos);
+
+      oldbody = (osip_body_t *) osip_list_get (message->bodies, pos);
       pos++;
-      sdp_message_init(&sdp);
-      i = sdp_message_parse(sdp,oldbody->body);
-      if (i==0) return sdp;
-      sdp_message_free(sdp);
+      sdp_message_init (&sdp);
+      i = sdp_message_parse (sdp, oldbody->body);
+      if (i == 0)
+        return sdp;
+      sdp_message_free (sdp);
       sdp = NULL;
     }
   return NULL;
 }
 
-sdp_message_t *
-eXosip_get_remote_sdp_info(osip_transaction_t *invite_tr)
+
+sdp_connection_t *
+eXosip_get_audio_connection (sdp_message_t * sdp)
 {
-  osip_content_type_t *ctt;
-  osip_mime_version_t *mv;
-  osip_message_t *message;
-  sdp_message_t *sdp;
-  osip_body_t *oldbody;
-  int pos;
+  int pos = 0;
+  sdp_media_t *med = (sdp_media_t *) osip_list_get (sdp->m_medias, 0);
 
-  if (invite_tr->ctx_type == IST)
-    message = invite_tr->orig_request;
-  else if (invite_tr->ctx_type == ICT)
-    message = invite_tr->last_response;
-  else return NULL; /* BUG -> NOT AN INVITE TRANSACTION!! */
-
-  if (message==NULL) return NULL;
-
-  /* get content-type info */
-  ctt = osip_message_get_content_type(message);
-  mv  = osip_message_get_mime_version(message);
-  if (mv==NULL && ctt==NULL)
-    return NULL; /* previous message was not correct or empty */
-  if (mv!=NULL)
+  while (med != NULL)
     {
-      /* look for the SDP body */
-      /* ... */
-    }
-  else if (ctt!=NULL)
-    {
-      if (ctt->type==NULL || ctt->subtype==NULL)
-	/* it can be application/sdp or mime... */
-	return NULL;
-      if (osip_strcasecmp(ctt->type, "application")!=0 ||
-	  osip_strcasecmp(ctt->subtype, "sdp")!=0 )
-	{ return NULL; }
-    }
-  
-  pos=0;
-  while (!osip_list_eol(message->bodies, pos))
-    {
-      int i;
-      oldbody = (osip_body_t *) osip_list_get(message->bodies, pos);
+      if (med->m_media != NULL && osip_strcasecmp (med->m_media, "audio") == 0)
+        break;
       pos++;
-      sdp_message_init(&sdp);
-      i = sdp_message_parse(sdp,oldbody->body);
-      if (i==0) return sdp;
-      sdp_message_free(sdp);
-      sdp = NULL;
+      med = (sdp_media_t *) osip_list_get (sdp->m_medias, pos);
     }
-  return NULL;
+  if (med == NULL)
+    return NULL;                /* no audio stream */
+  if (osip_list_eol (med->c_connections, 0))
+    return sdp->c_connection;
+
+  /* just return the first one... */
+  return (sdp_connection_t *) osip_list_get (med->c_connections, 0);
 }
 
-int eXosip_retrieve_sdp_negotiation_result(osip_negotiation_ctx_t *ctx, char *payload_name,  int pnsize)
+
+sdp_media_t *
+eXosip_get_audio_media (sdp_message_t * sdp)
 {
-  sdp_message_t *local_sdp = 0;
-  int payload_result = -1;
-  
-  if (!ctx)
-    return payload_result;
+  int pos = 0;
+  sdp_media_t *med = (sdp_media_t *) osip_list_get (sdp->m_medias, 0);
 
-  local_sdp = osip_negotiation_ctx_get_local_sdp(ctx);
-
-  if (local_sdp != NULL)
+  while (med != NULL)
     {
-      sdp_media_t *med = (sdp_media_t*) osip_list_get(local_sdp->m_medias, 0);
-      char *payload = (char *) osip_list_get (med->m_payloads, 0);
-      int pos_attr;
-
-      if (payload!=NULL)
-	{
-	  payload_result = osip_atoi(payload);
-
-	  /* copy payload name! */
-	  for (pos_attr=0;
-	       !osip_list_eol(med->a_attributes, pos_attr);
-	       pos_attr++)
-	    {
-	      sdp_attribute_t *attr;
-	      attr = (sdp_attribute_t *)osip_list_get(med->a_attributes, pos_attr);
-	      if (0==osip_strncasecmp(attr->a_att_field, "rtpmap", 6))
-		{
-		  if ((payload_result <10 && 
-		       0==osip_strncasecmp(attr->a_att_value, payload, 1))
-		      ||(payload_result>9 && payload_result<100 && 
-			 0==osip_strncasecmp(attr->a_att_value, payload, 2))
-		      ||(payload_result >100 && payload_result<128 &&
-			 0==osip_strncasecmp(attr->a_att_value, payload, 3)))
-		    {
-		      snprintf(payload_name, pnsize, "%s", attr->a_att_value);
-		      return payload_result;
-		    }
-		}
-	    }
-	}
+      if (med->m_media != NULL && osip_strcasecmp (med->m_media, "audio") == 0)
+        return med;
+      pos++;
+      med = (sdp_media_t *) osip_list_get (sdp->m_medias, pos);
     }
 
-  return payload_result;
-
+  return NULL;
 }

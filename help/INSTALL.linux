@@ -1,0 +1,13 @@
+
+Common Install process for linux/UNIX.
+
+1: compile/Install libosip first.
+
+2: compile eXosip
+
+  $> tar -xvzf libeXosip2-x.x.x.tar.gz
+  $> CFLAGS="-I/usr/local/include/" ../configure
+  $> make
+
+3: install osip
+  $> make install      (as root...)

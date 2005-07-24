@@ -26,80 +26,79 @@
 
 extern eXosip_t eXosip;
 
-int eXosip_reg_init(eXosip_reg_t **jr, char *from, char *proxy, char *contact)
+int
+eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
+                 const char *contact)
 {
   static int r_id;
 
-  *jr = (eXosip_reg_t*) osip_malloc(sizeof(eXosip_reg_t));
-  if (*jr==NULL) return -1;
+  *jr = (eXosip_reg_t *) osip_malloc (sizeof (eXosip_reg_t));
+  if (*jr == NULL)
+    return -1;
 
-  if (r_id > 1000000)			/* keep it non-negative */
-  	r_id = 0;
+  if (r_id > 1000000)           /* keep it non-negative */
+    r_id = 0;
 
-  (*jr)->r_id         = ++r_id;
-  (*jr)->r_reg_period = 3600;      /* delay between registration */
-  (*jr)->r_aor        = osip_strdup(from);      /* sip identity */
-  (*jr)->r_contact    = osip_strdup(contact);   /* sip identity */
-  (*jr)->r_registrar  = osip_strdup(proxy);     /* registrar */
-#if 0
-  (*jr)->r_realms     = NULL;      /* list of realms */
-#endif
-  (*jr)->r_last_tr    = NULL;
+  memset (*jr, '\0', sizeof (eXosip_reg_t));
 
-  (*jr)->next   = NULL;
-  (*jr)->parent = NULL;
+  (*jr)->r_id = ++r_id;
+  (*jr)->r_reg_period = 3600;   /* delay between registration */
+  (*jr)->r_aor = osip_strdup (from);    /* sip identity */
+  (*jr)->r_contact = osip_strdup (contact);     /* sip identity */
+  (*jr)->r_registrar = osip_strdup (proxy);     /* registrar */
+
   return 0;
 }
 
-void eXosip_reg_free(eXosip_reg_t *jreg)
+void
+eXosip_reg_free (eXosip_reg_t * jreg)
 {
 
-  osip_free(jreg->r_aor);
-  osip_free(jreg->r_contact);
-  osip_free(jreg->r_registrar);
-#if 0
-  osip_free(jreg->r_realms);
-#endif
+  osip_free (jreg->r_aor);
+  osip_free (jreg->r_contact);
+  osip_free (jreg->r_registrar);
 
   if (jreg->r_last_tr != NULL)
     {
-      if (jreg->r_last_tr->state==IST_TERMINATED ||
-	  jreg->r_last_tr->state==ICT_TERMINATED ||
-	  jreg->r_last_tr->state== NICT_TERMINATED ||
-	  jreg->r_last_tr->state==NIST_TERMINATED)
-	{
-	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-				"Release a terminated transaction\n"));
-	  __eXosip_delete_jinfo(jreg->r_last_tr);
-	  if (jreg->r_last_tr!=NULL)
-	    osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
-	}
-      else
-	{
-	  OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO1,NULL,
-				"Release a non-terminated transaction\n"));
-	  __eXosip_delete_jinfo(jreg->r_last_tr);
-	  if (jreg->r_last_tr!=NULL)
-	    osip_list_add(eXosip.j_transactions, jreg->r_last_tr, 0);
-	}
+      if (jreg->r_last_tr->state == IST_TERMINATED ||
+          jreg->r_last_tr->state == ICT_TERMINATED ||
+          jreg->r_last_tr->state == NICT_TERMINATED ||
+          jreg->r_last_tr->state == NIST_TERMINATED)
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                  "Release a terminated transaction\n"));
+          __eXosip_delete_jinfo (jreg->r_last_tr);
+          if (jreg->r_last_tr != NULL)
+            osip_list_add (eXosip.j_transactions, jreg->r_last_tr, 0);
+      } else
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                  "Release a non-terminated transaction\n"));
+          __eXosip_delete_jinfo (jreg->r_last_tr);
+          if (jreg->r_last_tr != NULL)
+            osip_list_add (eXosip.j_transactions, jreg->r_last_tr, 0);
+        }
     }
 
-  osip_free(jreg);
+  osip_free (jreg);
 }
 
-int _eXosip_reg_find(eXosip_reg_t **reg, osip_transaction_t *tr)
+int
+_eXosip_reg_find (eXosip_reg_t ** reg, osip_transaction_t * tr)
 {
-  eXosip_reg_t  *jreg;
-  *reg = NULL;
-  if (tr==NULL) return -1;
+  eXosip_reg_t *jreg;
 
-  for (jreg = eXosip.j_reg; jreg!=NULL; jreg = jreg->next)
+  *reg = NULL;
+  if (tr == NULL)
+    return -1;
+
+  for (jreg = eXosip.j_reg; jreg != NULL; jreg = jreg->next)
     {
-      if (jreg->r_last_tr==tr)
-	{
-	  *reg = jreg;
-	  return 0;
-	}
+      if (jreg->r_last_tr == tr)
+        {
+          *reg = jreg;
+          return 0;
+        }
     }
   return -1;
 }

@@ -1,0 +1,97 @@
+/**
+ * @ingroup libeXosip2 The eXtented eXosip stack
+ * @defgroup howto0_initialize How-To initialize libeXosip2.
+
+When using eXosip, your first task is to initialize
+both eXosip context and libosip library (parser and
+state machines). This must be done prior to any use
+of libeXosip2.
+
+
+<PRE>
+	#include <eXosip2/eXosip.h>
+
+	int i;
+
+	TRACE_INITIALIZE (6, stdout);
+
+	i=eXosip_init();
+	if (i!=0)
+	  return -1;
+
+	i = eXosip_listen_to(IPPROTO_UDP, INADDR_ANY, cfg.port);
+	if (i!=0)
+	  {
+	    eXosip_quit();
+	    fprintf (stderr, "could not initialize transport layer\n");
+	    return -1;
+	  }
+
+	... then you have to send messages and wait for eXosip events...
+</PRE>
+
+In the previous code, you've learned how to:
+<UL>
+<LI>Initialize the osip trace (compile this code
+with -DENABLE_TRACE)</LI>
+<LI>Initialize eXosip (and osip) stack</LI>
+<LI>Open a socket for signalling (only UDP with initial eXosip2 version)</LI>
+</UL>
+
+Now you have to handle eXosip events. Here is some code to get eXosip_event
+from the eXosip2 stack.
+
+<PRE>
+  eXosip_event_t *je;
+  for (;;)
+    {
+      je = eXosip_event_wait (0, 50);
+      eXosip_automatic_action ();
+      if (je == NULL)
+        break;
+      if (je->type == EXOSIP_CALL_NEW)
+        {
+        ....
+        ....
+        }
+      else if (je->type == EXOSIP_CALL_ACK)
+        {
+        ....
+        ....
+        }
+      else if (je->type == EXOSIP_CALL_ANSWERED)
+        {
+        ....
+        ....
+        }
+      else .....
+      ....
+      ....
+    }
+</PRE>
+
+You will receive one event for each SIP message sent. Each event
+contains the original request of the affected transaction and the
+last response that triggers the event when available.
+
+You can access all headers from those messages and store them in
+your own context for other actions or graphic displays.
+
+For example, when you receive a REFER request for a call transfer,
+you'll typically retreive the "refer-To" header:
+
+<PRE>
+  osip_header_t *referto_head = NULL;
+  i = osip_message_header_get_byname (evt->sip, "refer-to", 0, &referto_head);
+  if (referto_head == NULL || referto_head->hvalue == NULL)
+
+</PRE>
+
+The eXosip_event also contains identifiers for calls, registrations,
+incoming subscriptions or outgoing subscriptions when applicable.
+Those identifiers are used in API to control calls, registrations,
+incoming or outgoing subscriptions. These API will build default messages
+with usual SIP headers (From, To, Call-ID, CSeq, Route, Record-Route,
+Max-Forward...)  and send thoses messages for you.
+
+*/

@@ -1,0 +1,71 @@
+/**
+ * @ingroup libeXosip2 The eXtented eXosip stack
+ * @defgroup howto2_registration How-To send or update registrations.
+
+eXosip2 offers a flexible API to help you to register one or several identities.
+
+<H2>Initiate a registration</H2>
+
+To start a registration, you need to build a default REGISTER request
+bby providing several mandatory headers
+
+<PRE>
+  osip_message_t *reg = NULL;
+  int id;
+  int i;
+
+  eXosip_lock ();
+  id = eXosip_register_build_initial_register (identity, registrar, NULL,
+                                               1800, &reg);
+  if (id < 0)
+    {
+      eXosip_unlock ();
+      return -1;
+    }
+
+  osip_message_set_supported (reg, "100rel");
+  osip_message_set_supported(reg, "path");
+
+  i = eXosip_register_send_register (id, reg);
+  eXosip_unlock ();
+  return i;
+
+</PRE>
+
+The returned element of eXosip_register_build_initial_register is the
+registration identifier that you can use to update your registration.
+In future events about this registration, you'll see that registration
+identifier when applicable.
+
+<H2>Update a registration</H2>
+
+You just need to reuse the registration identifier:
+
+<PRE>
+  int i;
+
+  eXosip_lock ();
+  i = eXosip_register_build_register (id, 1800, &reg);
+  if (i < 0)
+    {
+      eXosip_unlock ();
+      return -1;
+    }
+
+  eXosip_register_send_register (id, reg);
+  eXosip_unlock ();
+</PRE>
+
+<b>Note</b>: The above code also shows that the stack is sometimes able to
+build and send a default SIP messages with only one API call
+
+<H2>Closing the registration</H2>
+
+A softphone should delete its registration on the SIP server when terminating.
+To do so, you have to send a REGISTER request with the expires header set to
+value "0".
+
+The same code as for updating a registration is used with 0 instead of 1800
+for the expiration delay.
+
+*/

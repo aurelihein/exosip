@@ -24,99 +24,96 @@
 
 
 #include "eXosip2.h"
-#include <eXosip/eXosip_cfg.h>
 
 extern eXosip_t eXosip;
 
-int eXosip_call_find(int cid, eXosip_call_t **jc)
+int
+eXosip_call_find (int cid, eXosip_call_t ** jc)
 {
-  for (*jc=eXosip.j_calls; *jc!=NULL; *jc=(*jc)->next)
+  for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next)
     {
-      if ((*jc)->c_id==cid)
-	{
-	  return 0;
-	}
+      if ((*jc)->c_id == cid)
+        {
+          return 0;
+        }
     }
   *jc = NULL;
   return -1;
 }
 
 int
-eXosip_call_init(eXosip_call_t **jc)
+eXosip_call_init (eXosip_call_t ** jc)
 {
-  *jc = (eXosip_call_t *)osip_malloc(sizeof(eXosip_call_t));
-  if (*jc == NULL) return -1;
-  memset(*jc, 0, sizeof(eXosip_call_t));
+  *jc = (eXosip_call_t *) osip_malloc (sizeof (eXosip_call_t));
+  if (*jc == NULL)
+    return -1;
+  memset (*jc, 0, sizeof (eXosip_call_t));
 
-  (*jc)->c_id = -1;   /* make sure the eXosip_update will assign a valid id to the call */
-  osip_negotiation_ctx_init(&(*jc)->c_ctx);
+  (*jc)->c_id = -1;             /* make sure the eXosip_update will assign a valid id to the call */
   return 0;
 }
 
 void
-__eXosip_call_remove_dialog_reference_in_call(eXosip_call_t *jc, eXosip_dialog_t *jd)
+__eXosip_call_remove_dialog_reference_in_call (eXosip_call_t * jc,
+                                               eXosip_dialog_t * jd)
 {
   eXosip_dialog_t *_jd;
   jinfo_t *ji;
-  if (jc==NULL) return;
-  if (jd==NULL) return;
+
+  if (jc == NULL)
+    return;
+  if (jd == NULL)
+    return;
 
 
-  for (_jd = jc->c_dialogs; _jd!=NULL; _jd=jc->c_dialogs)
+  for (_jd = jc->c_dialogs; _jd != NULL; _jd = jc->c_dialogs)
     {
-      if (jd==_jd)
-	break;
+      if (jd == _jd)
+        break;
     }
-  if (_jd==NULL)
+  if (_jd == NULL)
     {
       /* dialog not found??? */
     }
 
-  ji = osip_transaction_get_your_instance(jc->c_inc_tr);
-  if (ji!=NULL && ji->jd==jd)
-    ji->jd=NULL;
-  ji = osip_transaction_get_your_instance(jc->c_out_tr);
-  if (ji!=NULL && ji->jd==jd)
-    ji->jd=NULL;
+  ji = osip_transaction_get_your_instance (jc->c_inc_tr);
+  if (ji != NULL && ji->jd == jd)
+    ji->jd = NULL;
+  ji = osip_transaction_get_your_instance (jc->c_out_tr);
+  if (ji != NULL && ji->jd == jd)
+    ji->jd = NULL;
 }
 
 void
-eXosip_call_free(eXosip_call_t *jc)
+eXosip_call_free (eXosip_call_t * jc)
 {
   /* ... */
 
   eXosip_dialog_t *jd;
 
-  for (jd = jc->c_dialogs; jd!=NULL; jd=jc->c_dialogs)
+  if (jc->response_auth!=NULL)
+    osip_message_free(jc->response_auth);
+
+  for (jd = jc->c_dialogs; jd != NULL; jd = jc->c_dialogs)
     {
-      REMOVE_ELEMENT(jc->c_dialogs, jd);
-      eXosip_dialog_free(jd);
+      REMOVE_ELEMENT (jc->c_dialogs, jd);
+      eXosip_dialog_free (jd);
     }
 
-  __eXosip_delete_jinfo(jc->c_inc_tr);
-  __eXosip_delete_jinfo(jc->c_out_tr);
-  if (jc->c_inc_tr!=NULL)
-    osip_list_add(eXosip.j_transactions, jc->c_inc_tr, 0);
-  if (jc->c_out_tr!=NULL)
-    osip_list_add(eXosip.j_transactions, jc->c_out_tr, 0);
+  __eXosip_delete_jinfo (jc->c_inc_tr);
+  __eXosip_delete_jinfo (jc->c_out_tr);
+  if (jc->c_inc_tr != NULL)
+    osip_list_add (eXosip.j_transactions, jc->c_inc_tr, 0);
+  if (jc->c_out_tr != NULL)
+    osip_list_add (eXosip.j_transactions, jc->c_out_tr, 0);
 
-  __eXosip_delete_jinfo(jc->c_inc_options_tr);
-  __eXosip_delete_jinfo(jc->c_out_options_tr);
-  if (jc->c_inc_options_tr!=NULL)
-    osip_list_add(eXosip.j_transactions, jc->c_inc_options_tr, 0);
-  if (jc->c_out_options_tr!=NULL)
-    osip_list_add(eXosip.j_transactions, jc->c_out_options_tr, 0);
-  
+  __eXosip_delete_jinfo (jc->c_inc_options_tr);
+  __eXosip_delete_jinfo (jc->c_out_options_tr);
+  if (jc->c_inc_options_tr != NULL)
+    osip_list_add (eXosip.j_transactions, jc->c_inc_options_tr, 0);
+  if (jc->c_out_options_tr != NULL)
+    osip_list_add (eXosip.j_transactions, jc->c_out_options_tr, 0);
 
-  osip_negotiation_ctx_free(jc->c_ctx);
-  osip_free(jc);
+  osip_free (jc);
 
 }
-
-void
-eXosip_call_set_subject(eXosip_call_t *jc, char *subject)
-{
-  if (jc==NULL||subject==NULL||subject[0]=='\0') return;
-  snprintf(jc->c_subject, 99, "%s", subject);
-}
-
