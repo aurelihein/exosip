@@ -1,0 +1,21 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eXosip", "eXosip.vcproj", "{4EA67539-9EE9-4065-BD39-87E517FD8262}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{4EA67539-9EE9-4065-BD39-87E517FD8262}.Debug.ActiveCfg = Debug|Win32
+		{4EA67539-9EE9-4065-BD39-87E517FD8262}.Debug.Build.0 = Debug|Win32
+		{4EA67539-9EE9-4065-BD39-87E517FD8262}.Release.ActiveCfg = Release|Win32
+		{4EA67539-9EE9-4065-BD39-87E517FD8262}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

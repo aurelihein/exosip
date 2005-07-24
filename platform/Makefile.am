@@ -1,3 +1,3 @@
 
-SUBDIRS = vsnet windows
+SUBDIRS = vsnet 
 
