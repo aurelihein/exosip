@@ -1,5 +1,5 @@
 
-EXTRA_DIST = README autogen.sh eXosip_addfriend.sh eXosip_addidentity.sh eXosip_addsubscriber.sh
+EXTRA_DIST = README autogen.sh eXosip_addidentity.sh
 
 SUBDIRS = scripts platform src include josua tools help
 
@@ -7,12 +7,15 @@ doxygen:
 	doxygen help/doxygen/DoxyFile
 
 install-exec-local:
-	echo "Installing script file for Josua";
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@chmod 0755 $(DESTDIR)$(bindir)
-	$(INSTALL_SCRIPT) $(top_srcdir)/eXosip_addsubscriber.sh $(DESTDIR)$(bindir)/eXosip_addsubscriber.sh
-	$(INSTALL_SCRIPT) $(top_srcdir)/eXosip_addidentity.sh $(DESTDIR)$(bindir)/eXosip_addidentity.sh
-	$(INSTALL_SCRIPT) $(top_srcdir)/eXosip_addfriend.sh $(DESTDIR)$(bindir)/eXosip_addfriend.sh
+	@echo "*** You can use eXosip_addidentity.sh to generate";
+	@echo "*** an identity file which will be used for SIP";
+	@echo "*** registrations.";
+	@echo "*** ~/.eXosip/jm_identity  should look like:";
+	@echo "*** ";
+	@echo "*** 0 ENTRY: sip:jack@antisip.com|sip:sip.antisip.com|*empty*|realm|login|password";
+	@echo "*** 1 ENTRY: sip:jack@antisip.com|sip:192.168.2.2|*empty*|realm|login|password";
+	@echo "*** ";
+
 
 indent:
 	indent */*.h
