@@ -292,9 +292,11 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
                             "No interface found. returning 127.0.0.1\r\n"));
   /* no default gateway interface found */
   return 0;
+#else
+  return -1;
+#endif /* WANT_INTERFACE_ANYWAY */
 }
 
-#endif /* WANT_INTERFACE_ANYWAY */
 
 #else /* sun, *BSD, linux, and other? */
 
