@@ -125,6 +125,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   address[0] = '\0';
   best_interface_index = -1;
   /* w2000 and W95/98 only */
+
   hr = GetBestInterface (inet_addr ("217.12.3.11"), &best_interface_index);
   if (hr)
     {
@@ -208,10 +209,92 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
         }
 
     }
+
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
+                            "Please define a default network interface.\r\n"));
+#ifdef WANT_INTERFACE_ANYWAY
+
+
+  /* NT4 (sp4 support only?) */
+  if (!GetIpForwardTable (ipfwdt, &siz_ipfwd_table, FALSE))
+    {
+      for (ipf_cnt = 0; ipf_cnt < ipfwdt->dwNumEntries; ++ipf_cnt)
+        {
+            char *servername;
+            char *serverip;
+            char *netmask;
+
+            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
+                                    "Default Interface found %i\r\n",
+                                    ipfwdt->table[ipf_cnt].dwForwardIfIndex));
+
+            if (0 == ppl_dns_get_local_fqdn (&servername,
+                                            &serverip,
+                                            &netmask,
+                                            ipfwdt->table[ipf_cnt].
+                                            dwForwardIfIndex))
+            {
+                /* search for public */
+                if (eXosip_is_public_address(serverip) == 0)
+                {
+                    osip_strncpy (address, serverip, size);
+                    osip_free (servername);
+                    osip_free (serverip);
+                    osip_free (netmask);
+                    return 0;
+                }
+                osip_free (servername);
+                osip_free (serverip);
+                osip_free (netmask);
+            }
+        }
+    }
+
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                            "No public interface found. searching private\r\n"));
+
+  /* NT4 (sp4 support only?) */
+  if (!GetIpForwardTable (ipfwdt, &siz_ipfwd_table, FALSE))
+    {
+      for (ipf_cnt = 0; ipf_cnt < ipfwdt->dwNumEntries; ++ipf_cnt)
+        {
+            char *servername;
+            char *serverip;
+            char *netmask;
+
+            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
+                                    "Default Interface found %i\r\n",
+                                    ipfwdt->table[ipf_cnt].dwForwardIfIndex));
+
+            if (0 == ppl_dns_get_local_fqdn (&servername,
+                                            &serverip,
+                                            &netmask,
+                                            ipfwdt->table[ipf_cnt].
+                                            dwForwardIfIndex))
+            {
+                osip_strncpy (address, serverip, size);
+                osip_free (servername);
+                osip_free (serverip);
+                osip_free (netmask);
+                return 0;
+            }
+        }
+    }
+
+  {
+      char *lo = osip_strdup("127.0.0.1");
+      osip_strncpy (address, lo, size);
+      osip_free(lo);
+      return 0;
+  }
+
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                            "No interface found. returning 127.0.0.1\r\n"));
   /* no default gateway interface found */
-  return -1;
+  return 0;
 }
 
+#endif /* WANT_INTERFACE_ANYWAY */
 
 #else /* sun, *BSD, linux, and other? */
 
