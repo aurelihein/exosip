@@ -224,7 +224,7 @@ eXosip_event_init (eXosip_event_t ** je, int type)
       sprintf ((*je)->textinfo, "Call has been cancelled!");
   } else if (type == EXOSIP_CALL_TIMEOUT)
     {
-      sprintf ((*je)->textinfo, "Timeout. Gived up!");
+      sprintf ((*je)->textinfo, "Timeout. Gave up!");
   } else if (type == EXOSIP_CALL_REINVITE)
     {
       sprintf ((*je)->textinfo, "INVITE within call received!");
