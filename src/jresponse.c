@@ -410,7 +410,7 @@ _eXosip_answer_invite_3456xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
       return -1;
     }
 
-  if (300 <= code <= 399)
+  if ((300 <= code) && (code <= 399))
     {
       /* Should add contact fields */
       /* ... */
@@ -721,7 +721,7 @@ _eXosip_insubscription_answer_3456xx (eXosip_notify_t * jn,
       return -1;
     }
 
-  if (300 <= code <= 399)
+  if ((300 <= code) && (code <= 399))
     {
       /* Should add contact fields */
       /* ... */
