@@ -391,7 +391,7 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
     {
       osip_uri_param_t *lr_param=NULL;
       osip_uri_uparam_get_byname (route->url, "lr", &lr_param);
-      if (lr_param!=NULL)
+      if (lr_param==NULL)
 	route=NULL;
     }
 
