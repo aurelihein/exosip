@@ -25,7 +25,7 @@
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
-eXosip_t eXosip;
+extern eXosip_t eXosip;
 
 int
 eXosip_build_publish (osip_message_t ** message,

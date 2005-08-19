@@ -27,7 +27,7 @@
 #include <osip2/osip_mt.h>
 #include <osip2/osip_condv.h>
 
-eXosip_t eXosip;
+extern eXosip_t eXosip;
 
 int ipv6_enable = 0;
 
