@@ -1799,7 +1799,7 @@ eXosip_set_callbacks (osip_t * osip)
 
   osip_set_kill_transaction_callback (osip, OSIP_ICT_KILL_TRANSACTION,
                                       &cb_ict_kill_transaction);
-  osip_set_kill_transaction_callback (osip, OSIP_NIST_KILL_TRANSACTION,
+  osip_set_kill_transaction_callback (osip, OSIP_IST_KILL_TRANSACTION,
                                       &cb_ist_kill_transaction);
   osip_set_kill_transaction_callback (osip, OSIP_NICT_KILL_TRANSACTION,
                                       &cb_nict_kill_transaction);
