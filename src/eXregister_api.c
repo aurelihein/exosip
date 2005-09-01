@@ -69,15 +69,19 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 	  if (reg==NULL)
 	    return -1;
           /* reg = jr->r_last_tr->orig_request; */
-          osip_message_clone(jr->r_last_tr->last_response, &last_response);
-	  if (last_response==NULL)
+	  if (jr->r_last_tr->last_response!=NULL)
 	    {
-	      osip_message_free(reg);
-	      return -1;
+	      osip_message_clone(jr->r_last_tr->last_response, &last_response);
+	      if (last_response==NULL)
+		{
+		  osip_message_free(reg);
+		  return -1;
+		}
 	    }
-          __eXosip_delete_jinfo (jr->r_last_tr);
+
+	  __eXosip_delete_jinfo (jr->r_last_tr);
 	  tr = jr->r_last_tr;
-          jr->r_last_tr = NULL;
+	  jr->r_last_tr = NULL;
 	  osip_list_add (eXosip.j_transactions, tr, 0);
 
           /* modify the REGISTER request */
@@ -158,7 +162,8 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 	    if (-1 == eXosip_update_top_via (reg))
 	      {
 		osip_message_free (reg);
-		osip_message_free (last_response);
+		if (last_response != NULL)
+		  osip_message_free (last_response);
                 return -1;
               }
 
