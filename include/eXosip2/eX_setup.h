@@ -60,6 +60,20 @@ extern "C"
  */
   void eXosip_quit(void);
 
+typedef enum {
+    EXOSIP_OPT_UDP_KEEP_ALIVE = 1,
+} eXosip_option;
+
+/**
+ * Set eXosip options.
+ * See eXosip_option for available options.
+ *
+ * @param opt     option to configure.
+ * @param value   value for options.
+ * 
+ */
+int eXosip_set_option(eXosip_option opt, int value);
+
 /**
  * Lock the eXtented oSIP library.
  * 

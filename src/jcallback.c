@@ -234,6 +234,21 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
           return -1;
         }
     }
+
+
+    if (eXosip.keep_alive>0)
+    {
+        if (MSG_IS_REGISTER(sip))
+        {
+            eXosip_reg_t *reg = NULL;
+            if (_eXosip_reg_find(&reg, tr)==0)
+            {
+                memcpy (&(reg->addr), &addr, len);
+                reg->len = len;
+            }
+        }
+    }
+
   osip_free (message);
   return 0;
 

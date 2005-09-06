@@ -78,6 +78,13 @@ extern "C"
   void eXosip_update (void);
   void __eXosip_wakeup (void);
 
+  struct __eXosip_sockaddr
+  {
+    u_char ss_len;
+    u_char ss_family;
+    u_char padding[128 - 2];
+  };
+
   typedef struct eXosip_dialog_t eXosip_dialog_t;
 
   struct eXosip_dialog_t
@@ -177,6 +184,9 @@ extern "C"
     int r_retry;                /* avoid too many unsuccessfull retry */
 
     char transport[10];         /* transport used for registration */
+
+    struct __eXosip_sockaddr addr;
+    int len;
 
     eXosip_reg_t *next;
     eXosip_reg_t *parent;
@@ -330,6 +340,7 @@ extern "C"
 
     jauthinfo_t *authinfos;
 
+    int   keep_alive;
   };
 
   typedef struct jinfo_t jinfo_t;
@@ -378,12 +389,6 @@ extern "C"
   void eXosip_delete_early_dialog (eXosip_dialog_t * jd);
 
 
-  struct __eXosip_sockaddr
-  {
-    u_char ss_len;
-    u_char ss_family;
-    u_char padding[128 - 2];
-  };
   int isrfc1918 (char *ipaddr);
   void eXosip_get_localip_from_via (osip_message_t *, char *localip, int size);
   int generating_request_out_of_dialog (osip_message_t ** dest,

@@ -33,6 +33,7 @@ int ipv6_enable = 0;
 
 static void *_eXosip_thread (void *arg);
 static int _eXosip_execute (void);
+static void _eXosip_keep_alive();
 
 void
 eXosip_enable_ipv6 (int _ipv6_enable)
@@ -629,9 +630,72 @@ _eXosip_execute (void)
 
   eXosip_unlock ();
 
+
+  if (eXosip.keep_alive>0)
+  {
+      _eXosip_keep_alive();
+  }
+
   return 0;
 }
 
+int eXosip_set_option(eXosip_option opt, int value)
+{
+	switch (opt) {
+		case EXOSIP_OPT_UDP_KEEP_ALIVE:
+            eXosip.keep_alive = value; /* value in ms */
+            break;
+    }
+    return 0;
+}
+
+static void
+_eXosip_keep_alive()
+{
+    static struct timeval mtimer = { 0, 0 };
+
+    eXosip_reg_t *jr;
+    struct eXosip_net *net;
+    char buf[4] = "jaK";
+    struct timeval now;
+    osip_gettimeofday (&now, NULL);
+
+    if (mtimer.tv_sec==0 && mtimer.tv_usec==0)
+    {
+        /* first init */
+        osip_gettimeofday (&mtimer, NULL);
+	    add_gettimeofday (&mtimer, eXosip.keep_alive);
+    }
+
+    if (osip_timercmp (&now, &mtimer, <))
+    {
+        return; /* not yet time */
+    }
+
+    /* reset timer */
+    osip_gettimeofday (&mtimer, NULL);
+	add_gettimeofday (&mtimer, eXosip.keep_alive);
+
+    net = &eXosip.net_interfaces[0];
+    if (net == NULL)
+    {
+        return ;
+    }
+
+    for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
+    {
+        if (jr->len>0)
+        {
+            if (sendto (net->net_socket, (const void *) buf, 4, 0,	 
+                (struct sockaddr *) &(jr->addr), jr->len )>0)
+            {
+                OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                            "eXosip: Keep Alive sent on UDP!\n"));
+            }
+        }
+    }
+}
 
 void *
 _eXosip_thread (void *arg)
