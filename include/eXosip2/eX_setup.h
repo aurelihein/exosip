@@ -61,7 +61,8 @@ extern "C"
   void eXosip_quit(void);
 
 typedef enum {
-    EXOSIP_OPT_UDP_KEEP_ALIVE = 1
+    EXOSIP_OPT_UDP_KEEP_ALIVE = 1,
+    EXOSIP_OPT_UDP_LEARN_PORT = 2
 } eXosip_option;
 
 /**

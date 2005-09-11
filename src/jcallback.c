@@ -748,6 +748,64 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO1, NULL, "cb_rcv1xx (id=%i)\r\n",
                tr->transactionid));
+
+  if (eXosip.learn_port>0)
+  {
+      struct eXosip_net *net;
+      net = &eXosip.net_interfaces[0];
+      /* EXOSIP_OPT_UDP_LEARN_PORT option set */
+#if 1
+      /* learn through rport */
+      if (net->net_firewall_ip[0]!='\0')
+      {
+        osip_via_t *via=NULL;
+        osip_generic_param_t *br;
+        int i = osip_message_get_via (sip, 0, &via);
+        if (via!=NULL && via->protocol!=NULL
+            && osip_strcasecmp(via->protocol, "udp")==0)
+        {
+            osip_via_param_get_byname (via, "rport", &br);
+            if (br!=NULL && br->gvalue!=NULL)
+            {
+                snprintf(net->net_port, 20, "%s", br->gvalue);
+                OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                            "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
+                            tr->transactionid));
+            }
+        }
+      }
+#else
+      /* learn through REGISTER? */
+      if (net->net_firewall_ip[0]!='\0')
+	      {
+		int pos=0;
+		while (!osip_list_eol(reg->contacts,pos))
+		  {
+		    osip_contact_t *co;
+		    co = (osip_contact_t *)osip_list_get(reg->contacts,pos);
+		    pos++;
+		    if (co!=NULL && co->url!=NULL && co->url->host!=NULL
+			&& 0==osip_strcasecmp(co->url->host,
+					      net->net_firewall_ip))
+		      {
+			if (co->url->port==NULL &&
+			    0!=osip_strcasecmp(net->net_port, "5060"))
+			  {
+			    co->url->port=osip_strdup(net->net_port);
+			  }
+			else if (co->url->port!=NULL &&
+				 0!=osip_strcasecmp(net->net_port, co->url->port))
+			  {
+			    osip_free(co->url->port);
+			    co->url->port=osip_strdup(net->net_port);
+			  }
+		      }
+		  }
+	      }
+#endif
+  }
+
   if (jinfo == NULL)
     return;
   jd = jinfo->jd;
@@ -1112,7 +1170,66 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
           report_event (je, sip);
           jreg->r_retry = 0;    /* reset value */
         }
-      return;
+
+
+        if (eXosip.learn_port>0)
+        {
+            struct eXosip_net *net;
+            net = &eXosip.net_interfaces[0];
+            /* EXOSIP_OPT_UDP_LEARN_PORT option set */
+#if 1
+            /* learn through rport */
+           if (net->net_firewall_ip[0]!='\0')
+           { 
+                osip_via_t *via=NULL;
+                osip_generic_param_t *br;
+                int i = osip_message_get_via (sip, 0, &via);
+                if (via!=NULL && via->protocol!=NULL
+                    && osip_strcasecmp(via->protocol, "udp")==0)
+                {
+                    osip_via_param_get_byname (via, "rport", &br);
+                    if (br!=NULL && br->gvalue!=NULL)
+                    {
+                        snprintf(net->net_port, 20, "%s", br->gvalue);
+                        OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                            "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
+                            tr->transactionid));
+                    }
+                }
+            }
+#else
+            /* learn through REGISTER? */
+            if (net->net_firewall_ip[0]!='\0')
+            {
+                int pos=0;
+                while (!osip_list_eol(reg->contacts,pos))
+                {
+                    osip_contact_t *co;
+                    co = (osip_contact_t *)osip_list_get(reg->contacts,pos);
+                    pos++;
+                    if (co!=NULL && co->url!=NULL && co->url->host!=NULL
+                        && 0==osip_strcasecmp(co->url->host,
+                        net->net_firewall_ip))
+                    {
+                        if (co->url->port==NULL &&
+                            0!=osip_strcasecmp(net->net_port, "5060"))
+                        {
+                            co->url->port=osip_strdup(net->net_port);
+                        }
+                        else if (co->url->port!=NULL &&
+                            0!=osip_strcasecmp(net->net_port, co->url->port))
+                        {
+                            osip_free(co->url->port);
+                            co->url->port=osip_strdup(net->net_port);
+                        }
+                    }
+                }
+            }
+#endif
+        }
+
+        return;
   }
 
   if (jinfo == NULL)

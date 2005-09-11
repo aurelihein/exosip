@@ -341,6 +341,7 @@ extern "C"
     jauthinfo_t *authinfos;
 
     int   keep_alive;
+    int   learn_port;
   };
 
   typedef struct jinfo_t jinfo_t;

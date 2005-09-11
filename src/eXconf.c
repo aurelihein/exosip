@@ -645,6 +645,9 @@ int eXosip_set_option(eXosip_option opt, int value)
 		case EXOSIP_OPT_UDP_KEEP_ALIVE:
             eXosip.keep_alive = value; /* value in ms */
             break;
+		case EXOSIP_OPT_UDP_LEARN_PORT:
+            eXosip.learn_port = value; /* value in ms */
+            break;
     }
     return 0;
 }
