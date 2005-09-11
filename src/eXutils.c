@@ -402,7 +402,7 @@ ppl_dns_default_gateway_ipv6 (char *address, int size)
   struct sockaddr_in6 iface_out;
   struct sockaddr_in6 remote;
 
-  memset (&remote, 0, sizeof (struct sockaddr_in));
+  memset (&remote, 0, sizeof (struct sockaddr_in6));
 
   remote.sin6_family = AF_INET6;
   inet_pton (AF_INET6, "2001:638:500:101:2e0:81ff:fe24:37c6", &remote.sin6_addr);
