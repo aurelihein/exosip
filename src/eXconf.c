@@ -33,7 +33,7 @@ int ipv6_enable = 0;
 
 static void *_eXosip_thread (void *arg);
 static int _eXosip_execute (void);
-static void _eXosip_keep_alive();
+static void _eXosip_keep_alive(void);
 
 void
 eXosip_enable_ipv6 (int _ipv6_enable)
@@ -650,7 +650,7 @@ int eXosip_set_option(eXosip_option opt, int value)
 }
 
 static void
-_eXosip_keep_alive()
+_eXosip_keep_alive(void)
 {
     static struct timeval mtimer = { 0, 0 };
 
