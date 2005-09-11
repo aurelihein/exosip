@@ -982,15 +982,3 @@ gc_error_1:
   return -1;
 }
 
-
-int
-generating_ack_for_2xx (osip_message_t ** ack, osip_dialog_t * dialog)
-{
-  int i;
-
-  i = _eXosip_build_request_within_dialog (ack, "ACK", dialog, "UDP");
-  if (i != 0)
-    return -1;
-
-  return 0;
-}
