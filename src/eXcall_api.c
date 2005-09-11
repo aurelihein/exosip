@@ -320,6 +320,15 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
       return -1;
     }
 
+  /* Fix CSeq Number when request has been exchanged during INVITE transactions */
+  if (tr->orig_request->cseq!=NULL && tr->orig_request->cseq->number!=NULL)
+    {
+      if (ack!=NULL && ack->cseq!=NULL && ack->cseq->number!=NULL)
+	{
+	  osip_free(ack->cseq->number);
+	  ack->cseq->number = osip_strdup(tr->orig_request->cseq->number);
+	}
+    }
 
   /* copy all credentials from INVITE! */
   {
