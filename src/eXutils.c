@@ -443,7 +443,9 @@ ppl_dns_default_gateway_ipv6 (char *address, int size)
   return 0;
 }
 
-void
+#endif
+
+int
 eXosip_get_localip_for (char *address_to_reach, char *loc, int size)
 {
   int err, tmp;
@@ -457,15 +459,19 @@ eXosip_get_localip_for (char *address_to_reach, char *loc, int size)
 #else
   socklen_t s;
 #endif
+#ifdef MAXHOSTNAMELEN
   if (size > MAXHOSTNAMELEN)
     size = MAXHOSTNAMELEN;
-
+#else
+  if (size > 256)
+      size = 256;
+#endif
   if (eXosip.forced_localip)
     {
       if (size > sizeof (eXosip.net_interfaces[0].net_firewall_ip))
         size = sizeof (eXosip.net_interfaces[0].net_firewall_ip);
       strncpy (loc, eXosip.net_interfaces[0].net_firewall_ip, size);
-      return;
+      return 0;
     }
 
   strcpy (loc, "127.0.0.1");    /* always fallback to local loopback */
@@ -480,22 +486,20 @@ eXosip_get_localip_for (char *address_to_reach, char *loc, int size)
       eXosip_trace (OSIP_ERROR,
                     ("Error in getaddrinfo for %s: %s\n", address_to_reach,
                      gai_strerror (err)));
-      return;
+      return -1;
     }
   if (res == NULL)
     {
       eXosip_trace (OSIP_ERROR, ("getaddrinfo reported nothing !"));
-      abort ();
-      return;
+      return -1;
     }
   sock = socket (res->ai_family, SOCK_DGRAM, 0);
   tmp = 1;
-  err = setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof (int));
+  err = setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&tmp, sizeof (int));
   if (err < 0)
     {
       eXosip_trace (OSIP_ERROR, ("Error in setsockopt: %s\n", strerror (errno)));
-      abort ();
-      return;
+      return -1;
     }
   err = connect (sock, res->ai_addr, res->ai_addrlen);
   if (err < 0)
@@ -503,7 +507,7 @@ eXosip_get_localip_for (char *address_to_reach, char *loc, int size)
       eXosip_trace (OSIP_ERROR, ("Error in connect: %s\n", strerror (errno)));
       freeaddrinfo (res);
       close (sock);
-      return;
+      return -1;
     }
   freeaddrinfo (res);
   res = NULL;
@@ -513,7 +517,7 @@ eXosip_get_localip_for (char *address_to_reach, char *loc, int size)
     {
       eXosip_trace (OSIP_ERROR, ("Error in getsockname: %s\n", strerror (errno)));
       close (sock);
-      return;
+      return -1;
     }
 
   err =
@@ -521,17 +525,15 @@ eXosip_get_localip_for (char *address_to_reach, char *loc, int size)
   if (err != 0)
     {
       eXosip_trace (OSIP_ERROR, ("getnameinfo error:%s", strerror (errno)));
-      abort ();
-      return;
+      return -1;
     }
   close (sock);
   eXosip_trace (OSIP_INFO1,
                 ("Outgoing interface to reach %s is %s.\n", address_to_reach,
                  loc));
-  return;
+  return 0;
 }
 
-#endif
 
 #ifdef SM
 
@@ -689,3 +691,4 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 
   return 0;
 }
+

@@ -241,7 +241,7 @@ int eXosip_force_masquerade_contact(const char *localip);
  * ******LINPHONE specific methods******
  *
  */
-void eXosip_get_localip_for(char *host, char *localip, int size);
+int eXosip_get_localip_for(char *host, char *localip, int size);
 
 #endif
 
