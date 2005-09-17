@@ -1,0 +1,4 @@
+usr/lib/libeXosip*.so
+usr/lib/libeXosip*.la
+usr/lib/libeXosip*.a
+usr/include

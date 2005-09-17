@@ -1,0 +1,24 @@
+Source: libexosip2
+Section: libs
+Priority: optional
+Maintainer: Rafael Ávila de Espíndola <rafael.espindola@gmail.com>
+Build-Depends: cdbs, debhelper (>= 4.1.0)
+Standards-Version: 3.6.2
+
+Package: libexosip2
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: High level SIP library
+ eXosip is a GPL library that  extend  the  capability  of
+ the oSIP library. It aims  to  implement  a  simple  high
+ layer API to control the SIP for sessions establishements
+ and common extensions.
+
+Package: libexosip2-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: High level SIP library
+ eXosip is a GPL library that  extend  the  capability  of
+ the oSIP library. It aims  to  implement  a  simple  high
+ layer API to control the SIP for sessions establishements
+ and common extensions.
