@@ -2160,8 +2160,16 @@ eXosip_release_terminated_calls (void)
           } else if (0 == eXosip_release_aborted_calls (jc, jd))
             {
               jdnext = NULL;
-          } else
+          } else if (jd->d_id==-1)
             {
+                OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                    "eXosip: eXosip_release_terminated_calls delete a removed dialog (cid=%i did=%i)\n", jc->c_id, jd->d_id));
+                /* Remove existing reference to the dialog from transactions! */
+                __eXosip_call_remove_dialog_reference_in_call (jc, jd);
+                REMOVE_ELEMENT (jc->c_dialogs, jd);
+                eXosip_dialog_free (jd);
+
+                jd = jc->c_dialogs;
             }
           jd = jdnext;
         }

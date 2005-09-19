@@ -66,7 +66,7 @@ __eXosip_call_remove_dialog_reference_in_call (eXosip_call_t * jc,
     return;
 
 
-  for (_jd = jc->c_dialogs; _jd != NULL; _jd = jc->c_dialogs)
+  for (_jd = jc->c_dialogs; _jd != NULL; _jd = _jd->next)
     {
       if (jd == _jd)
         break;
