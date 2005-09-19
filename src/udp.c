@@ -1984,8 +1984,11 @@ eXosip_release_finished_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
 
   if (tr != NULL && (tr->state == NIST_TERMINATED || tr->state == NICT_TERMINATED))
     {
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                              "eXosip: eXosip_release_finished_calls remove a dialog\n"));
+        int did = -2;
+        if (jd!=NULL)
+            did = jd->d_id;
+        OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+            "eXosip: eXosip_release_finished_calls remove a dialog (cid=%i did=%i)\n", jc->c_id, did));
       /* Remove existing reference to the dialog from transactions! */
       __eXosip_call_remove_dialog_reference_in_call (jc, jd);
       REMOVE_ELEMENT (jc->c_dialogs, jd);
@@ -2141,9 +2144,14 @@ eXosip_release_terminated_calls (void)
     {
       jcnext = jc->next;
       /* free call terminated with a BYE */
+
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+          "eXosip: working on (cid=%i)\n", jc->c_id));
       for (jd = jc->c_dialogs; jd != NULL;)
         {
           jdnext = jd->next;
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+              "eXosip: working on (cid=%i did=%i)\n", jc->c_id, jd->d_id));
           if (0 == eXosip_pendingosip_transaction_exist (jc, jd))
             {
           } else if (0 == eXosip_release_finished_calls (jc, jd))
