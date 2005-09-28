@@ -546,12 +546,16 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
 
   /* AMD bug: fixed 17/06/2002 */
 
+#ifdef OSIP_FUTURE_FIX_2_3
+    route = (osip_route_t *) osip_list_get (dialog->route_set, 0);
+#else
   if (dialog->type == CALLER)
     {
       pos = osip_list_size (dialog->route_set) - 1;
       route = (osip_route_t *) osip_list_get (dialog->route_set, pos);
   } else
     route = (osip_route_t *) osip_list_get (dialog->route_set, 0);
+#endif
 
   osip_uri_uparam_get_byname (route->url, "lr", &lr_param);
   if (lr_param != NULL)         /* the remote target URI is the req_uri! */
@@ -571,11 +575,15 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
           i = osip_route_clone (route, &route2);
           if (i != 0)
             return -1;
+#ifdef OSIP_FUTURE_FIX_2_3
+            osip_list_add (request->routes, route2, -1);
+#else
           if (dialog->type == CALLER)
             osip_list_add (request->routes, route2, 0);
           else
             osip_list_add (request->routes, route2, -1);
           pos++;
+#endif
         }
       return 0;
     }
@@ -600,6 +608,12 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
       i = osip_route_clone (route, &route2);
       if (i != 0)
         return -1;
+#ifdef OSIP_FUTURE_FIX_2_3
+      if (!osip_list_eol (dialog->route_set, pos + 1))
+        osip_list_add (request->routes, route2, -1);
+      else
+        osip_route_free (route2);
+#else
       if (dialog->type == CALLER)
         {
           if (pos != osip_list_size (dialog->route_set) - 1)
@@ -613,6 +627,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
           else
             osip_route_free (route2);
         }
+#endif
       pos++;
     }
 
