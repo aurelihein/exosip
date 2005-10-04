@@ -446,7 +446,7 @@ ppl_dns_default_gateway_ipv6 (char *address, int size)
 #endif
 
 int
-eXosip_get_localip_for (char *address_to_reach, char *loc, int size)
+eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
 {
   int err, tmp;
   struct addrinfo hints;

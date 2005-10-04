@@ -28,6 +28,8 @@
 #include <windowsx.h>
 #include <winsock2.h>
 #include <Ws2tcpip.h>
+#include "inet_ntop.h"
+
 #else
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -1317,6 +1319,7 @@ eXosip_delete_early_dialog (eXosip_dialog_t * jd)
     {
       osip_dialog_free (jd->d_dialog);
       jd->d_dialog = NULL;
+      eXosip_update(); //AMD 30/09/05
       eXosip_dialog_set_state (jd, JD_TERMINATED);
     }
 }
