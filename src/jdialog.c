@@ -212,4 +212,6 @@ eXosip_dialog_free (eXosip_dialog_t * jd)
   osip_free (jd->d_out_trs);
   osip_free (jd->d_inc_trs);
   osip_free (jd);
+
+  eXosip_update ();
 }
