@@ -282,7 +282,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
     {
       eXosip_call_dialog_find (did, &jc, &jd);
     }
-  if (jc == NULL || jd == NULL)
+  if (jc == NULL || jd == NULL || jd->d_dialog == NULL)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -444,7 +444,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
     {
       eXosip_call_dialog_find (jid, &jc, &jd);
     }
-  if (jd == NULL)
+  if (jd == NULL || jd->d_dialog == NULL)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -961,6 +961,7 @@ eXosip_call_terminate (int cid, int did)
         {
           osip_dialog_free (jd->d_dialog);
           jd->d_dialog = NULL;
+          eXosip_update(); //AMD 30/09/05
         }
       return 0;
     }
@@ -999,6 +1000,7 @@ eXosip_call_terminate (int cid, int did)
 
           osip_dialog_free (jd->d_dialog);
           jd->d_dialog = NULL;
+          eXosip_update(); //AMD 30/09/05
           return 0;
         }
 
@@ -1049,6 +1051,7 @@ eXosip_call_terminate (int cid, int did)
 
   osip_dialog_free (jd->d_dialog);
   jd->d_dialog = NULL;
+  eXosip_update(); //AMD 30/09/05
   return 0;
 }
 
@@ -1373,7 +1376,15 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
       /* replace with the new tr */
       osip_list_add (eXosip.j_transactions, jc->c_out_tr, 0);
       jc->c_out_tr = tr;
-  } else
+
+      /* fix dialog issue */
+      if (jd!=NULL)
+      {
+        REMOVE_ELEMENT(jc->c_dialogs, jd);
+        eXosip_dialog_free(jd);
+        jd=NULL;
+      }
+    } else
     {
       /* add the new tr for the current dialog */
       osip_list_add (jd->d_out_trs, tr, 0);
@@ -1527,6 +1538,14 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
       /* replace with the new tr */
       osip_list_add (eXosip.j_transactions, jc->c_out_tr, 0);
       jc->c_out_tr = tr;
+
+      /* fix dialog issue */
+      if (jd!=NULL)
+      {
+        REMOVE_ELEMENT(jc->c_dialogs, jd);
+        eXosip_dialog_free(jd);
+        jd=NULL;
+      }
   } else
     {
       /* add the new tr for the current dialog */
