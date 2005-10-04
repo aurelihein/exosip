@@ -601,6 +601,15 @@ _eXosip_execute (void)
                    "eXosip: Reseting timer to 15s before waking up!\n"));
   } else
     {
+        /*  add a small amount of time on windows to avoid
+            waking up too early. (probably a bad time precision) */
+        if (lower_tv.tv_usec<900000)
+            lower_tv.tv_usec = 100000; /* add 10ms */
+        else 
+        {
+            lower_tv.tv_usec = 10000; /* add 10ms */
+            lower_tv.tv_sec++;
+        }
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "eXosip: timer sec:%i usec:%i!\n",
