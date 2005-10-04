@@ -173,6 +173,9 @@
 				RelativePath="..\..\src\eXutils.c">
 			</File>
 			<File
+				RelativePath="..\..\src\inet_ntop.c">
+			</File>
+			<File
 				RelativePath="..\..\src\jauth.c">
 			</File>
 			<File
@@ -250,6 +253,9 @@
 			</File>
 			<File
 				RelativePath="..\..\src\eXosip2.h">
+			</File>
+			<File
+				RelativePath="..\..\src\inet_ntop.h">
 			</File>
 			<File
 				RelativePath="..\..\src\jpipe.h">
