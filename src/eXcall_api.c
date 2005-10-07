@@ -924,7 +924,7 @@ eXosip_call_terminate (int cid, int did)
         {
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: No call here? "));
+                       "eXosip: No call here?\n"));
           return -1;
         }
   } else
@@ -946,7 +946,7 @@ eXosip_call_terminate (int cid, int did)
         {
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: cannot terminate this call! "));
+                       "eXosip: cannot terminate this call!\n"));
           return -2;
         }
       i = eXosip_create_cancel_transaction (jc, jd, request);
@@ -954,7 +954,7 @@ eXosip_call_terminate (int cid, int did)
         {
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: cannot initiate SIP transaction! "));
+                       "eXosip: cannot initiate SIP transaction!\n"));
           return i;
         }
       if (jd != NULL)
@@ -982,7 +982,7 @@ eXosip_call_terminate (int cid, int did)
             {
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: cannot terminate this call! "));
+                           "eXosip: cannot terminate this call!\n"));
               return -2;
             }
 
@@ -994,7 +994,7 @@ eXosip_call_terminate (int cid, int did)
             {
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: cannot initiate SIP transaction! "));
+                           "eXosip: cannot initiate SIP transaction!\n"));
               return -2;
             }
 
@@ -1006,7 +1006,7 @@ eXosip_call_terminate (int cid, int did)
 
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: No established dialog!"));
+                   "eXosip: No established dialog!\n"));
       return -1;
     }
 
@@ -1034,7 +1034,7 @@ eXosip_call_terminate (int cid, int did)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot terminate this call! "));
+                   "eXosip: cannot terminate this call!\n"));
       return -2;
     }
   if (jc->response_auth!=NULL)
@@ -1045,7 +1045,7 @@ eXosip_call_terminate (int cid, int did)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot initiate SIP transaction! "));
+                   "eXosip: cannot initiate SIP transaction!\n"));
       return -2;
     }
 
