@@ -533,7 +533,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 		_addr.sin_family = PF_INET;
 
 		if (connect(net_int->net_socket, (struct sockaddr *) &_addr, sizeof(_addr)) == -1)
-		{	
+		{
             OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                   "eXosip: Failed to connect to http server on %s:%i!\n", eXosip.http_proxy, port));
@@ -547,7 +547,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 		if (len < 0)
 			return -1;
 
-		Sleep(50);
+		osip_usleep(50000);
 
 		if ((len = recv(net_int->net_socket, http_reply, sizeof(http_reply), 0)) > 0)
 			http_reply[len] = '\0';

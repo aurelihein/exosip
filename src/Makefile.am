@@ -18,6 +18,7 @@ eXcall_api.c     eXoptions_api.c         \
 eXrefer_api.c    eXmessage_api.c         \
 eXinsubscription_api.c  eXpublish_api.c     \
 eXtransport.c    \
+inet_ntop.c      inet_ntop.h   \
 jrequest.c       jresponse.c   \
 jcallback.c      jdialog.c               udp.c        \
 jcall.c          jreg.c                  eXutils.c    \
