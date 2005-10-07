@@ -166,6 +166,27 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   if (eXosip.net_interfaces[0].net_socket == 0)
     return -1;
 
+  net = &eXosip.net_interfaces[0];
+
+  if (eXosip.http_port)
+  {
+    i = osip_message_to_str (sip, &message, &length);
+
+    if (i != 0 || length <= 0)
+        {
+        return -1;
+        }
+    if (0 >
+        _eXosip_sendto (net->net_socket, (const void *) message, length, 0,
+	        (struct sockaddr *) &addr, len ))
+    {
+        /* should reopen connection! */
+        osip_free (message);
+        return -1;
+    }
+    return 0;
+  }
+
   if (host == NULL)
     {
       host = sip->req_uri->host;
@@ -176,7 +197,6 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
 
   i = eXosip_get_addrinfo (&addrinfo, host, port, IPPROTO_UDP);
-  net = &eXosip.net_interfaces[0];
   if (i != 0)
     {
       return -1;
@@ -211,7 +231,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 			  "Message sent: \n%s (to dest=%s:%i)\n",
 			  message, ipbuf, port));
   if (0 >
-      sendto (net->net_socket, (const void *) message, length, 0,
+      _eXosip_sendto (net->net_socket, (const void *) message, length, 0,
 	      (struct sockaddr *) &addr, len ))
     {
 #ifdef WIN32

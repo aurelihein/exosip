@@ -193,3 +193,87 @@ int eXosip_transport_set(osip_message_t *msg, const char *transport)
   via->protocol = osip_strdup(transport);
   return 0;
 }
+
+int _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags, struct sockaddr *from, socklen_t *fromlen)
+{
+    int message_size=0;
+    int length_done=0;
+    int real_size=0;
+    int i;
+    int extra_data_discarded;
+
+    if (!eXosip.http_port)
+    {
+        return recvfrom(s, buf, len, flags, from, fromlen);
+    }
+
+
+    /* we get the size of the HTTP data */
+    i = recv (eXosip.net_interfaces[0].net_socket, (char *) &(message_size), 4, 0);
+
+    real_size = message_size;
+    if (message_size<0)
+    {
+        return -1; /* Connection error? */
+    }
+    if (message_size==0)
+    {
+        buf[0]='\0';
+        return 0;
+    }
+    if (message_size>len-1)
+        message_size = len-1;
+
+    length_done=0;
+
+    i = recv (eXosip.net_interfaces[0].net_socket, buf, message_size, 0);
+    length_done = i;
+
+    if (length_done==real_size)
+    {
+        return length_done;
+    }
+
+    if (length_done<message_size)
+    {
+        /* continue reading up to message_size */
+        while (length_done<message_size)
+        {
+            i = recv (eXosip.net_interfaces[0].net_socket, buf+length_done, message_size-length_done, 0);
+            length_done = length_done+i;
+        }
+    }
+
+    extra_data_discarded = length_done;
+    while (extra_data_discarded<real_size)
+    {
+        char buf2[2048];
+        /* We have to discard the end of data... up to the next message */
+        i = recv (eXosip.net_interfaces[0].net_socket, buf2, 2048, 0);
+        extra_data_discarded = extra_data_discarded+i;
+    }
+    return length_done;
+}
+
+int _eXosip_sendto(int s,  const void* buf,  size_t len,  int flags,
+  const struct sockaddr* to,  socklen_t tolen)
+{
+    int i;
+    char buf2[10000];
+
+    if (!eXosip.http_port)
+    {
+       i = sendto(s, buf, len, flags, to, tolen);
+       return i;
+    }
+
+    memset(buf2, '\0', sizeof(buf2));
+    memcpy(buf2, &len, sizeof(int));
+    memcpy(buf2+sizeof(int), buf, len);
+
+    i = send(s, (char *) buf2, len+sizeof(int), 0); /* use TCP connection to proxy */
+    if (i>0)
+        i=i-sizeof(int);
+
+    return i;
+}

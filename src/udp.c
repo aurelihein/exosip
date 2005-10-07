@@ -1720,9 +1720,10 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 	      else
 		slen = sizeof (struct sockaddr_in6);
 
-	      i = recvfrom (eXosip.net_interfaces[0].net_socket, buf, SIP_MESSAGE_MAX_LENGTH, 0,
+          i = _eXosip_recvfrom (eXosip.net_interfaces[0].net_socket, buf, SIP_MESSAGE_MAX_LENGTH, 0,
 			    (struct sockaddr *) &sa, &slen);
-	      if (i > 5)            /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
+
+         if (i > 5)            /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
 		{
 		  /* Message might not end with a "\0" but we know the number of */
 		  /* char received! */
@@ -1744,7 +1745,9 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 		  sipevent = osip_parse (buf, i);
 		  transaction = NULL;
 		  if (sipevent != NULL && sipevent->sip != NULL)
-		    {
+          {
+            if (!eXosip.http_port)
+            {
 		      char src6host[NI_MAXHOST];
 		      char src6buf[NI_MAXSERV];
 		      int recvport = 0;
@@ -1784,7 +1787,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 		      osip_message_fix_last_via_header (sipevent->sip,
 							src6host,
 							recvport);
-
+            }
 		      i =
 			osip_find_transaction_and_add_event (eXosip.j_osip, sipevent);
 		      if (i != 0)

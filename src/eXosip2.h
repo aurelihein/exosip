@@ -311,6 +311,10 @@ extern "C"
   int _eXosip_tcp_connect_socket(char *host, int port);
   int setsockopt_ipv6only (int sock);
 
+  int _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags, struct sockaddr *from, socklen_t *fromlen);
+  int _eXosip_sendto(int s,  const void* buf,  size_t len,  int flags,
+    const struct sockaddr* to,  socklen_t tolen);
+
   typedef struct eXosip_t eXosip_t;
 
   struct eXosip_t
@@ -342,6 +346,9 @@ extern "C"
 
     int   keep_alive;
     int   learn_port;
+    int   http_port;
+    char  http_proxy[256];
+    char  http_outbound_proxy[256];
   };
 
   typedef struct jinfo_t jinfo_t;

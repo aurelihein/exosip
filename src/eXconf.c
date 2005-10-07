@@ -351,6 +351,12 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       return -1;
     }
 
+  if (eXosip.http_port)
+  {
+      /* USE TUNNEL CAPABILITY */
+      transport=IPPROTO_TCP;
+  }
+
   if (port < 0)
     {
       OSIP_TRACE (osip_trace
@@ -418,6 +424,11 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 		       strerror(errno)));
 	  continue;
 	}
+
+    if (eXosip.http_port)
+    {
+        break;
+    }
 
       if (curinfo->ai_family == AF_INET6)
 	{
@@ -487,7 +498,10 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       return -1;
     }
 
-  net_int->net_protocol = transport;
+  if (eXosip.http_port)
+      net_int->net_protocol = IPPROTO_UDP;
+  else
+      net_int->net_protocol = transport;
   net_int->net_socket = sock;
 
   if (port==0)
@@ -504,6 +518,48 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 
   snprintf (net_int->net_port,
 	    sizeof (net_int->net_port) - 1, "%i", port);
+
+
+
+  if (eXosip.http_port)
+  {
+        /* only ipv4 */
+        struct sockaddr_in	_addr;
+	    char http_req[2048];
+	    char http_reply[2048];
+        int len;
+        _addr.sin_port = (unsigned short) htons(eXosip.http_port);
+        _addr.sin_addr.s_addr = inet_addr(eXosip.http_proxy);
+		_addr.sin_family = PF_INET;
+
+		if (connect(net_int->net_socket, (struct sockaddr *) &_addr, sizeof(_addr)) == -1)
+		{	
+            OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                  "eXosip: Failed to connect to http server on %s:%i!\n", eXosip.http_proxy, port));
+			return -1;
+		}
+
+        sprintf(http_req, "GET / HTTP/1.1\r\nUdpHost: %s:%d\r\n\r\n", eXosip.http_outbound_proxy, 5060);
+
+		len = send(net_int->net_socket, http_req, (int) strlen(http_req), 0);
+
+		if (len < 0)
+			return -1;
+
+		Sleep(50);
+
+		if ((len = recv(net_int->net_socket, http_reply, sizeof(http_reply), 0)) > 0)
+			http_reply[len] = '\0';
+		else
+			return -1;
+
+		if (strncmp(http_reply, "HTTP/1.0 200 OK\r\n", 17) == 0 || strncmp(http_reply, "HTTP/1.1 200 OK\r\n", 17) == 0)
+        {
+        }
+		else
+			return -1;
+  }
 
   eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
   if (eXosip.j_thread == NULL)
@@ -648,15 +704,36 @@ _eXosip_execute (void)
   return 0;
 }
 
-int eXosip_set_option(eXosip_option opt, int value)
+int eXosip_set_option(eXosip_option opt, void *value)
 {
+    int val;
+    char *tmp;
 	switch (opt) {
 		case EXOSIP_OPT_UDP_KEEP_ALIVE:
-            eXosip.keep_alive = value; /* value in ms */
+            val = *((int*)value);
+            eXosip.keep_alive = val; /* value in ms */
             break;
 		case EXOSIP_OPT_UDP_LEARN_PORT:
-            eXosip.learn_port = value; /* value in ms */
+            val = *((int*)value);
+            eXosip.learn_port = val; /* value in ms */
             break;
+		case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
+            val = *((int*)value);
+            eXosip.http_port = val; /* value in ms */
+            break;
+		case EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY:
+            tmp = (char*)value;
+            memset(eXosip.http_proxy, '\0', sizeof(eXosip.http_proxy));
+            if (tmp!=NULL && tmp[0]!='\0')
+                strncpy(eXosip.http_proxy, tmp, sizeof(eXosip.http_proxy)); /* value in proxy:port */
+            break;
+		case EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY:
+            tmp = (char*)value;
+            memset(eXosip.http_outbound_proxy, '\0', sizeof(eXosip.http_outbound_proxy));
+            if (tmp!=NULL && tmp[0]!='\0')
+                strncpy(eXosip.http_outbound_proxy, tmp, sizeof(eXosip.http_outbound_proxy)); /* value in proxy:port */
+            break;
+            
     }
     return 0;
 }

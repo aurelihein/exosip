@@ -62,7 +62,10 @@ extern "C"
 
 typedef enum {
     EXOSIP_OPT_UDP_KEEP_ALIVE = 1,
-    EXOSIP_OPT_UDP_LEARN_PORT = 2
+    EXOSIP_OPT_UDP_LEARN_PORT = 2,
+    EXOSIP_OPT_SET_HTTP_TUNNEL_PORT = 3,
+    EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY = 4,
+    EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY = 5 /* used for http tunnel ONLY */
 } eXosip_option;
 
 /**
@@ -73,7 +76,7 @@ typedef enum {
  * @param value   value for options.
  * 
  */
-int eXosip_set_option(eXosip_option opt, int value);
+int eXosip_set_option(eXosip_option opt, void *value);
 
 /**
  * Lock the eXtented oSIP library.
