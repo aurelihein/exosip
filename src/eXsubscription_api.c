@@ -38,13 +38,13 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
   osip_to_t *_to=NULL;
 
   *sub = NULL;
-  if (to != NULL && *to == '\0')
+  if (to == NULL || *to == '\0')
     return -1;
-  if (from != NULL && *from == '\0')
+  if (from == NULL || *from == '\0')
     return -1;
-  if (event != NULL && *event == '\0')
+  if (event == NULL || *event == '\0')
     return -1;
-  if (route != NULL && *route == '\0')
+  if (route == NULL || *route == '\0')
     route = NULL;
 
   i = osip_to_init(&_to);
