@@ -373,20 +373,20 @@ eXosip_automatic_action (void)
     {
       if (jr->r_id >= 1 && jr->r_last_tr != NULL)
         {
-          if (jr->r_reg_period == 0)
-            {
-              /* skip refresh! */
-          } else if (now - jr->r_last_tr->birth_time > 900)
+	  if (jr->r_reg_period != 0
+	      && now - jr->r_last_tr->birth_time > 900)
             {
               /* automatic refresh */
               eXosip_register_send_register (jr->r_id, NULL);
-          } else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - 60)
+          } else if (jr->r_reg_period != 0
+		     && now - jr->r_last_tr->birth_time > jr->r_reg_period - 60)
             {
               /* automatic refresh */
               eXosip_register_send_register (jr->r_id, NULL);
-          } else if (now - jr->r_last_tr->birth_time > 120 &&
-                     (jr->r_last_tr->last_response == NULL
-                      || (!MSG_IS_STATUS_2XX (jr->r_last_tr->last_response))))
+          } else if (jr->r_reg_period != 0
+		     && now - jr->r_last_tr->birth_time > 120
+		     && (jr->r_last_tr->last_response == NULL
+			 || (!MSG_IS_STATUS_2XX (jr->r_last_tr->last_response))))
             {
               /* automatic refresh */
               eXosip_register_send_register (jr->r_id, NULL);
