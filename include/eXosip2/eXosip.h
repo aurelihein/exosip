@@ -74,6 +74,11 @@ extern "C"
 {
 #endif
 
+/**
+ * Structure for event description.
+ * @var eXosip_event_t
+ */
+  typedef struct eXosip_event eXosip_event_t;
 
 /**
  * @defgroup eXosip2_authentication eXosip2 authentication API
@@ -101,6 +106,20 @@ extern "C"
  *
  */
   int eXosip_clear_authentication_info(void);
+
+/**
+ * Initiate some default actions:
+ *
+ *  Retry with credentials upon reception of 401/407.
+ *  Retry with Contact header upon reception of 3xx request.
+ * 
+ */
+  int eXosip_default_action (eXosip_event_t *je);
+
+/**
+ *  Refresh REGISTER and SUBSCRIBE before the expiration delay.
+ */
+  void eXosip_automatic_refresh (void);
 
 /**
  * Initiate some automatic actions:
@@ -237,12 +256,6 @@ extern "C"
       
       EXOSIP_EVENT_COUNT                /**< MAX number of events              */
     } eXosip_event_type_t;
-
-/**
- * Structure for event description.
- * @var eXosip_event_t
- */
-  typedef struct eXosip_event eXosip_event_t;
 
 /**
  * Structure for event description

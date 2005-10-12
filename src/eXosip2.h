@@ -212,6 +212,7 @@ extern "C"
   int _eXosip_pub_update (eXosip_pub_t ** pub, osip_transaction_t * tr,
                           osip_message_t * answer);
   int _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor);
+  int _eXosip_pub_find_by_tid (eXosip_pub_t **pjp, int tid);
   int _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp);
   void _eXosip_pub_free (eXosip_pub_t * pub);
 
@@ -414,6 +415,7 @@ extern "C"
   int eXosip_add_authentication_information (osip_message_t * req,
                                              osip_message_t * last_response);
   int _eXosip_reg_find (eXosip_reg_t ** reg, osip_transaction_t * tr);
+  int eXosip_reg_find_id (eXosip_reg_t ** reg, int rid);
   int eXosip_reg_init (eXosip_reg_t ** jr, const char *from,
                        const char *proxy, const char *contact);
   void eXosip_reg_free (eXosip_reg_t * jreg);

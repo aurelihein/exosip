@@ -102,3 +102,24 @@ _eXosip_reg_find (eXosip_reg_t ** reg, osip_transaction_t * tr)
     }
   return -1;
 }
+
+
+int
+eXosip_reg_find_id (eXosip_reg_t ** reg, int rid)
+{
+  eXosip_reg_t *jreg;
+
+  *reg = NULL;
+  if (rid <= 0)
+    return -1;
+
+  for (jreg = eXosip.j_reg; jreg != NULL; jreg = jreg->next)
+    {
+      if (jreg->r_id == rid)
+        {
+          *reg = jreg;
+          return 0;
+        }
+    }
+  return -1;
+}

@@ -262,7 +262,7 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot build REGISTER!"));
+                   "eXosip: cannot build REGISTER!\n"));
       *reg = NULL;
       return i;
     }

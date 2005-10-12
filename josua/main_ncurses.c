@@ -208,7 +208,11 @@ josua_event_get ()
     {
       je = eXosip_event_wait (0, 50);
       eXosip_lock();
-      eXosip_automatic_action ();
+      /* eXosip_automatic_action (); */
+
+      eXosip_default_action(je);
+      eXosip_automatic_refresh();
+
       eXosip_unlock();
       if (je == NULL)
         break;
