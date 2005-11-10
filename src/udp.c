@@ -260,6 +260,7 @@ eXosip_process_notify_for_refer (eXosip_call_t * jc, eXosip_dialog_t * jd,
                                  osip_transaction_t * transaction,
                                  osip_event_t * evt)
 {
+#if 0
   osip_event_t *evt_answer;
   osip_message_t *answer;
   int i;
@@ -363,6 +364,12 @@ eXosip_process_notify_for_refer (eXosip_call_t * jc, eXosip_dialog_t * jd,
 
   osip_transaction_add_event (transaction, evt_answer);
   __eXosip_wakeup ();
+#else
+  osip_list_add (jd->d_inc_trs, transaction, 0);
+  osip_transaction_set_your_instance (transaction,
+                                      __eXosip_new_jinfo (jc, jd, NULL, NULL));
+  __eXosip_wakeup ();
+#endif
 }
 
 static void

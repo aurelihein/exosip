@@ -339,7 +339,19 @@ josua_event_get ()
       } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
 		 && je->request!=NULL && MSG_IS_NOTIFY(je->request))
         {
-	  /* already answered! */
+          int i;
+          if (je->cid > 0 && je->did > 0)
+            {
+              osip_message_t *answer;
+
+              eXosip_lock ();
+              i = eXosip_call_build_answer (je->tid, 200, &answer);
+              if (i == 0)
+                {
+                  i = eXosip_call_send_answer (je->tid, 200, answer);
+                }
+              eXosip_unlock ();
+            }
       } else if (je->type == EXOSIP_CALL_ACK)
         {
           char buf[100];
