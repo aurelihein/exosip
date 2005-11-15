@@ -150,11 +150,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
           osip_uri_param_t *lr_param;
           osip_route_t *o_proxy;
 
-#ifndef __VXWORKS_OS__
           osip_route_init (&o_proxy);
-#else
-          osip_route_init2 (&o_proxy);
-#endif
           i = osip_route_parse (o_proxy, proxy);
           if (i != 0)
             {
