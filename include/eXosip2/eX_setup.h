@@ -76,7 +76,7 @@ typedef enum {
  * @param value   value for options.
  * 
  */
-int eXosip_set_option(eXosip_option opt, void *value);
+int eXosip_set_option(eXosip_option opt, const void *value);
 
 /**
  * Lock the eXtented oSIP library.

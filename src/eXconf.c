@@ -704,7 +704,7 @@ _eXosip_execute (void)
   return 0;
 }
 
-int eXosip_set_option(eXosip_option opt, void *value)
+int eXosip_set_option(eXosip_option opt, const void *value)
 {
     int val;
     char *tmp;
@@ -720,18 +720,30 @@ int eXosip_set_option(eXosip_option opt, void *value)
 		case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
             val = *((int*)value);
             eXosip.http_port = val; /* value in ms */
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                        "eXosip option set: http_port:%i!\n",
+                        eXosip.http_port));
             break;
 		case EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY:
             tmp = (char*)value;
             memset(eXosip.http_proxy, '\0', sizeof(eXosip.http_proxy));
             if (tmp!=NULL && tmp[0]!='\0')
                 strncpy(eXosip.http_proxy, tmp, sizeof(eXosip.http_proxy)); /* value in proxy:port */
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                        "eXosip option set: http_proxy:%s!\n",
+                        eXosip.http_proxy));
             break;
 		case EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY:
             tmp = (char*)value;
             memset(eXosip.http_outbound_proxy, '\0', sizeof(eXosip.http_outbound_proxy));
             if (tmp!=NULL && tmp[0]!='\0')
                 strncpy(eXosip.http_outbound_proxy, tmp, sizeof(eXosip.http_outbound_proxy)); /* value in proxy:port */
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                        "eXosip option set: http_outbound_proxy:%s!\n",
+                        eXosip.http_outbound_proxy));
             break;
             
     }
