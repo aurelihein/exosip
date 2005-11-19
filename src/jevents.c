@@ -485,6 +485,9 @@ eXosip_event_wait (int tv_s, int tv_ms)
     if (i <= 0)
       return 0;
 
+    if (eXosip.j_stop_ua)
+      return NULL;
+
     if (FD_ISSET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset))
       {
         char buf[500];
