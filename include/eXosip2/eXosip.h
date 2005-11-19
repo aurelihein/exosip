@@ -155,6 +155,20 @@ extern "C"
   sdp_message_t *eXosip_get_local_sdp(int did);
 
 /**
+ * Get remote SDP body for the latest INVITE of call.
+ * 
+ * @param tid          transction id of transaction.
+ */
+  sdp_message_t *eXosip_get_remote_sdp_from_tid (int tid);
+
+/**
+ * Get local SDP body for the latest INVITE of call.
+ * 
+ * @param tid          transction id of transaction.
+ */
+  sdp_message_t *eXosip_get_local_sdp_from_tid (int tid);
+
+/**
  * Get local SDP body for the given message.
  * 
  * @param message      message containing the SDP.

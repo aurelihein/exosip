@@ -33,9 +33,6 @@ static int eXosip_create_transaction (eXosip_call_t * jc,
 static int eXosip_create_cancel_transaction (eXosip_call_t * jc,
                                              eXosip_dialog_t * jd,
                                              osip_message_t * request);
-static int _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
-                                          eXosip_dialog_t ** jd,
-                                          osip_transaction_t ** tr);
 
 static int
 eXosip_create_transaction (eXosip_call_t * jc,
@@ -93,7 +90,7 @@ eXosip_create_cancel_transaction (eXosip_call_t * jc,
   return 0;
 }
 
-static int
+int
 _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
                                eXosip_dialog_t ** jd, osip_transaction_t ** tr)
 {

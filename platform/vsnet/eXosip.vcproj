@@ -152,9 +152,6 @@
 				RelativePath="..\..\src\eXosip.c">
 			</File>
 			<File
-				RelativePath="eXosip.def">
-			</File>
-			<File
 				RelativePath="..\..\src\eXpublish_api.c">
 			</File>
 			<File

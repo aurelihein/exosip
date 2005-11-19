@@ -422,6 +422,9 @@ extern "C"
   int generating_register (osip_message_t ** reg, char *transport, char *from,
                            char *proxy, char *contact, int expires);
 
+  int _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
+                                     eXosip_dialog_t ** jd,
+                                     osip_transaction_t ** tr);
   int _eXosip_call_redirect_request (eXosip_call_t * jc,
                                      eXosip_dialog_t * jd,
                                      osip_transaction_t * out_tr);

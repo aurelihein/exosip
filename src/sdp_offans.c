@@ -29,6 +29,54 @@ extern eXosip_t eXosip;
 sdp_message_t *_eXosip_get_remote_sdp (osip_transaction_t * invite_tr);
 sdp_message_t *_eXosip_get_local_sdp (osip_transaction_t * invite_tr);
 
+sdp_message_t *
+eXosip_get_remote_sdp_from_tid (int tid)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  osip_transaction_t *tr = NULL;
+
+  if (tid > 0)
+    {
+      _eXosip_call_transaction_find (tid, &jc, &jd, &tr);
+    }
+  if (jc == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No call here?\n"));
+      return NULL;
+    }
+  if (tr == NULL)
+    return NULL;
+
+  return _eXosip_get_remote_sdp (tr);
+}
+
+
+sdp_message_t *
+eXosip_get_local_sdp_from_tid (int tid)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  osip_transaction_t *tr = NULL;
+
+  if (tid > 0)
+    {
+      _eXosip_call_transaction_find (tid, &jc, &jd, &tr);
+    }
+  if (jc == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No call here?\n"));
+      return NULL;
+    }
+  if (tr == NULL)
+    return NULL;
+
+  return _eXosip_get_local_sdp (tr);
+}
 
 sdp_message_t *
 eXosip_get_remote_sdp (int jid)
@@ -87,9 +135,11 @@ _eXosip_get_remote_sdp (osip_transaction_t * invite_tr)
 
   if (invite_tr == NULL)
     return NULL;
-  if (invite_tr->ctx_type == IST)
+  if (invite_tr->ctx_type == IST
+      ||invite_tr->ctx_type == NIST)
     message = invite_tr->orig_request;
-  else if (invite_tr->ctx_type == ICT)
+  else if (invite_tr->ctx_type == ICT
+      ||invite_tr->ctx_type == NICT)
     message = invite_tr->last_response;
   else
     return NULL;
@@ -103,9 +153,11 @@ _eXosip_get_local_sdp (osip_transaction_t * invite_tr)
 
   if (invite_tr == NULL)
     return NULL;
-  if (invite_tr->ctx_type == IST)
+  if (invite_tr->ctx_type == IST
+      ||invite_tr->ctx_type == NIST)
     message = invite_tr->last_response;
-  else if (invite_tr->ctx_type == ICT)
+  else if (invite_tr->ctx_type == ICT
+      ||invite_tr->ctx_type == NICT)
     message = invite_tr->orig_request;
   else
     return NULL;
