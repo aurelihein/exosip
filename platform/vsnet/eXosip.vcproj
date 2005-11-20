@@ -84,7 +84,7 @@
 				PreprocessorDefinitions="NDEBUG;EXOSIP_EXPORTS;ENABLE_TRACE;WIN32;_WINDOWS;_USRDLL;OSIP_MT;USE_TMP_BUFFER"
 				StringPooling="FALSE"
 				ExceptionHandling="FALSE"
-				RuntimeLibrary="1"
+				RuntimeLibrary="0"
 				BufferSecurityCheck="FALSE"
 				EnableFunctionLevelLinking="FALSE"
 				UsePrecompiledHeader="0"
