@@ -958,7 +958,7 @@ eXosip_call_terminate (int cid, int did)
         {
           osip_dialog_free (jd->d_dialog);
           jd->d_dialog = NULL;
-          eXosip_update(); //AMD 30/09/05
+          eXosip_update(); /* AMD 30/09/05 */
         }
       return 0;
     }
@@ -997,7 +997,7 @@ eXosip_call_terminate (int cid, int did)
 
           osip_dialog_free (jd->d_dialog);
           jd->d_dialog = NULL;
-          eXosip_update(); //AMD 30/09/05
+          eXosip_update(); /* AMD 30/09/05 */
           return 0;
         }
 
@@ -1048,7 +1048,7 @@ eXosip_call_terminate (int cid, int did)
 
   osip_dialog_free (jd->d_dialog);
   jd->d_dialog = NULL;
-  eXosip_update(); //AMD 30/09/05
+  eXosip_update(); /* AMD 30/09/05 */
   return 0;
 }
 
