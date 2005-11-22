@@ -1667,13 +1667,13 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 		  if (eXosip.net_interfaces[1].net_socket_tab[pos].socket==0)
 		    break;
 		}
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
 				      "creating TCP socket at index: %i\n", pos));
 	      sock = accept(eXosip.net_interfaces[1].net_socket, (struct sockaddr *) &sa, 
 			 &slen);
 	      if (sock<0)
 		{
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					  "Error accepting TCP socket\n"));
 		  break;
 		}
@@ -1834,15 +1834,11 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 	{
 	  /* loop over all TCP socket */
 	  int pos = 0;
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				  "TCP DATA ready?\n"));
 	  for (pos=0; pos<EXOSIP_MAX_SOCKETS; pos++)
 	    {
 	      if (eXosip.net_interfaces[1].net_socket_tab[pos].socket>0
 		  && FD_ISSET (eXosip.net_interfaces[1].net_socket_tab[pos].socket, &osip_fdset))
 		{
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					  "TCP DATA ready! message received\n"));
 		  i = recv (eXosip.net_interfaces[1].net_socket_tab[pos].socket,
 			    buf, SIP_MESSAGE_MAX_LENGTH, 0);
 		  if (i > 5)
@@ -2156,13 +2152,9 @@ eXosip_release_terminated_calls (void)
       jcnext = jc->next;
       /* free call terminated with a BYE */
 
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-          "eXosip: working on (cid=%i)\n", jc->c_id));
       for (jd = jc->c_dialogs; jd != NULL;)
         {
           jdnext = jd->next;
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-              "eXosip: working on (cid=%i did=%i)\n", jc->c_id, jd->d_id));
           if (0 == eXosip_pendingosip_transaction_exist (jc, jd))
             {
           } else if (0 == eXosip_release_finished_calls (jc, jd))
@@ -2262,7 +2254,7 @@ eXosip_release_terminated_calls (void)
           || tr->state == NICT_TERMINATED || tr->state == NIST_TERMINATED)
 
         {                       /* free (transaction is already removed from the oSIP stack) */
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
                                   "Release a terminated transaction\n"));
           osip_list_remove (eXosip.j_transactions, pos);
           __eXosip_delete_jinfo (tr);

@@ -370,7 +370,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
     {
       ipv6_enable = 1;
       OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "IPv6 is enabled. Pls report bugs\n"));
     }
 
@@ -401,14 +401,10 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
     {
       socklen_t len;
 
-      OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		   "eXosip: address for protocol %d (search %d)\n",
-		   curinfo->ai_protocol, transport));
       if (curinfo->ai_protocol && curinfo->ai_protocol != transport)	
 	{
 	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+		      (__FILE__, __LINE__, OSIP_INFO3, NULL,
 		       "eXosip: Skipping protocol %d\n",
 		       curinfo->ai_protocol));
 	  continue;
@@ -535,7 +531,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 		if (connect(net_int->net_socket, (struct sockaddr *) &_addr, sizeof(_addr)) == -1)
 		{
             OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
                   "eXosip: Failed to connect to http server on %s:%i!\n", eXosip.http_proxy, port));
 			return -1;
 		}
@@ -653,7 +649,7 @@ _eXosip_execute (void)
     {
       lower_tv.tv_sec = 15;
       OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
                    "eXosip: Reseting timer to 15s before waking up!\n"));
   } else
     {
@@ -667,7 +663,7 @@ _eXosip_execute (void)
             lower_tv.tv_sec++;
         }
       OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
                    "eXosip: timer sec:%i usec:%i!\n",
                    lower_tv.tv_sec, lower_tv.tv_usec));
     }
