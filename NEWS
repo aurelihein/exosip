@@ -1,4 +1,4 @@
-Mar 2005    : 1.9.X
+Nov 2005    : 2.2.2
   eXosip was first made to build a SIP interface for a PBX. Available
   as a library, it appears soon that it was really difficult to use
   the original version without changes in other kind of SIP applications.

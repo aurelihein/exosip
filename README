@@ -1,4 +1,4 @@
-Project    : eXosip - the eXtended osip Library.
+Project    : eXosip2 - the eXtended osip Library.
 Email      : jack@atosc.org
 License    : GPL
 Home Page  : http://savannah.gnu.org/projects/exosip
@@ -14,7 +14,7 @@ API for call management, messaging and presence features.
 Features:
 --------
 
-eXosip has support for:
+eXosip2 has support for:
  * registrations. (REGISTER)
  * call initiation and modification. (INVITE, re-INVITE)
  * other methods within calls (INFO, OPTIONS, UPDATE)
@@ -23,7 +23,14 @@ eXosip has support for:
  * sip event package. (SUBSCRIBE/NOTIFY)
  * event state publication. (PUBLISH)
  * instant messaging. (MESSAGE)
+ * ...
 
+eXosip2 does not contain:
+ * RTP.
+ * audio interface
+ * sdp negotiation.
+ * ...
+          This allow you to write any kind of SIP endpoint/gateway.
 
 Installation procedure:
 -----------------------
