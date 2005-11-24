@@ -19,7 +19,7 @@ of libeXosip2.
 	if (i!=0)
 	  return -1;
 
-	i = eXosip_listen_to(IPPROTO_UDP, INADDR_ANY, cfg.port);
+	i = eXosip_listen_addr (IPPROTO_UDP, NULL, port, AF_INET, 0);
 	if (i!=0)
 	  {
 	    eXosip_quit();
@@ -46,7 +46,9 @@ from the eXosip2 stack.
   for (;;)
     {
       je = eXosip_event_wait (0, 50);
+      eXosip_lock();
       eXosip_automatic_action ();
+      eXosip_unlock();
       if (je == NULL)
         break;
       if (je->type == EXOSIP_CALL_NEW)
