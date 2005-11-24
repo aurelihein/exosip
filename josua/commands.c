@@ -36,7 +36,7 @@ _check_url (char *url)
   if (i != 0)
     return -1;
   i = osip_from_parse (to, url);
-  osip_from_free(to);
+  osip_from_free (to);
   if (i != 0)
     return -1;
   return 0;
@@ -89,12 +89,16 @@ _josua_start_call (char *from, char *to, char *subject, char *route,
     osip_message_set_content_type (invite, "application/sdp");
   }
 
-  if (cfg.service_route[0]!='\0')
+  if (cfg.service_route[0] != '\0')
     {
-      char *header = osip_strdup("route");
-      osip_message_set_multiple_header(invite, header, cfg.service_route);
-      osip_free(header);
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "Route from Service-Route discovery added: |%s|\n", cfg.service_route));
+      char *header = osip_strdup ("route");
+
+      osip_message_set_multiple_header (invite, header, cfg.service_route);
+      osip_free (header);
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                   "Route from Service-Route discovery added: |%s|\n",
+                   cfg.service_route));
     }
 
   eXosip_lock ();
@@ -103,7 +107,9 @@ _josua_start_call (char *from, char *to, char *subject, char *route,
     {
       eXosip_call_set_reference (i, reference);
     }
-  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "CALL STARTED FOR CID: %i\n", i));
+  OSIP_TRACE (osip_trace
+              (__FILE__, __LINE__, OSIP_INFO2, NULL,
+               "CALL STARTED FOR CID: %i\n", i));
   eXosip_unlock ();
   return i;
 }
@@ -131,7 +137,7 @@ _josua_mute_call (int did, char *wav_file)
 
   if (i != 0)
     {
-      sdp_message_free(local_sdp);
+      sdp_message_free (local_sdp);
       return -1;
     }
 
@@ -140,27 +146,27 @@ _josua_mute_call (int did, char *wav_file)
   /* add sdp body */
   {
     char *tmp = NULL;
-    
+
     i = _sdp_hold_call (local_sdp);
     if (i != 0)
       {
-	sdp_message_free (local_sdp);
-	osip_message_free (invite);
-	return -1;
+        sdp_message_free (local_sdp);
+        osip_message_free (invite);
+        return -1;
       }
-    
+
     i = sdp_message_to_str (local_sdp, &tmp);
     sdp_message_free (local_sdp);
     if (i != 0)
       {
-	osip_message_free (invite);
-	return -1;
+        osip_message_free (invite);
+        return -1;
       }
     osip_message_set_body (invite, tmp, strlen (tmp));
     osip_free (tmp);
     osip_message_set_content_type (invite, "application/sdp");
   }
-  
+
   eXosip_lock ();
   i = eXosip_call_send_request (did, invite);
   if (i > 0)
@@ -193,7 +199,7 @@ _josua_unmute_call (int did)
 
   if (i != 0)
     {
-      sdp_message_free(local_sdp);
+      sdp_message_free (local_sdp);
       return -1;
     }
 
@@ -202,21 +208,21 @@ _josua_unmute_call (int did)
   /* add sdp body */
   {
     char *tmp = NULL;
-    
+
     i = _sdp_off_hold_call (local_sdp);
     if (i != 0)
       {
-	sdp_message_free (local_sdp);
-	osip_message_free (invite);
-	return -1;
+        sdp_message_free (local_sdp);
+        osip_message_free (invite);
+        return -1;
       }
-    
+
     i = sdp_message_to_str (local_sdp, &tmp);
     sdp_message_free (local_sdp);
     if (i != 0)
       {
-	osip_message_free (invite);
-	return -1;
+        osip_message_free (invite);
+        return -1;
       }
     osip_message_set_body (invite, tmp, strlen (tmp));
     osip_free (tmp);
@@ -421,18 +427,19 @@ _josua_register (int pos_id)
           return -1;
         }
 
-      if (cfg.proto==1)
-	eXosip_transport_set(reg, "TCP");
-      else if (cfg.proto==2)
-	eXosip_transport_set(reg, "TLS");
-	  
-      osip_message_set_supported(reg, "path");
-      if (route!=NULL && route[0]!='\0')
-	{
-	  char *header = osip_strdup("route");
-	  osip_message_set_multiple_header(reg, header, route);
-	  osip_free(header);
-	}
+      if (cfg.proto == 1)
+        eXosip_transport_set (reg, "TCP");
+      else if (cfg.proto == 2)
+        eXosip_transport_set (reg, "TLS");
+
+      osip_message_set_supported (reg, "path");
+      if (route != NULL && route[0] != '\0')
+        {
+          char *header = osip_strdup ("route");
+
+          osip_message_set_multiple_header (reg, header, route);
+          osip_free (header);
+        }
       last_pos_id = pos_id;
       last_reg_id = reg_id;
   } else
@@ -450,10 +457,10 @@ _josua_register (int pos_id)
           return -1;
         }
 
-      if (cfg.proto==1)
-	eXosip_transport_set(reg, "TCP");
-      else if (cfg.proto==2)
-	eXosip_transport_set(reg, "TLS");
+      if (cfg.proto == 1)
+        eXosip_transport_set (reg, "TCP");
+      else if (cfg.proto == 2)
+        eXosip_transport_set (reg, "TLS");
     }
 
   eXosip_register_send_register (reg_id, reg);
@@ -481,18 +488,19 @@ _josua_unregister (int pos_id)
   if (pos_id != last_pos_id)
     {
       reg_id =
-        eXosip_register_build_initial_register (identity, registrar, NULL, 0, &reg);
+        eXosip_register_build_initial_register (identity, registrar, NULL, 0,
+                                                &reg);
       if (reg_id < 0)
         {
           eXosip_unlock ();
           return -1;
         }
 
-      if (cfg.proto==1)
-	eXosip_transport_set(reg, "TCP");
-      else if (cfg.proto==2)
-	eXosip_transport_set(reg, "TLS");
-	  
+      if (cfg.proto == 1)
+        eXosip_transport_set (reg, "TCP");
+      else if (cfg.proto == 2)
+        eXosip_transport_set (reg, "TLS");
+
       last_pos_id = pos_id;
       last_reg_id = reg_id;
   } else
@@ -510,11 +518,11 @@ _josua_unregister (int pos_id)
           return -1;
         }
 
-      if (cfg.proto==1)
-	eXosip_transport_set(reg, "TCP");
-      else if (cfg.proto==2)
-	eXosip_transport_set(reg, "TLS");
-	  
+      if (cfg.proto == 1)
+        eXosip_transport_set (reg, "TCP");
+      else if (cfg.proto == 2)
+        eXosip_transport_set (reg, "TLS");
+
       last_reg_id = -1;
       last_pos_id = -1;
     }
@@ -523,51 +531,57 @@ _josua_unregister (int pos_id)
   return i;
 }
 
-int _josua_set_service_route(osip_message_t *response)
+int
+_josua_set_service_route (osip_message_t * response)
 {
   /* rfc3608.txt:
      Extension Header Field for Service Route Discovery */
   /* build the complete service-route header */
   osip_header_t *hservroute;
   int pos;
-  char servroute[2048]; /* should be enough! */
-  int  max_length = 2047;
+  char servroute[2048];         /* should be enough! */
+  int max_length = 2047;
+
   servroute[0] = '\0';
   pos = 0;
-  pos = osip_message_header_get_byname (response, "service-route", pos, &hservroute);
-  while (pos>=0)
+  pos =
+    osip_message_header_get_byname (response, "service-route", pos, &hservroute);
+  while (pos >= 0)
     {
-      if (hservroute->hvalue==NULL)
-	{
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
-				  "Empty pass!!\n"));
-	}
-      else
-	{
-	  int header_length = strlen(hservroute->hvalue);
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				  "service-route header found: %s\n", hservroute->hvalue));
-	  if (2047-strlen(servroute)<header_length)
-	    { /* servroute header too long, discard other entries */
-	    }
-	  else
-	    {
-	      if (max_length==2047) /* don't add a coma */
-		osip_strncpy(servroute, hservroute->hvalue, header_length);
-	      else
-		{
-		  osip_strncpy(servroute+strlen(servroute), ",", 1);
-		  osip_strncpy(servroute+strlen(servroute), hservroute->hvalue, header_length);
-		}
-	      max_length = 2047 - strlen(servroute);
-	    }
-	}
+      if (hservroute->hvalue == NULL)
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
+                                  "Empty pass!!\n"));
+      } else
+        {
+          int header_length = strlen (hservroute->hvalue);
+
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                  "service-route header found: %s\n",
+                                  hservroute->hvalue));
+          if (2047 - strlen (servroute) < header_length)
+            {                   /* servroute header too long, discard other entries */
+          } else
+            {
+              if (max_length == 2047)   /* don't add a coma */
+                osip_strncpy (servroute, hservroute->hvalue, header_length);
+              else
+                {
+                  osip_strncpy (servroute + strlen (servroute), ",", 1);
+                  osip_strncpy (servroute + strlen (servroute),
+                                hservroute->hvalue, header_length);
+                }
+              max_length = 2047 - strlen (servroute);
+            }
+        }
       pos++;
-      pos = osip_message_header_get_byname (response, "service-route", pos, &hservroute);
+      pos =
+        osip_message_header_get_byname (response, "service-route", pos,
+                                        &hservroute);
     }
 
-  
-  if (servroute[0]!='\0')
-    snprintf(cfg.service_route, 2048, "%s", servroute);
+
+  if (servroute[0] != '\0')
+    snprintf (cfg.service_route, 2048, "%s", servroute);
   return 0;
 }

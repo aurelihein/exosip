@@ -35,7 +35,7 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
   char tmp[10];
   int i;
   osip_uri_param_t *uri_param = NULL;
-  osip_to_t *_to=NULL;
+  osip_to_t *_to = NULL;
 
   *sub = NULL;
   if (to == NULL || *to == '\0')
@@ -47,33 +47,40 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
   if (route == NULL || *route == '\0')
     route = NULL;
 
-  i = osip_to_init(&_to);
-  if (i!=0)
+  i = osip_to_init (&_to);
+  if (i != 0)
     return -1;
-  
-  i = osip_to_parse(_to, to);
-  if (i!=0)
+
+  i = osip_to_parse (_to, to);
+  if (i != 0)
     {
-      osip_to_free(_to);
+      osip_to_free (_to);
       return -1;
     }
 
-  osip_uri_uparam_get_byname(_to->url, "transport", &uri_param);
+  osip_uri_uparam_get_byname (_to->url, "transport", &uri_param);
   if (uri_param != NULL && uri_param->gvalue != NULL)
     {
-      i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "UDP", from, route);
-    }
-  else
+      i =
+        generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "UDP", from,
+                                          route);
+  } else
     {
-      if (eXosip.net_interfaces[0].net_socket>0)
-	i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "UDP", from, route);
-      else if (eXosip.net_interfaces[1].net_socket>0)
-	i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "TCP", from, route);
+      if (eXosip.net_interfaces[0].net_socket > 0)
+        i =
+          generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "UDP", from,
+                                            route);
+      else if (eXosip.net_interfaces[1].net_socket > 0)
+        i =
+          generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "TCP", from,
+                                            route);
       else
-	i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "UDP", from, route);
+        i =
+          generating_request_out_of_dialog (sub, "SUBSCRIBE", to, "UDP", from,
+                                            route);
     }
 
-  osip_to_free(_to);
+  osip_to_free (_to);
   if (i != 0)
     return -1;
 
@@ -163,15 +170,18 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
     }
 
   transport = NULL;
-  if (transaction!=NULL && transaction->orig_request!=NULL)
-    transport = _eXosip_transport_protocol(transaction->orig_request);
+  if (transaction != NULL && transaction->orig_request != NULL)
+    transport = _eXosip_transport_protocol (transaction->orig_request);
 
   transaction = NULL;
 
-  if (transport==NULL)
-    i = _eXosip_build_request_within_dialog (sub, "SUBSCRIBE", jd->d_dialog, "UDP");
+  if (transport == NULL)
+    i =
+      _eXosip_build_request_within_dialog (sub, "SUBSCRIBE", jd->d_dialog, "UDP");
   else
-    i = _eXosip_build_request_within_dialog (sub, "SUBSCRIBE", jd->d_dialog, transport);
+    i =
+      _eXosip_build_request_within_dialog (sub, "SUBSCRIBE", jd->d_dialog,
+                                           transport);
 
   if (i != 0)
     return -2;
@@ -211,10 +221,10 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
           transaction->state != NIST_TERMINATED &&
           transaction->state != NICT_COMPLETED &&
           transaction->state != NIST_COMPLETED)
-	{
-	  osip_message_free (sub);
-	  return -1;
-	}
+        {
+          osip_message_free (sub);
+          return -1;
+        }
       transaction = NULL;
     }
 
@@ -302,30 +312,32 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
 
   osip_list_remove (msg->vias, 0);
   osip_via_free (via);
-  i = _eXosip_find_protocol(out_tr->orig_request);
-  if (i==IPPROTO_UDP)
+  i = _eXosip_find_protocol (out_tr->orig_request);
+  if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port, via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port, via_branch_new_random ());
-    }
-  else if (i==IPPROTO_TCP)
+        snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
+  } else if (i == IPPROTO_TCP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[1].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port, via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port, via_branch_new_random ());
-    }
-  else
+        snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
+  } else
     {
       /* tls? */
       osip_message_free (msg);

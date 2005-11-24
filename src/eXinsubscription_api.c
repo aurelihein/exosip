@@ -237,14 +237,14 @@ eXosip_insubscription_send_answer (int tid, int status, osip_message_t * answer)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: wrong status code (101<status<699)\n"));
-	  osip_message_free (answer);
+          osip_message_free (answer);
           return -1;
         }
       if (i != 0)
         {
-	  osip_message_free (answer);
-	  return -1;
-	}
+          osip_message_free (answer);
+          return -1;
+        }
     }
 
   evt_answer = osip_new_outgoing_sipmessage (answer);
@@ -360,18 +360,20 @@ eXosip_insubscription_build_request (int did, const char *method,
     }
 
   transport = NULL;
-  if (transaction==NULL)
+  if (transaction == NULL)
     transaction = jn->n_inc_tr;
 
-  if (transaction!=NULL && transaction->orig_request!=NULL)
-    transport = _eXosip_transport_protocol(transaction->orig_request);
+  if (transaction != NULL && transaction->orig_request != NULL)
+    transport = _eXosip_transport_protocol (transaction->orig_request);
 
   transaction = NULL;
 
-  if (transport==NULL)
+  if (transport == NULL)
     i = _eXosip_build_request_within_dialog (request, method, jd->d_dialog, "UDP");
   else
-    i = _eXosip_build_request_within_dialog (request, method, jd->d_dialog, transport);
+    i =
+      _eXosip_build_request_within_dialog (request, method, jd->d_dialog,
+                                           transport);
   if (i != 0)
     return -2;
 
@@ -501,34 +503,32 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
   osip_list_remove (msg->vias, 0);
   osip_via_free (via);
 
-  i = _eXosip_find_protocol(out_tr->orig_request);
-  if (i==IPPROTO_UDP)
+  i = _eXosip_find_protocol (out_tr->orig_request);
+  if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port,
-		  via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port,
-		  via_branch_new_random ());
-    }
-  else if (i==IPPROTO_TCP)
+        snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
+  } else if (i == IPPROTO_TCP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[1].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port,
-		  via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port,
-		  via_branch_new_random ());
-    }
-  else
+        snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
+  } else
     {
       /* tls? */
       osip_message_free (msg);

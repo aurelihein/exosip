@@ -27,48 +27,54 @@
 
 extern eXosip_t eXosip;
 
-char *_eXosip_transport_protocol(osip_message_t *msg)
+char *
+_eXosip_transport_protocol (osip_message_t * msg)
 {
   osip_via_t *via;
+
   via = (osip_via_t *) osip_list_get (msg->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return NULL;
   return via->protocol;
 }
 
-int _eXosip_find_protocol(osip_message_t *msg)
+int
+_eXosip_find_protocol (osip_message_t * msg)
 {
   osip_via_t *via;
+
   via = (osip_via_t *) osip_list_get (msg->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return -1;
-  else if (0==osip_strcasecmp(via->protocol, "UDP"))
-	return IPPROTO_UDP;
-  else if (0==osip_strcasecmp(via->protocol, "TCP"))
+  else if (0 == osip_strcasecmp (via->protocol, "UDP"))
+    return IPPROTO_UDP;
+  else if (0 == osip_strcasecmp (via->protocol, "TCP"))
     return IPPROTO_TCP;
   return -1;;
 }
 
-int _eXosip_tcp_find_socket(char *host, int port)
+int
+_eXosip_tcp_find_socket (char *host, int port)
 {
   int pos;
   struct eXosip_net *net;
 
   net = &eXosip.net_interfaces[1];
 
-  for (pos=0;pos<EXOSIP_MAX_SOCKETS;pos++)
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
-      if (net->net_socket_tab[pos].socket!=0)
-	{
-	  if (0==osip_strcasecmp(net->net_socket_tab[pos].remote_ip, host)
-	      && port == net->net_socket_tab[pos].remote_port)
-	    return net->net_socket_tab[pos].socket;
-	}
+      if (net->net_socket_tab[pos].socket != 0)
+        {
+          if (0 == osip_strcasecmp (net->net_socket_tab[pos].remote_ip, host)
+              && port == net->net_socket_tab[pos].remote_port)
+            return net->net_socket_tab[pos].socket;
+        }
     }
   return -1;
 }
 
-int _eXosip_tcp_connect_socket(char *host, int port)
+int
+_eXosip_tcp_connect_socket (char *host, int port)
 {
   int pos;
   struct eXosip_net *net;
@@ -80,18 +86,18 @@ int _eXosip_tcp_connect_socket(char *host, int port)
 
   net = &eXosip.net_interfaces[1];
 
-  for (pos=0;pos<EXOSIP_MAX_SOCKETS;pos++)
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
-      if (net->net_socket_tab[pos].socket==0)
-	{
-	  break;
-	}
+      if (net->net_socket_tab[pos].socket == 0)
+        {
+          break;
+        }
     }
 
-  if (pos==EXOSIP_MAX_SOCKETS)
+  if (pos == EXOSIP_MAX_SOCKETS)
     return -1;
 
-  res = eXosip_get_addrinfo(&addrinfo, host, port, IPPROTO_TCP);
+  res = eXosip_get_addrinfo (&addrinfo, host, port, IPPROTO_TCP);
   if (res)
     return -1;
 
@@ -99,77 +105,73 @@ int _eXosip_tcp_connect_socket(char *host, int port)
   for (curinfo = addrinfo; curinfo; curinfo = curinfo->ai_next)
     {
       if (curinfo->ai_protocol && curinfo->ai_protocol != IPPROTO_TCP)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		       "eXosip: Skipping protocol %d\n",
-		       curinfo->ai_protocol));
-	  continue;
-	}
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "eXosip: Skipping protocol %d\n", curinfo->ai_protocol));
+          continue;
+        }
 
-      sock = (int)socket(curinfo->ai_family, curinfo->ai_socktype,
-			 curinfo->ai_protocol);
+      sock = (int) socket (curinfo->ai_family, curinfo->ai_socktype,
+                           curinfo->ai_protocol);
       if (sock < 0)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		       "eXosip: Cannot create socket!\n",
-		       strerror(errno)));
-	  continue;
-	}
-      
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "eXosip: Cannot create socket!\n", strerror (errno)));
+          continue;
+        }
+
       if (curinfo->ai_family == AF_INET6)
-	{
+        {
 #ifdef IPV6_V6ONLY
-	  if (setsockopt_ipv6only(sock))
-	    {
-	      close(sock);
-	      sock = -1;
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-			   "eXosip: Cannot set socket option!\n",
-			   strerror(errno)));
-	      continue;
-	    }
-#endif	/* IPV6_V6ONLY */
-	}
-      
+          if (setsockopt_ipv6only (sock))
+            {
+              close (sock);
+              sock = -1;
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                           "eXosip: Cannot set socket option!\n",
+                           strerror (errno)));
+              continue;
+            }
+#endif /* IPV6_V6ONLY */
+        }
 #if 0
-      res = bind (sock, (struct sockaddr*)&net->ai_addr, curinfo->ai_addrlen);
+      res = bind (sock, (struct sockaddr *) &net->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		       "eXosip: Cannot bind socket %s\n",
-		       strerror(errno)));
-	  close(sock);
-	  sock = -1;
-	  continue;
-	}
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "eXosip: Cannot bind socket %s\n", strerror (errno)));
+          close (sock);
+          sock = -1;
+          continue;
+        }
 #endif
 
       res = connect (sock, curinfo->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		       "eXosip: Cannot bind socket node:%s family:%d %s\n",
-		       host, curinfo->ai_family, strerror(errno)));
-	  close(sock);
-	  sock = -1;
-	  continue;
-	}
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "eXosip: Cannot bind socket node:%s family:%d %s\n",
+                       host, curinfo->ai_family, strerror (errno)));
+          close (sock);
+          sock = -1;
+          continue;
+        }
 
       break;
     }
 
-  freeaddrinfo(addrinfo);
+  freeaddrinfo (addrinfo);
 
-  if (sock>0)
+  if (sock > 0)
     {
       net->net_socket_tab[pos].socket = sock;
-      osip_strncpy(net->net_socket_tab[pos].remote_ip, host,
-		   sizeof(net->net_socket_tab[pos].remote_ip)-1);
+      osip_strncpy (net->net_socket_tab[pos].remote_ip, host,
+                    sizeof (net->net_socket_tab[pos].remote_ip) - 1);
       net->net_socket_tab[pos].remote_port = port;
       return sock;
     }
@@ -178,102 +180,109 @@ int _eXosip_tcp_connect_socket(char *host, int port)
 }
 
 
-int eXosip_transport_set(osip_message_t *msg, const char *transport)
+int
+eXosip_transport_set (osip_message_t * msg, const char *transport)
 {
   osip_via_t *via;
 
   via = (osip_via_t *) osip_list_get (msg->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return -1;
-  
-  if (0==osip_strcasecmp(via->protocol, transport))
+
+  if (0 == osip_strcasecmp (via->protocol, transport))
     return 0;
 
-  osip_free(via->protocol);
-  via->protocol = osip_strdup(transport);
+  osip_free (via->protocol);
+  via->protocol = osip_strdup (transport);
   return 0;
 }
 
-int _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags, struct sockaddr *from, socklen_t *fromlen)
+int
+_eXosip_recvfrom (int s, char *buf, int len, unsigned int flags,
+                  struct sockaddr *from, socklen_t * fromlen)
 {
-    int message_size=0;
-    int length_done=0;
-    int real_size=0;
-    int i;
-    int extra_data_discarded;
+  int message_size = 0;
+  int length_done = 0;
+  int real_size = 0;
+  int i;
+  int extra_data_discarded;
 
-    if (!eXosip.http_port)
+  if (!eXosip.http_port)
     {
-        return recvfrom(s, buf, len, flags, from, fromlen);
+      return recvfrom (s, buf, len, flags, from, fromlen);
     }
 
 
-    /* we get the size of the HTTP data */
-    i = recv (eXosip.net_interfaces[0].net_socket, (char *) &(message_size), 4, 0);
+  /* we get the size of the HTTP data */
+  i = recv (eXosip.net_interfaces[0].net_socket, (char *) &(message_size), 4, 0);
 
-    real_size = message_size;
-    if (message_size<0)
+  real_size = message_size;
+  if (message_size < 0)
     {
-        return -1; /* Connection error? */
+      return -1;                /* Connection error? */
     }
-    if (message_size==0)
+  if (message_size == 0)
     {
-        buf[0]='\0';
-        return 0;
+      buf[0] = '\0';
+      return 0;
     }
-    if (message_size>len-1)
-        message_size = len-1;
+  if (message_size > len - 1)
+    message_size = len - 1;
 
-    length_done=0;
+  length_done = 0;
 
-    i = recv (eXosip.net_interfaces[0].net_socket, buf, message_size, 0);
-    length_done = i;
+  i = recv (eXosip.net_interfaces[0].net_socket, buf, message_size, 0);
+  length_done = i;
 
-    if (length_done==real_size)
+  if (length_done == real_size)
     {
-        return length_done;
+      return length_done;
     }
 
-    if (length_done<message_size)
+  if (length_done < message_size)
     {
-        /* continue reading up to message_size */
-        while (length_done<message_size)
+      /* continue reading up to message_size */
+      while (length_done < message_size)
         {
-            i = recv (eXosip.net_interfaces[0].net_socket, buf+length_done, message_size-length_done, 0);
-            length_done = length_done+i;
+          i =
+            recv (eXosip.net_interfaces[0].net_socket, buf + length_done,
+                  message_size - length_done, 0);
+          length_done = length_done + i;
         }
     }
 
-    extra_data_discarded = length_done;
-    while (extra_data_discarded<real_size)
+  extra_data_discarded = length_done;
+  while (extra_data_discarded < real_size)
     {
-        char buf2[2048];
-        /* We have to discard the end of data... up to the next message */
-        i = recv (eXosip.net_interfaces[0].net_socket, buf2, 2048, 0);
-        extra_data_discarded = extra_data_discarded+i;
+      char buf2[2048];
+
+      /* We have to discard the end of data... up to the next message */
+      i = recv (eXosip.net_interfaces[0].net_socket, buf2, 2048, 0);
+      extra_data_discarded = extra_data_discarded + i;
     }
-    return length_done;
+  return length_done;
 }
 
-int _eXosip_sendto(int s,  const void* buf,  size_t len,  int flags,
-  const struct sockaddr* to,  socklen_t tolen)
+int
+_eXosip_sendto (int s, const void *buf, size_t len, int flags,
+                const struct sockaddr *to, socklen_t tolen)
 {
-    int i;
-    char buf2[10000];
+  int i;
+  char buf2[10000];
 
-    if (!eXosip.http_port)
+  if (!eXosip.http_port)
     {
-       i = sendto(s, buf, len, flags, to, tolen);
-       return i;
+      i = sendto (s, buf, len, flags, to, tolen);
+      return i;
     }
 
-    memset(buf2, '\0', sizeof(buf2));
-    memcpy(buf2, &len, sizeof(int));
-    memcpy(buf2+sizeof(int), buf, len);
+  memset (buf2, '\0', sizeof (buf2));
+  memcpy (buf2, &len, sizeof (int));
+  memcpy (buf2 + sizeof (int), buf, len);
 
-    i = send(s, (char *) buf2, len+sizeof(int), 0); /* use TCP connection to proxy */
-    if (i>0)
-        i=i-sizeof(int);
+  i = send (s, (char *) buf2, len + sizeof (int), 0);   /* use TCP connection to proxy */
+  if (i > 0)
+    i = i - sizeof (int);
 
-    return i;
+  return i;
 }

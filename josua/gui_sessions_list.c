@@ -309,7 +309,7 @@ window_sessions_list_run_command (int c)
 
           i =
             eXosip_call_build_refer (ca->did, "sip:800@192.168.2.2:5070", &refer);
-	  osip_message_set_header(refer, "Referred-By", cfg.identity);
+          osip_message_set_header (refer, "Referred-By", cfg.identity);
           if (i == 0)
             i = eXosip_call_send_request (ca->did, refer);
           if (i != 0)

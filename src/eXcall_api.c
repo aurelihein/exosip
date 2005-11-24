@@ -179,7 +179,7 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
 {
   int i;
   osip_uri_param_t *uri_param = NULL;
-  osip_to_t *_to=NULL;
+  osip_to_t *_to = NULL;
 
   *invite = NULL;
 
@@ -190,32 +190,39 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
   if (subject != NULL && *subject == '\0')
     subject = NULL;
 
-  i = osip_to_init(&_to);
-  if (i!=0)
+  i = osip_to_init (&_to);
+  if (i != 0)
     return -1;
-  
-  i = osip_to_parse(_to, to);
-  if (i!=0)
+
+  i = osip_to_parse (_to, to);
+  if (i != 0)
     {
-      osip_to_free(_to);
+      osip_to_free (_to);
       return -1;
     }
 
-  osip_uri_uparam_get_byname(_to->url, "transport", &uri_param);
+  osip_uri_uparam_get_byname (_to->url, "transport", &uri_param);
   if (uri_param != NULL && uri_param->gvalue != NULL)
     {
-      i = generating_request_out_of_dialog (invite, "INVITE", to, uri_param->gvalue, from, route);      
-    }
-  else
+      i =
+        generating_request_out_of_dialog (invite, "INVITE", to,
+                                          uri_param->gvalue, from, route);
+  } else
     {
-      if (eXosip.net_interfaces[0].net_socket>0)
-	i = generating_request_out_of_dialog (invite, "INVITE", to, "UDP", from, route);
-      else if (eXosip.net_interfaces[1].net_socket>0)
-	i = generating_request_out_of_dialog (invite, "INVITE", to, "TCP", from, route);
+      if (eXosip.net_interfaces[0].net_socket > 0)
+        i =
+          generating_request_out_of_dialog (invite, "INVITE", to, "UDP", from,
+                                            route);
+      else if (eXosip.net_interfaces[1].net_socket > 0)
+        i =
+          generating_request_out_of_dialog (invite, "INVITE", to, "TCP", from,
+                                            route);
       else
-	i = generating_request_out_of_dialog (invite, "INVITE", to, "UDP", from, route);
+        i =
+          generating_request_out_of_dialog (invite, "INVITE", to, "UDP", from,
+                                            route);
     }
-  osip_to_free(_to);
+  osip_to_free (_to);
   if (i != 0)
     return -1;
 
@@ -306,8 +313,8 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
     }
 
   transport = NULL;
-  transport = _eXosip_transport_protocol(tr->orig_request);
-  if (transport==NULL)
+  transport = _eXosip_transport_protocol (tr->orig_request);
+  if (transport == NULL)
     i = _eXosip_build_request_within_dialog (&ack, "ACK", jd->d_dialog, "UDP");
   else
     i = _eXosip_build_request_within_dialog (&ack, "ACK", jd->d_dialog, transport);
@@ -318,13 +325,13 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
     }
 
   /* Fix CSeq Number when request has been exchanged during INVITE transactions */
-  if (tr->orig_request->cseq!=NULL && tr->orig_request->cseq->number!=NULL)
+  if (tr->orig_request->cseq != NULL && tr->orig_request->cseq->number != NULL)
     {
-      if (ack!=NULL && ack->cseq!=NULL && ack->cseq->number!=NULL)
-	{
-	  osip_free(ack->cseq->number);
-	  ack->cseq->number = osip_strdup(tr->orig_request->cseq->number);
-	}
+      if (ack != NULL && ack->cseq != NULL && ack->cseq->number != NULL)
+        {
+          osip_free (ack->cseq->number);
+          ack->cseq->number = osip_strdup (tr->orig_request->cseq->number);
+        }
     }
 
   /* copy all credentials from INVITE! */
@@ -377,7 +384,7 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here?\n"));
       if (ack != NULL)
-	osip_message_free (ack);
+        osip_message_free (ack);
       return -1;
     }
 
@@ -395,10 +402,11 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
   osip_message_get_route (ack, 0, &route);
   if (route != NULL)
     {
-      osip_uri_param_t *lr_param=NULL;
+      osip_uri_param_t *lr_param = NULL;
+
       osip_uri_uparam_get_byname (route->url, "lr", &lr_param);
-      if (lr_param==NULL)
-	route=NULL;
+      if (lr_param == NULL)
+        route = NULL;
     }
 
   if (route != NULL)
@@ -432,7 +440,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
   osip_transaction_t *transaction;
   char *transport;
   int i;
-  
+
   *request = NULL;
   if (method == NULL || method[0] == '\0')
     return -1;
@@ -479,19 +487,21 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
 
   transport = NULL;
   transaction = eXosip_find_last_invite (jc, jd);
-  if (transaction!=NULL && transaction->orig_request!=NULL)
-    transport = _eXosip_transport_protocol(transaction->orig_request);
+  if (transaction != NULL && transaction->orig_request != NULL)
+    transport = _eXosip_transport_protocol (transaction->orig_request);
 
   transaction = NULL;
 
-  if (transport==NULL)
+  if (transport == NULL)
     i = _eXosip_build_request_within_dialog (request, method, jd->d_dialog, "UDP");
   else
-    i = _eXosip_build_request_within_dialog (request, method, jd->d_dialog, transport);
+    i =
+      _eXosip_build_request_within_dialog (request, method, jd->d_dialog,
+                                           transport);
   if (i != 0)
     return -2;
 
-  if (jc->response_auth!=NULL)
+  if (jc->response_auth != NULL)
     eXosip_add_authentication_information (*request, jc->response_auth);
 
   return 0;
@@ -547,20 +557,20 @@ eXosip_call_send_request (int jid, osip_message_t * request)
               transaction->state != NIST_TERMINATED &&
               transaction->state != NICT_COMPLETED &&
               transaction->state != NIST_COMPLETED)
-	    {
-	      osip_message_free (request);
-	      return -1;
-	    }
+            {
+              osip_message_free (request);
+              return -1;
+            }
       } else
         {
           if (transaction->state != ICT_TERMINATED &&
               transaction->state != IST_TERMINATED &&
               transaction->state != IST_CONFIRMED &&
               transaction->state != ICT_COMPLETED)
-	    {
-	      osip_message_free (request);
-	      return -1;
-	    }
+            {
+              osip_message_free (request);
+              return -1;
+            }
         }
     }
 
@@ -742,8 +752,8 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
             _eXosip_build_response_default (answer, NULL, status,
                                             tr->orig_request);
         }
-      if (status>100 && status < 300 )
-	i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
+      if (status > 100 && status < 300)
+        i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
     }
 
   if (i != 0)
@@ -792,7 +802,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Wrong parameter?\n"));
-	      osip_message_free (answer);
+              osip_message_free (answer);
               return -1;
             }
         }
@@ -868,7 +878,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
                   OSIP_TRACE (osip_trace
                               (__FILE__, __LINE__, OSIP_ERROR, NULL,
                                "eXosip: cannot create dialog!\n"));
-		  osip_message_free (answer);
+                  osip_message_free (answer);
                   return -1;
                 }
               ADD_ELEMENT (jc->c_dialogs, jd);
@@ -885,14 +895,14 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: wrong status code (101<status<699)\n"));
-	  osip_message_free (answer);
+          osip_message_free (answer);
           return -1;
         }
       if (i != 0)
-	{
-	  osip_message_free (answer);
-	  return -1;
-	}
+        {
+          osip_message_free (answer);
+          return -1;
+        }
     }
 
   evt_answer = osip_new_outgoing_sipmessage (answer);
@@ -912,7 +922,7 @@ eXosip_call_terminate (int cid, int did)
   osip_message_t *request = NULL;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
-  char *transport=NULL;
+  char *transport = NULL;
 
   if (did > 0)
     {
@@ -958,7 +968,7 @@ eXosip_call_terminate (int cid, int did)
         {
           osip_dialog_free (jd->d_dialog);
           jd->d_dialog = NULL;
-          eXosip_update(); /* AMD 30/09/05 */
+          eXosip_update ();     /* AMD 30/09/05 */
         }
       return 0;
     }
@@ -968,13 +978,13 @@ eXosip_call_terminate (int cid, int did)
       /* Check if some dialog exists */
       if (jd != NULL && jd->d_dialog != NULL)
         {
-	  transport = NULL;
-	  if (tr!=NULL && tr->orig_request!=NULL)
-	    transport = _eXosip_transport_protocol(tr->orig_request);
-	  if (transport==NULL)
-	    i = generating_bye (&request, jd->d_dialog, "UDP");
-	  else
-	    i = generating_bye (&request, jd->d_dialog, transport);
+          transport = NULL;
+          if (tr != NULL && tr->orig_request != NULL)
+            transport = _eXosip_transport_protocol (tr->orig_request);
+          if (transport == NULL)
+            i = generating_bye (&request, jd->d_dialog, "UDP");
+          else
+            i = generating_bye (&request, jd->d_dialog, transport);
           if (i != 0)
             {
               OSIP_TRACE (osip_trace
@@ -983,8 +993,8 @@ eXosip_call_terminate (int cid, int did)
               return -2;
             }
 
-	  if (jc->response_auth!=NULL)
-	    eXosip_add_authentication_information (request, jc->response_auth);
+          if (jc->response_auth != NULL)
+            eXosip_add_authentication_information (request, jc->response_auth);
 
           i = eXosip_create_transaction (jc, jd, request);
           if (i != 0)
@@ -997,7 +1007,7 @@ eXosip_call_terminate (int cid, int did)
 
           osip_dialog_free (jd->d_dialog);
           jd->d_dialog = NULL;
-          eXosip_update(); /* AMD 30/09/05 */
+          eXosip_update ();     /* AMD 30/09/05 */
           return 0;
         }
 
@@ -1020,9 +1030,9 @@ eXosip_call_terminate (int cid, int did)
     }
 
   transport = NULL;
-  if (tr!=NULL && tr->orig_request!=NULL)
-    transport = _eXosip_transport_protocol(tr->orig_request);
-  if (transport==NULL)
+  if (tr != NULL && tr->orig_request != NULL)
+    transport = _eXosip_transport_protocol (tr->orig_request);
+  if (transport == NULL)
     i = generating_bye (&request, jd->d_dialog, "UDP");
   else
     i = generating_bye (&request, jd->d_dialog, transport);
@@ -1034,7 +1044,7 @@ eXosip_call_terminate (int cid, int did)
                    "eXosip: cannot terminate this call!\n"));
       return -2;
     }
-  if (jc->response_auth!=NULL)
+  if (jc->response_auth != NULL)
     eXosip_add_authentication_information (request, jc->response_auth);
 
   i = eXosip_create_transaction (jc, jd, request);
@@ -1048,7 +1058,7 @@ eXosip_call_terminate (int cid, int did)
 
   osip_dialog_free (jd->d_dialog);
   jd->d_dialog = NULL;
-  eXosip_update(); /* AMD 30/09/05 */
+  eXosip_update ();             /* AMD 30/09/05 */
   return 0;
 }
 
@@ -1092,13 +1102,15 @@ eXosip_call_build_prack (int tid, osip_message_t ** prack)
     return -1;
 
   transport = NULL;
-  if (tr!=NULL && tr->orig_request!=NULL)
-    transport = _eXosip_transport_protocol(tr->orig_request);
+  if (tr != NULL && tr->orig_request != NULL)
+    transport = _eXosip_transport_protocol (tr->orig_request);
 
-  if (transport==NULL)
+  if (transport == NULL)
     i = _eXosip_build_request_within_dialog (prack, "PRACK", jd->d_dialog, "UDP");
   else
-    i = _eXosip_build_request_within_dialog (prack, "PRACK", jd->d_dialog, transport);
+    i =
+      _eXosip_build_request_within_dialog (prack, "PRACK", jd->d_dialog,
+                                           transport);
 
   if (i != 0)
     return -2;
@@ -1258,18 +1270,17 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
                       osip_uri_param_free (u_param);
 #endif
                       u_param = NULL;
-		      protocol=IPPROTO_UDP;
+                      protocol = IPPROTO_UDP;
                       break;    /* ok */
-                    }
-		  else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
-		    {
+                  } else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
+                    {
 #if 0
                       osip_list_remove (co->url->url_params, pos2);
                       osip_uri_param_free (u_param);
 #endif
-		      protocol=IPPROTO_TCP;
+                      protocol = IPPROTO_TCP;
                       u_param = NULL;
-		    }
+                    }
                   break;
                 }
               pos2++;
@@ -1315,29 +1326,31 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
   osip_list_remove (msg->vias, 0);
   osip_via_free (via);
 
-  if (protocol==IPPROTO_UDP)
+  if (protocol == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port, via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port, via_branch_new_random ());
-    }
-  else if (protocol==IPPROTO_TCP)
+        snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
+  } else if (protocol == IPPROTO_TCP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[1].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port, via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port, via_branch_new_random ());
-    }
-  else
+        snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
+  } else
     {
       /* tls? */
       osip_message_free (msg);
@@ -1375,13 +1388,13 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
       jc->c_out_tr = tr;
 
       /* fix dialog issue */
-      if (jd!=NULL)
-      {
-        REMOVE_ELEMENT(jc->c_dialogs, jd);
-        eXosip_dialog_free(jd);
-        jd=NULL;
-      }
-    } else
+      if (jd != NULL)
+        {
+          REMOVE_ELEMENT (jc->c_dialogs, jd);
+          eXosip_dialog_free (jd);
+          jd = NULL;
+        }
+  } else
     {
       /* add the new tr for the current dialog */
       osip_list_add (jd->d_out_trs, tr, 0);
@@ -1434,23 +1447,27 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
     }
 
   /* remove all previous authentication headers */
-  pos=0;
-  while (!osip_list_eol(msg->authorizations, pos))
+  pos = 0;
+  while (!osip_list_eol (msg->authorizations, pos))
     {
       osip_authorization_t *auth;
-      auth = (osip_authorization_t*)osip_list_get(msg->authorizations, pos);
-      osip_list_remove(msg->authorizations, pos);
-      osip_authorization_free(auth);
+
+      auth = (osip_authorization_t *) osip_list_get (msg->authorizations, pos);
+      osip_list_remove (msg->authorizations, pos);
+      osip_authorization_free (auth);
       pos++;
     }
 
-  pos=0;
-  while (!osip_list_eol(msg->proxy_authorizations, pos))
+  pos = 0;
+  while (!osip_list_eol (msg->proxy_authorizations, pos))
     {
       osip_proxy_authorization_t *auth;
-      auth = (osip_proxy_authorization_t*)osip_list_get(msg->proxy_authorizations, pos);
-      osip_list_remove(msg->proxy_authorizations, pos);
-      osip_authorization_free(auth);
+
+      auth =
+        (osip_proxy_authorization_t *) osip_list_get (msg->
+                                                      proxy_authorizations, pos);
+      osip_list_remove (msg->proxy_authorizations, pos);
+      osip_authorization_free (auth);
       pos++;
     }
 
@@ -1476,30 +1493,32 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
 
   osip_list_remove (msg->vias, 0);
   osip_via_free (via);
-  i = _eXosip_find_protocol(out_tr->orig_request);
-  if (i==IPPROTO_UDP)
+  i = _eXosip_find_protocol (out_tr->orig_request);
+  if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port, via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[0].net_port, via_branch_new_random ());
-    }
-  else if (i==IPPROTO_TCP)
+        snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[0].net_port,
+                  via_branch_new_random ());
+  } else if (i == IPPROTO_TCP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip,
-			       sizeof (locip));
+                               sizeof (locip));
       if (eXosip.net_interfaces[1].net_ip_family == AF_INET6)
-	snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port, via_branch_new_random ());
+        snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
       else
-	snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
-		  locip, eXosip.net_interfaces[1].net_port, via_branch_new_random ());
-    }
-  else
+        snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
+                  locip, eXosip.net_interfaces[1].net_port,
+                  via_branch_new_random ());
+  } else
     {
       /* tls? */
       osip_message_free (msg);
@@ -1537,12 +1556,12 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
       jc->c_out_tr = tr;
 
       /* fix dialog issue */
-      if (jd!=NULL)
-      {
-        REMOVE_ELEMENT(jc->c_dialogs, jd);
-        eXosip_dialog_free(jd);
-        jd=NULL;
-      }
+      if (jd != NULL)
+        {
+          REMOVE_ELEMENT (jc->c_dialogs, jd);
+          eXosip_dialog_free (jd);
+          jd = NULL;
+        }
   } else
     {
       /* add the new tr for the current dialog */

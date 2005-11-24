@@ -62,12 +62,12 @@ window_new_identity_print ()
   snprintf (buf, 199, "%199.199s", " ");
   mvaddnstr (gui_window_new_identity.y0 + 1,
              gui_window_new_identity.x0, buf, x - gui_window_new_identity.x0 - 1);
-  mvaddnstr (gui_window_new_identity.y0 + 2,
-             gui_window_new_identity.x0, buf, x - gui_window_new_identity.x0 - 1);
-  mvaddnstr (gui_window_new_identity.y0 + 3,
-             gui_window_new_identity.x0, buf, x - gui_window_new_identity.x0 - 1);
-  mvaddnstr (gui_window_new_identity.y0 + 4,
-             gui_window_new_identity.x0, buf, x - gui_window_new_identity.x0 - 1);
+  mvaddnstr (gui_window_new_identity.y0 + 2, gui_window_new_identity.x0, buf,
+             x - gui_window_new_identity.x0 - 1);
+  mvaddnstr (gui_window_new_identity.y0 + 3, gui_window_new_identity.x0, buf,
+             x - gui_window_new_identity.x0 - 1);
+  mvaddnstr (gui_window_new_identity.y0 + 4, gui_window_new_identity.x0, buf,
+             x - gui_window_new_identity.x0 - 1);
 
   attrset (COLOR_PAIR (1));
   snprintf (buf, x - gui_window_new_identity.x0, "SIP url : ");

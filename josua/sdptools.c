@@ -181,7 +181,7 @@ sdp_complete_200ok (int did, osip_message_t * answer)
           if (pos2 == 0 || payloads[0] == '\0')
             {
               strcat (buf, " 0 RTP/AVP \r\n");
-	      sdp_message_free (remote_sdp);
+              sdp_message_free (remote_sdp);
               return -1;        /* refuse anyway */
           } else
             {

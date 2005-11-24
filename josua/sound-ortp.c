@@ -525,7 +525,7 @@ os_sound_close (call_t * ca)
   speex_decoder_destroy (&ca->speex_dec);
 #endif
 
-  close (ca->fd);                   /* close the sound card */
+  close (ca->fd);               /* close the sound card */
 }
 
 #endif

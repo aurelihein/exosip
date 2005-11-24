@@ -58,21 +58,22 @@ log_event (eXosip_event_t * je)
     {
       snprintf (buf, 99, "<- (%i %i) Call released", je->cid, je->did);
   } else if (je->type == EXOSIP_MESSAGE_NEW
-	     && je->request!=NULL && MSG_IS_MESSAGE(je->request))
+             && je->request != NULL && MSG_IS_MESSAGE (je->request))
     {
       char *tmp = NULL;
 
       if (je->request != NULL)
         {
-	  osip_body_t *body;
+          osip_body_t *body;
+
           osip_from_to_str (je->request->from, &tmp);
 
-	  osip_message_get_body (je->request, 0, &body);
-	  if (body != NULL && body->body != NULL)
-	    {
-	      snprintf (buf, 99, "<- (%i) from: %s TEXT: %s",
-			je->tid, tmp, body->body);
-	    }
+          osip_message_get_body (je->request, 0, &body);
+          if (body != NULL && body->body != NULL)
+            {
+              snprintf (buf, 99, "<- (%i) from: %s TEXT: %s",
+                        je->tid, tmp, body->body);
+            }
           osip_free (tmp);
       } else
         {
@@ -174,8 +175,7 @@ log_event (eXosip_event_t * je)
 
       osip_from_to_str (je->request->from, &tmp);
       snprintf (buf, 99, "<- (c=%i|d=%i|s=%i|n=%i) %s from: %s",
-                je->cid, je->did, je->sid, je->nid,
-                je->request->sip_method, tmp);
+                je->cid, je->did, je->sid, je->nid, je->request->sip_method, tmp);
       osip_free (tmp);
   } else if (je->response != NULL)
     {
@@ -185,7 +185,7 @@ log_event (eXosip_event_t * je)
       snprintf (buf, 99, "<- (c=%i|d=%i|s=%i|n=%i) [%i %s] for %s from: %s",
                 je->cid, je->did, je->sid, je->nid,
                 je->response->status_code, je->response->reason_phrase,
-		je->request->sip_method, tmp);
+                je->request->sip_method, tmp);
       osip_free (tmp);
   } else
     {
@@ -207,13 +207,13 @@ josua_event_get ()
   for (;;)
     {
       je = eXosip_event_wait (0, 50);
-      eXosip_lock();
+      eXosip_lock ();
       /* eXosip_automatic_action (); */
 
-      eXosip_default_action(je);
-      eXosip_automatic_refresh();
+      eXosip_default_action (je);
+      eXosip_automatic_refresh ();
 
-      eXosip_unlock();
+      eXosip_unlock ();
       if (je == NULL)
         break;
       counter++;
@@ -222,10 +222,11 @@ josua_event_get ()
         {
           call_new (je);
       } else if (je->type == EXOSIP_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_REFER(je->request))
+                 && je->request != NULL && MSG_IS_REFER (je->request))
         {
           int i;
-	  if (je->tid > 0)
+
+          if (je->tid > 0)
             {
               osip_message_t *answer;
 
@@ -238,7 +239,7 @@ josua_event_get ()
               eXosip_unlock ();
             }
       } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_REFER(je->request))
+                 && je->request != NULL && MSG_IS_REFER (je->request))
         {
           int i;
 
@@ -290,7 +291,7 @@ josua_event_get ()
             }
 
       } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_UPDATE(je->request))
+                 && je->request != NULL && MSG_IS_UPDATE (je->request))
         {
           int i;
 
@@ -321,13 +322,14 @@ josua_event_get ()
             }
 
       } else if (je->type == EXOSIP_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_NOTIFY(je->request))
-	{
+                 && je->request != NULL && MSG_IS_NOTIFY (je->request))
+        {
           int i;
-	  if (je->tid > 0)
+
+          if (je->tid > 0)
             {
               osip_message_t *answer;
-	      
+
               eXosip_lock ();
               i = eXosip_message_build_answer (je->tid, 501, &answer);
               if (i == 0)
@@ -337,9 +339,10 @@ josua_event_get ()
               eXosip_unlock ();
             }
       } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_NOTIFY(je->request))
+                 && je->request != NULL && MSG_IS_NOTIFY (je->request))
         {
           int i;
+
           if (je->cid > 0 && je->did > 0)
             {
               osip_message_t *answer;
@@ -381,7 +384,7 @@ josua_event_get ()
         {
           call_globalfailure (je);
       } else if (je->type == EXOSIP_CALL_NOANSWER)
-	{
+        {
       } else if (je->type == EXOSIP_CALL_CLOSED)
         {
           call_closed (je);
@@ -408,10 +411,10 @@ josua_event_get ()
           else
             josua_registration_reason_phrase[0] = '\0';
 
-	  if (je->response!=NULL)
-	    {
-	      _josua_set_service_route(je->response);
-	    }
+          if (je->response != NULL)
+            {
+              _josua_set_service_route (je->response);
+            }
 
       } else if (je->type == EXOSIP_REGISTRATION_FAILURE)
         {
@@ -430,29 +433,29 @@ josua_event_get ()
           else
             josua_registration_reason_phrase[0] = '\0';
       } else if (je->type == EXOSIP_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_OPTIONS(je->request))
-	{
+                 && je->request != NULL && MSG_IS_OPTIONS (je->request))
+        {
           int k;
 
-	  /* outside of any call */
-	  for (k = 0; k < MAX_NUMBER_OF_CALLS; k++)
-	    {
-	      if (calls[k].state != NOT_USED)
-		break;
-	    }
-	  eXosip_lock ();
-	  if (k == MAX_NUMBER_OF_CALLS)
-	    {
-	      eXosip_options_send_answer (je->tid, 200, NULL);
-	    } else
-	      {
-		/* answer 486 ok */
-		eXosip_options_send_answer (je->tid, 486, NULL);
-	      }
-	  eXosip_unlock ();
-	  
+          /* outside of any call */
+          for (k = 0; k < MAX_NUMBER_OF_CALLS; k++)
+            {
+              if (calls[k].state != NOT_USED)
+                break;
+            }
+          eXosip_lock ();
+          if (k == MAX_NUMBER_OF_CALLS)
+            {
+              eXosip_options_send_answer (je->tid, 200, NULL);
+          } else
+            {
+              /* answer 486 ok */
+              eXosip_options_send_answer (je->tid, 486, NULL);
+            }
+          eXosip_unlock ();
+
       } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_OPTIONS(je->request))
+                 && je->request != NULL && MSG_IS_OPTIONS (je->request))
         {
           int k;
 
@@ -475,23 +478,23 @@ josua_event_get ()
                   eXosip_call_send_answer (je->tid, 200, answer);
                 }
               eXosip_unlock ();
-           }
-	  else /* bug? */
+          } else                /* bug? */
             {
               eXosip_lock ();
-	      eXosip_options_send_answer (je->tid, 400, NULL);
+              eXosip_options_send_answer (je->tid, 400, NULL);
               eXosip_unlock ();
             }
       } else if (je->type == EXOSIP_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_INFO(je->request))
-	{
-	  int i;
-	  /* what's the purpose of sending INFO outside dialog? */
-	  eXosip_lock ();
-	  i = eXosip_message_send_answer (je->tid, 501, NULL);
-	  eXosip_unlock ();
+                 && je->request != NULL && MSG_IS_INFO (je->request))
+        {
+          int i;
+
+          /* what's the purpose of sending INFO outside dialog? */
+          eXosip_lock ();
+          i = eXosip_message_send_answer (je->tid, 501, NULL);
+          eXosip_unlock ();
       } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_INFO(je->request))
+                 && je->request != NULL && MSG_IS_INFO (je->request))
         {
           if (je->cid != 0)
             {
@@ -505,24 +508,23 @@ josua_event_get ()
                   eXosip_call_send_answer (je->tid, 200, answer);
                 }
               eXosip_unlock ();
-	    }
-	  else /* bug? */
+          } else                /* bug? */
             {
               int i;
-	      
+
               eXosip_lock ();
               i = eXosip_call_send_answer (je->tid, 400, NULL);
               eXosip_unlock ();
             }
       } else if (je->type == EXOSIP_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_MESSAGE(je->request))
+                 && je->request != NULL && MSG_IS_MESSAGE (je->request))
         {
           /* answer 2xx */
           eXosip_lock ();
           eXosip_message_send_answer (je->tid, 200, NULL);
           eXosip_unlock ();
       } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
-		 && je->request!=NULL && MSG_IS_MESSAGE(je->request))
+                 && je->request != NULL && MSG_IS_MESSAGE (je->request))
         {
           /* answer 2xx */
           if (je->cid != 0)
@@ -537,11 +539,10 @@ josua_event_get ()
                   eXosip_call_send_answer (je->tid, 200, answer);
                 }
               eXosip_unlock ();
-	    }
-	  else /* bug? */
+          } else                /* bug? */
             {
               int i;
-	      
+
               eXosip_lock ();
               i = eXosip_call_send_answer (je->tid, 400, NULL);
               eXosip_unlock ();
@@ -586,22 +587,22 @@ josua_event_get ()
              previously accepted or not! */
 
           jinsubscription_new (je);
-      } else if (je->type == EXOSIP_MESSAGE_NEW
-		 && je->request!=NULL)
-	{
-	  osip_message_t *answer;
-	  int i;
-	  eXosip_lock ();
-	  i = eXosip_message_build_answer (je->tid, 405, &answer);
-	  if (i == 0)
-	    {
-	      eXosip_message_send_answer (je->tid, 405, answer);
-	    }
-	  eXosip_unlock ();
-      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW
-		 && je->request!=NULL)
-	{
-	  int i;
+      } else if (je->type == EXOSIP_MESSAGE_NEW && je->request != NULL)
+        {
+          osip_message_t *answer;
+          int i;
+
+          eXosip_lock ();
+          i = eXosip_message_build_answer (je->tid, 405, &answer);
+          if (i == 0)
+            {
+              eXosip_message_send_answer (je->tid, 405, answer);
+            }
+          eXosip_unlock ();
+      } else if (je->type == EXOSIP_CALL_MESSAGE_NEW && je->request != NULL)
+        {
+          int i;
+
           /* answer 2xx */
           if (je->cid != 0)
             {
@@ -614,8 +615,7 @@ josua_event_get ()
                   eXosip_call_send_answer (je->tid, 405, answer);
                 }
               eXosip_unlock ();
-	    }
-	  else /* bug? */
+          } else                /* bug? */
             {
               osip_message_t *answer;
 
@@ -627,7 +627,7 @@ josua_event_get ()
                 }
               eXosip_unlock ();
             }
-	}
+        }
       eXosip_event_free (je);
     }
   if (counter > 0)
@@ -678,7 +678,7 @@ main (int argc, const char *const *argv)
   ppl_status_t rv;
   const char *optarg;
   int send_subscription = 0;
-  int ipv6only=0;
+  int ipv6only = 0;
 
   if (argc > 1 && strlen (argv[1]) == 1 && 0 == strncmp (argv[1], "-", 2))
     usage (0);
@@ -693,7 +693,7 @@ main (int argc, const char *const *argv)
       switch (c)
         {
           case '6':
-	    ipv6only = 1;
+            ipv6only = 1;
             eXosip_enable_ipv6 (1);     /* enable IPv6 */
             break;
           case 'F':
@@ -805,19 +805,23 @@ main (int argc, const char *const *argv)
   jfriend_load ();
   jidentity_load ();
 
-  if (cfg.proto==0) cfg.proto = IPPROTO_UDP;
-  if (cfg.proto==1) cfg.proto = IPPROTO_TCP;
-  if (cfg.proto==2) cfg.proto = IPPROTO_TCP;
+  if (cfg.proto == 0)
+    cfg.proto = IPPROTO_UDP;
+  if (cfg.proto == 1)
+    cfg.proto = IPPROTO_TCP;
+  if (cfg.proto == 2)
+    cfg.proto = IPPROTO_TCP;
 
-  if (cfg.proto!=0)
+  if (cfg.proto != 0)
     {
-      fprintf (stderr, "josua: TCP and TLS support is unfinished: please report bugs or patch\n");
+      fprintf (stderr,
+               "josua: TCP and TLS support is unfinished: please report bugs or patch\n");
     }
 
-  if (ipv6only==0)
-    i = eXosip_listen_addr(cfg.proto, "0.0.0.0", cfg.port, AF_INET, 0);
+  if (ipv6only == 0)
+    i = eXosip_listen_addr (cfg.proto, "0.0.0.0", cfg.port, AF_INET, 0);
   else
-    i = eXosip_listen_addr(cfg.proto, "::", cfg.port, AF_INET6, 0);
+    i = eXosip_listen_addr (cfg.proto, "::", cfg.port, AF_INET6, 0);
 
   if (i != 0)
     {

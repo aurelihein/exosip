@@ -45,6 +45,6 @@ int _josua_add_contact (char *sipurl, char *telurl, char *email, char *phone);
 int _josua_register (int pos_id);
 int _josua_unregister (int pos_id);
 
-int _josua_set_service_route(osip_message_t *response);
+int _josua_set_service_route (osip_message_t * response);
 
 #endif

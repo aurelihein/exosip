@@ -65,7 +65,7 @@ static void cb_rcvregister (int type, osip_transaction_t * tr,
                             osip_message_t * sip);
 static void cb_rcvcancel (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_rcvrequest (int type, osip_transaction_t * tr,
-                              osip_message_t * sip);
+                           osip_message_t * sip);
 static void cb_sndinvite (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_sndack (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_sndregister (int type, osip_transaction_t * tr,
@@ -107,10 +107,11 @@ static void cb_transport_error (int type, osip_transaction_t * tr, int error);
 
 int
 cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
-		int port, int out_socket)
+                int port, int out_socket)
 {
   int i;
   osip_via_t *via;
+
   if (eXosip.net_interfaces[0].net_socket == 0
       && eXosip.net_interfaces[1].net_socket == 0)
     return -1;
@@ -124,16 +125,15 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
         port = 5060;
     }
 
-  via = (osip_via_t *) osip_list_get(sip->vias, 0);
-  if (via==NULL || via->protocol==NULL)
+  via = (osip_via_t *) osip_list_get (sip->vias, 0);
+  if (via == NULL || via->protocol == NULL)
     return -1;
 
   i = -1;
-  if (osip_strcasecmp(via->protocol, "udp")==0)
+  if (osip_strcasecmp (via->protocol, "udp") == 0)
     {
       i = cb_udp_snd_message (tr, sip, host, port, out_socket);
-    }
-  else
+  } else
     {
       i = cb_tcp_snd_message (tr, sip, host, port, out_socket);
     }
@@ -155,6 +155,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   struct addrinfo *addrinfo;
   struct __eXosip_sockaddr addr;
   char *message;
+
 #ifdef INET6_ADDRSTRLEN
   char ipbuf[INET6_ADDRSTRLEN];
 #else
@@ -169,23 +170,23 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   net = &eXosip.net_interfaces[0];
 
   if (eXosip.http_port)
-  {
-    i = osip_message_to_str (sip, &message, &length);
-
-    if (i != 0 || length <= 0)
-        {
-        return -1;
-        }
-    if (0 >
-        _eXosip_sendto (net->net_socket, (const void *) message, length, 0,
-	        (struct sockaddr *) &addr, len ))
     {
-        /* should reopen connection! */
-        osip_free (message);
-        return -1;
+      i = osip_message_to_str (sip, &message, &length);
+
+      if (i != 0 || length <= 0)
+        {
+          return -1;
+        }
+      if (0 >
+          _eXosip_sendto (net->net_socket, (const void *) message, length, 0,
+                          (struct sockaddr *) &addr, len))
+        {
+          /* should reopen connection! */
+          osip_free (message);
+          return -1;
+        }
+      return 0;
     }
-    return 0;
-  }
 
   if (host == NULL)
     {
@@ -216,23 +217,26 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   switch (addr.ss_family)
     {
-    case AF_INET:
-      inet_ntop(addr.ss_family, &(((struct sockaddr_in*)&addr)->sin_addr), ipbuf, sizeof(ipbuf));
-      break;
-    case AF_INET6:
-      inet_ntop(addr.ss_family, &(((struct sockaddr_in6*)&addr)->sin6_addr), ipbuf, sizeof(ipbuf));
-      break;
-    default:
-      strncpy(ipbuf, "(unknown)", sizeof(ipbuf));
-      break;
+      case AF_INET:
+        inet_ntop (addr.ss_family, &(((struct sockaddr_in *) &addr)->sin_addr),
+                   ipbuf, sizeof (ipbuf));
+        break;
+      case AF_INET6:
+        inet_ntop (addr.ss_family,
+                   &(((struct sockaddr_in6 *) &addr)->sin6_addr), ipbuf,
+                   sizeof (ipbuf));
+        break;
+      default:
+        strncpy (ipbuf, "(unknown)", sizeof (ipbuf));
+        break;
     }
-  
+
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			  "Message sent: \n%s (to dest=%s:%i)\n",
-			  message, ipbuf, port));
+                          "Message sent: \n%s (to dest=%s:%i)\n",
+                          message, ipbuf, port));
   if (0 >
       _eXosip_sendto (net->net_socket, (const void *) message, length, 0,
-	      (struct sockaddr *) &addr, len ))
+                      (struct sockaddr *) &addr, len))
     {
 #ifdef WIN32
       if (WSAECONNREFUSED == WSAGetLastError ())
@@ -258,15 +262,16 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
 
 
-    if (eXosip.keep_alive>0)
+  if (eXosip.keep_alive > 0)
     {
-        if (MSG_IS_REGISTER(sip))
+      if (MSG_IS_REGISTER (sip))
         {
-            eXosip_reg_t *reg = NULL;
-            if (_eXosip_reg_find(&reg, tr)==0)
+          eXosip_reg_t *reg = NULL;
+
+          if (_eXosip_reg_find (&reg, tr) == 0)
             {
-                memcpy (&(reg->addr), &addr, len);
-                reg->len = len;
+              memcpy (&(reg->addr), &addr, len);
+              reg->len = len;
             }
         }
     }
@@ -284,6 +289,7 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   char *message;
   int i;
   struct eXosip_net *net;
+
   if (eXosip.net_interfaces[1].net_socket == 0)
     return -1;
 
@@ -299,35 +305,34 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   net = &eXosip.net_interfaces[1];
 
   i = osip_message_to_str (sip, &message, &length);
-  
+
   if (i != 0 || length <= 0)
     {
       return -1;
     }
 
   /* Step 1: find existing socket to send message */
-  if (out_socket<=0)
+  if (out_socket <= 0)
     {
-      out_socket = _eXosip_tcp_find_socket(host, port);
-      
+      out_socket = _eXosip_tcp_find_socket (host, port);
+
       /* Step 2: create new socket with host:port */
-      if (out_socket<=0)
-	{
-	  out_socket = _eXosip_tcp_connect_socket(host, port);
-	}
-      
+      if (out_socket <= 0)
+        {
+          out_socket = _eXosip_tcp_connect_socket (host, port);
+        }
+
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			      "Message sent: \n%s (to dest=%s:%i)\n",
-			      message, host, port));
-    }
-  else
+                              "Message sent: \n%s (to dest=%s:%i)\n",
+                              message, host, port));
+  } else
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			      "Message sent: \n%s (reusing REQUEST connection)\n",
-			      message, host, port));
+                              "Message sent: \n%s (reusing REQUEST connection)\n",
+                              message, host, port));
     }
 
-  if (out_socket<=0)
+  if (out_socket <= 0)
     {
       return -1;
     }
@@ -353,9 +358,8 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       } else
         {
           /* SIP_NETWORK_ERROR; */
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				  "TCP error: \n%s\n",
-				  strerror(errno)));
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "TCP error: \n%s\n", strerror (errno)));
           osip_free (message);
           return -1;
         }
@@ -566,10 +570,11 @@ static void
 cb_rcvregister (int type, osip_transaction_t * tr, osip_message_t * sip)
 {
   eXosip_event_t *je;
+
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO3, NULL,
                "cb_rcvregister (id=%i)\r\n", tr->transactionid));
-  
+
   je = eXosip_event_init_for_message (EXOSIP_MESSAGE_NEW, tr);
   eXosip_event_add (je);
   return;
@@ -602,7 +607,7 @@ cb_rcvrequest (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (jinfo == NULL)
     {
       eXosip_event_t *je;
-      
+
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_NEW, tr);
       eXosip_event_add (je);
       return;
@@ -615,12 +620,11 @@ cb_rcvrequest (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (jc == NULL && jn == NULL && js == NULL)
     {
       eXosip_event_t *je;
-      
+
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_NEW, tr);
       eXosip_event_add (je);
       return;
-    }
-  else if (jc!=NULL)
+  } else if (jc != NULL)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO3, NULL,
@@ -628,25 +632,26 @@ cb_rcvrequest (int type, osip_transaction_t * tr, osip_message_t * sip)
 
       report_call_event (EXOSIP_CALL_MESSAGE_NEW, jc, jd, tr);
       return;
-    }
-  else if (jn!=NULL)
+  } else if (jn != NULL)
     {
       if (MSG_IS_SUBSCRIBE (sip))
-	{
-	  je = eXosip_event_init_for_notify (EXOSIP_IN_SUBSCRIPTION_NEW, jn, jd, tr);
-	  report_event (je, NULL);
-	  return;
-	}
+        {
+          je =
+            eXosip_event_init_for_notify (EXOSIP_IN_SUBSCRIPTION_NEW, jn, jd, tr);
+          report_event (je, NULL);
+          return;
+        }
       return;
-    }
-  else if (js!=NULL)
+  } else if (js != NULL)
     {
       if (MSG_IS_NOTIFY (sip))
-	{
-	  je = eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_NOTIFY, js, jd, tr);
-	  report_event (je, NULL);      
-	  return;
-	}
+        {
+          je =
+            eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_NOTIFY, js,
+                                             jd, tr);
+          report_event (je, NULL);
+          return;
+        }
       return;
     }
 }
@@ -771,62 +776,64 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv1xx (id=%i)\r\n",
                tr->transactionid));
 
-  if (eXosip.learn_port>0)
-  {
+  if (eXosip.learn_port > 0)
+    {
       struct eXosip_net *net;
+
       net = &eXosip.net_interfaces[0];
       /* EXOSIP_OPT_UDP_LEARN_PORT option set */
 #if 1
       /* learn through rport */
-      if (net->net_firewall_ip[0]!='\0')
-      {
-        osip_via_t *via=NULL;
-        osip_generic_param_t *br;
-        osip_message_get_via (sip, 0, &via);
-        if (via!=NULL && via->protocol!=NULL
-            && osip_strcasecmp(via->protocol, "udp")==0)
+      if (net->net_firewall_ip[0] != '\0')
         {
-            osip_via_param_get_byname (via, "rport", &br);
-            if (br!=NULL && br->gvalue!=NULL)
+          osip_via_t *via = NULL;
+          osip_generic_param_t *br;
+
+          osip_message_get_via (sip, 0, &via);
+          if (via != NULL && via->protocol != NULL
+              && osip_strcasecmp (via->protocol, "udp") == 0)
             {
-                snprintf(net->net_port, 20, "%s", br->gvalue);
-                OSIP_TRACE (osip_trace
-                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                            "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
-                            tr->transactionid));
+              osip_via_param_get_byname (via, "rport", &br);
+              if (br != NULL && br->gvalue != NULL)
+                {
+                  snprintf (net->net_port, 20, "%s", br->gvalue);
+                  OSIP_TRACE (osip_trace
+                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                               "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
+                               tr->transactionid));
+                }
             }
         }
-      }
 #else
       /* learn through REGISTER? */
-      if (net->net_firewall_ip[0]!='\0')
-	      {
-		int pos=0;
-		while (!osip_list_eol(reg->contacts,pos))
-		  {
-		    osip_contact_t *co;
-		    co = (osip_contact_t *)osip_list_get(reg->contacts,pos);
-		    pos++;
-		    if (co!=NULL && co->url!=NULL && co->url->host!=NULL
-			&& 0==osip_strcasecmp(co->url->host,
-					      net->net_firewall_ip))
-		      {
-			if (co->url->port==NULL &&
-			    0!=osip_strcasecmp(net->net_port, "5060"))
-			  {
-			    co->url->port=osip_strdup(net->net_port);
-			  }
-			else if (co->url->port!=NULL &&
-				 0!=osip_strcasecmp(net->net_port, co->url->port))
-			  {
-			    osip_free(co->url->port);
-			    co->url->port=osip_strdup(net->net_port);
-			  }
-		      }
-		  }
-	      }
+      if (net->net_firewall_ip[0] != '\0')
+        {
+          int pos = 0;
+
+          while (!osip_list_eol (reg->contacts, pos))
+            {
+              osip_contact_t *co;
+
+              co = (osip_contact_t *) osip_list_get (reg->contacts, pos);
+              pos++;
+              if (co != NULL && co->url != NULL && co->url->host != NULL
+                  && 0 == osip_strcasecmp (co->url->host, net->net_firewall_ip))
+                {
+                  if (co->url->port == NULL &&
+                      0 != osip_strcasecmp (net->net_port, "5060"))
+                    {
+                      co->url->port = osip_strdup (net->net_port);
+                  } else if (co->url->port != NULL &&
+                             0 != osip_strcasecmp (net->net_port, co->url->port))
+                    {
+                      osip_free (co->url->port);
+                      co->url->port = osip_strdup (net->net_port);
+                    }
+                }
+            }
+        }
 #endif
-  }
+    }
 
   if (jinfo == NULL)
     return;
@@ -839,16 +846,17 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
     {
       if (jc == NULL)
         {
-	  eXosip_event_t *je;
+          eXosip_event_t *je;
+
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_INFO3, NULL,
                        "cb_rcv1xx (id=%i) OPTIONS outside of any call\r\n",
                        tr->transactionid));
-      
-	  je = eXosip_event_init_for_message (EXOSIP_MESSAGE_PROCEEDING, tr);
-	  eXosip_event_add (je);
+
+          je = eXosip_event_init_for_message (EXOSIP_MESSAGE_PROCEEDING, tr);
+          eXosip_event_add (je);
           return;
-      }
+        }
       report_call_event (EXOSIP_CALL_MESSAGE_PROCEEDING, jc, jd, tr);
       return;
     }
@@ -1194,56 +1202,60 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
         }
 
 
-        if (eXosip.learn_port>0)
+      if (eXosip.learn_port > 0)
         {
-            struct eXosip_net *net;
-            net = &eXosip.net_interfaces[0];
-            /* EXOSIP_OPT_UDP_LEARN_PORT option set */
+          struct eXosip_net *net;
+
+          net = &eXosip.net_interfaces[0];
+          /* EXOSIP_OPT_UDP_LEARN_PORT option set */
 #if 1
-            /* learn through rport */
-           if (net->net_firewall_ip[0]!='\0')
-           { 
-                osip_via_t *via=NULL;
-                osip_generic_param_t *br;
-                osip_message_get_via (sip, 0, &via);
-                if (via!=NULL && via->protocol!=NULL
-                    && osip_strcasecmp(via->protocol, "udp")==0)
+          /* learn through rport */
+          if (net->net_firewall_ip[0] != '\0')
+            {
+              osip_via_t *via = NULL;
+              osip_generic_param_t *br;
+
+              osip_message_get_via (sip, 0, &via);
+              if (via != NULL && via->protocol != NULL
+                  && osip_strcasecmp (via->protocol, "udp") == 0)
                 {
-                    osip_via_param_get_byname (via, "rport", &br);
-                    if (br!=NULL && br->gvalue!=NULL)
+                  osip_via_param_get_byname (via, "rport", &br);
+                  if (br != NULL && br->gvalue != NULL)
                     {
-                        snprintf(net->net_port, 20, "%s", br->gvalue);
-                        OSIP_TRACE (osip_trace
-                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                            "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
-                            tr->transactionid));
+                      snprintf (net->net_port, 20, "%s", br->gvalue);
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                   "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
+                                   tr->transactionid));
                     }
                 }
             }
 #else
-            /* learn through REGISTER? */
-            if (net->net_firewall_ip[0]!='\0')
+          /* learn through REGISTER? */
+          if (net->net_firewall_ip[0] != '\0')
             {
-                int pos=0;
-                while (!osip_list_eol(reg->contacts,pos))
+              int pos = 0;
+
+              while (!osip_list_eol (reg->contacts, pos))
                 {
-                    osip_contact_t *co;
-                    co = (osip_contact_t *)osip_list_get(reg->contacts,pos);
-                    pos++;
-                    if (co!=NULL && co->url!=NULL && co->url->host!=NULL
-                        && 0==osip_strcasecmp(co->url->host,
-                        net->net_firewall_ip))
+                  osip_contact_t *co;
+
+                  co = (osip_contact_t *) osip_list_get (reg->contacts, pos);
+                  pos++;
+                  if (co != NULL && co->url != NULL && co->url->host != NULL
+                      && 0 == osip_strcasecmp (co->url->host,
+                                               net->net_firewall_ip))
                     {
-                        if (co->url->port==NULL &&
-                            0!=osip_strcasecmp(net->net_port, "5060"))
+                      if (co->url->port == NULL &&
+                          0 != osip_strcasecmp (net->net_port, "5060"))
                         {
-                            co->url->port=osip_strdup(net->net_port);
-                        }
-                        else if (co->url->port!=NULL &&
-                            0!=osip_strcasecmp(net->net_port, co->url->port))
+                          co->url->port = osip_strdup (net->net_port);
+                      } else if (co->url->port != NULL &&
+                                 0 != osip_strcasecmp (net->net_port,
+                                                       co->url->port))
                         {
-                            osip_free(co->url->port);
-                            co->url->port=osip_strdup(net->net_port);
+                          osip_free (co->url->port);
+                          co->url->port = osip_strdup (net->net_port);
                         }
                     }
                 }
@@ -1251,8 +1263,8 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
         }
 
-        return;
-  }
+      return;
+    }
 
   if (jinfo == NULL)
     return;
@@ -1314,13 +1326,14 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
             }
         }
 #endif
-  } else if (jc!=NULL)
+  } else if (jc != NULL)
     {
       report_call_event (EXOSIP_CALL_MESSAGE_ANSWERED, jc, jd, tr);
       return;
-  } else if (jc==NULL && js==NULL && jn==NULL)
+  } else if (jc == NULL && js == NULL && jn == NULL)
     {
       eXosip_event_t *je;
+
       /* For all requests outside of calls */
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_ANSWERED, tr);
       report_event (je, sip);
@@ -1339,7 +1352,7 @@ eXosip_delete_early_dialog (eXosip_dialog_t * jd)
     {
       osip_dialog_free (jd->d_dialog);
       jd->d_dialog = NULL;
-      eXosip_update(); /* AMD 30/09/05 */
+      eXosip_update ();         /* AMD 30/09/05 */
       eXosip_dialog_set_state (jd, JD_TERMINATED);
     }
 }
@@ -1413,13 +1426,14 @@ cb_rcv3xx (int type, osip_transaction_t * tr, osip_message_t * sip)
         eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_REDIRECTED, js,
                                          jd, tr);
       report_event (je, sip);
-  } else if (jc!=NULL)
+  } else if (jc != NULL)
     {
       report_call_event (EXOSIP_CALL_MESSAGE_REDIRECTED, jc, jd, tr);
       return;
-  } else if (jc==NULL && js==NULL && jn==NULL)
+  } else if (jc == NULL && js == NULL && jn == NULL)
     {
       eXosip_event_t *je;
+
       /* For all requests outside of calls */
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_REDIRECTED, tr);
       report_event (je, sip);
@@ -1454,7 +1468,7 @@ cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
       eXosip_pub_t *pub;
-      eXosip_event_t *je; 
+      eXosip_event_t *je;
       int i;
 
       i = _eXosip_pub_update (&pub, tr, sip);
@@ -1493,28 +1507,29 @@ cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
         eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_REQUESTFAILURE,
                                          js, jd, tr);
       report_event (je, sip);
-  } else if (jc!=NULL)
+  } else if (jc != NULL)
     {
       report_call_event (EXOSIP_CALL_MESSAGE_REQUESTFAILURE, jc, jd, tr);
       return;
-  } else if (jc==NULL && js==NULL && jn==NULL)
+  } else if (jc == NULL && js == NULL && jn == NULL)
     {
       eXosip_event_t *je;
+
       /* For all requests outside of calls */
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_REQUESTFAILURE, tr);
       report_event (je, sip);
       return;
     }
 
-  if (jc!=NULL)
+  if (jc != NULL)
     {
       if (MSG_TEST_CODE (sip, 401) || MSG_TEST_CODE (sip, 407))
-	{
-	  if (jc->response_auth!=NULL)
-	    osip_message_free(jc->response_auth);
-	  
-	  osip_message_clone(sip, &jc->response_auth);
-	}
+        {
+          if (jc->response_auth != NULL)
+            osip_message_free (jc->response_auth);
+
+          osip_message_clone (sip, &jc->response_auth);
+        }
     }
   if (jd == NULL)
     return;
@@ -1584,13 +1599,14 @@ cb_rcv5xx (int type, osip_transaction_t * tr, osip_message_t * sip)
         eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_SERVERFAILURE,
                                          js, jd, tr);
       report_event (je, sip);
-  } else if (jc!=NULL)
+  } else if (jc != NULL)
     {
       report_call_event (EXOSIP_CALL_MESSAGE_SERVERFAILURE, jc, jd, tr);
       return;
-  } else if (jc==NULL && js==NULL && jn==NULL)
+  } else if (jc == NULL && js == NULL && jn == NULL)
     {
       eXosip_event_t *je;
+
       /* For all requests outside of calls */
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_SERVERFAILURE, tr);
       report_event (je, sip);
@@ -1662,13 +1678,14 @@ cb_rcv6xx (int type, osip_transaction_t * tr, osip_message_t * sip)
         eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_GLOBALFAILURE,
                                          js, jd, tr);
       report_event (je, sip);
-  } else if (jc!=NULL)
+  } else if (jc != NULL)
     {
       report_call_event (EXOSIP_CALL_MESSAGE_GLOBALFAILURE, jc, jd, tr);
       return;
-  } else if (jc==NULL && js==NULL && jn==NULL)
+  } else if (jc == NULL && js == NULL && jn == NULL)
     {
       eXosip_event_t *je;
+
       /* For all requests outside of calls */
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_GLOBALFAILURE, tr);
       report_event (je, sip);
@@ -1757,10 +1774,10 @@ cb_snd3xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       /* only close calls if this is the initial INVITE */
-      if (jc!=NULL && tr == jc->c_inc_tr)
-	{
-	  report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
-	}
+      if (jc != NULL && tr == jc->c_inc_tr)
+        {
+          report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
+        }
     }
 }
 
@@ -1790,10 +1807,10 @@ cb_snd4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       /* only close calls if this is the initial INVITE */
-      if (jc!=NULL && tr == jc->c_inc_tr)
-	{
-	  report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
-	}
+      if (jc != NULL && tr == jc->c_inc_tr)
+        {
+          report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
+        }
     }
 
 }
@@ -1824,10 +1841,10 @@ cb_snd5xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       /* only close calls if this is the initial INVITE */
-      if (jc!=NULL && tr == jc->c_inc_tr)
-	{
-	  report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
-	}
+      if (jc != NULL && tr == jc->c_inc_tr)
+        {
+          report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
+        }
     }
 
 }
@@ -1858,10 +1875,10 @@ cb_snd6xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       /* only close calls if this is the initial INVITE */
-      if (jc!=NULL && tr == jc->c_inc_tr)
-	{
-	  report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
-	}
+      if (jc != NULL && tr == jc->c_inc_tr)
+        {
+          report_call_event (EXOSIP_CALL_CLOSED, jc, jd, tr);
+        }
     }
 
 }

@@ -210,8 +210,8 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
 
     }
 
-    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
-                            "Please define a default network interface.\r\n"));
+  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
+                          "Please define a default network interface.\r\n"));
 #ifdef WANT_INTERFACE_ANYWAY
 
 
@@ -220,76 +220,77 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
     {
       for (ipf_cnt = 0; ipf_cnt < ipfwdt->dwNumEntries; ++ipf_cnt)
         {
-            char *servername;
-            char *serverip;
-            char *netmask;
+          char *servername;
+          char *serverip;
+          char *netmask;
 
-            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
-                                    "Default Interface found %i\r\n",
-                                    ipfwdt->table[ipf_cnt].dwForwardIfIndex));
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
+                                  "Default Interface found %i\r\n",
+                                  ipfwdt->table[ipf_cnt].dwForwardIfIndex));
 
-            if (0 == ppl_dns_get_local_fqdn (&servername,
-                                            &serverip,
-                                            &netmask,
-                                            ipfwdt->table[ipf_cnt].
-                                            dwForwardIfIndex))
+          if (0 == ppl_dns_get_local_fqdn (&servername,
+                                           &serverip,
+                                           &netmask,
+                                           ipfwdt->table[ipf_cnt].
+                                           dwForwardIfIndex))
             {
-                /* search for public */
-                if (eXosip_is_public_address(serverip) == 0)
+              /* search for public */
+              if (eXosip_is_public_address (serverip) == 0)
                 {
-                    osip_strncpy (address, serverip, size);
-                    osip_free (servername);
-                    osip_free (serverip);
-                    osip_free (netmask);
-                    return 0;
+                  osip_strncpy (address, serverip, size);
+                  osip_free (servername);
+                  osip_free (serverip);
+                  osip_free (netmask);
+                  return 0;
                 }
-                osip_free (servername);
-                osip_free (serverip);
-                osip_free (netmask);
+              osip_free (servername);
+              osip_free (serverip);
+              osip_free (netmask);
             }
         }
     }
 
-    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                            "No public interface found. searching private\r\n"));
+  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                          "No public interface found. searching private\r\n"));
 
   /* NT4 (sp4 support only?) */
   if (!GetIpForwardTable (ipfwdt, &siz_ipfwd_table, FALSE))
     {
       for (ipf_cnt = 0; ipf_cnt < ipfwdt->dwNumEntries; ++ipf_cnt)
         {
-            char *servername;
-            char *serverip;
-            char *netmask;
+          char *servername;
+          char *serverip;
+          char *netmask;
 
-            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
-                                    "Default Interface found %i\r\n",
-                                    ipfwdt->table[ipf_cnt].dwForwardIfIndex));
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
+                                  "Default Interface found %i\r\n",
+                                  ipfwdt->table[ipf_cnt].dwForwardIfIndex));
 
-            if (0 == ppl_dns_get_local_fqdn (&servername,
-                                            &serverip,
-                                            &netmask,
-                                            ipfwdt->table[ipf_cnt].
-                                            dwForwardIfIndex))
+          if (0 == ppl_dns_get_local_fqdn (&servername,
+                                           &serverip,
+                                           &netmask,
+                                           ipfwdt->table[ipf_cnt].
+                                           dwForwardIfIndex))
             {
-                osip_strncpy (address, serverip, size);
-                osip_free (servername);
-                osip_free (serverip);
-                osip_free (netmask);
-                return 0;
+              osip_strncpy (address, serverip, size);
+              osip_free (servername);
+              osip_free (serverip);
+              osip_free (netmask);
+              return 0;
             }
         }
     }
 
   {
-      char *lo = osip_strdup("127.0.0.1");
-      osip_strncpy (address, lo, size);
-      osip_free(lo);
-      return 0;
+    char *lo = osip_strdup ("127.0.0.1");
+
+    osip_strncpy (address, lo, size);
+    osip_free (lo);
+    return 0;
   }
 
-    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                            "No interface found. returning 127.0.0.1\r\n"));
+  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                          "No interface found. returning 127.0.0.1\r\n"));
   /* no default gateway interface found */
   return 0;
 #else
@@ -464,7 +465,7 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
     size = MAXHOSTNAMELEN;
 #else
   if (size > 256)
-      size = 256;
+    size = 256;
 #endif
   if (eXosip.forced_localip)
     {
@@ -495,7 +496,8 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
     }
   sock = socket (res->ai_family, SOCK_DGRAM, 0);
   tmp = 1;
-  err = setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&tmp, sizeof (int));
+  err =
+    setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, (const char *) &tmp, sizeof (int));
   if (err < 0)
     {
       eXosip_trace (OSIP_ERROR, ("Error in setsockopt: %s\n", strerror (errno)));
@@ -590,7 +592,7 @@ strdup_printf (const char *fmt, ...)
 
 int
 eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
-		     int service, int protocol)
+                     int service, int protocol)
 {
 #ifndef WIN32
   struct in_addr addr;
@@ -602,10 +604,10 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
   int error;
   char portbuf[10];
 
-  if (hostname==NULL)
+  if (hostname == NULL)
     return -1;
 
-  if (service != -1) /* -1 for SRV record */
+  if (service != -1)            /* -1 for SRV record */
     snprintf (portbuf, sizeof (portbuf), "%i", service);
 
   memset (&hints, 0, sizeof (hints));
@@ -631,17 +633,21 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
     {
       /* hostname must be resolved */
       hints.ai_flags = AI_CANONNAME;
-      if (protocol==IPPROTO_UDP)
-	hints.ai_family = (eXosip.net_interfaces[0].net_ip_family == AF_INET) ? PF_INET : PF_INET6;
-      else if (protocol==IPPROTO_TCP)
-	hints.ai_family = (eXosip.net_interfaces[1].net_ip_family == AF_INET) ? PF_INET : PF_INET6;
+      if (protocol == IPPROTO_UDP)
+        hints.ai_family =
+          (eXosip.net_interfaces[0].net_ip_family == AF_INET) ? PF_INET : PF_INET6;
+      else if (protocol == IPPROTO_TCP)
+        hints.ai_family =
+          (eXosip.net_interfaces[1].net_ip_family == AF_INET) ? PF_INET : PF_INET6;
       else
-	{
-	  hints.ai_family = (eXosip.net_interfaces[0].net_ip_family == AF_INET) ? PF_INET : PF_INET6;
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "eXosip: unsupported protocol (default to UDP)\n"));
-	}
+        {
+          hints.ai_family =
+            (eXosip.net_interfaces[0].net_ip_family ==
+             AF_INET) ? PF_INET : PF_INET6;
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: unsupported protocol (default to UDP)\n"));
+        }
 
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
@@ -661,13 +667,13 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 
 #endif
 
-  if (protocol==IPPROTO_UDP)
+  if (protocol == IPPROTO_UDP)
     hints.ai_socktype = SOCK_DGRAM;
   else
     hints.ai_socktype = SOCK_STREAM;
 
   hints.ai_protocol = protocol; /* IPPROTO_UDP or IPPROTO_TCP */
-  if (service == -1) /* -1 for SRV record */
+  if (service == -1)            /* -1 for SRV record */
     {
       error = getaddrinfo (hostname, "sip", &hints, addrinfo);
       OSIP_TRACE (osip_trace
@@ -691,4 +697,3 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 
   return 0;
 }
-

@@ -267,7 +267,8 @@ main (int argc, char *argv[])
     int i;
 
     regparam.regid =
-      eXosip_register_build_initial_register (fromuser, proxy, contact, 3600, &reg);
+      eXosip_register_build_initial_register (fromuser, proxy, contact, 3600,
+                                              &reg);
     if (regparam.regid < 1)
       {
         syslog_wrapper (LOG_ERR, "eXosip_register_build_initial_register failed");
@@ -323,8 +324,8 @@ main (int argc, char *argv[])
             break;
           default:
             syslog_wrapper (LOG_DEBUG,
-                    "recieved unknown eXosip event (type, did, cid) = (%d, %d, %d)",
-                    event->type, event->did, event->cid);
+                            "recieved unknown eXosip event (type, did, cid) = (%d, %d, %d)",
+                            event->type, event->did, event->cid);
 
         }
       eXosip_event_free (event);

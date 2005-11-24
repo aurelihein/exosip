@@ -80,7 +80,7 @@ jidentity_init (jidentity_t ** fr, char *ch)
   *fr = (jidentity_t *) osip_malloc (sizeof (jidentity_t));
   if (*fr == NULL)
     return -1;
-  memset(*fr, 0, sizeof(jidentity_t));
+  memset (*fr, 0, sizeof (jidentity_t));
 
   i = jidentity_get_and_set_next_token (&((*fr)->i_identity), ch, &next);
   if (i != 0)

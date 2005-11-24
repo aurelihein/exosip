@@ -119,10 +119,10 @@ eXosip_publish (osip_message_t * message, const char *to)
           /* start a new publication context */
           _eXosip_pub_init (&pub, to, expires->hvalue);
           if (pub == NULL)
-	    {
-	      osip_message_free (message);
-	      return -1;
-	    }
+            {
+              osip_message_free (message);
+              return -1;
+            }
           ADD_ELEMENT (eXosip.j_pub, pub);
         }
   } else

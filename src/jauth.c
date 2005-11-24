@@ -219,7 +219,7 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
                                       const char *rquri, const char *username,
                                       const char *passwd, const char *ha1,
                                       osip_authorization_t ** auth,
-				      const char *method)
+                                      const char *method)
 {
   osip_authorization_t *aut;
   osip_www_authenticate_t *wa = NULL;
@@ -296,7 +296,7 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
     const char *pszPass = NULL;
     char *pszAlg = osip_strdup ("MD5");
     char *szNonceCount = NULL;
-    const char *pszMethod = method; /* previous_answer->cseq->method; */
+    const char *pszMethod = method;     /* previous_answer->cseq->method; */
     char *pszQop = NULL;
     const char *pszURI = rquri;
 
@@ -313,17 +313,17 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
 
     if (ha1 && ha1[0])
       {
-	/* Depending on algorithm=md5 */
-	pha1 = ha1;
-      }
-    else
+        /* Depending on algorithm=md5 */
+        pha1 = ha1;
+    } else
       {
-	DigestCalcHA1 (pszAlg, pszUser, pszRealm, pszPass, pszNonce, pszCNonce, HA1);
-	pha1 = HA1;
+        DigestCalcHA1 (pszAlg, pszUser, pszRealm, pszPass, pszNonce,
+                       pszCNonce, HA1);
+        pha1 = HA1;
       }
 
-    DigestCalcResponse ((char *)pha1, pszNonce, szNonceCount, pszCNonce, pszQop,
-                        pszMethod, pszURI, HA2, Response);
+    DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
+                        pszQop, pszMethod, pszURI, HA2, Response);
     OSIP_TRACE (osip_trace
                 (__FILE__, __LINE__, OSIP_INFO4, NULL,
                  "Response in authorization |%s|\n", Response));
@@ -351,8 +351,8 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
                                             const char *username,
                                             const char *passwd,
                                             const char *ha1,
-                                            osip_proxy_authorization_t ** auth,
-					    const char *method)
+                                            osip_proxy_authorization_t **
+                                            auth, const char *method)
 {
   osip_proxy_authorization_t *aut;
   osip_proxy_authenticate_t *wa;
@@ -428,7 +428,7 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
     const char *pszPass = NULL;
     char *pszAlg = osip_strdup ("MD5");
     char *szNonceCount = NULL;
-    char *pszMethod = (char *)method; /* previous_answer->cseq->method; */
+    char *pszMethod = (char *) method;  /* previous_answer->cseq->method; */
     char *pszQop = NULL;
     const char *pszURI = rquri;
 
@@ -457,16 +457,16 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
       }
     if (ha1 && ha1[0])
       {
-	/* Depending on algorithm=md5 */
-	pha1 = ha1;
-      }
-    else
+        /* Depending on algorithm=md5 */
+        pha1 = ha1;
+    } else
       {
-	DigestCalcHA1 (pszAlg, pszUser, pszRealm, pszPass, pszNonce, pszCNonce, HA1);
-	pha1 = HA1;
+        DigestCalcHA1 (pszAlg, pszUser, pszRealm, pszPass, pszNonce,
+                       pszCNonce, HA1);
+        pha1 = HA1;
       }
-    DigestCalcResponse ((char *)pha1, pszNonce, szNonceCount, pszCNonce, pszQop,
-                        pszMethod, pszURI, HA2, Response);
+    DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
+                        pszQop, pszMethod, pszURI, HA2, Response);
     OSIP_TRACE (osip_trace
                 (__FILE__, __LINE__, OSIP_INFO4, NULL,
                  "Response in proxy_authorization |%s|\n", Response));

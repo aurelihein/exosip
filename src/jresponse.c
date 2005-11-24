@@ -122,9 +122,9 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
       osip_message_header_get_byname (request, "event", 0, &evt_hdr);
       if (evt_hdr != NULL && evt_hdr->hvalue != NULL)
-	osip_message_set_header (response, "Event", evt_hdr->hvalue);
+        osip_message_set_header (response, "Event", evt_hdr->hvalue);
       else
-	osip_message_set_header (response, "Event", "presence");
+        osip_message_set_header (response, "Event", "presence");
       i = osip_message_get_expires (request, 0, &exp);
       if (exp == NULL)
         {
@@ -165,6 +165,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
   char contact[1000];
   char locip[50];
   struct eXosip_net *net;
+
   /* 12.1.1:
      copy all record-route in response
      add a contact with global scope
@@ -182,16 +183,14 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
       pos++;
     }
 
-  i = _eXosip_find_protocol(response);
-  if (i==IPPROTO_UDP)
+  i = _eXosip_find_protocol (response);
+  if (i == IPPROTO_UDP)
     {
       net = &eXosip.net_interfaces[0];
-    }
-  else if (i==IPPROTO_TCP)
+  } else if (i == IPPROTO_TCP)
     {
       net = &eXosip.net_interfaces[1];
-    }
-  else
+  } else
     {
       net = &eXosip.net_interfaces[0];
       OSIP_TRACE (osip_trace
@@ -222,7 +221,8 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
 
           struct addrinfo *addrinfo;
           struct __eXosip_sockaddr addr;
-	  i = eXosip_get_addrinfo (&addrinfo, con->url->host, 5060, IPPROTO_UDP);
+
+          i = eXosip_get_addrinfo (&addrinfo, con->url->host, 5060, IPPROTO_UDP);
           if (i == 0)
             {
               memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -240,13 +240,11 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
             {
               if (request->to->url->username == NULL)
                 snprintf (contact, 1000, "<sip:%s:%s>",
-			  eXosip.net_interfaces[0].net_firewall_ip,
-                          net->net_port);
+                          eXosip.net_interfaces[0].net_firewall_ip, net->net_port);
               else
                 snprintf (contact, 1000, "<sip:%s@%s:%s>",
                           request->to->url->username,
-			  eXosip.net_interfaces[0].net_firewall_ip,
-                          net->net_port);
+                          eXosip.net_interfaces[0].net_firewall_ip, net->net_port);
             }
         }
     }

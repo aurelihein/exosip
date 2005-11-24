@@ -69,18 +69,18 @@ sdes_print (struct rtp *session, uint32_t ssrc, rtcp_sdes_type stype)
 static void
 packet_print (struct rtp *session, rtp_packet * p)
 {
-  call_t *ca = (call_t *)rtp_get_userdata(session);
+  call_t *ca = (call_t *) rtp_get_userdata (session);
+
 #ifdef USE_PCM
   char data_in_dec[1280];
 #endif
   fprintf (stderr, "Received data (payload %d timestamp %06d size %d)\n",
            p->pt, p->ts, p->data_len);
-  if (ca==NULL)
+  if (ca == NULL)
     {
       fprintf (stderr, "No call for current session\n");
       return;
     }
-
 #ifdef USE_PCM
 
   if (p->pt == 8)               /* A-Law */
@@ -180,66 +180,68 @@ os_sound_start_thread (void *_ca)
       rtp_ts = round * MULAW_BYTES;
 
       if (ca->local_sendrecv != _RECVONLY)
-	{
-	  if (mulaw_buffer_pos < MULAW_BYTES * 4)
-	    {
-	      /* Send control packets */
-	      rtp_send_ctrl (ca->rtp_session, rtp_ts, NULL);
-	      
-	      /* Send data packets */
-#ifdef USE_PCM
-	      i = read (ca->fd, data_out, MULAW_BYTES * 4);
-	      if (ca->local_sendrecv == _SENDRECV || ca->local_sendrecv == _RECVONLY)
-		{
-		} else
-		  {
-		    if (i < MULAW_BYTES * 4)
-		      {
-			memset (data_out, 0, MULAW_BYTES * 4);
-			OSIP_TRACE (osip_trace
-				    (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				     "restarting: %i\n", i));
-			close (ca->fd);
-			/* send a wav file! */
-			ca->fd = open (ca->wav_file, O_RDONLY);
-			if (ca->fd < 0)
-			  {
-			    OSIP_TRACE (osip_trace
-					(__FILE__, __LINE__, OSIP_INFO2, NULL,
-					 "Could not open wav file: %s\n", ca->wav_file));
-			    ca->fd = -1;
-			    break;
-			  }
-			i = read (ca->fd, data_out, MULAW_BYTES * 4);
-		      }
-		  }
-	      if (ca->payload == 8) /* A-Law */
-		alaw_enc (data_out, mulaw_buffer + mulaw_buffer_pos, i);
-	      if (ca->payload == 0) /* Mu-Law */
-		mulaw_enc (data_out, mulaw_buffer + mulaw_buffer_pos, i);
-	      i = i / 2;
-	      mulaw_buffer_pos = mulaw_buffer_pos + i;
-#else
-	      memset (mulaw_buffer + mulaw_buffer_pos, 0, MULAW_BYTES * 2);
-	      i = read (ca->fd, mulaw_buffer + mulaw_buffer_pos, MULAW_BYTES * 2);      /* ?? */
-	      mulaw_buffer_pos = mulaw_buffer_pos + i;
-#endif
-	    }
+        {
+          if (mulaw_buffer_pos < MULAW_BYTES * 4)
+            {
+              /* Send control packets */
+              rtp_send_ctrl (ca->rtp_session, rtp_ts, NULL);
 
-	  i = 0;
-	  if (mulaw_buffer_pos >= MULAW_BYTES)
-	    {
-	      i = rtp_send_data (ca->rtp_session, rtp_ts, ca->payload,
-				 0, 0, 0, (char *) mulaw_buffer, MULAW_BYTES, 0, 0, 0);
-	      memmove (mulaw_buffer, mulaw_buffer + MULAW_BYTES, MULAW_BYTES * 15);
-	      mulaw_buffer_pos = mulaw_buffer_pos - MULAW_BYTES;
-	    }
-	}
-      else
-	{
-	  /* Send control packets */
-	  rtp_send_ctrl (ca->rtp_session, rtp_ts, NULL);
-	}
+              /* Send data packets */
+#ifdef USE_PCM
+              i = read (ca->fd, data_out, MULAW_BYTES * 4);
+              if (ca->local_sendrecv == _SENDRECV
+                  || ca->local_sendrecv == _RECVONLY)
+                {
+              } else
+                {
+                  if (i < MULAW_BYTES * 4)
+                    {
+                      memset (data_out, 0, MULAW_BYTES * 4);
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                   "restarting: %i\n", i));
+                      close (ca->fd);
+                      /* send a wav file! */
+                      ca->fd = open (ca->wav_file, O_RDONLY);
+                      if (ca->fd < 0)
+                        {
+                          OSIP_TRACE (osip_trace
+                                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                       "Could not open wav file: %s\n",
+                                       ca->wav_file));
+                          ca->fd = -1;
+                          break;
+                        }
+                      i = read (ca->fd, data_out, MULAW_BYTES * 4);
+                    }
+                }
+              if (ca->payload == 8)     /* A-Law */
+                alaw_enc (data_out, mulaw_buffer + mulaw_buffer_pos, i);
+              if (ca->payload == 0)     /* Mu-Law */
+                mulaw_enc (data_out, mulaw_buffer + mulaw_buffer_pos, i);
+              i = i / 2;
+              mulaw_buffer_pos = mulaw_buffer_pos + i;
+#else
+              memset (mulaw_buffer + mulaw_buffer_pos, 0, MULAW_BYTES * 2);
+              i = read (ca->fd, mulaw_buffer + mulaw_buffer_pos, MULAW_BYTES * 2);      /* ?? */
+              mulaw_buffer_pos = mulaw_buffer_pos + i;
+#endif
+            }
+
+          i = 0;
+          if (mulaw_buffer_pos >= MULAW_BYTES)
+            {
+              i = rtp_send_data (ca->rtp_session, rtp_ts, ca->payload,
+                                 0, 0, 0, (char *) mulaw_buffer, MULAW_BYTES,
+                                 0, 0, 0);
+              memmove (mulaw_buffer, mulaw_buffer + MULAW_BYTES, MULAW_BYTES * 15);
+              mulaw_buffer_pos = mulaw_buffer_pos - MULAW_BYTES;
+            }
+      } else
+        {
+          /* Send control packets */
+          rtp_send_ctrl (ca->rtp_session, rtp_ts, NULL);
+        }
 
       /* Receive control and data packets */
       timeout.tv_sec = 0;
@@ -428,7 +430,7 @@ os_sound_start (call_t * ca, int port)
   ca->rtp_session = rtp_init (ca->remote_sdp_audio_ip,
                               port,
                               ca->remote_sdp_audio_port,
-                              16, 64000, rtp_event_handler, (void*)ca);
+                              16, 64000, rtp_event_handler, (void *) ca);
 
   if (ca->rtp_session)
     {
@@ -481,7 +483,7 @@ os_sound_close (call_t * ca)
   speex_decoder_destroy (&ca->speex_dec);
 #endif
 
-  close (ca->fd);                   /* close the sound card */
+  close (ca->fd);               /* close the sound card */
 }
 
 #endif

@@ -212,7 +212,7 @@ extern "C"
   int _eXosip_pub_update (eXosip_pub_t ** pub, osip_transaction_t * tr,
                           osip_message_t * answer);
   int _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor);
-  int _eXosip_pub_find_by_tid (eXosip_pub_t **pjp, int tid);
+  int _eXosip_pub_find_by_tid (eXosip_pub_t ** pjp, int tid);
   int _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp);
   void _eXosip_pub_free (eXosip_pub_t * pub);
 
@@ -236,7 +236,7 @@ extern "C"
                                           const char *passwd,
                                           const char *ha1,
                                           osip_authorization_t ** auth,
-					  const char *method);
+                                          const char *method);
   int __eXosip_create_proxy_authorization_header (osip_message_t *
                                                   previous_answer,
                                                   const char *rquri,
@@ -244,8 +244,7 @@ extern "C"
                                                   const char *passwd,
                                                   const char *ha1,
                                                   osip_proxy_authorization_t
-                                                  ** auth,
-						  const char *method);
+                                                  ** auth, const char *method);
 
   eXosip_event_t *eXosip_event_init_for_call (int type, eXosip_call_t * jc,
                                               eXosip_dialog_t * jd,
@@ -290,32 +289,34 @@ extern "C"
 #endif
 
   /* structure used for keepalive management with connected protocols (TCP or TLS) */
-  struct eXosip_socket {
-    int  socket;
+  struct eXosip_socket
+  {
+    int socket;
     char remote_ip[50];
-    int  remote_port;
+    int remote_port;
   };
 
-  struct eXosip_net {
-    char net_firewall_ip[50];     /* ip address to use for masquerading contacts */
-    int  net_ip_family;           /* AF_INET6 or AF_INET */
+  struct eXosip_net
+  {
+    char net_firewall_ip[50];   /* ip address to use for masquerading contacts */
+    int net_ip_family;          /* AF_INET6 or AF_INET */
     struct sockaddr_storage ai_addr;
-    char net_port[20];            /* port for receiving message/connection */
-    int  net_socket;              /* initial socket for receiving message/connection */
-    int  net_protocol;            /* initial socket for receiving message/connection */
+    char net_port[20];          /* port for receiving message/connection */
+    int net_socket;             /* initial socket for receiving message/connection */
+    int net_protocol;           /* initial socket for receiving message/connection */
     struct eXosip_socket net_socket_tab[EXOSIP_MAX_SOCKETS];
   };
 
-  char *_eXosip_transport_protocol(osip_message_t *msg);
-  int _eXosip_find_protocol(osip_message_t *msg);
-  int _eXosip_tcp_find_socket(char *host, int port);
-  int _eXosip_tcp_connect_socket(char *host, int port);
+  char *_eXosip_transport_protocol (osip_message_t * msg);
+  int _eXosip_find_protocol (osip_message_t * msg);
+  int _eXosip_tcp_find_socket (char *host, int port);
+  int _eXosip_tcp_connect_socket (char *host, int port);
   int setsockopt_ipv6only (int sock);
 
-  int _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags, struct sockaddr *from, socklen_t *fromlen);
-  int _eXosip_sendto(int s,  const void* buf,  size_t len,  int flags,
-
-    const struct sockaddr* to,  socklen_t tolen);
+  int _eXosip_recvfrom (int s, char *buf, int len, unsigned int flags,
+                        struct sockaddr *from, socklen_t * fromlen);
+  int _eXosip_sendto (int s, const void *buf, size_t len, int flags,
+                      const struct sockaddr *to, socklen_t tolen);
 
   typedef struct eXosip_t eXosip_t;
 
@@ -325,7 +326,7 @@ extern "C"
     struct eXosip_net net_interfaces[3];
     char *user_agent;
 
-    eXosip_call_t *j_calls;             /* my calls        */
+    eXosip_call_t *j_calls;     /* my calls        */
     eXosip_subscribe_t *j_subscribes;   /* my friends      */
     eXosip_notify_t *j_notifies;        /* my susbscribers */
     osip_list_t *j_transactions;
@@ -346,11 +347,11 @@ extern "C"
 
     jauthinfo_t *authinfos;
 
-    int   keep_alive;
-    int   learn_port;
-    int   http_port;
-    char  http_proxy[256];
-    char  http_outbound_proxy[256];
+    int keep_alive;
+    int learn_port;
+    int http_port;
+    char http_proxy[256];
+    char http_outbound_proxy[256];
   };
 
   typedef struct jinfo_t jinfo_t;
@@ -377,7 +378,7 @@ extern "C"
 
   int eXosip_set_callbacks (osip_t * osip);
   int cb_snd_message (osip_transaction_t * tr, osip_message_t * sip,
-			   char *host, int port, int out_socket);
+                      char *host, int port, int out_socket);
   int cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip,
                           char *host, int port, int out_socket);
   int cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip,
@@ -409,7 +410,8 @@ extern "C"
                           const char *from, const char *route);
   int generating_cancel (osip_message_t ** dest,
                          osip_message_t * request_cancelled);
-  int generating_bye (osip_message_t ** bye, osip_dialog_t * dialog, char *transport);
+  int generating_bye (osip_message_t ** bye, osip_dialog_t * dialog,
+                      char *transport);
   int generating_ack_for_2xx (osip_message_t ** ack, osip_dialog_t * dialog);
 
   int eXosip_update_top_via (osip_message_t * sip);

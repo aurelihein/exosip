@@ -33,7 +33,7 @@ int ipv6_enable = 0;
 
 static void *_eXosip_thread (void *arg);
 static int _eXosip_execute (void);
-static void _eXosip_keep_alive(void);
+static void _eXosip_keep_alive (void);
 
 void
 eXosip_enable_ipv6 (int _ipv6_enable)
@@ -47,32 +47,32 @@ eXosip_masquerade_contact (const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (eXosip.net_interfaces[0].net_firewall_ip, '\0',
-	      sizeof (eXosip.net_interfaces[0].net_firewall_ip));
+              sizeof (eXosip.net_interfaces[0].net_firewall_ip));
       memset (eXosip.net_interfaces[1].net_firewall_ip, '\0',
-	      sizeof (eXosip.net_interfaces[1].net_firewall_ip));
+              sizeof (eXosip.net_interfaces[1].net_firewall_ip));
       memset (eXosip.net_interfaces[2].net_firewall_ip, '\0',
-	      sizeof (eXosip.net_interfaces[2].net_firewall_ip));
+              sizeof (eXosip.net_interfaces[2].net_firewall_ip));
       return;
     }
 
   snprintf (eXosip.net_interfaces[0].net_firewall_ip,
-	    sizeof (eXosip.net_interfaces[0].net_firewall_ip), "%s",
+            sizeof (eXosip.net_interfaces[0].net_firewall_ip), "%s",
             public_address);
   snprintf (eXosip.net_interfaces[1].net_firewall_ip,
-	    sizeof (eXosip.net_interfaces[1].net_firewall_ip), "%s",
+            sizeof (eXosip.net_interfaces[1].net_firewall_ip), "%s",
             public_address);
   snprintf (eXosip.net_interfaces[2].net_firewall_ip,
-	    sizeof (eXosip.net_interfaces[2].net_firewall_ip), "%s",
+            sizeof (eXosip.net_interfaces[2].net_firewall_ip), "%s",
             public_address);
 
-  if (port>0)
+  if (port > 0)
     {
       snprintf (eXosip.net_interfaces[0].net_port,
-		sizeof (eXosip.net_interfaces[0].net_port), "%i", port);
+                sizeof (eXosip.net_interfaces[0].net_port), "%i", port);
       snprintf (eXosip.net_interfaces[1].net_port,
-		sizeof (eXosip.net_interfaces[1].net_port), "%i", port);
+                sizeof (eXosip.net_interfaces[1].net_port), "%i", port);
       snprintf (eXosip.net_interfaces[2].net_port,
-		sizeof (eXosip.net_interfaces[2].net_port), "%i", port);
+                sizeof (eXosip.net_interfaces[2].net_port), "%i", port);
     }
   return;
 }
@@ -83,11 +83,11 @@ eXosip_force_masquerade_contact (const char *public_address)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (eXosip.net_interfaces[0].net_firewall_ip, '\0',
-	      sizeof (eXosip.net_interfaces[0].net_firewall_ip));
+              sizeof (eXosip.net_interfaces[0].net_firewall_ip));
       memset (eXosip.net_interfaces[1].net_firewall_ip, '\0',
-	      sizeof (eXosip.net_interfaces[1].net_firewall_ip));
+              sizeof (eXosip.net_interfaces[1].net_firewall_ip));
       memset (eXosip.net_interfaces[2].net_firewall_ip, '\0',
-	      sizeof (eXosip.net_interfaces[2].net_firewall_ip));
+              sizeof (eXosip.net_interfaces[2].net_firewall_ip));
       eXosip.forced_localip = 0;
       return 0;
     }
@@ -225,14 +225,14 @@ eXosip_quit (void)
       eXosip.net_interfaces[2].net_socket = -1;
     }
 
-  for (pos=0; pos<EXOSIP_MAX_SOCKETS; pos++)
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
-      if (eXosip.net_interfaces[0].net_socket_tab[pos].socket!=0)
-	close (eXosip.net_interfaces[0].net_socket_tab[pos].socket);
-      if (eXosip.net_interfaces[1].net_socket_tab[pos].socket!=0)
-	close (eXosip.net_interfaces[1].net_socket_tab[pos].socket);
-      if (eXosip.net_interfaces[2].net_socket_tab[pos].socket!=0)
-	close (eXosip.net_interfaces[2].net_socket_tab[pos].socket);
+      if (eXosip.net_interfaces[0].net_socket_tab[pos].socket != 0)
+        close (eXosip.net_interfaces[0].net_socket_tab[pos].socket);
+      if (eXosip.net_interfaces[1].net_socket_tab[pos].socket != 0)
+        close (eXosip.net_interfaces[1].net_socket_tab[pos].socket);
+      if (eXosip.net_interfaces[2].net_socket_tab[pos].socket != 0)
+        close (eXosip.net_interfaces[2].net_socket_tab[pos].socket);
     }
 
   for (jreg = eXosip.j_reg; jreg != NULL; jreg = eXosip.j_reg)
@@ -295,14 +295,15 @@ eXosip_quit (void)
   return;
 }
 
-int eXosip_set_socket(int transport, int socket, int port)
+int
+eXosip_set_socket (int transport, int socket, int port)
 {
-  if (eXosip.net_interfaces[0].net_socket>0)
-    close(eXosip.net_interfaces[0].net_socket);
+  if (eXosip.net_interfaces[0].net_socket > 0)
+    close (eXosip.net_interfaces[0].net_socket);
 
   eXosip.net_interfaces[0].net_socket = socket;
   snprintf (eXosip.net_interfaces[0].net_port,
-	    sizeof (eXosip.net_interfaces[0].net_port), "%i", port);
+            sizeof (eXosip.net_interfaces[0].net_port), "%i", port);
 
   eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
   if (eXosip.j_thread == NULL)
@@ -316,18 +317,18 @@ int eXosip_set_socket(int transport, int socket, int port)
 }
 
 #ifdef IPV6_V6ONLY
-int setsockopt_ipv6only (int sock)
+int
+setsockopt_ipv6only (int sock)
 {
   int on = 1;
 
-  return setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
-		    (char *)&on, sizeof(on));
+  return setsockopt (sock, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &on, sizeof (on));
 }
-#endif	/* IPV6_V6ONLY */
+#endif /* IPV6_V6ONLY */
 
 int
 eXosip_listen_addr (int transport, const char *addr, int port, int family,
-		    int secure)
+                    int secure)
 {
   int res;
   struct addrinfo *addrinfo = NULL;
@@ -337,11 +338,11 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
   struct eXosip_net *net_int;
   char localip[256];
 
-  if (transport==IPPROTO_UDP)
+  if (transport == IPPROTO_UDP)
     net_int = &eXosip.net_interfaces[0];
-  else if (transport==IPPROTO_TCP)
+  else if (transport == IPPROTO_TCP)
     net_int = &eXosip.net_interfaces[1];
-  else if (transport==IPPROTO_TCP && secure != 0)
+  else if (transport == IPPROTO_TCP && secure != 0)
     net_int = &eXosip.net_interfaces[2];
   else
     {
@@ -352,10 +353,10 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
     }
 
   if (eXosip.http_port)
-  {
+    {
       /* USE TUNNEL CAPABILITY */
-      transport=IPPROTO_TCP;
-  }
+      transport = IPPROTO_TCP;
+    }
 
   if (port < 0)
     {
@@ -374,8 +375,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
                    "IPv6 is enabled. Pls report bugs\n"));
     }
 
-  eXosip_guess_localip (net_int->net_ip_family, localip,
-			sizeof (localip));
+  eXosip_guess_localip (net_int->net_ip_family, localip, sizeof (localip));
   if (localip[0] == '\0')
     {
       OSIP_TRACE (osip_trace
@@ -388,174 +388,174 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
          start linphone BEFORE setting its dial up connection. */
     }
 
-  if (!node) {
-    node = ipv6_enable ? "::" : "0.0.0.0";
-  }
+  if (!node)
+    {
+      node = ipv6_enable ? "::" : "0.0.0.0";
+    }
 
 
-  res = eXosip_get_addrinfo(&addrinfo, node, port, transport);
+  res = eXosip_get_addrinfo (&addrinfo, node, port, transport);
   if (res)
     return -1;
-    
+
   for (curinfo = addrinfo; curinfo; curinfo = curinfo->ai_next)
     {
       socklen_t len;
 
-      if (curinfo->ai_protocol && curinfo->ai_protocol != transport)	
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO3, NULL,
-		       "eXosip: Skipping protocol %d\n",
-		       curinfo->ai_protocol));
-	  continue;
-	}
+      if (curinfo->ai_protocol && curinfo->ai_protocol != transport)
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO3, NULL,
+                       "eXosip: Skipping protocol %d\n", curinfo->ai_protocol));
+          continue;
+        }
 
-      sock = (int)socket(curinfo->ai_family, curinfo->ai_socktype,
-			 curinfo->ai_protocol);
+      sock = (int) socket (curinfo->ai_family, curinfo->ai_socktype,
+                           curinfo->ai_protocol);
       if (sock < 0)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "eXosip: Cannot create socket!\n",
-		       strerror(errno)));
-	  continue;
-	}
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: Cannot create socket!\n", strerror (errno)));
+          continue;
+        }
 
-    if (eXosip.http_port)
-    {
-        break;
-    }
+      if (eXosip.http_port)
+        {
+          break;
+        }
 
       if (curinfo->ai_family == AF_INET6)
-	{
+        {
 #ifdef IPV6_V6ONLY
-	  if (setsockopt_ipv6only(sock))
-	    {
-	      close(sock);
-	      sock = -1;
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			   "eXosip: Cannot set socket option!\n",
-			   strerror(errno)));
-	      continue;
-	    }
-#endif	/* IPV6_V6ONLY */
-	}
-      
+          if (setsockopt_ipv6only (sock))
+            {
+              close (sock);
+              sock = -1;
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "eXosip: Cannot set socket option!\n",
+                           strerror (errno)));
+              continue;
+            }
+#endif /* IPV6_V6ONLY */
+        }
+
       res = bind (sock, curinfo->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "eXosip: Cannot bind socket node:%s family:%d %s\n",
-		       node, curinfo->ai_family, strerror(errno)));
-	  close(sock);
-	  sock = -1;
-	  continue;
-	}
-      len = sizeof(net_int->ai_addr);
-      res = getsockname(sock, (struct sockaddr*)&net_int->ai_addr,
-			&len );
-      if (res!=0)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "eXosip: Cannot get socket name (%s)\n",
-		       strerror(errno)));
-	  memcpy(&net_int->ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
-	}
-
-      if (transport!=IPPROTO_UDP)
-	{
-	  res = listen(sock, SOMAXCONN);
-	  if (res < 0)
-	    {
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "eXosip: Cannot bind socket node:%s family:%d %s\n",
-			   node, curinfo->ai_family, strerror(errno)));
-	      close(sock);
-	      sock = -1;
-	      continue;
-	    }
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: Cannot bind socket node:%s family:%d %s\n",
+                       node, curinfo->ai_family, strerror (errno)));
+          close (sock);
+          sock = -1;
+          continue;
         }
-      
+      len = sizeof (net_int->ai_addr);
+      res = getsockname (sock, (struct sockaddr *) &net_int->ai_addr, &len);
+      if (res != 0)
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: Cannot get socket name (%s)\n", strerror (errno)));
+          memcpy (&net_int->ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
+        }
+
+      if (transport != IPPROTO_UDP)
+        {
+          res = listen (sock, SOMAXCONN);
+          if (res < 0)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "eXosip: Cannot bind socket node:%s family:%d %s\n",
+                           node, curinfo->ai_family, strerror (errno)));
+              close (sock);
+              sock = -1;
+              continue;
+            }
+        }
+
       break;
     }
 
-  freeaddrinfo(addrinfo);
+  freeaddrinfo (addrinfo);
 
   if (sock < 0)
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "eXosip: Cannot bind on port: %i\n",
-		   port));
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: Cannot bind on port: %i\n", port));
       return -1;
     }
 
   if (eXosip.http_port)
-      net_int->net_protocol = IPPROTO_UDP;
+    net_int->net_protocol = IPPROTO_UDP;
   else
-      net_int->net_protocol = transport;
+    net_int->net_protocol = transport;
   net_int->net_socket = sock;
 
-  if (port==0)
+  if (port == 0)
     {
       /* get port number from socket */
       if (ipv6_enable == 0)
-	port = ntohs (((struct sockaddr_in*)&net_int->ai_addr)->sin_port);
+        port = ntohs (((struct sockaddr_in *) &net_int->ai_addr)->sin_port);
       else
-	port = ntohs (((struct sockaddr_in6*)&net_int->ai_addr)->sin6_port);
+        port = ntohs (((struct sockaddr_in6 *) &net_int->ai_addr)->sin6_port);
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "eXosip: Binding on port %i!\n", port));
     }
 
-  snprintf (net_int->net_port,
-	    sizeof (net_int->net_port) - 1, "%i", port);
+  snprintf (net_int->net_port, sizeof (net_int->net_port) - 1, "%i", port);
 
 
 
   if (eXosip.http_port)
-  {
-        /* only ipv4 */
-        struct sockaddr_in	_addr;
-	    char http_req[2048];
-	    char http_reply[2048];
-        int len;
-        _addr.sin_port = (unsigned short) htons(eXosip.http_port);
-        _addr.sin_addr.s_addr = inet_addr(eXosip.http_proxy);
-		_addr.sin_family = PF_INET;
+    {
+      /* only ipv4 */
+      struct sockaddr_in _addr;
+      char http_req[2048];
+      char http_reply[2048];
+      int len;
 
-		if (connect(net_int->net_socket, (struct sockaddr *) &_addr, sizeof(_addr)) == -1)
-		{
-            OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                  "eXosip: Failed to connect to http server on %s:%i!\n", eXosip.http_proxy, port));
-			return -1;
-		}
+      _addr.sin_port = (unsigned short) htons (eXosip.http_port);
+      _addr.sin_addr.s_addr = inet_addr (eXosip.http_proxy);
+      _addr.sin_family = PF_INET;
 
-        sprintf(http_req, "GET / HTTP/1.1\r\nUdpHost: %s:%d\r\n\r\n", eXosip.http_outbound_proxy, 5060);
-
-		len = send(net_int->net_socket, http_req, (int) strlen(http_req), 0);
-
-		if (len < 0)
-			return -1;
-
-		osip_usleep(50000);
-
-		if ((len = recv(net_int->net_socket, http_reply, sizeof(http_reply), 0)) > 0)
-			http_reply[len] = '\0';
-		else
-			return -1;
-
-		if (strncmp(http_reply, "HTTP/1.0 200 OK\r\n", 17) == 0 || strncmp(http_reply, "HTTP/1.1 200 OK\r\n", 17) == 0)
+      if (connect
+          (net_int->net_socket, (struct sockaddr *) &_addr, sizeof (_addr)) == -1)
         {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: Failed to connect to http server on %s:%i!\n",
+                       eXosip.http_proxy, port));
+          return -1;
         }
-		else
-			return -1;
-  }
+
+      sprintf (http_req, "GET / HTTP/1.1\r\nUdpHost: %s:%d\r\n\r\n",
+               eXosip.http_outbound_proxy, 5060);
+
+      len = send (net_int->net_socket, http_req, (int) strlen (http_req), 0);
+
+      if (len < 0)
+        return -1;
+
+      osip_usleep (50000);
+
+      if ((len =
+           recv (net_int->net_socket, http_reply, sizeof (http_reply), 0)) > 0)
+        http_reply[len] = '\0';
+      else
+        return -1;
+
+      if (strncmp (http_reply, "HTTP/1.0 200 OK\r\n", 17) == 0
+          || strncmp (http_reply, "HTTP/1.1 200 OK\r\n", 17) == 0)
+        {
+      } else
+        return -1;
+    }
 
   eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
   if (eXosip.j_thread == NULL)
@@ -653,14 +653,14 @@ _eXosip_execute (void)
                    "eXosip: Reseting timer to 15s before waking up!\n"));
   } else
     {
-        /*  add a small amount of time on windows to avoid
-            waking up too early. (probably a bad time precision) */
-        if (lower_tv.tv_usec<900000)
-            lower_tv.tv_usec = 100000; /* add 10ms */
-        else 
+      /*  add a small amount of time on windows to avoid
+         waking up too early. (probably a bad time precision) */
+      if (lower_tv.tv_usec < 900000)
+        lower_tv.tv_usec = 100000;      /* add 10ms */
+      else
         {
-            lower_tv.tv_usec = 10000; /* add 10ms */
-            lower_tv.tv_sec++;
+          lower_tv.tv_usec = 10000;     /* add 10ms */
+          lower_tv.tv_sec++;
         }
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
@@ -692,103 +692,106 @@ _eXosip_execute (void)
   eXosip_unlock ();
 
 
-  if (eXosip.keep_alive>0)
-  {
-      _eXosip_keep_alive();
-  }
+  if (eXosip.keep_alive > 0)
+    {
+      _eXosip_keep_alive ();
+    }
 
   return 0;
 }
 
-int eXosip_set_option(eXosip_option opt, const void *value)
+int
+eXosip_set_option (eXosip_option opt, const void *value)
 {
-    int val;
-    char *tmp;
-	switch (opt) {
-		case EXOSIP_OPT_UDP_KEEP_ALIVE:
-            val = *((int*)value);
-            eXosip.keep_alive = val; /* value in ms */
-            break;
-		case EXOSIP_OPT_UDP_LEARN_PORT:
-            val = *((int*)value);
-            eXosip.learn_port = val; /* value in ms */
-            break;
-		case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
-            val = *((int*)value);
-            eXosip.http_port = val; /* value in ms */
-            OSIP_TRACE (osip_trace
-                        (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                        "eXosip option set: http_port:%i!\n",
-                        eXosip.http_port));
-            break;
-		case EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY:
-            tmp = (char*)value;
-            memset(eXosip.http_proxy, '\0', sizeof(eXosip.http_proxy));
-            if (tmp!=NULL && tmp[0]!='\0')
-                strncpy(eXosip.http_proxy, tmp, sizeof(eXosip.http_proxy)); /* value in proxy:port */
-            OSIP_TRACE (osip_trace
-                        (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                        "eXosip option set: http_proxy:%s!\n",
-                        eXosip.http_proxy));
-            break;
-		case EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY:
-            tmp = (char*)value;
-            memset(eXosip.http_outbound_proxy, '\0', sizeof(eXosip.http_outbound_proxy));
-            if (tmp!=NULL && tmp[0]!='\0')
-                strncpy(eXosip.http_outbound_proxy, tmp, sizeof(eXosip.http_outbound_proxy)); /* value in proxy:port */
-            OSIP_TRACE (osip_trace
-                        (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                        "eXosip option set: http_outbound_proxy:%s!\n",
-                        eXosip.http_outbound_proxy));
-            break;
-            
+  int val;
+  char *tmp;
+
+  switch (opt)
+    {
+      case EXOSIP_OPT_UDP_KEEP_ALIVE:
+        val = *((int *) value);
+        eXosip.keep_alive = val;        /* value in ms */
+        break;
+      case EXOSIP_OPT_UDP_LEARN_PORT:
+        val = *((int *) value);
+        eXosip.learn_port = val;        /* value in ms */
+        break;
+      case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
+        val = *((int *) value);
+        eXosip.http_port = val; /* value in ms */
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                     "eXosip option set: http_port:%i!\n", eXosip.http_port));
+        break;
+      case EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY:
+        tmp = (char *) value;
+        memset (eXosip.http_proxy, '\0', sizeof (eXosip.http_proxy));
+        if (tmp != NULL && tmp[0] != '\0')
+          strncpy (eXosip.http_proxy, tmp, sizeof (eXosip.http_proxy)); /* value in proxy:port */
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                     "eXosip option set: http_proxy:%s!\n", eXosip.http_proxy));
+        break;
+      case EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY:
+        tmp = (char *) value;
+        memset (eXosip.http_outbound_proxy, '\0',
+                sizeof (eXosip.http_outbound_proxy));
+        if (tmp != NULL && tmp[0] != '\0')
+          strncpy (eXosip.http_outbound_proxy, tmp, sizeof (eXosip.http_outbound_proxy));       /* value in proxy:port */
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                     "eXosip option set: http_outbound_proxy:%s!\n",
+                     eXosip.http_outbound_proxy));
+        break;
+
     }
-    return 0;
+  return 0;
 }
 
 static void
-_eXosip_keep_alive(void)
+_eXosip_keep_alive (void)
 {
-    static struct timeval mtimer = { 0, 0 };
+  static struct timeval mtimer = { 0, 0 };
 
-    eXosip_reg_t *jr;
-    struct eXosip_net *net;
-    char buf[4] = "jaK";
-    struct timeval now;
-    osip_gettimeofday (&now, NULL);
+  eXosip_reg_t *jr;
+  struct eXosip_net *net;
+  char buf[4] = "jaK";
+  struct timeval now;
 
-    if (mtimer.tv_sec==0 && mtimer.tv_usec==0)
+  osip_gettimeofday (&now, NULL);
+
+  if (mtimer.tv_sec == 0 && mtimer.tv_usec == 0)
     {
-        /* first init */
-        osip_gettimeofday (&mtimer, NULL);
-	    add_gettimeofday (&mtimer, eXosip.keep_alive);
+      /* first init */
+      osip_gettimeofday (&mtimer, NULL);
+      add_gettimeofday (&mtimer, eXosip.keep_alive);
     }
 
-    if (osip_timercmp (&now, &mtimer, <))
+  if (osip_timercmp (&now, &mtimer, <))
     {
-        return; /* not yet time */
+      return;                   /* not yet time */
     }
 
-    /* reset timer */
-    osip_gettimeofday (&mtimer, NULL);
-	add_gettimeofday (&mtimer, eXosip.keep_alive);
+  /* reset timer */
+  osip_gettimeofday (&mtimer, NULL);
+  add_gettimeofday (&mtimer, eXosip.keep_alive);
 
-    net = &eXosip.net_interfaces[0];
-    if (net == NULL)
+  net = &eXosip.net_interfaces[0];
+  if (net == NULL)
     {
-        return ;
+      return;
     }
 
-    for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
+  for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
     {
-        if (jr->len>0)
+      if (jr->len > 0)
         {
-            if (sendto (net->net_socket, (const void *) buf, 4, 0,	 
-                (struct sockaddr *) &(jr->addr), jr->len )>0)
+          if (sendto (net->net_socket, (const void *) buf, 4, 0,
+                      (struct sockaddr *) &(jr->addr), jr->len) > 0)
             {
-                OSIP_TRACE (osip_trace
-                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                            "eXosip: Keep Alive sent on UDP!\n"));
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "eXosip: Keep Alive sent on UDP!\n"));
             }
         }
     }
@@ -808,4 +811,3 @@ _eXosip_thread (void *arg)
   osip_thread_exit ();
   return NULL;
 }
-

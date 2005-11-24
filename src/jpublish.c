@@ -93,17 +93,18 @@ _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor)
   return -1;
 }
 
-int _eXosip_pub_find_by_tid (eXosip_pub_t **pjp, int tid)
+int
+_eXosip_pub_find_by_tid (eXosip_pub_t ** pjp, int tid)
 {
   eXosip_pub_t *pub = eXosip.j_pub;
 
   while (pub)
     {
       if (pub->p_last_tr && pub->p_last_tr->transactionid == tid)
-	{
-	  *pjp = pub;
-	  return 0;
-	}
+        {
+          *pjp = pub;
+          return 0;
+        }
 
       pub = pub->next;
     }

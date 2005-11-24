@@ -274,7 +274,7 @@ call_new (eXosip_event_t * je)
                       (__FILE__, __LINE__, OSIP_WARNING, NULL,
                        "No remote SDP body found for call\n"));
           eXosip_call_send_answer (ca->tid, 400, NULL);
-	  sdp_message_free (remote_sdp);
+          sdp_message_free (remote_sdp);
           return 0;
         }
 
@@ -289,7 +289,7 @@ call_new (eXosip_event_t * je)
         {
           /* no audio media proposed */
           eXosip_call_send_answer (ca->tid, 415, NULL);
-	  sdp_message_free (remote_sdp);
+          sdp_message_free (remote_sdp);
           return 0;
         }
 
@@ -320,13 +320,12 @@ call_new (eXosip_event_t * je)
       if (tmp != NULL)
         {
           ca->payload = atoi (tmp);
-        }
-      else
-	{
+      } else
+        {
           eXosip_call_send_answer (ca->tid, 415, NULL);
-	  sdp_message_free (remote_sdp);
+          sdp_message_free (remote_sdp);
           return 0;
-	}
+        }
 
       if (tmp != NULL
           && (ca->payload == 0 || ca->payload == 8)
@@ -340,7 +339,6 @@ call_new (eXosip_event_t * je)
                        ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port));
         }
     }
-
 #ifndef TEST_PRACK_SUPPORT
   eXosip_lock ();
   eXosip_call_send_answer (ca->tid, 180, NULL);
@@ -455,7 +453,7 @@ call_new (eXosip_event_t * je)
 #endif
                         }
                     }
-		  sdp_message_free (local_sdp);
+                  sdp_message_free (local_sdp);
                 }
 
               i = eXosip_call_send_answer (ca->tid, 183, answer);
@@ -500,22 +498,22 @@ call_ack (eXosip_event_t * je)
 
   ca = &(calls[k]);
 
-  if (je->ack!=NULL)
+  if (je->ack != NULL)
     {
       sdp_message_t *remote_sdp;
+
       remote_sdp = eXosip_get_sdp_info (je->ack);
       if (remote_sdp != NULL)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		       "SDP detected in ACK!\n"));
-	}
-      else
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-		       "no SDP detected in ACK!\n"));
-	}
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "SDP detected in ACK!\n"));
+      } else
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "no SDP detected in ACK!\n"));
+        }
     }
 
   if (ca->enable_audio != 1)    /* audio is started */
@@ -764,11 +762,12 @@ call_ringing (eXosip_event_t * je)
   if (ca->enable_audio == 1 && je->response != NULL)
     {
       sdp_message_t *sdp = eXosip_get_sdp_info (je->response);
+
       if (sdp != NULL)
-      {
-	/* audio is started and session may just have been modified */
-	sdp_message_free (sdp);
-      }
+        {
+          /* audio is started and session may just have been modified */
+          sdp_message_free (sdp);
+        }
     }
 
   {
@@ -989,8 +988,8 @@ call_answered (eXosip_event_t * je)
                              "Cannot complete ACK with sdp body?!\n"));
               }
           }
-	sdp_message_free (local_sdp);
-	sdp_message_free (remote_sdp);
+        sdp_message_free (local_sdp);
+        sdp_message_free (remote_sdp);
 
         eXosip_call_send_ack (ca->did, ack);
       }
@@ -1000,15 +999,16 @@ call_answered (eXosip_event_t * je)
   if (ca->enable_audio == 1 && je->response != NULL)
     {
       sdp_message_t *sdp = eXosip_get_sdp_info (je->response);
+
       if (sdp != NULL)
-	{
-	  /* audio is started and session has just been modified */
-	  ca->enable_audio = -1;
+        {
+          /* audio is started and session has just been modified */
+          ca->enable_audio = -1;
 #if defined(ORTP_SUPPORT) || defined(UCL_SUPPORT)
-	  os_sound_close (ca);
+          os_sound_close (ca);
 #endif
-	  sdp_message_free (sdp);
-	}
+          sdp_message_free (sdp);
+        }
     }
 
   if (ca->enable_audio != 1)    /* audio is started */
@@ -1364,8 +1364,8 @@ call_modified (eXosip_event_t * je)
     if (i != 0)
       {
         eXosip_call_send_answer (ca->tid, 400, NULL);
-	eXosip_unlock();
-	return 0;
+        eXosip_unlock ();
+        return 0;
     } else
       {
         sdp_message_t *remote_sdp = NULL;
@@ -1384,14 +1384,14 @@ call_modified (eXosip_event_t * je)
             i = sdp_complete_message (ca->did, remote_sdp, answer);
             if (i != 0)
               {
-		sdp_message_free (remote_sdp);
+                sdp_message_free (remote_sdp);
                 osip_message_free (answer);
                 eXosip_call_send_answer (ca->tid, 415, NULL);
-		eXosip_unlock();
-		return 0;
+                eXosip_unlock ();
+                return 0;
             } else
               eXosip_call_send_answer (ca->tid, 200, answer);
-	    sdp_message_free (remote_sdp);
+            sdp_message_free (remote_sdp);
           }
       }
   }

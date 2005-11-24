@@ -135,11 +135,9 @@ _eXosip_get_remote_sdp (osip_transaction_t * invite_tr)
 
   if (invite_tr == NULL)
     return NULL;
-  if (invite_tr->ctx_type == IST
-      ||invite_tr->ctx_type == NIST)
+  if (invite_tr->ctx_type == IST || invite_tr->ctx_type == NIST)
     message = invite_tr->orig_request;
-  else if (invite_tr->ctx_type == ICT
-      ||invite_tr->ctx_type == NICT)
+  else if (invite_tr->ctx_type == ICT || invite_tr->ctx_type == NICT)
     message = invite_tr->last_response;
   else
     return NULL;
@@ -153,11 +151,9 @@ _eXosip_get_local_sdp (osip_transaction_t * invite_tr)
 
   if (invite_tr == NULL)
     return NULL;
-  if (invite_tr->ctx_type == IST
-      ||invite_tr->ctx_type == NIST)
+  if (invite_tr->ctx_type == IST || invite_tr->ctx_type == NIST)
     message = invite_tr->last_response;
-  else if (invite_tr->ctx_type == ICT
-      ||invite_tr->ctx_type == NICT)
+  else if (invite_tr->ctx_type == ICT || invite_tr->ctx_type == NICT)
     message = invite_tr->orig_request;
   else
     return NULL;

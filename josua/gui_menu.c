@@ -312,25 +312,25 @@ entity=\"%s\">\n%s", cfg.identity, "<tuple id=\"sg89ae\">\n\
 
       case '8':
 #ifdef ENABLE_MPATROL
-	__mp_clearleaktable();
-	__mp_startleaktable();
+        __mp_clearleaktable ();
+        __mp_startleaktable ();
 #endif
-	break;
+        break;
       case '9':
 #ifdef ENABLE_MPATROL
-	__mp_stopleaktable();
-	__mp_leaktable(0, MP_LT_ALLOCATED, MP_LT_BOTTOM);
-	__mp_printf("\n");
-	__mp_leaktable(0, MP_LT_FREED, MP_LT_COUNTS);
-	__mp_printf("\n");
-	__mp_leaktable(0, MP_LT_UNFREED, 0);
-	__mp_printf("\n");
-	/* __mp_snapshot(); */
-	__mp_summary ();
-	__mp_memorymap(1);
+        __mp_stopleaktable ();
+        __mp_leaktable (0, MP_LT_ALLOCATED, MP_LT_BOTTOM);
+        __mp_printf ("\n");
+        __mp_leaktable (0, MP_LT_FREED, MP_LT_COUNTS);
+        __mp_printf ("\n");
+        __mp_leaktable (0, MP_LT_UNFREED, 0);
+        __mp_printf ("\n");
+        /* __mp_snapshot(); */
+        __mp_summary ();
+        __mp_memorymap (1);
 
 #endif
-	break;
+        break;
       default:
         beep ();
         return -1;
@@ -514,13 +514,13 @@ __josua_quit ()
 
   osip_mutex_destroy (log_mutex);
 
-  for (i=0;i<10;i++)
+  for (i = 0; i < 10; i++)
     {
-      if (gui_windows[i]!=NULL && gui_windows[i]->win!=NULL)
-	{
-	  fprintf(stderr, "delete windows %i\n", i);
-	  delwin(gui_windows[i]->win);
-	}
+      if (gui_windows[i] != NULL && gui_windows[i]->win != NULL)
+        {
+          fprintf (stderr, "delete windows %i\n", i);
+          delwin (gui_windows[i]->win);
+        }
     }
 
   cursesoff ();

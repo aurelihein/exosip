@@ -1,0 +1,11 @@
+--gnu-style
+--blank-lines-after-declarations
+--cuddle-else
+--space-special-semicolon
+--no-blank-before-sizeof
+--line-length83
+--comment-line-length80
+--case-indentation 2
+--no-tabs
+-TPPL_DECLARE
+-TPSP_PLUGIN_DECLARE

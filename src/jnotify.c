@@ -89,16 +89,14 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
 #ifdef SM
   eXosip_get_localip_from_via (inc_subscribe, locip, 49);
 #else
-  i = _eXosip_find_protocol(inc_subscribe);
-  if (i==IPPROTO_UDP)
+  i = _eXosip_find_protocol (inc_subscribe);
+  if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
-    }
-  else if (i==IPPROTO_TCP)
+  } else if (i == IPPROTO_TCP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip, 49);
-    }
-  else
+  } else
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -106,7 +104,7 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
       return -1;
     }
-    
+
 #endif
   if (inc_subscribe == NULL
       || inc_subscribe->to == NULL || inc_subscribe->to->url == NULL)

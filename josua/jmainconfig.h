@@ -35,7 +35,7 @@ typedef struct _main_config_t
   char to[255];                 /* -t <sipurl to call>!  */
   char route[256];              /* -r <sipurl for route> */
   char subject[256];            /* -s <subject>          */
-  int  proto;                   /* -t 0 (udp) 1 (tcp) 2 (tls) */
+  int proto;                    /* -t 0 (udp) 1 (tcp) 2 (tls) */
 
   char service_route[2048];
 } main_config_t;

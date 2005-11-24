@@ -95,16 +95,16 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   char *register_callid_number = NULL;
   struct eXosip_net *net;
 
-  if (0==osip_strcasecmp(transport, "udp"))
+  if (0 == osip_strcasecmp (transport, "udp"))
     net = &eXosip.net_interfaces[0];
-  else if (0==osip_strcasecmp(transport, "tcp"))
+  else if (0 == osip_strcasecmp (transport, "tcp"))
     net = &eXosip.net_interfaces[1];
   else
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "eXosip: unsupported protocol (default to UDP)\n"));
-    net = &eXosip.net_interfaces[0];
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: unsupported protocol (default to UDP)\n"));
+      net = &eXosip.net_interfaces[0];
     }
 
   *dest = NULL;
@@ -192,9 +192,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 #ifdef SM
   eXosip_get_localip_for (request->req_uri->host, locip, 49);
 #else
-  if (0==osip_strcasecmp(transport, "udp"))
+  if (0 == osip_strcasecmp (transport, "udp"))
     eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
-  else if (0==osip_strcasecmp(transport, "tcp"))
+  else if (0 == osip_strcasecmp (transport, "tcp"))
     eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip, 49);
   else
     {
@@ -250,7 +250,8 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
       struct addrinfo *addrinfo;
       struct __eXosip_sockaddr addr;
 
-      i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_UDP);
+      i =
+        eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_UDP);
       if (i == 0)
         {
           memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -268,8 +269,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
           snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
                     transport, eXosip.net_interfaces[0].net_firewall_ip,
-		    net->net_port,
-                    via_branch_new_random ());
+                    net->net_port, via_branch_new_random ());
           osip_message_set_via (request, tmp);
       } else
         {
@@ -277,12 +277,10 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
           if (net->net_ip_family == AF_INET6)
             snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u",
-                      transport, locip, net->net_port,
-                      via_branch_new_random ());
+                      transport, locip, net->net_port, via_branch_new_random ());
           else
             snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                      transport, locip, net->net_port,
-                      via_branch_new_random ());
+                      transport, locip, net->net_port, via_branch_new_random ());
           osip_message_set_via (request, tmp);
         }
   } else
@@ -291,12 +289,10 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
       if (net->net_ip_family == AF_INET6)
         snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-                  locip, net->net_port,
-		  via_branch_new_random ());
+                  locip, net->net_port, via_branch_new_random ());
       else
         snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                  transport, locip, net->net_port,
-		  via_branch_new_random ());
+                  transport, locip, net->net_port, via_branch_new_random ());
       osip_message_set_via (request, tmp);
     }
 
@@ -306,12 +302,10 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
     if (net->net_ip_family == AF_INET6)
       spnrintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-                locip, net->net_port,
-		via_branch_new_random ());
+                locip, net->net_port, via_branch_new_random ());
     else
       spnrintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-                locip, net->net_port,
-		via_branch_new_random ());
+                locip, net->net_port, via_branch_new_random ());
 
     osip_message_set_via (request, tmp);
   }
@@ -341,7 +335,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
               struct addrinfo *addrinfo;
               struct __eXosip_sockaddr addr;
 
-	      i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_TCP);
+              i =
+                eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060,
+                                     IPPROTO_TCP);
               if (i == 0)
                 {
                   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -357,7 +353,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                 {
                   sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
                            eXosip.net_interfaces[0].net_firewall_ip,
-			   net->net_port);
+                           net->net_port);
               } else
                 {
                   sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
@@ -416,15 +412,17 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
   char locip[50];
   struct eXosip_net *net;
 
-  i = generating_request_out_of_dialog (reg, "REGISTER", NULL, transport, from, proxy);
+  i =
+    generating_request_out_of_dialog (reg, "REGISTER", NULL, transport, from,
+                                      proxy);
   if (i != 0)
     return -1;
 
-  i = _eXosip_find_protocol(*reg);
-  if (i==IPPROTO_UDP)
-      net = &eXosip.net_interfaces[0];
-  else if (i==IPPROTO_TCP)
-      net = &eXosip.net_interfaces[1];
+  i = _eXosip_find_protocol (*reg);
+  if (i == IPPROTO_UDP)
+    net = &eXosip.net_interfaces[0];
+  else if (i == IPPROTO_TCP)
+    net = &eXosip.net_interfaces[1];
   else
     {
       net = &eXosip.net_interfaces[0];
@@ -457,7 +455,9 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
               struct addrinfo *addrinfo;
               struct __eXosip_sockaddr addr;
 
-	      i = eXosip_get_addrinfo (&addrinfo, (*reg)->req_uri->host, 5060, IPPROTO_UDP);
+              i =
+                eXosip_get_addrinfo (&addrinfo, (*reg)->req_uri->host, 5060,
+                                     IPPROTO_UDP);
               if (i == 0)
                 {
                   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -473,7 +473,7 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
                 {
                   sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
                            eXosip.net_interfaces[0].net_firewall_ip,
-			   net->net_port);
+                           net->net_port);
               } else
                 {
                   sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
@@ -519,7 +519,7 @@ generating_publish (osip_message_t ** message, const char *to,
     route = NULL;
 
   i = generating_request_out_of_dialog (message, "PUBLISH", to, "UDP", from,
-					route);
+                                        route);
   if (i != 0)
     return -1;
 
@@ -543,7 +543,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
   /* AMD bug: fixed 17/06/2002 */
 
 #ifdef OSIP_FUTURE_FIX_2_3
-    route = (osip_route_t *) osip_list_get (dialog->route_set, 0);
+  route = (osip_route_t *) osip_list_get (dialog->route_set, 0);
 #else
   if (dialog->type == CALLER)
     {
@@ -572,7 +572,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
           if (i != 0)
             return -1;
 #ifdef OSIP_FUTURE_FIX_2_3
-            osip_list_add (request->routes, route2, -1);
+          osip_list_add (request->routes, route2, -1);
 #else
           if (dialog->type == CALLER)
             osip_list_add (request->routes, route2, 0);
@@ -654,8 +654,8 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   struct eXosip_net *net;
 
   i = osip_message_init (&request);
-  if (i != 0) 
-   return -1;
+  if (i != 0)
+    return -1;
 
   if (dialog->remote_contact_uri == NULL)
     {
@@ -666,16 +666,16 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
       return -1;
     }
 
-  if (0==osip_strcasecmp(transport, "udp"))
+  if (0 == osip_strcasecmp (transport, "udp"))
     net = &eXosip.net_interfaces[0];
-  else if (0==osip_strcasecmp(transport, "tcp"))
+  else if (0 == osip_strcasecmp (transport, "tcp"))
     net = &eXosip.net_interfaces[1];
   else
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "eXosip: unsupported protocol -%s- (default to UDP)\n"));
-    net = &eXosip.net_interfaces[0];
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: unsupported protocol -%s- (default to UDP)\n"));
+      net = &eXosip.net_interfaces[0];
     }
 
 #ifdef SM
@@ -757,7 +757,8 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
       struct addrinfo *addrinfo;
       struct __eXosip_sockaddr addr;
 
-      i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_UDP);
+      i =
+        eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_UDP);
       if (i == 0)
         {
           memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -775,8 +776,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
           sprintf (tmp, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
                    eXosip.net_interfaces[0].net_firewall_ip,
-                   net->net_port,
-		   via_branch_new_random ());
+                   net->net_port, via_branch_new_random ());
           osip_message_set_via (request, tmp);
       } else
         {
@@ -784,12 +784,10 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
           if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
             snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u",
-                      transport, locip, net->net_port,
-                      via_branch_new_random ());
+                      transport, locip, net->net_port, via_branch_new_random ());
           else
             snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                      transport, locip, net->net_port,
-                      via_branch_new_random ());
+                      transport, locip, net->net_port, via_branch_new_random ());
 
           osip_message_set_via (request, tmp);
         }
@@ -799,12 +797,10 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
       if (net->net_ip_family == AF_INET6)
         snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-                  locip, net->net_port,
-		  via_branch_new_random ());
+                  locip, net->net_port, via_branch_new_random ());
       else
         snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                  transport, locip, net->net_port,
-		  via_branch_new_random ());
+                  transport, locip, net->net_port, via_branch_new_random ());
 
       osip_message_set_via (request, tmp);
     }
@@ -815,12 +811,10 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
     if (net->net_ip_family == AF_INET6)
       sprintf (tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-               locip, net->net_port,
-	       via_branch_new_random ());
+               locip, net->net_port, via_branch_new_random ());
     else
       sprintf (tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-               locip, net->net_port,
-	       via_branch_new_random ());
+               locip, net->net_port, via_branch_new_random ());
 
     osip_message_set_via (request, tmp);
   }
@@ -838,7 +832,9 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
         struct addrinfo *addrinfo;
         struct __eXosip_sockaddr addr;
 
-        i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_UDP);
+        i =
+          eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060,
+                               IPPROTO_UDP);
         if (i == 0)
           {
             memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -854,13 +850,11 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
           {
             sprintf (contact, "<sip:%s@%s:%s>",
                      dialog->local_uri->url->username,
-		     eXosip.net_interfaces[0].net_firewall_ip,
-                     net->net_port);
+                     eXosip.net_interfaces[0].net_firewall_ip, net->net_port);
         } else
           {
             sprintf (contact, "<sip:%s@%s:%s>",
-                     dialog->local_uri->url->username, locip,
-		     net->net_port);
+                     dialog->local_uri->url->username, locip, net->net_port);
           }
     } else
       {
@@ -992,4 +986,3 @@ gc_error_1:
   *dest = NULL;
   return -1;
 }
-

@@ -81,8 +81,8 @@ window_new_call_print ()
   attrset (COLOR_PAIR (1));
   snprintf (buf,
             x - gui_window_new_call.x0, "From    : %s %80.80s", cfg.identity, " ");
-  mvaddnstr (gui_window_new_call.y0,
-             gui_window_new_call.x0, buf, x - gui_window_new_call.x0 - 1);
+  mvaddnstr (gui_window_new_call.y0, gui_window_new_call.x0, buf,
+             x - gui_window_new_call.x0 - 1);
   snprintf (buf, x - gui_window_new_call.x0, "To      : ");
   mvaddnstr (gui_window_new_call.y0 + 1,
              gui_window_new_call.x0, buf, x - gui_window_new_call.x0 - 1);

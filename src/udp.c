@@ -91,13 +91,13 @@ static void eXosip_process_notify_within_dialog (eXosip_subscribe_t * js,
 static int eXosip_match_notify_for_subscribe (eXosip_subscribe_t * js,
                                               osip_message_t * notify);
 static void eXosip_process_message_outside_of_dialog (osip_transaction_t * tr,
-						      osip_event_t * evt);
+                                                      osip_event_t * evt);
 static void eXosip_process_refer_outside_of_dialog (osip_transaction_t * tr,
-						    osip_event_t * evt);
+                                                    osip_event_t * evt);
 static void eXosip_process_message_within_dialog (eXosip_call_t * jc,
-						  eXosip_dialog_t * jd,
-						  osip_transaction_t * transaction,
-						  osip_event_t * evt);
+                                                  eXosip_dialog_t * jd,
+                                                  osip_transaction_t *
+                                                  transaction, osip_event_t * evt);
 static void eXosip_process_newrequest (osip_event_t * evt, int socket);
 static void eXosip_process_response_out_of_transaction (osip_event_t * evt);
 static int eXosip_pendingosip_transaction_exist (eXosip_call_t * jc,
@@ -208,7 +208,7 @@ eXosip_process_bye (eXosip_call_t * jc, eXosip_dialog_t * jd,
   osip_dialog_free (jd->d_dialog);
   jd->d_dialog = NULL;
   report_call_event (EXOSIP_CALL_CLOSED, jc, jd, transaction);
-  eXosip_update(); /* AMD 30/09/05 */
+  eXosip_update ();             /* AMD 30/09/05 */
 
   osip_transaction_add_event (transaction, evt_answer);
   __eXosip_wakeup ();
@@ -280,7 +280,7 @@ eXosip_process_notify_for_refer (eXosip_call_t * jc, eXosip_dialog_t * jd,
                                   "Missing Event header in Notify", __LINE__);
       return;
     }
-  if (NULL==strstr(event_hdr->hvalue, "refer"))
+  if (NULL == strstr (event_hdr->hvalue, "refer"))
     {
       osip_list_add (eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer (jd, transaction, evt, 501,
@@ -329,7 +329,6 @@ eXosip_process_notify_for_refer (eXosip_call_t * jc, eXosip_dialog_t * jd,
                                   "Missing Body", __LINE__);
       return;
     }
-
 #if 0
   report_call_event (EXOSIP_CALL_REFER_STATUS, jc, jd, transaction);
 #endif
@@ -381,16 +380,15 @@ eXosip_process_ack (eXosip_call_t * jc, eXosip_dialog_t * jd, osip_event_t * evt
   int i;
 
   je = eXosip_event_init_for_call (EXOSIP_CALL_ACK, jc, jd, NULL);
-  if (je!=NULL)
+  if (je != NULL)
     {
       i = osip_message_clone (evt->sip, &je->ack);
       if (i != 0)
         {
           OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                                   "failed to clone ACK for event\n"));
-        }
-      else
-	report_event (je, NULL);
+      } else
+        report_event (je, NULL);
     }
 
   osip_event_free (evt);
@@ -479,9 +477,9 @@ eXosip_process_cancel (osip_transaction_t * transaction, osip_event_t * evt)
           if (i == 0)
             {
               tr = jc->c_inc_tr;
-	      /* fixed */
-	      if (jc->c_dialogs!=NULL)
-		jd = jc->c_dialogs;
+              /* fixed */
+              if (jc->c_dialogs != NULL)
+                jd = jc->c_dialogs;
               break;
             }
         }
@@ -1037,7 +1035,7 @@ eXosip_process_message_outside_of_dialog (osip_transaction_t * transaction,
 
 static void
 eXosip_process_refer_outside_of_dialog (osip_transaction_t * transaction,
-					osip_event_t * evt)
+                                        osip_event_t * evt)
 {
   osip_list_add (eXosip.j_transactions, transaction, 0);
   __eXosip_wakeup ();           /* needed? */
@@ -1046,9 +1044,9 @@ eXosip_process_refer_outside_of_dialog (osip_transaction_t * transaction,
 
 static void
 eXosip_process_message_within_dialog (eXosip_call_t * jc,
-				      eXosip_dialog_t * jd,
-				      osip_transaction_t * transaction,
-				      osip_event_t * evt)
+                                      eXosip_dialog_t * jd,
+                                      osip_transaction_t * transaction,
+                                      osip_event_t * evt)
 {
   osip_list_add (jd->d_inc_trs, transaction, 0);
   osip_transaction_set_your_instance (transaction,
@@ -1099,8 +1097,8 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
           return;
         }
 
-      osip_transaction_set_in_socket(transaction, socket);
-      osip_transaction_set_out_socket(transaction, socket);
+      osip_transaction_set_in_socket (transaction, socket);
+      osip_transaction_set_out_socket (transaction, socket);
 
       evt->transactionid = transaction->transactionid;
       osip_transaction_set_your_instance (transaction, NULL);
@@ -1258,7 +1256,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
           eXosip_send_default_answer (jd, transaction, evt, 405, NULL,
                                       "Method Not Allowed", __LINE__);
 #else
-	  eXosip_process_message_within_dialog (jc, jd, transaction, evt);
+          eXosip_process_message_within_dialog (jc, jd, transaction, evt);
 #endif
         }
       return;
@@ -1505,11 +1503,12 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
   osip_event_free (evt);
 }
 
-static int _eXosip_handle_incoming_message(char *buf, size_t len, int socket,
-					   char *host, int port);
+static int _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
+                                            char *host, int port);
 
-static int _eXosip_handle_incoming_message(char *buf, size_t len, int socket,
-					   char *host, int port)
+static int
+_eXosip_handle_incoming_message (char *buf, size_t len, int socket,
+                                 char *host, int port)
 {
   osip_transaction_t *transaction = NULL;
   osip_event_t *sipevent;
@@ -1519,40 +1518,35 @@ static int _eXosip_handle_incoming_message(char *buf, size_t len, int socket,
   transaction = NULL;
   if (sipevent != NULL && sipevent->sip != NULL)
     {
-    }
-  else
+  } else
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "Could not parse SIP message\n"));
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "Could not parse SIP message\n"));
       osip_event_free (sipevent);
       return -1;
     }
 
   OSIP_TRACE (osip_trace
-	      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-	       "Message received from: %s:%i\n",
-	       host, port));
-  
-  osip_message_fix_last_via_header (sipevent->sip,
-				    host,
-				    port);
-  
+              (__FILE__, __LINE__, OSIP_INFO1, NULL,
+               "Message received from: %s:%i\n", host, port));
+
+  osip_message_fix_last_via_header (sipevent->sip, host, port);
+
   i = osip_find_transaction_and_add_event (eXosip.j_osip, sipevent);
   if (i != 0)
     {
       /* this event has no transaction, */
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-		   "This is a request\n", buf));
+                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                   "This is a request\n", buf));
       eXosip_lock ();
       if (MSG_IS_REQUEST (sipevent->sip))
-	eXosip_process_newrequest (sipevent, socket);
+        eXosip_process_newrequest (sipevent, socket);
       else if (MSG_IS_RESPONSE (sipevent->sip))
-	eXosip_process_response_out_of_transaction (sipevent);
+        eXosip_process_response_out_of_transaction (sipevent);
       eXosip_unlock ();
-    }
-  else
+  } else
     {
       /* handled by oSIP ! */
       return 0;
@@ -1586,36 +1580,37 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
       int wakeup_socket = jpipe_get_read_descr (eXosip.j_socketctl);
 
       FD_ZERO (&osip_fdset);
-      if (eXosip.net_interfaces[0].net_socket>0)
-	{
-	  eXFD_SET (eXosip.net_interfaces[0].net_socket, &osip_fdset);
-	  max = eXosip.net_interfaces[0].net_socket;
-	}
-      if (eXosip.net_interfaces[1].net_socket>0)
-	{
-	  int pos;
-	  struct eXosip_net *net = &eXosip.net_interfaces[1];
-	  eXFD_SET (net->net_socket, &osip_fdset);
-	  if (net->net_socket>max)
-	    max = net->net_socket;
+      if (eXosip.net_interfaces[0].net_socket > 0)
+        {
+          eXFD_SET (eXosip.net_interfaces[0].net_socket, &osip_fdset);
+          max = eXosip.net_interfaces[0].net_socket;
+        }
+      if (eXosip.net_interfaces[1].net_socket > 0)
+        {
+          int pos;
+          struct eXosip_net *net = &eXosip.net_interfaces[1];
 
-	  for (pos=0;pos<EXOSIP_MAX_SOCKETS;pos++)
-	    {
-	      if (net->net_socket_tab[pos].socket!=0)
-		{
-		  eXFD_SET (net->net_socket_tab[pos].socket, &osip_fdset);
-		  if (net->net_socket_tab[pos].socket>max)
-		    max = net->net_socket_tab[pos].socket;
-		}
-	    }
-	}
+          eXFD_SET (net->net_socket, &osip_fdset);
+          if (net->net_socket > max)
+            max = net->net_socket;
 
-      if (eXosip.net_interfaces[2].net_socket>0)
-	{
-	  eXFD_SET (eXosip.net_interfaces[2].net_socket, &osip_fdset);
-	  if (eXosip.net_interfaces[2].net_socket>max)
-	    max = eXosip.net_interfaces[2].net_socket;
-	}
+          for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+            {
+              if (net->net_socket_tab[pos].socket != 0)
+                {
+                  eXFD_SET (net->net_socket_tab[pos].socket, &osip_fdset);
+                  if (net->net_socket_tab[pos].socket > max)
+                    max = net->net_socket_tab[pos].socket;
+                }
+            }
+        }
+
+      if (eXosip.net_interfaces[2].net_socket > 0)
+        {
+          eXFD_SET (eXosip.net_interfaces[2].net_socket, &osip_fdset);
+          if (eXosip.net_interfaces[2].net_socket > max)
+            max = eXosip.net_interfaces[2].net_socket;
+        }
 
 
       eXFD_SET (wakeup_socket, &osip_fdset);
@@ -1639,251 +1634,267 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 
       if (0 == i || eXosip.j_stop_ua != 0)
         {
-	} else if (-1 == i)
-	  {
-	    osip_free (buf);
-	    return -2;            /* error */
-	  } else if (FD_ISSET (eXosip.net_interfaces[1].net_socket, &osip_fdset))
-	    {
-	      /* accept incoming connection */
-	      char src6host[NI_MAXHOST];
-	      int recvport = 0;
-	      struct sockaddr_storage sa;
-	      int sock;
-	      int i;
-	      int pos;
-#ifdef __linux
-	      socklen_t slen;
-#else
-	      int slen;
-#endif
-	      if (ipv6_enable == 0)
-		slen = sizeof (struct sockaddr_in);
-	      else
-		slen = sizeof (struct sockaddr_in6);
-
-	      for (pos=0; pos<EXOSIP_MAX_SOCKETS; pos++)
-		{
-		  if (eXosip.net_interfaces[1].net_socket_tab[pos].socket==0)
-		    break;
-		}
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
-				      "creating TCP socket at index: %i\n", pos));
-	      sock = accept(eXosip.net_interfaces[1].net_socket, (struct sockaddr *) &sa, 
-			 &slen);
-	      if (sock<0)
-		{
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					  "Error accepting TCP socket\n"));
-		  break;
-		}
-	      eXosip.net_interfaces[1].net_socket_tab[pos].socket = sock;
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				      "New TCP connection accepted\n"));
-
-	      memset(src6host, 0, sizeof(src6host));
-	      
-	      if (ipv6_enable == 0)
-		recvport = ntohs (((struct sockaddr_in*)&sa)->sin_port);
-	      else
-		recvport = ntohs (((struct sockaddr_in6*)&sa)->sin6_port);
-	      
-	      i = getnameinfo((struct sockaddr*)&sa, slen,
-			      src6host, NI_MAXHOST,
-			      NULL, 0,
-			      NI_NUMERICHOST);
-	      
-	      if (i!=0)
-		{
-		  OSIP_TRACE (osip_trace
-			      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			       "Message received from: %s:%i Error with getnameinfo\n",
-			       src6host, recvport));
-		}
-	      else           
-		{
-		  OSIP_TRACE (osip_trace
-			      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			       "Message received from: %s:%i\n",
-			       src6host, recvport));
-		  osip_strncpy(eXosip.net_interfaces[1].net_socket_tab[pos].remote_ip,
-			       src6host,
-			       sizeof(eXosip.net_interfaces[1].net_socket_tab[pos].remote_ip));
-		  eXosip.net_interfaces[1].net_socket_tab[pos].remote_port = recvport;
-		}
-
-	  } else if (FD_ISSET (eXosip.net_interfaces[0].net_socket, &osip_fdset))
-	    {
-	      /*AMDstruct sockaddr_in sa; */
-	      struct sockaddr_storage sa;
+      } else if (-1 == i)
+        {
+          osip_free (buf);
+          return -2;            /* error */
+      } else if (FD_ISSET (eXosip.net_interfaces[1].net_socket, &osip_fdset))
+        {
+          /* accept incoming connection */
+          char src6host[NI_MAXHOST];
+          int recvport = 0;
+          struct sockaddr_storage sa;
+          int sock;
+          int i;
+          int pos;
 
 #ifdef __linux
-	      socklen_t slen;
+          socklen_t slen;
 #else
-	      int slen;
+          int slen;
 #endif
-	      if (ipv6_enable == 0)
-		slen = sizeof (struct sockaddr_in);
-	      else
-		slen = sizeof (struct sockaddr_in6);
+          if (ipv6_enable == 0)
+            slen = sizeof (struct sockaddr_in);
+          else
+            slen = sizeof (struct sockaddr_in6);
 
-          i = _eXosip_recvfrom (eXosip.net_interfaces[0].net_socket, buf, SIP_MESSAGE_MAX_LENGTH, 0,
-			    (struct sockaddr *) &sa, &slen);
-
-         if (i > 5)            /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
-		{
-		  /* Message might not end with a "\0" but we know the number of */
-		  /* char received! */
-		  osip_transaction_t *transaction = NULL;
-		  osip_event_t *sipevent;
-
-		  osip_strncpy (buf + i, "\0", 1);
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					  "Received message: \n%s\n", buf));
-#ifdef WIN32
-		  if (strlen (buf) > 412)
-		    {
-		      OSIP_TRACE (osip_trace
-				  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				   "Message suite: \n%s\n", buf + 412));
-		    }
-#endif
-
-		  sipevent = osip_parse (buf, i);
-		  transaction = NULL;
-		  if (sipevent != NULL && sipevent->sip != NULL)
-          {
-            if (!eXosip.http_port)
+          for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
             {
-		      char src6host[NI_MAXHOST];
-		      char src6buf[NI_MAXSERV];
-		      int recvport = 0;
-		      memset(src6host, 0, sizeof(src6host));
-		      memset(src6buf, 0, sizeof(src6buf));
-		  
-		      if (ipv6_enable == 0)
-			recvport = ntohs (((struct sockaddr_in*)&sa)->sin_port);
-		      else
-			recvport = ntohs (((struct sockaddr_in6*)&sa)->sin6_port);
-
-		      i = getnameinfo((struct sockaddr*)&sa, slen,
-				      src6host, NI_MAXHOST,
-				      NULL, 0,
-				      NI_NUMERICHOST);
-
-		      if (i!=0)
-			{
-			  OSIP_TRACE (osip_trace
-				      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				       "Message received from: %s:%i (serv=%s) Error with getnameinfo\n",
-				       src6host, recvport, src6buf));
-			}
-		      else           
-			{
-			  OSIP_TRACE (osip_trace
-				      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				       "Message received from: %s:%i (serv=%s)\n",
-				       src6host, recvport, src6buf));          
-			}
-
-		      OSIP_TRACE (osip_trace
-				  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				   "Message received from: %s:%i (serv=%s)\n",
-				   src6host, recvport, src6buf));
-
-		      osip_message_fix_last_via_header (sipevent->sip,
-							src6host,
-							recvport);
+              if (eXosip.net_interfaces[1].net_socket_tab[pos].socket == 0)
+                break;
             }
-		      i =
-			osip_find_transaction_and_add_event (eXosip.j_osip, sipevent);
-		      if (i != 0)
-			{
-			  /* this event has no transaction, */
-			  OSIP_TRACE (osip_trace
-				      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				       "This is a request\n", buf));
-			  eXosip_lock ();
-			  if (MSG_IS_REQUEST (sipevent->sip))
-			    eXosip_process_newrequest (sipevent, 0);
-			  else if (MSG_IS_RESPONSE (sipevent->sip))
-			    eXosip_process_response_out_of_transaction (sipevent);
-			  eXosip_unlock ();
-			} else
-			  {
-			    /* handled by oSIP ! */
-			  }
-		    } else
-		      {
-			OSIP_TRACE (osip_trace
-				    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				     "Could not parse SIP message\n"));
-			osip_event_free (sipevent);
-		      }
-		} else if (i < 0)
-		  {
-		    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					    "Could not read socket\n"));
-		  } else
-		    {
-		      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					      "Dummy SIP message received\n"));
-		    }
-	    }
-      else
-	{
-	  /* loop over all TCP socket */
-	  int pos = 0;
-	  for (pos=0; pos<EXOSIP_MAX_SOCKETS; pos++)
-	    {
-	      if (eXosip.net_interfaces[1].net_socket_tab[pos].socket>0
-		  && FD_ISSET (eXosip.net_interfaces[1].net_socket_tab[pos].socket, &osip_fdset))
-		{
-		  i = recv (eXosip.net_interfaces[1].net_socket_tab[pos].socket,
-			    buf, SIP_MESSAGE_MAX_LENGTH, 0);
-		  if (i > 5)
-		    {
-		      osip_strncpy (buf + i, "\0", 1);
-		      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					      "Received TCP message: \n%s\n", buf));
-#ifdef WIN32
-		      if (strlen (buf) > 412)
-			{
-			  OSIP_TRACE (osip_trace
-				      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				       "Message suite: \n%s\n", buf + 412));
-			}
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
+                                  "creating TCP socket at index: %i\n", pos));
+          sock =
+            accept (eXosip.net_interfaces[1].net_socket,
+                    (struct sockaddr *) &sa, &slen);
+          if (sock < 0)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                      "Error accepting TCP socket\n"));
+              break;
+            }
+          eXosip.net_interfaces[1].net_socket_tab[pos].socket = sock;
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                  "New TCP connection accepted\n"));
+
+          memset (src6host, 0, sizeof (src6host));
+
+          if (ipv6_enable == 0)
+            recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
+          else
+            recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
+
+          i = getnameinfo ((struct sockaddr *) &sa, slen,
+                           src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
+          if (i != 0)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "Message received from: %s:%i Error with getnameinfo\n",
+                           src6host, recvport));
+          } else
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "Message received from: %s:%i\n", src6host, recvport));
+              osip_strncpy (eXosip.net_interfaces[1].net_socket_tab[pos].
+                            remote_ip, src6host,
+                            sizeof (eXosip.net_interfaces[1].
+                                    net_socket_tab[pos].remote_ip));
+              eXosip.net_interfaces[1].net_socket_tab[pos].remote_port = recvport;
+            }
+
+      } else if (FD_ISSET (eXosip.net_interfaces[0].net_socket, &osip_fdset))
+        {
+          /*AMDstruct sockaddr_in sa; */
+          struct sockaddr_storage sa;
+
+#ifdef __linux
+          socklen_t slen;
+#else
+          int slen;
 #endif
-		      _eXosip_handle_incoming_message(buf, i,
-						      eXosip.net_interfaces[1].net_socket_tab[pos].socket,
-						      eXosip.net_interfaces[1].net_socket_tab[pos].remote_ip,
-						      eXosip.net_interfaces[1].net_socket_tab[pos].remote_port);
-		    }
-		  else if (i < 0)
-		    {
-		      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					      "Could not read socket - close it\n"));
-		      close(eXosip.net_interfaces[1].net_socket_tab[pos].socket);
-		      memset(&(eXosip.net_interfaces[1].net_socket_tab[pos]),
-			     0, sizeof(struct eXosip_socket));
-		    }
-		  else if (i==0)
-		    {
-		      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					      "End of stream (read 0 byte from %s:%i)\n", eXosip.net_interfaces[1].net_socket_tab[pos].remote_ip, eXosip.net_interfaces[1].net_socket_tab[pos].remote_port));
-		      close(eXosip.net_interfaces[1].net_socket_tab[pos].socket);
-		      memset(&(eXosip.net_interfaces[1].net_socket_tab[pos]),
-			     0, sizeof(struct eXosip_socket));
-		    }
-		  else
-		    {
-		      /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
-		      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					      "Dummy SIP message received (size=%i)\n", i));
-		    }
-		}
-	    }
-	}
+          if (ipv6_enable == 0)
+            slen = sizeof (struct sockaddr_in);
+          else
+            slen = sizeof (struct sockaddr_in6);
+
+          i =
+            _eXosip_recvfrom (eXosip.net_interfaces[0].net_socket, buf,
+                              SIP_MESSAGE_MAX_LENGTH, 0,
+                              (struct sockaddr *) &sa, &slen);
+
+          if (i > 5)            /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
+            {
+              /* Message might not end with a "\0" but we know the number of */
+              /* char received! */
+              osip_transaction_t *transaction = NULL;
+              osip_event_t *sipevent;
+
+              osip_strncpy (buf + i, "\0", 1);
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                      "Received message: \n%s\n", buf));
+#ifdef WIN32
+              if (strlen (buf) > 412)
+                {
+                  OSIP_TRACE (osip_trace
+                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                               "Message suite: \n%s\n", buf + 412));
+                }
+#endif
+
+              sipevent = osip_parse (buf, i);
+              transaction = NULL;
+              if (sipevent != NULL && sipevent->sip != NULL)
+                {
+                  if (!eXosip.http_port)
+                    {
+                      char src6host[NI_MAXHOST];
+                      char src6buf[NI_MAXSERV];
+                      int recvport = 0;
+
+                      memset (src6host, 0, sizeof (src6host));
+                      memset (src6buf, 0, sizeof (src6buf));
+
+                      if (ipv6_enable == 0)
+                        recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
+                      else
+                        recvport =
+                          ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
+
+                      i = getnameinfo ((struct sockaddr *) &sa, slen,
+                                       src6host, NI_MAXHOST,
+                                       NULL, 0, NI_NUMERICHOST);
+
+                      if (i != 0)
+                        {
+                          OSIP_TRACE (osip_trace
+                                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                       "Message received from: %s:%i (serv=%s) Error with getnameinfo\n",
+                                       src6host, recvport, src6buf));
+                      } else
+                        {
+                          OSIP_TRACE (osip_trace
+                                      (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                       "Message received from: %s:%i (serv=%s)\n",
+                                       src6host, recvport, src6buf));
+                        }
+
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                   "Message received from: %s:%i (serv=%s)\n",
+                                   src6host, recvport, src6buf));
+
+                      osip_message_fix_last_via_header (sipevent->sip,
+                                                        src6host, recvport);
+                    }
+                  i =
+                    osip_find_transaction_and_add_event (eXosip.j_osip, sipevent);
+                  if (i != 0)
+                    {
+                      /* this event has no transaction, */
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                   "This is a request\n", buf));
+                      eXosip_lock ();
+                      if (MSG_IS_REQUEST (sipevent->sip))
+                        eXosip_process_newrequest (sipevent, 0);
+                      else if (MSG_IS_RESPONSE (sipevent->sip))
+                        eXosip_process_response_out_of_transaction (sipevent);
+                      eXosip_unlock ();
+                  } else
+                    {
+                      /* handled by oSIP ! */
+                    }
+              } else
+                {
+                  OSIP_TRACE (osip_trace
+                              (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                               "Could not parse SIP message\n"));
+                  osip_event_free (sipevent);
+                }
+          } else if (i < 0)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                      "Could not read socket\n"));
+          } else
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                      "Dummy SIP message received\n"));
+            }
+      } else
+        {
+          /* loop over all TCP socket */
+          int pos = 0;
+
+          for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+            {
+              if (eXosip.net_interfaces[1].net_socket_tab[pos].socket > 0
+                  && FD_ISSET (eXosip.net_interfaces[1].net_socket_tab[pos].
+                               socket, &osip_fdset))
+                {
+                  i =
+                    recv (eXosip.net_interfaces[1].net_socket_tab[pos].socket,
+                          buf, SIP_MESSAGE_MAX_LENGTH, 0);
+                  if (i > 5)
+                    {
+                      osip_strncpy (buf + i, "\0", 1);
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                   "Received TCP message: \n%s\n", buf));
+#ifdef WIN32
+                      if (strlen (buf) > 412)
+                        {
+                          OSIP_TRACE (osip_trace
+                                      (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                       "Message suite: \n%s\n", buf + 412));
+                        }
+#endif
+                      _eXosip_handle_incoming_message (buf, i,
+                                                       eXosip.
+                                                       net_interfaces[1].
+                                                       net_socket_tab[pos].
+                                                       socket,
+                                                       eXosip.
+                                                       net_interfaces[1].
+                                                       net_socket_tab[pos].
+                                                       remote_ip,
+                                                       eXosip.
+                                                       net_interfaces[1].
+                                                       net_socket_tab[pos].
+                                                       remote_port);
+                  } else if (i < 0)
+                    {
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                   "Could not read socket - close it\n"));
+                      close (eXosip.net_interfaces[1].net_socket_tab[pos].socket);
+                      memset (&(eXosip.net_interfaces[1].net_socket_tab[pos]),
+                              0, sizeof (struct eXosip_socket));
+                  } else if (i == 0)
+                    {
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                   "End of stream (read 0 byte from %s:%i)\n",
+                                   eXosip.net_interfaces[1].
+                                   net_socket_tab[pos].remote_ip,
+                                   eXosip.net_interfaces[1].
+                                   net_socket_tab[pos].remote_port));
+                      close (eXosip.net_interfaces[1].net_socket_tab[pos].socket);
+                      memset (&(eXosip.net_interfaces[1].net_socket_tab[pos]),
+                              0, sizeof (struct eXosip_socket));
+                  } else
+                    {
+                      /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                   "Dummy SIP message received (size=%i)\n", i));
+                    }
+                }
+            }
+        }
 
 
       max_message_nb--;
@@ -1907,7 +1918,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           /* remove the transaction from oSIP: */
           osip_remove_transaction (eXosip.j_osip, tr);
           eXosip_remove_transaction_from_call (tr, jc);
-	  osip_list_add (eXosip.j_transactions, tr, 0);
+          osip_list_add (eXosip.j_transactions, tr, 0);
       } else
         return 0;
     }
@@ -1920,7 +1931,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           /* remove the transaction from oSIP: */
           osip_remove_transaction (eXosip.j_osip, tr);
           eXosip_remove_transaction_from_call (tr, jc);
-	  osip_list_add (eXosip.j_transactions, tr, 0);
+          osip_list_add (eXosip.j_transactions, tr, 0);
       } else
         return 0;
     }
@@ -1959,7 +1970,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           /* remove the transaction from oSIP: */
           osip_remove_transaction (eXosip.j_osip, tr);
           eXosip_remove_transaction_from_call (tr, jc);
-	  osip_list_add (eXosip.j_transactions, tr, 0);
+          osip_list_add (eXosip.j_transactions, tr, 0);
       } else
         return 0;
     }
@@ -1972,7 +1983,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           /* remove the transaction from oSIP: */
           osip_remove_transaction (eXosip.j_osip, tr);
           eXosip_remove_transaction_from_call (tr, jc);
-	  osip_list_add (eXosip.j_transactions, tr, 0);
+          osip_list_add (eXosip.j_transactions, tr, 0);
       } else
         return 0;
     }
@@ -1991,11 +2002,13 @@ eXosip_release_finished_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
 
   if (tr != NULL && (tr->state == NIST_TERMINATED || tr->state == NICT_TERMINATED))
     {
-        int did = -2;
-        if (jd!=NULL)
-            did = jd->d_id;
-        OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-            "eXosip: eXosip_release_finished_calls remove a dialog (cid=%i did=%i)\n", jc->c_id, did));
+      int did = -2;
+
+      if (jd != NULL)
+        did = jd->d_id;
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                              "eXosip: eXosip_release_finished_calls remove a dialog (cid=%i did=%i)\n",
+                              jc->c_id, did));
       /* Remove existing reference to the dialog from transactions! */
       __eXosip_call_remove_dialog_reference_in_call (jc, jd);
       REMOVE_ELEMENT (jc->c_dialogs, jd);
@@ -2030,7 +2043,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
 #else
   /* close calls only when the initial INVITE failed */
   tr = jc->c_inc_tr;
-  if (tr==NULL)
+  if (tr == NULL)
     tr = jc->c_out_tr;
 #endif
 
@@ -2163,16 +2176,17 @@ eXosip_release_terminated_calls (void)
           } else if (0 == eXosip_release_aborted_calls (jc, jd))
             {
               jdnext = NULL;
-          } else if (jd->d_id==-1)
+          } else if (jd->d_id == -1)
             {
-                OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                    "eXosip: eXosip_release_terminated_calls delete a removed dialog (cid=%i did=%i)\n", jc->c_id, jd->d_id));
-                /* Remove existing reference to the dialog from transactions! */
-                __eXosip_call_remove_dialog_reference_in_call (jc, jd);
-                REMOVE_ELEMENT (jc->c_dialogs, jd);
-                eXosip_dialog_free (jd);
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                      "eXosip: eXosip_release_terminated_calls delete a removed dialog (cid=%i did=%i)\n",
+                                      jc->c_id, jd->d_id));
+              /* Remove existing reference to the dialog from transactions! */
+              __eXosip_call_remove_dialog_reference_in_call (jc, jd);
+              REMOVE_ELEMENT (jc->c_dialogs, jd);
+              eXosip_dialog_free (jd);
 
-                jd = jc->c_dialogs;
+              jd = jc->c_dialogs;
             }
           jd = jdnext;
         }
@@ -2279,25 +2293,24 @@ eXosip_release_terminated_registrations (void)
   for (jr = eXosip.j_reg; jr != NULL;)
     {
       jrnext = jr->next;
-      if (jr->r_reg_period == 0 && jr->r_last_tr!=NULL)
-	{
-	  if (now - jr->r_last_tr->birth_time > 60)
-	    {
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				      "Release a terminated registration\n"));
-	      REMOVE_ELEMENT (eXosip.j_reg, jr);
-	      eXosip_reg_free (jr);
-	    }
-	  else if (jr->r_last_tr->last_response!=NULL
-		   && jr->r_last_tr->last_response->status_code>=200
-		   && jr->r_last_tr->last_response->status_code<=299)
-	    {
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				      "Release a terminated registration with 2xx\n"));
-	      REMOVE_ELEMENT (eXosip.j_reg, jr);
-	      eXosip_reg_free (jr);
-	    }
-	}
+      if (jr->r_reg_period == 0 && jr->r_last_tr != NULL)
+        {
+          if (now - jr->r_last_tr->birth_time > 60)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                      "Release a terminated registration\n"));
+              REMOVE_ELEMENT (eXosip.j_reg, jr);
+              eXosip_reg_free (jr);
+          } else if (jr->r_last_tr->last_response != NULL
+                     && jr->r_last_tr->last_response->status_code >= 200
+                     && jr->r_last_tr->last_response->status_code <= 299)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                      "Release a terminated registration with 2xx\n"));
+              REMOVE_ELEMENT (eXosip.j_reg, jr);
+              eXosip_reg_free (jr);
+            }
+        }
 
       jr = jrnext;
     }
