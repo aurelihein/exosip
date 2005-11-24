@@ -831,7 +831,7 @@ eXosip_process_subscribe_within_call (eXosip_notify_t * jn,
 
   /* if subscribe request contains expires="0", close the subscription */
   {
-    int now = time (NULL);
+    time_t now = time (NULL);
 
     if (jn->n_ss_expires - now <= 0)
       {
@@ -1897,7 +1897,7 @@ static int
 eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
   osip_transaction_t *tr;
-  int now = time (NULL);
+  time_t now = time (NULL);
 
   tr = eXosip_find_last_inc_transaction (jc, jd, "BYE");
   if (tr != NULL && tr->state != NIST_TERMINATED)
@@ -2020,7 +2020,7 @@ __eXosip_release_call (eXosip_call_t * jc, eXosip_dialog_t * jd)
 static int
 eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
-  int now = time (NULL);
+  time_t now = time (NULL);
   osip_transaction_t *tr;
 
 #if 0
@@ -2143,7 +2143,7 @@ eXosip_release_terminated_calls (void)
   eXosip_dialog_t *jdnext;
   eXosip_call_t *jc;
   eXosip_call_t *jcnext;
-  int now = time (NULL);
+  time_t now = time (NULL);
   int pos;
 
 
@@ -2274,7 +2274,7 @@ eXosip_release_terminated_registrations (void)
 {
   eXosip_reg_t *jr;
   eXosip_reg_t *jrnext;
-  int now = time (NULL);
+  time_t now = time (NULL);
 
   for (jr = eXosip.j_reg; jr != NULL;)
     {

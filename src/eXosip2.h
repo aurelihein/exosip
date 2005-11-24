@@ -94,7 +94,7 @@ extern "C"
     int d_STATE;
     osip_dialog_t *d_dialog;    /* active dialog */
 
-    int d_timer;
+    time_t d_timer;
     osip_message_t *d_200Ok;
     osip_message_t *d_ack;
 
@@ -136,7 +136,7 @@ extern "C"
 
     int n_ss_status;
     int n_ss_reason;
-    int n_ss_expires;
+    time_t n_ss_expires;
     eXosip_dialog_t *n_dialogs;
 
     osip_transaction_t *n_inc_tr;
@@ -314,6 +314,7 @@ extern "C"
 
   int _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags, struct sockaddr *from, socklen_t *fromlen);
   int _eXosip_sendto(int s,  const void* buf,  size_t len,  int flags,
+
     const struct sockaddr* to,  socklen_t tolen);
 
   typedef struct eXosip_t eXosip_t;

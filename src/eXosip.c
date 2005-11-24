@@ -440,7 +440,7 @@ eXosip_automatic_refresh (void)
   eXosip_dialog_t *jd;
 
   eXosip_reg_t *jr;
-  int now;
+  time_t now;
 
   now = time (NULL);
 
@@ -516,7 +516,7 @@ eXosip_automatic_action (void)
   eXosip_notify_t *jn;
 
   eXosip_reg_t *jr;
-  int now;
+  time_t now;
 
   now = time (NULL);
 
@@ -836,7 +836,7 @@ eXosip_update ()
   eXosip_subscribe_t *js;
   eXosip_notify_t *jn;
   eXosip_dialog_t *jd;
-  int now;
+  time_t now;
 
   if (static_id > 100000)
     static_id = 1;              /* loop */

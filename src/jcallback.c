@@ -782,7 +782,7 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       {
         osip_via_t *via=NULL;
         osip_generic_param_t *br;
-        int i = osip_message_get_via (sip, 0, &via);
+        osip_message_get_via (sip, 0, &via);
         if (via!=NULL && via->protocol!=NULL
             && osip_strcasecmp(via->protocol, "udp")==0)
         {
@@ -1205,7 +1205,7 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
            { 
                 osip_via_t *via=NULL;
                 osip_generic_param_t *br;
-                int i = osip_message_get_via (sip, 0, &via);
+                osip_message_get_via (sip, 0, &via);
                 if (via!=NULL && via->protocol!=NULL
                     && osip_strcasecmp(via->protocol, "udp")==0)
                 {

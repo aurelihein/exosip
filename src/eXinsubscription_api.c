@@ -266,7 +266,7 @@ eXosip_insubscription_build_notify (int did, int subscription_status,
 
   char subscription_state[50];
   char *tmp;
-  int now = time (NULL);
+  time_t now = time (NULL);
 
   int i;
 
@@ -314,7 +314,7 @@ eXosip_insubscription_build_notify (int did, int subscription_status,
 
   tmp = subscription_state + strlen (subscription_state);
   if (subscription_status != EXOSIP_SUBCRSTATE_TERMINATED)
-    sprintf (tmp, "%i", jn->n_ss_expires - now);
+    sprintf (tmp, "%li", jn->n_ss_expires - now);
   osip_message_set_header (*request, "Subscription-State", subscription_state);
 #endif
 

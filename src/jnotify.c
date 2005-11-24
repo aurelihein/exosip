@@ -160,7 +160,7 @@ _eXosip_notify_set_refresh_interval (eXosip_notify_t * jn,
                                      osip_message_t * inc_subscribe)
 {
   osip_header_t *exp;
-  int now;
+  time_t now;
 
   now = time (NULL);
   if (jn == NULL || inc_subscribe == NULL)
@@ -186,7 +186,7 @@ _eXosip_notify_add_expires_in_2XX_for_subscribe (eXosip_notify_t * jn,
                                                  osip_message_t * answer)
 {
   char tmp[20];
-  int now;
+  time_t now;
 
   now = time (NULL);
 
@@ -196,7 +196,7 @@ _eXosip_notify_add_expires_in_2XX_for_subscribe (eXosip_notify_t * jn,
       tmp[1] = '\0';
   } else
     {
-      sprintf (tmp, "%i", jn->n_ss_expires - now);
+      sprintf (tmp, "%li", jn->n_ss_expires - now);
     }
   osip_message_set_expires (answer, tmp);
 }
