@@ -133,6 +133,7 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * correspondant appears to be on an DIFFERENT LAN.
  *
  * @param public_address 	the ip address.
+ * @param port          	the port for masquerading.
  * 
  * If set to NULL, then the local ip address will be guessed 
  * automatically (returns to default mode).
