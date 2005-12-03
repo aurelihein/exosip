@@ -34,6 +34,8 @@ static int eXosip_create_cancel_transaction (eXosip_call_t * jc,
                                              eXosip_dialog_t * jd,
                                              osip_message_t * request);
 
+static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *msg);
+
 static int
 eXosip_create_transaction (eXosip_call_t * jc,
                            eXosip_dialog_t * jd, osip_message_t * request)
@@ -88,6 +90,34 @@ eXosip_create_cancel_transaction (eXosip_call_t * jc,
   osip_transaction_add_event (tr, sipevent);
   __eXosip_wakeup ();
   return 0;
+}
+
+static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *msg)
+{
+    osip_contact_t *co_invite=NULL;
+    osip_contact_t *co_msg=NULL;
+    int i;
+    i = osip_message_get_contact(invite, 0, &co_invite);
+    if (i<0 || co_invite==NULL || co_invite->url==NULL)
+    {
+        return -1;
+    }
+
+    i = osip_message_get_contact(msg, 0, &co_msg);
+    if (i>=0 && co_msg!=NULL)
+    {
+        osip_list_remove(msg->contacts, 0);
+        osip_contact_free(co_msg);
+    }
+
+    co_msg=NULL;
+    i = osip_contact_clone(co_invite, &co_msg);
+    if (i>=0 && co_msg!=NULL)
+    {
+        osip_list_add(msg->contacts, co_msg, 0);
+        return 0;
+    }
+    return -1;
 }
 
 int
@@ -323,6 +353,8 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
     {
       return -1;
     }
+
+  _eXosip_call_reuse_contact(tr->orig_request, ack);
 
   /* Fix CSeq Number when request has been exchanged during INVITE transactions */
   if (tr->orig_request->cseq != NULL && tr->orig_request->cseq->number != NULL)
