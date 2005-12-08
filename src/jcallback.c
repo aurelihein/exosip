@@ -630,7 +630,12 @@ cb_rcvrequest (int type, osip_transaction_t * tr, osip_message_t * sip)
                   (__FILE__, __LINE__, OSIP_INFO3, NULL,
                    "cb_rcv? (id=%i)\r\n", tr->transactionid));
 
-      report_call_event (EXOSIP_CALL_MESSAGE_NEW, jc, jd, tr);
+      if (MSG_IS_BYE(sip))
+      {
+          /* already sent */
+      }
+      else
+          report_call_event (EXOSIP_CALL_MESSAGE_NEW, jc, jd, tr);
       return;
   } else if (jn != NULL)
     {

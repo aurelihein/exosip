@@ -207,10 +207,14 @@ eXosip_process_bye (eXosip_call_t * jc, eXosip_dialog_t * jd,
   /* Release the eXosip_dialog */
   osip_dialog_free (jd->d_dialog);
   jd->d_dialog = NULL;
+
+  osip_transaction_add_event (transaction, evt_answer);
+
+  osip_nist_execute (eXosip.j_osip);
+  report_call_event (EXOSIP_CALL_MESSAGE_NEW, jc, jd, transaction);
   report_call_event (EXOSIP_CALL_CLOSED, jc, jd, transaction);
   eXosip_update ();             /* AMD 30/09/05 */
 
-  osip_transaction_add_event (transaction, evt_answer);
   __eXosip_wakeup ();
 }
 
