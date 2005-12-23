@@ -174,14 +174,17 @@ eXosip_quit (void)
   __eXosip_wakeup ();
   __eXosip_wakeup_event ();
 
-  i = osip_thread_join ((struct osip_thread *) eXosip.j_thread);
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: can't terminate thread!\n"));
-    }
-  osip_free ((struct osip_thread *) eXosip.j_thread);
+  if (eXosip.j_thread!=NULL)
+  {
+    i = osip_thread_join ((struct osip_thread *) eXosip.j_thread);
+    if (i != 0)
+        {
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                    "eXosip: can't terminate thread!\n"));
+        }
+    osip_free ((struct osip_thread *) eXosip.j_thread);
+  }
 
   jpipe_close (eXosip.j_socketctl);
   jpipe_close (eXosip.j_socketctl_event);
