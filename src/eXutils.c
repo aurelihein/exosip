@@ -34,7 +34,7 @@ extern eXosip_t eXosip;
 #include <Iphlpapi.h>
 
 int
-ppl_dns_get_local_fqdn (char **servername, char **serverip,
+eXosip_dns_get_local_fqdn (char **servername, char **serverip,
                         char **netmask, unsigned int WIN32_interface)
 {
   unsigned int pos;
@@ -154,7 +154,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
                               "Default Interface found %i\r\n",
                               best_interface_index));
 
-      if (0 == ppl_dns_get_local_fqdn (&servername, &serverip, &netmask,
+      if (0 == eXosip_dns_get_local_fqdn (&servername, &serverip, &netmask,
                                        best_interface_index))
         {
           osip_strncpy (address, serverip, size - 1);
@@ -192,7 +192,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
                                       "Default Interface found %i\r\n",
                                       ipfwdt->table[ipf_cnt].dwForwardIfIndex));
 
-              if (0 == ppl_dns_get_local_fqdn (&servername,
+              if (0 == eXosip_dns_get_local_fqdn (&servername,
                                                &serverip,
                                                &netmask,
                                                ipfwdt->table[ipf_cnt].
@@ -228,7 +228,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
                                   "Default Interface found %i\r\n",
                                   ipfwdt->table[ipf_cnt].dwForwardIfIndex));
 
-          if (0 == ppl_dns_get_local_fqdn (&servername,
+          if (0 == eXosip_dns_get_local_fqdn (&servername,
                                            &serverip,
                                            &netmask,
                                            ipfwdt->table[ipf_cnt].
@@ -266,7 +266,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
                                   "Default Interface found %i\r\n",
                                   ipfwdt->table[ipf_cnt].dwForwardIfIndex));
 
-          if (0 == ppl_dns_get_local_fqdn (&servername,
+          if (0 == eXosip_dns_get_local_fqdn (&servername,
                                            &serverip,
                                            &netmask,
                                            ipfwdt->table[ipf_cnt].
