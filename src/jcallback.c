@@ -234,6 +234,20 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                           "Message sent: \n%s (to dest=%s:%i)\n",
                           message, ipbuf, port));
+#ifdef WIN32
+  if (length>412)
+  {
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                            "Message suite: \n%s (to dest=%s:%i)\n",
+                            message+412, ipbuf, port));
+  }
+  if (length>(412*2))
+  {
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                            "Message suite: \n%s (to dest=%s:%i)\n",
+                            message+(412*2), ipbuf, port));
+  }
+#endif
   if (0 >
       _eXosip_sendto (net->net_socket, (const void *) message, length, 0,
                       (struct sockaddr *) &addr, len))
