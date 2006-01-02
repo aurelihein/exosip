@@ -148,6 +148,8 @@ _eXosip_build_response_default (osip_message_t ** dest,
   osip_message_set_allow (response, "REFER");
   osip_message_set_allow (response, "UPDATE");
 
+  osip_message_set_user_agent (request, eXosip.user_agent);
+
   *dest = response;
   return 0;
 
