@@ -55,6 +55,15 @@ osip_call_id_new_random ()
   return tmp;
 }
 
+int
+eXosip_generate_random (char *buf, int buf_size)
+{
+  unsigned int number = osip_build_random_number ();
+
+  snprintf (buf, buf_size, "%u", number);
+  return 0;
+}
+
 char *
 osip_from_tag_new_random (void)
 {

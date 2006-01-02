@@ -131,6 +131,14 @@ extern "C"
  */
   void eXosip_automatic_action(void);
 
+/**
+ * Generate random string:
+ *
+ * @param buf	        destination buffer for random string.
+ * @param hex_size		size of destination buffer
+ */
+  int eXosip_generate_random (char *buf, int buf_size);
+
 /** @} */
   
 
