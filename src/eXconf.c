@@ -304,6 +304,8 @@ eXosip_set_socket (int transport, int socket, int port)
   if (eXosip.net_interfaces[0].net_socket > 0)
     close (eXosip.net_interfaces[0].net_socket);
 
+  eXosip.net_interfaces[0].net_protocol = transport;
+  eXosip.net_interfaces[0].net_ip_family = AF_INET;
   eXosip.net_interfaces[0].net_socket = socket;
   snprintf (eXosip.net_interfaces[0].net_port,
             sizeof (eXosip.net_interfaces[0].net_port), "%i", port);
