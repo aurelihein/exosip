@@ -243,7 +243,11 @@ _eXosip_retry_register_with_auth (eXosip_event_t * je)
       return -1;
     }
 
-  return _eXosip_retry_with_auth (NULL, &jr->r_last_tr, &jr->r_retry);
+  if (jr->r_retry < 3)
+    {
+      jr->r_retry++;
+      return eXosip_register_send_register (jr->r_id, NULL);
+    }
 }
 
 static int
@@ -252,22 +256,29 @@ _eXosip_retry_invite_with_auth (eXosip_event_t * je)
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   int *retry = NULL;
+  osip_transaction_t *tr=NULL;
 
-  if (eXosip_call_dialog_find (je->cid, &jc, &jd) < 0)
-    if (eXosip_call_find (je->cid, &jc) < 0)
-      {
-        OSIP_TRACE (osip_trace
-                    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                     "eXosip: call dialog not found\n"));
-        return -1;
-      }
+  _eXosip_call_transaction_find (je->tid, &jc,
+				 &jd, &tr);
+  if (jc==NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "eXosip: call dialog not found\n"));
+      return -1;
+    }
 
   if (jd && jd->d_dialog)
     retry = &jd->d_retry;
   else
     retry = &jc->c_retry;
 
-  return _eXosip_retry_with_auth (jd, &jc->c_out_tr, retry);
+  if (*retry < 3)
+    {
+      (*retry)++;
+      return _eXosip_call_send_request_with_credential(jc, jd, tr);
+    }
+  return -1;
 }
 
 static int
@@ -275,20 +286,19 @@ _eXosip_redirect_invite (eXosip_event_t * je)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
+  osip_transaction_t *tr=NULL;
 
-  if (eXosip_call_dialog_find (je->cid, &jc, &jd) < 0)
-    if (eXosip_call_find (je->cid, &jc) < 0)
-      {
-        OSIP_TRACE (osip_trace
-                    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                     "eXosip: call dialog not found\n"));
-        return -1;
-      }
-
-  if (!jc->c_out_tr || jc->c_out_tr->transactionid != je->tid)
-    return -1;
-
-  return _eXosip_call_redirect_request (jc, jd, jc->c_out_tr);
+  _eXosip_call_transaction_find (je->tid, &jc,
+				 &jd, &tr);
+  if (jc==NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "eXosip: call dialog not found\n"));
+      return -1;
+    }
+  
+  return _eXosip_call_redirect_request (jc, jd, tr);
 }
 
 static int
@@ -297,8 +307,9 @@ _eXosip_retry_subscribe_with_auth (eXosip_event_t * je)
   eXosip_dialog_t *jd = NULL;
   eXosip_subscribe_t *js = NULL;
   int *retry = NULL;
+  osip_transaction_t *tr=NULL;
 
-  if (eXosip_subscribe_dialog_find (je->sid, &js, &jd) < 0)
+  if (_eXosip_subscribe_transaction_find (je->tid, &js, &jd, &tr) < 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -311,7 +322,12 @@ _eXosip_retry_subscribe_with_auth (eXosip_event_t * je)
   else
     retry = &js->s_retry;
 
-  return _eXosip_retry_with_auth (jd, &js->s_out_tr, retry);
+  if (*retry < 3)
+    {
+      (*retry)++;
+      return _eXosip_subscribe_send_request_with_credential(js, jd, tr);
+    }
+  return -1;
 }
 
 static int
@@ -336,8 +352,9 @@ _eXosip_retry_notify_with_auth (eXosip_event_t * je)
   /* TODO untested */
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
+  osip_transaction_t *tr=NULL;
 
-  if (eXosip_notify_dialog_find (je->cid, &jn, &jd) < 0)
+  if (_eXosip_insubscription_transaction_find (je->cid, &jn, &jd, &tr) < 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -345,7 +362,8 @@ _eXosip_retry_notify_with_auth (eXosip_event_t * je)
       return -1;
     }
 
-  return _eXosip_retry_with_auth (jd, &jn->n_out_tr, NULL);
+  return _eXosip_insubscription_send_request_with_credential (jn, jd, tr);
+
 }
 
 static int
@@ -354,43 +372,38 @@ eXosip_retry_with_auth (eXosip_event_t * je)
   if (!je || !je->request || !je->response)
     return -1;
 
-  switch (je->type)
+  if (je->rid>0)
     {
-      case EXOSIP_REGISTRATION_FAILURE:
-        return _eXosip_retry_register_with_auth (je);
-
-      case EXOSIP_CALL_REQUESTFAILURE:
-        return _eXosip_retry_invite_with_auth (je);
-
-      case EXOSIP_CALL_MESSAGE_REQUESTFAILURE:
-        if (MSG_IS_PUBLISH (je->request))
-          return _eXosip_retry_publish_with_auth (je);
-        else if (MSG_IS_NOTIFY (je->request))
-          return _eXosip_retry_notify_with_auth (je);
-
-        OSIP_TRACE (osip_trace
-                    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                     "eXosip: not implemented\n"));
-        return -1;
-
-      case EXOSIP_MESSAGE_REQUESTFAILURE:
-        if (MSG_IS_PUBLISH (je->request))
-          return _eXosip_retry_publish_with_auth (je);
-
-        OSIP_TRACE (osip_trace
-                    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                     "eXosip: not implemented\n"));
-        return -1;
-
-      case EXOSIP_SUBSCRIPTION_REQUESTFAILURE:
-        return _eXosip_retry_subscribe_with_auth (je);
-
-      default:
-        OSIP_TRACE (osip_trace
-                    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                     "eXosip: Can't retry event %d with auth\n", je->type));
-        return -1;
+      return _eXosip_retry_register_with_auth (je);
     }
+  else if (je->cid>0)
+    {
+      return _eXosip_retry_invite_with_auth (je);
+    }
+  else if (je->sid>0)
+    {
+      return _eXosip_retry_subscribe_with_auth (je);
+    }
+  else if (je->nid>0)
+    {
+      return _eXosip_retry_notify_with_auth (je);
+    }
+  else if (MSG_IS_PUBLISH (je->request))
+    return _eXosip_retry_publish_with_auth (je);
+  else
+    {
+      osip_transaction_t *tr=NULL;
+      eXosip_transaction_find(je->tid, &tr);
+      if (tr!=NULL)
+	{
+	  return _eXosip_retry_with_auth (NULL, &tr, NULL);
+	}
+    }
+
+  OSIP_TRACE (osip_trace
+	      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	       "eXosip: Can't retry event %d with auth\n", je->type));
+  return -1;
 }
 
 static int
@@ -1017,7 +1030,7 @@ eXosip_add_authentication_information (osip_message_t * req,
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
                    "authinfo: Invalid message\n"));
       return -1;
-    }
+   }
 
   pos = 0;
   osip_message_get_www_authenticate (last_response, pos, &wwwauth);

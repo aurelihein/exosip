@@ -27,12 +27,7 @@
 
 extern eXosip_t eXosip;
 
-static int _eXosip_insubscription_transaction_find (int tid,
-                                                    eXosip_notify_t ** jn,
-                                                    eXosip_dialog_t ** jd,
-                                                    osip_transaction_t ** tr);
-
-static int
+int
 _eXosip_insubscription_transaction_find (int tid, eXosip_notify_t ** jn,
                                          eXosip_dialog_t ** jd,
                                          osip_transaction_t ** tr)

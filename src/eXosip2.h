@@ -437,8 +437,14 @@ extern "C"
   int eXosip_transaction_find (int tid, osip_transaction_t ** transaction);
   int eXosip_call_dialog_find (int jid, eXosip_call_t ** jc,
                                eXosip_dialog_t ** jd);
+  int _eXosip_insubscription_transaction_find (int tid,
+					       eXosip_notify_t ** jn,
+					       eXosip_dialog_t ** jd,
+					       osip_transaction_t ** tr);
   int eXosip_notify_dialog_find (int nid, eXosip_notify_t ** jn,
                                  eXosip_dialog_t ** jd);
+  int _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
+					  eXosip_dialog_t ** jd, osip_transaction_t ** tr);
   int eXosip_subscribe_dialog_find (int nid, eXosip_subscribe_t ** js,
                                     eXosip_dialog_t ** jd);
   int eXosip_call_find (int cid, eXosip_call_t ** jc);

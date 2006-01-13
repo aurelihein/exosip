@@ -28,6 +28,60 @@
 extern eXosip_t eXosip;
 
 int
+_eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
+				    eXosip_dialog_t ** jd, osip_transaction_t ** tr)
+{
+  for (*js = eXosip.j_subscribes; *js != NULL; *js = (*js)->next)
+    {
+      if ((*js)->s_inc_tr != NULL && (*js)->s_inc_tr->transactionid == tid)
+        {
+          *tr = (*js)->s_inc_tr;
+          *jd = (*js)->s_dialogs;
+          return 0;
+        }
+      if ((*js)->s_out_tr != NULL && (*js)->s_out_tr->transactionid == tid)
+        {
+          *tr = (*js)->s_out_tr;
+          *jd = (*js)->s_dialogs;
+          return 0;
+        }
+      for (*jd = (*js)->s_dialogs; *jd != NULL; *jd = (*jd)->next)
+        {
+          osip_transaction_t *transaction;
+          int pos = 0;
+
+          while (!osip_list_eol ((*jd)->d_inc_trs, pos))
+            {
+              transaction =
+                (osip_transaction_t *) osip_list_get ((*jd)->d_inc_trs, pos);
+              if (transaction != NULL && transaction->transactionid == tid)
+                {
+                  *tr = transaction;
+                  return 0;
+                }
+              pos++;
+            }
+
+          pos = 0;
+          while (!osip_list_eol ((*jd)->d_out_trs, pos))
+            {
+              transaction =
+                (osip_transaction_t *) osip_list_get ((*jd)->d_out_trs, pos);
+              if (transaction != NULL && transaction->transactionid == tid)
+                {
+                  *tr = transaction;
+                  return 0;
+                }
+              pos++;
+            }
+        }
+    }
+  *jd = NULL;
+  *js = NULL;
+  return -1;
+}
+
+int
 eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
                                         const char *from, const char *route,
                                         const char *event, int expires)
