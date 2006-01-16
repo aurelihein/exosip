@@ -248,6 +248,8 @@ _eXosip_retry_register_with_auth (eXosip_event_t * je)
       jr->r_retry++;
       return eXosip_register_send_register (jr->r_id, NULL);
     }
+
+    return -1;
 }
 
 static int
@@ -922,7 +924,7 @@ eXosip_find_authentication_info (const char *username, const char *realm)
   for (authinfo = eXosip.authinfos; authinfo != NULL; authinfo = authinfo->next)
     {
       OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                  (__FILE__, __LINE__, OSIP_INFO3, NULL,
                    "INFO: authinfo: %s %s\n", realm, authinfo->realm));
       if (0 == strcmp (authinfo->username, username))
         {
@@ -943,7 +945,7 @@ eXosip_find_authentication_info (const char *username, const char *realm)
   for (authinfo = eXosip.authinfos; authinfo != NULL; authinfo = authinfo->next)
     {
       OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                  (__FILE__, __LINE__, OSIP_INFO3, NULL,
                    "INFO: authinfo: %s %s\n", realm, authinfo->realm));
       if (authinfo->realm == NULL || authinfo->realm[0] == '\0')
         {
@@ -1057,9 +1059,7 @@ eXosip_add_authentication_information (osip_message_t * req,
                        req->from->url->username, wwwauth->realm));
           return -1;
         }
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                   "authinfo: %s\n", authinfo->username));
+
       i = osip_uri_to_str (req->req_uri, &uri);
       if (i != 0)
         return -1;
