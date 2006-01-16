@@ -276,6 +276,14 @@ extern "C"
       EXOSIP_IN_SUBSCRIPTION_NEW,          /**< announce new incoming SUBSCRIBE.*/
       EXOSIP_IN_SUBSCRIPTION_RELEASED,     /**< announce end of subscription.   */
       
+      EXOSIP_NOTIFICATION_NOANSWER,        /**< announce no answer              */
+      EXOSIP_NOTIFICATION_PROCEEDING,      /**< announce a 1xx                  */
+      EXOSIP_NOTIFICATION_ANSWERED,        /**< announce a 200ok                */
+      EXOSIP_NOTIFICATION_REDIRECTED,      /**< announce a redirection          */
+      EXOSIP_NOTIFICATION_REQUESTFAILURE,  /**< announce a request failure      */
+      EXOSIP_NOTIFICATION_SERVERFAILURE,   /**< announce a server failure       */
+      EXOSIP_NOTIFICATION_GLOBALFAILURE,   /**< announce a global failure       */
+
       EXOSIP_EVENT_COUNT                /**< MAX number of events              */
     } eXosip_event_type_t;
 

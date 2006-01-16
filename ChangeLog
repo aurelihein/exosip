@@ -1,4 +1,5 @@
 eXosip2 (2.2.3)
+	* announce NOTIFY answers to application.
 	* fix authentication bugs from previous patch.
 	
 eXosip2 (2.2.2)

@@ -1311,24 +1311,13 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
         jd->d_STATE = JD_TERMINATED;
   } else if (MSG_IS_RESPONSE_FOR (sip, "NOTIFY"))
     {
-#ifdef SUPPORT_MSN
-      osip_header_t *expires;
-
-      osip_message_header_get_byname (tr->orig_request, "expires", 0, &expires);
-      if (expires == NULL || expires->hvalue == NULL)
-        {
-          /* UNCOMPLIANT UA without a subscription-state header */
-      } else if (0 == osip_strcasecmp (expires->hvalue, "0"))
-        {
-          /* delete the dialog! */
-          if (jn != NULL)
-            {
-              REMOVE_ELEMENT (eXosip.j_notifies, jn);
-              eXosip_notify_free (jn);
-            }
-        }
-#else
+      eXosip_event_t *je;
       osip_header_t *sub_state;
+
+      je =
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+                                         jn, jd, tr);
+      report_event (je, sip);
 
       osip_message_header_get_byname (tr->orig_request, "subscription-state",
                                       0, &sub_state);
@@ -1344,7 +1333,6 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               eXosip_notify_free (jn);
             }
         }
-#endif
   } else if (jc != NULL)
     {
       report_call_event (EXOSIP_CALL_MESSAGE_ANSWERED, jc, jd, tr);
@@ -1437,6 +1425,14 @@ cb_rcv3xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       report_call_event (EXOSIP_CALL_REDIRECTED, jc, jd, tr);
+  } else if (MSG_IS_RESPONSE_FOR (sip, "NOTIFY"))
+    {
+      eXosip_event_t *je;
+
+      je =
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+                                         jn, jd, tr);
+      report_event (je, sip);
   } else if (MSG_IS_RESPONSE_FOR (sip, "SUBSCRIBE"))
     {
       eXosip_event_t *je;
@@ -1518,6 +1514,14 @@ cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       report_call_event (EXOSIP_CALL_REQUESTFAILURE, jc, jd, tr);
+  } else if (MSG_IS_RESPONSE_FOR (sip, "NOTIFY"))
+    {
+      eXosip_event_t *je;
+
+      je =
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+                                         jn, jd, tr);
+      report_event (je, sip);
   } else if (MSG_IS_RESPONSE_FOR (sip, "SUBSCRIBE"))
     {
       eXosip_event_t *je;
@@ -1610,6 +1614,14 @@ cb_rcv5xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       report_call_event (EXOSIP_CALL_SERVERFAILURE, jc, jd, tr);
+  } else if (MSG_IS_RESPONSE_FOR (sip, "NOTIFY"))
+    {
+      eXosip_event_t *je;
+
+      je =
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+                                         jn, jd, tr);
+      report_event (je, sip);
   } else if (MSG_IS_RESPONSE_FOR (sip, "SUBSCRIBE"))
     {
       eXosip_event_t *je;
@@ -1689,6 +1701,14 @@ cb_rcv6xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE"))
     {
       report_call_event (EXOSIP_CALL_GLOBALFAILURE, jc, jd, tr);
+  } else if (MSG_IS_RESPONSE_FOR (sip, "NOTIFY"))
+    {
+      eXosip_event_t *je;
+
+      je =
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+                                         jn, jd, tr);
+      report_event (je, sip);
   } else if (MSG_IS_RESPONSE_FOR (sip, "SUBSCRIBE"))
     {
       eXosip_event_t *je;

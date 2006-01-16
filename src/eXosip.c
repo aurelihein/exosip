@@ -356,7 +356,7 @@ _eXosip_retry_notify_with_auth (eXosip_event_t * je)
   eXosip_notify_t *jn = NULL;
   osip_transaction_t *tr=NULL;
 
-  if (_eXosip_insubscription_transaction_find (je->cid, &jn, &jd, &tr) < 0)
+  if (_eXosip_insubscription_transaction_find (je->tid, &jn, &jd, &tr) < 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
