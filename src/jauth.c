@@ -137,40 +137,18 @@ DigestCalcResponse (IN HASHHEX HA1,     /* H(A1) */
   MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
   MD5Update (&Md5Ctx, (unsigned char *) pszDigestUri, strlen (pszDigestUri));
 
-  if (pszQop != NULL)
+  if (pszQop == NULL)
     {
-
-      /*#define AUTH_INT_SUPPORT *//* experimental  */
-#ifdef AUTH_INT_SUPPORT         /* experimental  */
-      char *index = strchr (pszQop, 'i');
-
-      while (index != NULL && index - pszQop >= 5 && strlen (index) >= 3)
-        {
-          if (osip_strncasecmp (index - 5, "auth-int", 8) == 0)
-            {
-              goto auth_withqop;
-            }
-          index = strchr (index + 1, 'i');
-        }
-
-      strchr (pszQop, 'a');
-      while (index != NULL && strlen (index) >= 4)
-        {
-          if (osip_strncasecmp (index - 5, "auth", 4) == 0)
-            {
-              /* and in the case of a unknown token
-                 like auth1. It is not auth, but this
-                 implementation will think it is!??
-                 This is may not happen but it's a bug!
-               */
-              goto auth_withqop;
-            }
-          index = strchr (index + 1, 'a');
-        }
-#endif
       goto auth_withoutqop;
-
-    };
+    }
+  else if (0 == strcmp (pszQop, "auth-int"))
+    {
+      goto auth_withauth_int;
+    }
+  else if (0 == strcmp (pszQop, "auth"))
+    {
+      goto auth_withauth;
+    }
 
 auth_withoutqop:
   MD5Final ((unsigned char *) HA2, &Md5Ctx);
@@ -185,12 +163,12 @@ auth_withoutqop:
 
   goto end;
 
-#ifdef AUTH_INT_SUPPORT         /* experimental  */
-auth_withqop:
-#endif
+auth_withauth_int:
 
   MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
   MD5Update (&Md5Ctx, (unsigned char *) HEntity, HASHHEXLEN);
+
+auth_withauth:
   MD5Final ((unsigned char *) HA2, &Md5Ctx);
   CvtHex (HA2, HA2Hex);
 
@@ -223,6 +201,8 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
 {
   osip_authorization_t *aut;
   osip_www_authenticate_t *wa = NULL;
+
+  char *qop=NULL;
 
   osip_message_get_www_authenticate (previous_answer, 0, &wa);
 
@@ -286,6 +266,11 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
 
   osip_authorization_set_algorithm (aut, osip_strdup ("MD5"));
 
+  qop = osip_www_authenticate_get_qop_options (wa);
+  if (qop==NULL || qop[0]=='\0' || strlen(qop)<4)
+    qop=NULL;
+
+
   {
     char *pszNonce =
       osip_strdup_without_quote (osip_www_authenticate_get_nonce (wa));
@@ -305,17 +290,34 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
     HASHHEX Response;
     const char *pha1 = NULL;
 
+    if (qop!=NULL)
+      {
+	if (qop!=NULL)
+	  {
+	    /* only accept qop="auth" */
+	    pszQop = osip_strdup("auth");
+	  }
+	szNonceCount = osip_strdup ("00000001");
+	pszCNonce = osip_strdup ("0a4f113b");
+	
+	osip_authorization_set_message_qop (aut, osip_strdup ("auth"));
+	osip_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
+	
+	{
+	  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
+	  sprintf (tmp, "\"%s\"", pszCNonce);
+	  osip_authorization_set_cnonce (aut, tmp);
+	}
+      }
+
     pszPass = passwd;
-    if (osip_authorization_get_nonce_count (aut) != NULL)
-      szNonceCount = osip_strdup (osip_authorization_get_nonce_count (aut));
-    if (osip_authorization_get_message_qop (aut) != NULL)
-      pszQop = osip_strdup (osip_authorization_get_message_qop (aut));
 
     if (ha1 && ha1[0])
       {
         /* Depending on algorithm=md5 */
         pha1 = ha1;
-    } else
+      }
+    else
       {
         DigestCalcHA1 (pszAlg, pszUser, pszRealm, pszPass, pszNonce,
                        pszCNonce, HA1);
