@@ -210,8 +210,15 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
     }
 
   /* replace with the new tr */
-  osip_list_add (eXosip.j_transactions, out_tr, 0);
-  *ptr = tr;
+  if (MSG_IS_PUBLISH(msg))
+    {
+      /* old transaction is put in the garbage list */
+      osip_list_add (eXosip.j_transactions, out_tr, 0);
+      /* new transaction is put in the publish context */
+      *ptr = tr;
+    }
+  else
+    osip_list_add (eXosip.j_transactions, tr, 0);
 
   sipevent = osip_new_outgoing_sipmessage (msg);
 
