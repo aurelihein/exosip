@@ -783,6 +783,39 @@ __eXosip_new_jinfo (eXosip_call_t * jc, eXosip_dialog_t * jd,
 }
 
 static void
+_eXosip_learn_port_from_via(osip_transaction_t * tr, osip_message_t * sip);
+
+static void
+_eXosip_learn_port_from_via(osip_transaction_t * tr, osip_message_t * sip)
+{
+    /* EXOSIP_OPT_UDP_LEARN_PORT option set */ 
+    if (eXosip.learn_port > 0)
+    {
+        struct eXosip_net *net;
+        osip_via_t *via = NULL;
+        osip_generic_param_t *br;
+
+        net = &eXosip.net_interfaces[0];
+
+        osip_message_get_via (sip, 0, &via);
+        if (via != NULL && via->protocol != NULL
+            && osip_strcasecmp (via->protocol, "udp") == 0)
+        {
+            osip_via_param_get_byname (via, "rport", &br);
+            if (br != NULL && br->gvalue != NULL)
+            {
+                snprintf (net->net_port, 20, "%s", br->gvalue);
+                OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                            "_eXosip_learn_port_from_via (id=%i) SIP port modified from rport in SIP answer\r\n",
+                            tr->transactionid));
+            }
+        }
+    }
+    return;
+}
+
+static void
 cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 {
   eXosip_dialog_t *jd;
@@ -795,64 +828,7 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv1xx (id=%i)\r\n",
                tr->transactionid));
 
-  if (eXosip.learn_port > 0)
-    {
-      struct eXosip_net *net;
-
-      net = &eXosip.net_interfaces[0];
-      /* EXOSIP_OPT_UDP_LEARN_PORT option set */
-#if 1
-      /* learn through rport */
-      if (net->net_firewall_ip[0] != '\0')
-        {
-          osip_via_t *via = NULL;
-          osip_generic_param_t *br;
-
-          osip_message_get_via (sip, 0, &via);
-          if (via != NULL && via->protocol != NULL
-              && osip_strcasecmp (via->protocol, "udp") == 0)
-            {
-              osip_via_param_get_byname (via, "rport", &br);
-              if (br != NULL && br->gvalue != NULL)
-                {
-                  snprintf (net->net_port, 20, "%s", br->gvalue);
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                               "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
-                               tr->transactionid));
-                }
-            }
-        }
-#else
-      /* learn through REGISTER? */
-      if (net->net_firewall_ip[0] != '\0')
-        {
-          int pos = 0;
-
-          while (!osip_list_eol (reg->contacts, pos))
-            {
-              osip_contact_t *co;
-
-              co = (osip_contact_t *) osip_list_get (reg->contacts, pos);
-              pos++;
-              if (co != NULL && co->url != NULL && co->url->host != NULL
-                  && 0 == osip_strcasecmp (co->url->host, net->net_firewall_ip))
-                {
-                  if (co->url->port == NULL &&
-                      0 != osip_strcasecmp (net->net_port, "5060"))
-                    {
-                      co->url->port = osip_strdup (net->net_port);
-                  } else if (co->url->port != NULL &&
-                             0 != osip_strcasecmp (net->net_port, co->url->port))
-                    {
-                      osip_free (co->url->port);
-                      co->url->port = osip_strdup (net->net_port);
-                    }
-                }
-            }
-        }
-#endif
-    }
+  _eXosip_learn_port_from_via(tr, sip);
 
   if (jinfo == NULL)
     return;
@@ -1189,6 +1165,8 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv2xx (id=%i)\r\n",
                tr->transactionid));
 
+  _eXosip_learn_port_from_via(tr, sip);
+
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
       eXosip_pub_t *pub;
@@ -1218,68 +1196,6 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
           je = eXosip_event_init_for_reg (EXOSIP_REGISTRATION_SUCCESS, jreg, tr);
           report_event (je, sip);
           jreg->r_retry = 0;    /* reset value */
-        }
-
-
-      if (eXosip.learn_port > 0)
-        {
-          struct eXosip_net *net;
-
-          net = &eXosip.net_interfaces[0];
-          /* EXOSIP_OPT_UDP_LEARN_PORT option set */
-#if 1
-          /* learn through rport */
-          if (net->net_firewall_ip[0] != '\0')
-            {
-              osip_via_t *via = NULL;
-              osip_generic_param_t *br;
-
-              osip_message_get_via (sip, 0, &via);
-              if (via != NULL && via->protocol != NULL
-                  && osip_strcasecmp (via->protocol, "udp") == 0)
-                {
-                  osip_via_param_get_byname (via, "rport", &br);
-                  if (br != NULL && br->gvalue != NULL)
-                    {
-                      snprintf (net->net_port, 20, "%s", br->gvalue);
-                      OSIP_TRACE (osip_trace
-                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                   "cb_rcv1xx (id=%i) SIP port modified from rport in REGISTER answer\r\n",
-                                   tr->transactionid));
-                    }
-                }
-            }
-#else
-          /* learn through REGISTER? */
-          if (net->net_firewall_ip[0] != '\0')
-            {
-              int pos = 0;
-
-              while (!osip_list_eol (reg->contacts, pos))
-                {
-                  osip_contact_t *co;
-
-                  co = (osip_contact_t *) osip_list_get (reg->contacts, pos);
-                  pos++;
-                  if (co != NULL && co->url != NULL && co->url->host != NULL
-                      && 0 == osip_strcasecmp (co->url->host,
-                                               net->net_firewall_ip))
-                    {
-                      if (co->url->port == NULL &&
-                          0 != osip_strcasecmp (net->net_port, "5060"))
-                        {
-                          co->url->port = osip_strdup (net->net_port);
-                      } else if (co->url->port != NULL &&
-                                 0 != osip_strcasecmp (net->net_port,
-                                                       co->url->port))
-                        {
-                          osip_free (co->url->port);
-                          co->url->port = osip_strdup (net->net_port);
-                        }
-                    }
-                }
-            }
-#endif
         }
 
       return;
@@ -1392,6 +1308,8 @@ cb_rcv3xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv3xx (id=%i)\r\n",
                tr->transactionid));
 
+  _eXosip_learn_port_from_via(tr, sip);
+
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
       eXosip_event_t *je;
@@ -1479,6 +1397,8 @@ cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv4xx (id=%i)\r\n",
                tr->transactionid));
+
+  _eXosip_learn_port_from_via(tr, sip);
 
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
@@ -1581,6 +1501,8 @@ cb_rcv5xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv5xx (id=%i)\r\n",
                tr->transactionid));
 
+  _eXosip_learn_port_from_via(tr, sip);
+
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
       eXosip_pub_t *pub;
@@ -1663,6 +1585,8 @@ cb_rcv6xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   eXosip_subscribe_t *js;
   eXosip_notify_t *jn;
   jinfo_t *jinfo = (jinfo_t *) osip_transaction_get_your_instance (tr);
+
+  _eXosip_learn_port_from_via(tr, sip);
 
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv6xx (id=%i)\r\n",
