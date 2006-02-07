@@ -110,6 +110,47 @@ eXosip_dns_get_local_fqdn (char **servername, char **serverip,
   return 0;
 }
 
+#if 0
+
+int
+eXosip_guess_ip_for_via (int family, char *address, int size)
+{
+  SOCKET sock;
+  SOCKADDR_STORAGE local_addr;
+  int local_addr_len;
+  struct addrinfo *addrf;
+  
+  sock = socket(family, SOCK_DGRAM, 0);
+  
+  if(family == AF_INET)
+    {
+      getaddrinfo("217.12.3.11",NULL,NULL,&addrf);
+    }
+  else if(family == AF_INET6)
+    {
+      getaddrinfo("2001:238:202::1",NULL,NULL,&addrf);
+    }
+  
+  if(WSAIoctl(sock,SIO_ROUTING_INTERFACE_QUERY, addrf->ai_addr, addrf->ai_addrlen,
+	      &local_addr, sizeof(local_addr), &local_addr_len, NULL, NULL) != 0)
+    {
+      freeaddrinfo(addrf);
+      return -1;
+    }
+  
+  freeaddrinfo(addrf);
+  
+  if(getnameinfo((const struct sockaddr*)&local_addr,
+		 local_addr_len,address, size, NULL, 0, NI_NUMERICHOST))
+    {
+      return -1;
+    }
+  
+  return 0;
+}
+
+#else
+
 int
 eXosip_guess_ip_for_via (int family, char *address, int size)
 {
@@ -298,6 +339,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
 #endif /* WANT_INTERFACE_ANYWAY */
 }
 
+#endif
 
 #else /* sun, *BSD, linux, and other? */
 
