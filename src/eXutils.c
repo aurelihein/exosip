@@ -110,7 +110,7 @@ eXosip_dns_get_local_fqdn (char **servername, char **serverip,
   return 0;
 }
 
-#if 0
+#if 1
 
 int
 eXosip_guess_ip_for_via (int family, char *address, int size)
@@ -120,6 +120,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   int local_addr_len;
   struct addrinfo *addrf;
   
+  address[0] = '\0';
   sock = socket(family, SOCK_DGRAM, 0);
   
   if(family == AF_INET)
@@ -134,10 +135,12 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   if(WSAIoctl(sock,SIO_ROUTING_INTERFACE_QUERY, addrf->ai_addr, addrf->ai_addrlen,
 	      &local_addr, sizeof(local_addr), &local_addr_len, NULL, NULL) != 0)
     {
+      closesocket(sock);
       freeaddrinfo(addrf);
       return -1;
     }
   
+  closesocket(sock);
   freeaddrinfo(addrf);
   
   if(getnameinfo((const struct sockaddr*)&local_addr,
