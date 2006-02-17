@@ -106,19 +106,19 @@ eXosip_options_build_answer (int tid, int status, osip_message_t ** answer)
 #endif
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: status code 1xx for options not implemented (use 200<status<699)\n"));
+                   "eXosip: status code 1xx for options not implemented (use 200<status<=699)\n"));
       return -1;
   } else if (status > 199 && status < 300)
     {
       i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
-  } else if (status > 300 && status < 699)
+  } else if (status > 300 && status <= 699)
     {
       i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
   } else
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: wrong status code (200<status<699)\n"));
+                   "eXosip: wrong status code (200<status<=699)\n"));
       return -1;
     }
   if (i != 0)
@@ -168,14 +168,14 @@ eXosip_options_send_answer (int tid, int status, osip_message_t * answer)
 #endif
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: status code 1xx for options not implemented (use 200<status<699)\n"));
+                       "eXosip: status code 1xx for options not implemented (use 200<status<=699)\n"));
           return -1;
       } else if (status > 199 && status < 300)
         {
           i =
             _eXosip_build_response_default (&answer, NULL, status,
                                             tr->orig_request);
-      } else if (status > 300 && status < 699)
+      } else if (status > 300 && status <= 699)
         {
           i =
             _eXosip_build_response_default (&answer, NULL, status,
@@ -184,7 +184,7 @@ eXosip_options_send_answer (int tid, int status, osip_message_t * answer)
         {
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: wrong status code (200<status<699)\n"));
+                       "eXosip: wrong status code (200<status<=699)\n"));
           return -1;
         }
       if (i != 0)

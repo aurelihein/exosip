@@ -761,14 +761,14 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
       } else if (status > 199 && status < 300)
         {
           i = _eXosip_answer_invite_2xx (jc, jd, status, answer);
-      } else if (status > 300 && status < 699)
+      } else if (status > 300 && status <= 699)
         {
           i = _eXosip_answer_invite_3456xx (jc, jd, status, answer);
       } else
         {
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: wrong status code (101<status<699)\n"));
+                       "eXosip: wrong status code (101<status<=699)\n"));
           return -1;
         }
   } else
@@ -926,7 +926,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
         {
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: wrong status code (101<status<699)\n"));
+                       "eXosip: wrong status code (101<status<=699)\n"));
           osip_message_free (answer);
           return -1;
         }

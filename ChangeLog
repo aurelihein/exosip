@@ -1,6 +1,8 @@
 eXosip2 (2.2.3)
 	* announce NOTIFY answers to application.
 	* fix authentication bugs from previous patch.
+	* fix TCP bug
+	* fix using code 699
 	
 eXosip2 (2.2.2)
 	* new version synchronized with osip2
