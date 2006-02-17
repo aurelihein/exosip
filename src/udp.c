@@ -1580,7 +1580,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
   while (max_message_nb != 0 && eXosip.j_stop_ua == 0)
     {
       int i;
-      int max;
+      int max=0;
       int wakeup_socket = jpipe_get_read_descr (eXosip.j_socketctl);
 
       FD_ZERO (&osip_fdset);
