@@ -65,6 +65,7 @@
  *    REFER/NOTIFY             to transfer calls.
  *    MESSAGE                  to send Instant Message.
  *    SUBSCRIBE/NOTIFY         to handle presence capabilities.
+ *    any other request        to handle what you want!
  * </pre>
  * <P>
  */
@@ -236,8 +237,8 @@ extern "C"
       EXOSIP_CALL_TIMEOUT,         /**< announce that call has failed         */
 
       /* request related events within calls (except INVITE) */
-      EXOSIP_CALL_MESSAGE_NEW,            /**< announce new incoming MESSAGE. */
-      EXOSIP_CALL_MESSAGE_PROCEEDING,     /**< announce a 1xx for MESSAGE. */
+      EXOSIP_CALL_MESSAGE_NEW,            /**< announce new incoming request. */
+      EXOSIP_CALL_MESSAGE_PROCEEDING,     /**< announce a 1xx for request. */
       EXOSIP_CALL_MESSAGE_ANSWERED,       /**< announce a 200ok  */
       EXOSIP_CALL_MESSAGE_REDIRECTED,     /**< announce a failure. */
       EXOSIP_CALL_MESSAGE_REQUESTFAILURE, /**< announce a failure. */
@@ -250,8 +251,8 @@ extern "C"
       EXOSIP_CALL_RELEASED,           /**< call context is cleared.            */
       
       /* response received for request outside calls */
-      EXOSIP_MESSAGE_NEW,            /**< announce new incoming MESSAGE. */
-      EXOSIP_MESSAGE_PROCEEDING,     /**< announce a 1xx for MESSAGE. */
+      EXOSIP_MESSAGE_NEW,            /**< announce new incoming request. */
+      EXOSIP_MESSAGE_PROCEEDING,     /**< announce a 1xx for request. */
       EXOSIP_MESSAGE_ANSWERED,       /**< announce a 200ok  */
       EXOSIP_MESSAGE_REDIRECTED,     /**< announce a failure. */
       EXOSIP_MESSAGE_REQUESTFAILURE, /**< announce a failure. */

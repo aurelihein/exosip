@@ -35,64 +35,63 @@ extern "C"
 
 /**
  * @file eX_message.h
- * @brief eXosip message request API
+ * @brief eXosip request API
  *
- * This file provide the API needed to control MESSAGE requests. You can
+ * This file provide the API needed to control requests. You can
  * use it to:
  *
  * <ul>
- * <li>build MESSAGE requests.</li>
- * <li>send MESSAGE requests.</li>
- * <li>build MESSAGE answers.</li>
- * <li>send MESSAGE answers.</li>
+ * <li>build any requests.</li>
+ * <li>send any requests.</li>
+ * <li>build any answers.</li>
+ * <li>send any answers.</li>
  * </ul>
  */
 
 /**
- * @defgroup eXosip2_message eXosip2 MESSAGE and messaging services outside of dialog
+ * @defgroup eXosip2_message eXosip2 request outside of dialog
  * @ingroup eXosip2_msg
  * @{
  */
 
 /**
- * Build a default MESSAGE message.
+ * Build a default request message.
  * 
  * This method will be updated to send any message outside of dialog
  * In this later case, you'll specify the method to use in the second
  * argument.
  *
- * By now, use this method only for the "MESSAGE" request.
  *
  * @param message   Pointer for the SIP request to build.
- * @param method    request method. ("MESSAGE")
+ * @param method    request method. (like "MESSAGE" or "PING"...)
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
- * @param route     Route header for INVITE. (optionnal)
+ * @param route     Route header for request. (optionnal)
  */
   int eXosip_message_build_request(osip_message_t **message, const char *method,
 				   const char *to, const char *from,
 				   const char *route);
 
 /**
- * Send an MESSAGE request.
+ * Send an request.
  * 
- * @param message          SIP MESSAGE message to send.
+ * @param message          SIP request to send.
  */
   int eXosip_message_send_request(osip_message_t *message);
 
 /**
- * Build answer for an MESSAGE request.
+ * Build answer for a request.
  * 
- * @param tid             id of MESSAGE transaction.
+ * @param tid             id of transaction.
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
  */
   int eXosip_message_build_answer(int tid, int status, osip_message_t **answer);
 
 /**
- * Send answer for an MESSAGE request.
+ * Send answer for a request.
  * 
- * @param tid             id of MESSAGE transaction.
+ * @param tid             id of transaction.
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)
  */
