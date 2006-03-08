@@ -177,7 +177,14 @@ window_sessions_list_run_command (int c)
         eXosip_lock ();
         {
           osip_message_t *answer = NULL;
-
+#if 0
+	  char refer_to[1024];
+	  i = eXosip_call_get_referto(ca->did, refer_to, sizeof(refer_to));
+	  if (i==0)
+	    {
+	      printf("refer-to: %s\n", refer_to);
+	    }
+#endif
           i = eXosip_call_build_answer (ca->tid, 200, &answer);
           if (i != 0)
             {

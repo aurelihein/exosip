@@ -221,6 +221,16 @@ extern "C"
  */
   int eXosip_transfer_send_notify(int did, int subscription_status, char *body);
 
+
+/**
+ * Get Refer-To header with Replace parameter from dialog.
+ * 
+ * @param did            id of the dialog.
+ * @param refer_to       buffer to be filled with refer-to info.
+ * @param refer_to_len   size of refer_to buffer.
+ */
+  int eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len);
+
 /** @} */
 
 

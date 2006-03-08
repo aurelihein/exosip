@@ -1609,3 +1609,66 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
   __eXosip_wakeup ();
   return 0;
 }
+
+int
+eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  osip_transaction_t *tr = NULL;
+  osip_uri_t *referto_uri;
+  char atmp[256];
+  char *referto_tmp=NULL;
+  int i;
+
+  eXosip_call_dialog_find (did, &jc, &jd);
+  if (jc == NULL || jd == NULL || jd->d_dialog == NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "eXosip: No call here?\n"));
+      return -1;
+    }
+
+  tr = eXosip_find_last_invite (jc, jd);
+
+  if (tr == NULL || tr->orig_request == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No transaction for call?\n"));
+      return -1;
+    }
+
+  i = osip_uri_clone(jd->d_dialog->remote_uri->url, &referto_uri);
+  if (i!=0)
+    return -1;
+
+  if (jd->d_dialog->type == CALLER)
+    {
+      snprintf(atmp, sizeof(atmp), "%s;to-tag=%s;from-tag=%s",
+	       jd->d_dialog->call_id,
+	       jd->d_dialog->remote_tag,
+	       jd->d_dialog->local_tag);      
+    }
+  else
+    {
+      snprintf(atmp, sizeof(atmp), "%s;to-tag=%s;from-tag=%s",
+	       jd->d_dialog->call_id,
+	       jd->d_dialog->local_tag,
+	       jd->d_dialog->remote_tag);
+    }
+
+  osip_uri_uheader_add(referto_uri, osip_strdup("Replaces"), osip_strdup(atmp));
+  i = osip_uri_to_str(referto_uri, &referto_tmp);
+  if (i!=0)
+    {
+      osip_uri_free(referto_uri);      
+      return -1;
+    }
+
+  snprintf(refer_to, refer_to_len, "%s", referto_tmp);
+  osip_uri_free(referto_uri);
+
+  return 0;
+}

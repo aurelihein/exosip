@@ -54,7 +54,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
   /* handle some internal reason definitions. */
   if (MSG_IS_NOTIFY (request) && status == 481)
     {
-      response->reason_phrase = osip_strdup ("Subcription Does Not Exist");
+      response->reason_phrase = osip_strdup ("Subscription Does Not Exist");
   } else if (MSG_IS_SUBSCRIBE (request) && status == 202)
     {
       response->reason_phrase = osip_strdup ("Accepted subscription");
