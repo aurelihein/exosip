@@ -1,4 +1,3 @@
-
 /*
   eXosip - This is the eXtended osip library.
   Copyright (C) 2002,2003,2004,2005  Aymeric MOIZARD  - jack@atosc.org
