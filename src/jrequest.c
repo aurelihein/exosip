@@ -247,7 +247,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   }
 
   /* always add the Max-Forward header */
-  osip_message_set_max_forwards (request, "5"); /* a UA should start a request with 70 */
+  osip_message_set_max_forwards (request, "70"); /* a UA should start a request with 70 */
 
 #define MASQUERADE_VIA
 #ifdef MASQUERADE_VIA
@@ -752,7 +752,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
     }
 
   /* always add the Max-Forward header */
-  osip_message_set_max_forwards (request, "5"); /* a UA should start a request with 70 */
+  osip_message_set_max_forwards (request, "70"); /* a UA should start a request with 70 */
 
 
   /* even for ACK for 2xx (ACK within a dialog), the branch ID MUST
