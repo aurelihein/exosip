@@ -45,6 +45,18 @@ eXosip_reg_find (int rid)
   return NULL;
 }
 
+int eXosip_register_remove (int rid)
+{
+  eXosip_reg_t *jr;
+  jr = eXosip_reg_find (rid);
+  if (jr == NULL)
+    {
+      /* fprintf(stderr, "eXosip: no registration info saved!\n"); */
+      return -1;
+    }
+  jr->r_reg_period = 0;
+  return 0;
+}
 
 static int
 _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)

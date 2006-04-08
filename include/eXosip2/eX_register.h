@@ -86,6 +86,13 @@ extern "C"
  */
   int eXosip_register_send_register(int rid, osip_message_t *reg);
 
+/**
+ * Remove existing registration without sending REGISTER.
+ * 
+ * @param rid       A unique identifier for the registration context
+ */
+  int eXosip_register_remove (int rid);
+
 /** @} */
 
 
