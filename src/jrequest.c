@@ -333,10 +333,12 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
         i = osip_from_parse (a_from, from);
 
       if (i == 0 && a_from != NULL
-          && a_from->url != NULL && a_from->url->username != NULL)
+          && a_from->url != NULL)
         {
-          contact = (char *) osip_malloc (50 + strlen (a_from->url->username));
-
+	  if (a_from->url->username != NULL)
+	    contact = (char *) osip_malloc (50 + strlen (a_from->url->username));
+	  else
+	    contact = (char *) osip_malloc (50);
           if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
             {
               char *c_address = request->req_uri->host;
@@ -360,18 +362,33 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
               if (eXosip_is_public_address (c_address))
                 {
-                  sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                           eXosip.net_interfaces[0].net_firewall_ip,
-                           net->net_port);
-              } else
-                {
-                  sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                           locip, net->net_port);
+		  if (a_from->url->username != NULL)
+		    sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
+			     eXosip.net_interfaces[0].net_firewall_ip,
+			     net->net_port);
+		  else
+		    sprintf (contact, "<sip:%s:%s>",
+			     eXosip.net_interfaces[0].net_firewall_ip,
+			     net->net_port);
+		}
+	      else
+		{
+		  if (a_from->url->username != NULL)
+		    sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
+			     locip, net->net_port);
+		  else
+		    sprintf (contact, "<sip:%s:%s>",
+			     locip, net->net_port);
                 }
-          } else
-            {
-              sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                       locip, net->net_port);
+	    }
+	  else
+	    {
+	      if (a_from->url->username != NULL)
+		sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
+			 locip, net->net_port);
+	      else
+		sprintf (contact, "<sip:%s:%s>",
+			 locip, net->net_port);
             }
           osip_message_set_contact (request, contact);
           osip_free (contact);
