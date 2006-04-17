@@ -932,6 +932,7 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       } else
         {
           osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
+          osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
         }
 
       if (jd != NULL)
@@ -1041,6 +1042,7 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
       if (i == 1)               /* just update the dialog */
         {
           osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
+          osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
           osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
       } else
         {
@@ -1136,6 +1138,7 @@ cb_rcv2xx_4subscribe (osip_transaction_t * tr, osip_message_t * sip)
   } else
     {
       osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
+      osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
       osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
     }
 
