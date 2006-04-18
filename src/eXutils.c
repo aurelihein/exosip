@@ -137,6 +137,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
     {
       closesocket(sock);
       freeaddrinfo(addrf);
+      snprintf(address, size, "127.0.0.1");
       return -1;
     }
   
@@ -146,6 +147,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   if(getnameinfo((const struct sockaddr*)&local_addr,
 		 local_addr_len,address, size, NULL, 0, NI_NUMERICHOST))
     {
+      snprintf(address, size, "127.0.0.1");
       return -1;
     }
   
@@ -404,6 +406,7 @@ ppl_dns_default_gateway_ipv4 (char *address, int size)
     {
       perror ("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
       close (sock_rt);
+      snprintf(address, size, "127.0.0.1");
       return -1;
     }
 
@@ -412,6 +415,7 @@ ppl_dns_default_gateway_ipv4 (char *address, int size)
     {
       perror ("DEBUG: [get_output_if] connect");
       close (sock_rt);
+      snprintf(address, size, "127.0.0.1");
       return -1;
     }
 
@@ -420,12 +424,14 @@ ppl_dns_default_gateway_ipv4 (char *address, int size)
     {
       perror ("DEBUG: [get_output_if] getsockname");
       close (sock_rt);
+      snprintf(address, size, "127.0.0.1");
       return -1;
     }
 
   close (sock_rt);
   if (iface_out.sin_addr.s_addr == 0)
     {                           /* what is this case?? */
+      snprintf(address, size, "127.0.0.1");
       return -1;
     }
   osip_strncpy (address, inet_ntoa (iface_out.sin_addr), size - 1);
