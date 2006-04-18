@@ -63,7 +63,7 @@ endif
 
 
 if UCL_SUPPORT
-MORE_MYADD = /usr/local/lib/libuclmmbase.a
+MORE_MYADD = -L$(libdir) -luclmmbase
 
 MORE_INCLUDES = -I/ucl
 else
