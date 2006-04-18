@@ -1,3 +1,11 @@
+libexosip2 (2.2.3-1) unstable; urgency=high
+  * announce NOTIFY answers to application.
+  * fix authentication bugs from previous patch.
+  * fix TCP bug
+  * fix using code 699
+
+ -- Aymeric MOIZARD <jack@atosc.org>  Tue, 18 Apr 2006 13:04:32 +0100
+	
 libexosip2 (1.9.1-pre16-1) unstable; urgency=low
 
   * Initial release
