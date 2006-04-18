@@ -125,7 +125,7 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
         port = 5060;
     }
 
-  via = (osip_via_t *) osip_list_get (sip->vias, 0);
+  via = (osip_via_t *) osip_list_get (&sip->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return -1;
 

@@ -90,6 +90,7 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
   eXosip_get_localip_from_via (inc_subscribe, locip, 49);
 #else
   i = _eXosip_find_protocol (inc_subscribe);
+  memset(locip, '\0', sizeof(locip));
   if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
@@ -109,7 +110,7 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
   if (inc_subscribe == NULL
       || inc_subscribe->to == NULL || inc_subscribe->to->url == NULL)
     return -1;
-  co = (osip_contact_t *) osip_list_get (inc_subscribe->contacts, 0);
+  co = (osip_contact_t *) osip_list_get (&inc_subscribe->contacts, 0);
   if (co == NULL || co->url == NULL)
     return -1;
 

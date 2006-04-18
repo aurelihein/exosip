@@ -32,7 +32,7 @@ _eXosip_transport_protocol (osip_message_t * msg)
 {
   osip_via_t *via;
 
-  via = (osip_via_t *) osip_list_get (msg->vias, 0);
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return NULL;
   return via->protocol;
@@ -43,7 +43,7 @@ _eXosip_find_protocol (osip_message_t * msg)
 {
   osip_via_t *via;
 
-  via = (osip_via_t *) osip_list_get (msg->vias, 0);
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return -1;
   else if (0 == osip_strcasecmp (via->protocol, "UDP"))
@@ -185,7 +185,7 @@ eXosip_transport_set (osip_message_t * msg, const char *transport)
 {
   osip_via_t *via;
 
-  via = (osip_via_t *) osip_list_get (msg->vias, 0);
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return -1;
 

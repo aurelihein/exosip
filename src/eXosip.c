@@ -130,7 +130,7 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       return -1;
     }
 
-  via = (osip_via_t *) osip_list_get (msg->vias, 0);
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || msg->cseq == NULL || msg->cseq->number == NULL)
     {
       osip_message_free (msg);
@@ -149,9 +149,10 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       jd->d_dialog->local_cseq++;
     }
 
-  osip_list_remove (msg->vias, 0);
+  osip_list_remove (&msg->vias, 0);
   osip_via_free (via);
   i = _eXosip_find_protocol (out_tr->orig_request);
+  memset(locip, '\0', sizeof(locip));
   if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
@@ -188,7 +189,7 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
 
   osip_via_init (&via);
   osip_via_parse (via, tmp);
-  osip_list_add (msg->vias, via, 0);
+  osip_list_add (&msg->vias, via, 0);
 
   if (eXosip_add_authentication_information (msg, out_tr->last_response) < 0)
     {
@@ -1082,7 +1083,7 @@ eXosip_add_authentication_information (osip_message_t * req,
 
       if (aut != NULL)
         {
-          osip_list_add (req->authorizations, aut, -1);
+          osip_list_add (&req->authorizations, aut, -1);
           osip_message_force_update (req);
         }
 
@@ -1123,7 +1124,7 @@ eXosip_add_authentication_information (osip_message_t * req,
 
       if (proxy_aut != NULL)
         {
-          osip_list_add (req->proxy_authorizations, proxy_aut, -1);
+          osip_list_add (&req->proxy_authorizations, proxy_aut, -1);
           osip_message_force_update (req);
         }
 
@@ -1139,16 +1140,17 @@ eXosip_update_top_via (osip_message_t * sip)
 {
   char locip[50];
   char *tmp = (char *) osip_malloc (256 * sizeof (char));
-  osip_via_t *via = (osip_via_t *) osip_list_get (sip->vias, 0);
+  osip_via_t *via = (osip_via_t *) osip_list_get (&sip->vias, 0);
   int i;
 
   i = _eXosip_find_protocol (sip);
 
-  osip_list_remove (sip->vias, 0);
+  osip_list_remove (&sip->vias, 0);
   osip_via_free (via);
 #ifdef SM
   eXosip_get_localip_for (sip->req_uri->host, locip, 49);
 #else
+  memset(locip, '\0', sizeof(locip));
   if (i == IPPROTO_UDP)
     eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
   else if (i == IPPROTO_TCP)
@@ -1185,7 +1187,7 @@ eXosip_update_top_via (osip_message_t * sip)
 
   osip_via_init (&via);
   osip_via_parse (via, tmp);
-  osip_list_add (sip->vias, via, 0);
+  osip_list_add (&sip->vias, via, 0);
   osip_free (tmp);
 
   return 0;

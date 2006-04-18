@@ -118,6 +118,19 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
   *dest = NULL;
 
+  /*guess the local ip since req uri is known */
+  memset(locip, '\0', sizeof(locip));
+#ifndef SM
+  eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
+#endif
+  if (locip[0]=='\0')
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: no default interface defined\n"));
+      return -1;
+    }
+
   i = osip_message_init (&request);
   if (i != 0)
     return -1;
@@ -173,7 +186,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
               osip_uri_clone (request->to->url, &(request->req_uri));
               /* "[request] MUST includes a Route header field containing
                  the route set values in order." */
-              osip_list_add (request->routes, o_proxy, 0);
+              osip_list_add (&request->routes, o_proxy, 0);
           } else
             /* if the first URI of route set does not contain "lr", the req_uri
                is set to the first uri of route set */
@@ -197,22 +210,13 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
             goto brood_error_1;
         }
     }
-  /*guess the local ip since req uri is known */
-#ifdef SM
+
+#ifndef SM
   eXosip_get_localip_for (request->req_uri->host, locip, 49);
-#else
-  if (0 == osip_strcasecmp (transport, "udp"))
-    eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
-  else if (0 == osip_strcasecmp (transport, "tcp"))
-    eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip, 49);
-  else
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol (default to UDP)\n"));
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
-    }
 #endif
+  if (locip[0]=='\0')
+    goto brood_error_1;
+
   /* set To and From */
   osip_message_set_from (request, from);
   /* add a tag */
@@ -455,14 +459,27 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: unsupported protocol\n"));
+      osip_message_free(*reg);
+      *reg=NULL;
       return -1;
     }
 
+  memset(locip, '\0', sizeof(locip));
 #ifdef SM
   eXosip_get_localip_for ((*reg)->req_uri->host, locip, 49);
 #else
   eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
 #endif
+
+  if (locip[0]=='\0')
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: no default interface defined\n"));
+      osip_message_free(*reg);
+      *reg=NULL;
+      return -1;
+    }
 
   if (contact == NULL)
     {
@@ -568,16 +585,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
 
   /* AMD bug: fixed 17/06/2002 */
 
-#ifdef OSIP_FUTURE_FIX_2_3
-  route = (osip_route_t *) osip_list_get (dialog->route_set, 0);
-#else
-  if (dialog->type == CALLER)
-    {
-      pos = osip_list_size (dialog->route_set) - 1;
-      route = (osip_route_t *) osip_list_get (dialog->route_set, pos);
-  } else
-    route = (osip_route_t *) osip_list_get (dialog->route_set, 0);
-#endif
+  route = (osip_route_t *) osip_list_get (&dialog->route_set, 0);
 
   osip_uri_uparam_get_byname (route->url, "lr", &lr_param);
   if (lr_param != NULL)         /* the remote target URI is the req_uri! */
@@ -589,23 +597,16 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
          the route set values in order." */
       /* AMD bug: fixed 17/06/2002 */
       pos = 0;                  /* first element is at index 0 */
-      while (!osip_list_eol (dialog->route_set, pos))
+      while (!osip_list_eol (&dialog->route_set, pos))
         {
           osip_route_t *route2;
 
-          route = osip_list_get (dialog->route_set, pos);
+          route = osip_list_get (&dialog->route_set, pos);
           i = osip_route_clone (route, &route2);
           if (i != 0)
             return -1;
-#ifdef OSIP_FUTURE_FIX_2_3
-          osip_list_add (request->routes, route2, -1);
-#else
-          if (dialog->type == CALLER)
-            osip_list_add (request->routes, route2, 0);
-          else
-            osip_list_add (request->routes, route2, -1);
+          osip_list_add (&request->routes, route2, -1);
           pos++;
-#endif
         }
       return 0;
     }
@@ -622,34 +623,18 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
      the remainder of the route set values in order. */
   pos = 0;                      /* yes it is */
 
-  while (!osip_list_eol (dialog->route_set, pos))       /* not the first one in the list */
+  while (!osip_list_eol (&dialog->route_set, pos))       /* not the first one in the list */
     {
       osip_route_t *route2;
 
-      route = osip_list_get (dialog->route_set, pos);
+      route = osip_list_get (&dialog->route_set, pos);
       i = osip_route_clone (route, &route2);
       if (i != 0)
         return -1;
-#ifdef OSIP_FUTURE_FIX_2_3
-      if (!osip_list_eol (dialog->route_set, pos + 1))
-        osip_list_add (request->routes, route2, -1);
+      if (!osip_list_eol (&dialog->route_set, pos + 1))
+        osip_list_add (&request->routes, route2, -1);
       else
         osip_route_free (route2);
-#else
-      if (dialog->type == CALLER)
-        {
-          if (pos != osip_list_size (dialog->route_set) - 1)
-            osip_list_add (request->routes, route2, 0);
-          else
-            osip_route_free (route2);
-      } else
-        {
-          if (!osip_list_eol (dialog->route_set, pos + 1))
-            osip_list_add (request->routes, route2, -1);
-          else
-            osip_route_free (route2);
-        }
-#endif
       pos++;
     }
 
@@ -679,6 +664,8 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   char locip[50];
   struct eXosip_net *net;
 
+  *dest=NULL;
+
   i = osip_message_init (&request);
   if (i != 0)
     return -1;
@@ -704,11 +691,21 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
       net = &eXosip.net_interfaces[0];
     }
 
+  memset(locip, '\0', sizeof(locip));
 #ifdef SM
   eXosip_get_localip_for (dialog->remote_contact_uri->url->host, locip, 49);
 #else
   eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
 #endif
+  if (locip[0]=='\0')
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: no default interface defined\n"));
+      osip_message_free(request);
+      return -1;
+    }
+
   /* prepare the request-line */
   request->sip_method = osip_strdup (method);
   request->sip_version = osip_strdup ("SIP/2.0");
@@ -716,7 +713,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   request->reason_phrase = NULL;
 
   /* and the request uri???? */
-  if (osip_list_eol (dialog->route_set, 0))
+  if (osip_list_eol (&dialog->route_set, 0))
     {
       /* The UAC must put the remote target URI (to field) in the req_uri */
       i = osip_uri_clone (dialog->remote_contact_uri->url, &(request->req_uri));
@@ -981,7 +978,7 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
     i = osip_via_clone (via, &via2);
     if (i != 0)
       goto gc_error_1;
-    osip_list_add (request->vias, via2, -1);
+    osip_list_add (&request->vias, via2, -1);
   }
 
   /* add the same route-set than in the previous request */
@@ -990,13 +987,13 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
     osip_route_t *route;
     osip_route_t *route2;
 
-    while (!osip_list_eol (request_cancelled->routes, pos))
+    while (!osip_list_eol (&request_cancelled->routes, pos))
       {
-        route = (osip_route_t *) osip_list_get (request_cancelled->routes, pos);
+        route = (osip_route_t *) osip_list_get (&request_cancelled->routes, pos);
         i = osip_route_clone (route, &route2);
         if (i != 0)
           goto gc_error_1;
-        osip_list_add (request->routes, route2, -1);
+        osip_list_add (&request->routes, route2, -1);
         pos++;
       }
   }

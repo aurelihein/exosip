@@ -58,20 +58,20 @@ sdp_complete_message (int did, sdp_message_t * remote_sdp, osip_message_t * msg)
             "s=conversation\r\n" "c=IN IP4 %s\r\n" "t=0 0\r\n", localip, localip);
 
   pos = 0;
-  while (!osip_list_eol (remote_sdp->m_medias, pos))
+  while (!osip_list_eol (&remote_sdp->m_medias, pos))
     {
       char payloads[128];
       int pos2;
 
       memset (payloads, '\0', sizeof (payloads));
-      remote_med = (sdp_media_t *) osip_list_get (remote_sdp->m_medias, pos);
+      remote_med = (sdp_media_t *) osip_list_get (&remote_sdp->m_medias, pos);
 
       if (0 == osip_strcasecmp (remote_med->m_media, "audio"))
         {
           pos2 = 0;
-          while (!osip_list_eol (remote_med->m_payloads, pos2))
+          while (!osip_list_eol (&remote_med->m_payloads, pos2))
             {
-              tmp = (char *) osip_list_get (remote_med->m_payloads, pos2);
+              tmp = (char *) osip_list_get (&remote_med->m_payloads, pos2);
               if (tmp != NULL &&
                   (0 == osip_strcasecmp (tmp, "0")
                    || 0 == osip_strcasecmp (tmp, "8")))
@@ -153,20 +153,20 @@ sdp_complete_200ok (int did, osip_message_t * answer)
             "s=conversation\r\n" "c=IN IP4 %s\r\n" "t=0 0\r\n", localip, localip);
 
   pos = 0;
-  while (!osip_list_eol (remote_sdp->m_medias, pos))
+  while (!osip_list_eol (&remote_sdp->m_medias, pos))
     {
       char payloads[128];
       int pos2;
 
       memset (payloads, '\0', sizeof (payloads));
-      remote_med = (sdp_media_t *) osip_list_get (remote_sdp->m_medias, pos);
+      remote_med = (sdp_media_t *) osip_list_get (&remote_sdp->m_medias, pos);
 
       if (0 == osip_strcasecmp (remote_med->m_media, "audio"))
         {
           pos2 = 0;
-          while (!osip_list_eol (remote_med->m_payloads, pos2))
+          while (!osip_list_eol (&remote_med->m_payloads, pos2))
             {
-              tmp = (char *) osip_list_get (remote_med->m_payloads, pos2);
+              tmp = (char *) osip_list_get (&remote_med->m_payloads, pos2);
               if (tmp != NULL &&
                   (0 == osip_strcasecmp (tmp, "0")
                    || 0 == osip_strcasecmp (tmp, "8")))
@@ -327,11 +327,11 @@ _sdp_analyse_attribute (sdp_message_t * sdp, sdp_media_t * med)
 
   /* test media attributes */
   pos = 0;
-  while (!osip_list_eol (med->a_attributes, pos))
+  while (!osip_list_eol (&med->a_attributes, pos))
     {
       sdp_attribute_t *at;
 
-      at = (sdp_attribute_t *) osip_list_get (med->a_attributes, pos);
+      at = (sdp_attribute_t *) osip_list_get (&med->a_attributes, pos);
       if (at->a_att_field != NULL && 0 == strcmp (at->a_att_field, "sendonly"))
         {
           return _SENDONLY;
@@ -350,11 +350,11 @@ _sdp_analyse_attribute (sdp_message_t * sdp, sdp_media_t * med)
   /* test global attributes */
   pos_media = -1;
   pos = 0;
-  while (!osip_list_eol (sdp->a_attributes, pos))
+  while (!osip_list_eol (&sdp->a_attributes, pos))
     {
       sdp_attribute_t *at;
 
-      at = (sdp_attribute_t *) osip_list_get (sdp->a_attributes, pos);
+      at = (sdp_attribute_t *) osip_list_get (&sdp->a_attributes, pos);
       if (at->a_att_field != NULL && 0 == strcmp (at->a_att_field, "sendonly"))
         {
           return _SENDONLY;

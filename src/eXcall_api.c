@@ -106,7 +106,7 @@ static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *ms
     i = osip_message_get_contact(msg, 0, &co_msg);
     if (i>=0 && co_msg!=NULL)
     {
-        osip_list_remove(msg->contacts, 0);
+        osip_list_remove(&msg->contacts, 0);
         osip_contact_free(co_msg);
     }
 
@@ -114,7 +114,7 @@ static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *ms
     i = osip_contact_clone(co_invite, &co_msg);
     if (i>=0 && co_msg!=NULL)
     {
-        osip_list_add(msg->contacts, co_msg, 0);
+        osip_list_add(&msg->contacts, co_msg, 0);
         return 0;
     }
     return -1;
@@ -384,7 +384,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
                                     "Error in credential from INVITE\n"));
             break;
           }
-        osip_list_add (ack->proxy_authorizations, pa2, -1);
+        osip_list_add (&ack->proxy_authorizations, pa2, -1);
         pa = NULL;
         pos++;
         i = osip_message_get_proxy_authorization (tr->orig_request, pos, &pa);
@@ -1260,7 +1260,7 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
       return -1;
     }
 
-  via = (osip_via_t *) osip_list_get (msg->vias, 0);
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || msg->cseq == NULL || msg->cseq->number == NULL)
     {
       osip_message_free (msg);
@@ -1272,10 +1272,10 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
 
   co = NULL;
   pos = 0;
-  while (!osip_list_eol (out_tr->last_response->contacts, pos))
+  while (!osip_list_eol (&out_tr->last_response->contacts, pos))
     {
-      co = (osip_contact_t *) osip_list_get (out_tr->last_response->contacts, pos);
-      if (co != NULL && co->url != NULL && co->url->url_params != NULL)
+      co = (osip_contact_t *) osip_list_get (&out_tr->last_response->contacts, pos);
+      if (co != NULL && co->url != NULL)
         {
           /* check tranport? Only allow UDP, right now */
           osip_uri_param_t *u_param;
@@ -1283,10 +1283,10 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
 
           u_param = NULL;
           pos2 = 0;
-          while (!osip_list_eol (co->url->url_params, pos2))
+          while (!osip_list_eol (&co->url->url_params, pos2))
             {
               u_param =
-                (osip_uri_param_t *) osip_list_get (co->url->url_params, pos2);
+                (osip_uri_param_t *) osip_list_get (&co->url->url_params, pos2);
               if (u_param == NULL || u_param->gname == NULL
                   || u_param->gvalue == NULL)
                 {
@@ -1355,9 +1355,10 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
       jd->d_dialog->local_cseq++;
     }
 
-  osip_list_remove (msg->vias, 0);
+  osip_list_remove (&msg->vias, 0);
   osip_via_free (via);
 
+  memset(locip, '\0', sizeof(locip));
   if (protocol == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
@@ -1394,7 +1395,7 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
 
   osip_via_init (&via);
   osip_via_parse (via, tmp);
-  osip_list_add (msg->vias, via, 0);
+  osip_list_add (&msg->vias, via, 0);
 
   eXosip_add_authentication_information (msg, out_tr->last_response);
   osip_message_force_update (msg);
@@ -1480,31 +1481,31 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
 
   /* remove all previous authentication headers */
   pos = 0;
-  while (!osip_list_eol (msg->authorizations, pos))
+  while (!osip_list_eol (&msg->authorizations, pos))
     {
       osip_authorization_t *auth;
 
-      auth = (osip_authorization_t *) osip_list_get (msg->authorizations, pos);
-      osip_list_remove (msg->authorizations, pos);
+      auth = (osip_authorization_t *) osip_list_get (&msg->authorizations, pos);
+      osip_list_remove (&msg->authorizations, pos);
       osip_authorization_free (auth);
       pos++;
     }
 
   pos = 0;
-  while (!osip_list_eol (msg->proxy_authorizations, pos))
+  while (!osip_list_eol (&msg->proxy_authorizations, pos))
     {
       osip_proxy_authorization_t *auth;
 
       auth =
-        (osip_proxy_authorization_t *) osip_list_get (msg->
+        (osip_proxy_authorization_t *) osip_list_get (&msg->
                                                       proxy_authorizations, pos);
-      osip_list_remove (msg->proxy_authorizations, pos);
+      osip_list_remove (&msg->proxy_authorizations, pos);
       osip_authorization_free (auth);
       pos++;
     }
 
 
-  via = (osip_via_t *) osip_list_get (msg->vias, 0);
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || msg->cseq == NULL || msg->cseq->number == NULL)
     {
       osip_message_free (msg);
@@ -1523,9 +1524,10 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
       jd->d_dialog->local_cseq++;
     }
 
-  osip_list_remove (msg->vias, 0);
+  osip_list_remove (&msg->vias, 0);
   osip_via_free (via);
   i = _eXosip_find_protocol (out_tr->orig_request);
+  memset(locip, '\0', sizeof(locip));
   if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
@@ -1562,7 +1564,7 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
 
   osip_via_init (&via);
   osip_via_parse (via, tmp);
-  osip_list_add (msg->vias, via, 0);
+  osip_list_add (&msg->vias, via, 0);
 
   eXosip_add_authentication_information (msg, out_tr->last_response);
   osip_message_force_update (msg);

@@ -304,9 +304,9 @@ call_new (eXosip_event_t * je)
                        "audio connection found: %s:%i\n",
                        ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port));
           pos = 0;
-          while (!osip_list_eol (remote_med->m_payloads, pos))
+          while (!osip_list_eol (&remote_med->m_payloads, pos))
             {
-              tmp = (char *) osip_list_get (remote_med->m_payloads, pos);
+              tmp = (char *) osip_list_get (&remote_med->m_payloads, pos);
               if (tmp != NULL &&
                   (0 == osip_strcasecmp (tmp, "0")
                    || 0 == osip_strcasecmp (tmp, "8")))
@@ -413,7 +413,7 @@ call_new (eXosip_event_t * je)
                                        ca->remote_sdp_audio_ip,
                                        ca->remote_sdp_audio_port));
 
-                          tmp = (char *) osip_list_get (local_med->m_payloads, 0);
+                          tmp = (char *) osip_list_get (&local_med->m_payloads, 0);
                         }
                       if (tmp != NULL)
                         {
@@ -561,7 +561,7 @@ call_ack (eXosip_event_t * je)
                            "audio connection found: %s:%i\n",
                            ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port));
 
-              tmp = (char *) osip_list_get (local_med->m_payloads, 0);
+              tmp = (char *) osip_list_get (&local_med->m_payloads, 0);
             }
           if (tmp != NULL)
             {
@@ -849,7 +849,7 @@ call_ringing (eXosip_event_t * je)
                            "audio connection found: %s:%i\n",
                            ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port));
 
-              tmp = (char *) osip_list_get (remote_med->m_payloads, 0);
+              tmp = (char *) osip_list_get (&remote_med->m_payloads, 0);
             }
           if (tmp != NULL)
             {
@@ -1064,7 +1064,7 @@ call_answered (eXosip_event_t * je)
                            "audio connection found: %s:%i\n",
                            ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port));
 
-              tmp = (char *) osip_list_get (remote_med->m_payloads, 0);
+              tmp = (char *) osip_list_get (&remote_med->m_payloads, 0);
             }
           if (tmp != NULL)
             {
@@ -1450,7 +1450,7 @@ call_modified (eXosip_event_t * je)
                            "audio connection found: %s:%i\n",
                            ca->remote_sdp_audio_ip, ca->remote_sdp_audio_port));
 
-              tmp = (char *) osip_list_get (local_med->m_payloads, 0);
+              tmp = (char *) osip_list_get (&local_med->m_payloads, 0);
             }
           if (tmp != NULL)
             {

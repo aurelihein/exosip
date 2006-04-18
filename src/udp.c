@@ -432,7 +432,7 @@ cancel_match_invite (osip_transaction_t * invite, osip_message_t * cancel)
   osip_via_t *via;
 
   osip_via_param_get_byname (invite->topvia, "branch", &br);
-  via = osip_list_get (cancel->vias, 0);
+  via = osip_list_get (&cancel->vias, 0);
   if (via == NULL)
     return -1;                  /* request without via??? */
   osip_via_param_get_byname (via, "branch", &br2);

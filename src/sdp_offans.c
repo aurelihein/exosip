@@ -194,11 +194,11 @@ eXosip_get_sdp_info (osip_message_t * message)
     }
 
   pos = 0;
-  while (!osip_list_eol (message->bodies, pos))
+  while (!osip_list_eol (&message->bodies, pos))
     {
       int i;
 
-      oldbody = (osip_body_t *) osip_list_get (message->bodies, pos);
+      oldbody = (osip_body_t *) osip_list_get (&message->bodies, pos);
       pos++;
       sdp_message_init (&sdp);
       i = sdp_message_parse (sdp, oldbody->body);
@@ -215,22 +215,22 @@ sdp_connection_t *
 eXosip_get_audio_connection (sdp_message_t * sdp)
 {
   int pos = 0;
-  sdp_media_t *med = (sdp_media_t *) osip_list_get (sdp->m_medias, 0);
+  sdp_media_t *med = (sdp_media_t *) osip_list_get (&sdp->m_medias, 0);
 
   while (med != NULL)
     {
       if (med->m_media != NULL && osip_strcasecmp (med->m_media, "audio") == 0)
         break;
       pos++;
-      med = (sdp_media_t *) osip_list_get (sdp->m_medias, pos);
+      med = (sdp_media_t *) osip_list_get (&sdp->m_medias, pos);
     }
   if (med == NULL)
     return NULL;                /* no audio stream */
-  if (osip_list_eol (med->c_connections, 0))
+  if (osip_list_eol (&med->c_connections, 0))
     return sdp->c_connection;
 
   /* just return the first one... */
-  return (sdp_connection_t *) osip_list_get (med->c_connections, 0);
+  return (sdp_connection_t *) osip_list_get (&med->c_connections, 0);
 }
 
 
@@ -238,14 +238,14 @@ sdp_media_t *
 eXosip_get_audio_media (sdp_message_t * sdp)
 {
   int pos = 0;
-  sdp_media_t *med = (sdp_media_t *) osip_list_get (sdp->m_medias, 0);
+  sdp_media_t *med = (sdp_media_t *) osip_list_get (&sdp->m_medias, 0);
 
   while (med != NULL)
     {
       if (med->m_media != NULL && osip_strcasecmp (med->m_media, "audio") == 0)
         return med;
       pos++;
-      med = (sdp_media_t *) osip_list_get (sdp->m_medias, pos);
+      med = (sdp_media_t *) osip_list_get (&sdp->m_medias, pos);
     }
 
   return NULL;

@@ -95,16 +95,16 @@ _eXosip_build_response_default (osip_message_t ** dest,
     goto grd_error_1;
 
   pos = 0;
-  while (!osip_list_eol (request->vias, pos))
+  while (!osip_list_eol (&request->vias, pos))
     {
       osip_via_t *via;
       osip_via_t *via2;
 
-      via = (osip_via_t *) osip_list_get (request->vias, pos);
+      via = (osip_via_t *) osip_list_get (&request->vias, pos);
       i = osip_via_clone (via, &via2);
       if (i != -0)
         goto grd_error_1;
-      osip_list_add (response->vias, via2, -1);
+      osip_list_add (&response->vias, via2, -1);
       pos++;
     }
 
@@ -132,7 +132,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
           i = osip_header_clone (exp, &cp);
           if (cp != NULL)
-            osip_list_add (response->headers, cp, 0);
+            osip_list_add (&response->headers, cp, 0);
         }
     }
 
@@ -172,16 +172,16 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
      copy all record-route in response
      add a contact with global scope
    */
-  while (!osip_list_eol (request->record_routes, pos))
+  while (!osip_list_eol (&request->record_routes, pos))
     {
       osip_record_route_t *rr;
       osip_record_route_t *rr2;
 
-      rr = osip_list_get (request->record_routes, pos);
+      rr = osip_list_get (&request->record_routes, pos);
       i = osip_record_route_clone (rr, &rr2);
       if (i != 0)
         return -1;
-      osip_list_add (response->record_routes, rr2, -1);
+      osip_list_add (&response->record_routes, rr2, -1);
       pos++;
     }
 
@@ -201,6 +201,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
       return -1;
     }
 
+  memset(locip, '\0', sizeof(locip));
 #ifdef SM
   eXosip_get_localip_from_via (response, locip, 49);
 #else
@@ -216,7 +217,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
   if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
     {
       osip_contact_t *con =
-        (osip_contact_t *) osip_list_get (request->contacts, 0);
+        (osip_contact_t *) osip_list_get (&request->contacts, 0);
       if (con != NULL && con->url != NULL && con->url->host != NULL)
         {
           char *c_address = con->url->host;

@@ -345,7 +345,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
       return -1;
     }
 
-  via = (osip_via_t *) osip_list_get (msg->vias, 0);
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || msg->cseq == NULL || msg->cseq->number == NULL)
     {
       osip_message_free (msg);
@@ -364,9 +364,10 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
       jd->d_dialog->local_cseq++;
     }
 
-  osip_list_remove (msg->vias, 0);
+  osip_list_remove (&msg->vias, 0);
   osip_via_free (via);
   i = _eXosip_find_protocol (out_tr->orig_request);
+  memset(locip, '\0', sizeof(locip));
   if (i == IPPROTO_UDP)
     {
       eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
@@ -403,7 +404,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
 
   osip_via_init (&via);
   osip_via_parse (via, tmp);
-  osip_list_add (msg->vias, via, 0);
+  osip_list_add (&msg->vias, via, 0);
 
   eXosip_add_authentication_information (msg, out_tr->last_response);
   osip_message_force_update (msg);
