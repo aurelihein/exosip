@@ -211,7 +211,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
         }
     }
 
-#ifndef SM
+#ifdef SM
   eXosip_get_localip_for (request->req_uri->host, locip, 49);
 #endif
   if (locip[0]=='\0')
