@@ -40,9 +40,9 @@
 #ifdef _WIN32_WCE
 #include <syslog.h>
 #include <winsock2.h>
-#include <osip2/osip_mt.h>
 #endif
 
+#include <osip2/osip_mt.h>
 #include <eXosip2/eXosip.h>
 
 #if !defined(WIN32) && !defined(_WIN32_WCE)
