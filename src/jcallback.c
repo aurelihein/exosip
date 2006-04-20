@@ -24,7 +24,10 @@
 
 #include <stdlib.h>
 
-#ifdef WIN32
+#ifdef _WIN32_WCE
+#include <winsock2.h>
+#include "inet_ntop.h"
+#elif WIN32
 #include <windowsx.h>
 #include <winsock2.h>
 #include <Ws2tcpip.h>

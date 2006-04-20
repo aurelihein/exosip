@@ -27,7 +27,7 @@
 
 extern eXosip_t eXosip;
 
-#ifdef WIN32
+#if defined(WIN32) || defined(_WIN32_WCE)
 
 /* You need the Platform SDK to compile this. */
 #include <Windows.h>
@@ -132,6 +132,14 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
       getaddrinfo("2001:238:202::1",NULL,NULL,&addrf);
     }
   
+  if (addrf==NULL)
+  {
+      closesocket(sock);
+      freeaddrinfo(addrf);
+      snprintf(address, size, "127.0.0.1");
+      return -1;
+  }
+
   if(WSAIoctl(sock,SIO_ROUTING_INTERFACE_QUERY, addrf->ai_addr, addrf->ai_addrlen,
 	      &local_addr, sizeof(local_addr), &local_addr_len, NULL, NULL) != 0)
     {
@@ -497,6 +505,8 @@ ppl_dns_default_gateway_ipv6 (char *address, int size)
 
 #endif
 
+#ifdef SM
+
 int
 eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
 {
@@ -587,8 +597,6 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
   return 0;
 }
 
-
-#ifdef SM
 
 void
 eXosip_get_localip_from_via (osip_message_t * mesg, char *locip, int size)

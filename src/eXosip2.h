@@ -25,12 +25,18 @@
 #ifndef __EXOSIP2_H__
 #define __EXOSIP2_H__
 
-#ifdef WIN32
+#ifdef _WIN32_WCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <winsock2.h>
+#include <osipparser2/osip_port.h>
+#include <ws2tcpip.h>
+#define close(s) closesocket(s)
+#elif WIN32
 #include <stdio.h>
 #include <stdlib.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#define snprintf _snprintf
 #define close(s) closesocket(s)
 #else
 #include <sys/types.h>

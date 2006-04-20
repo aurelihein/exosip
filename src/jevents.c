@@ -376,7 +376,10 @@ eXosip_event_add (eXosip_event_t * je)
 {
   int i = osip_fifo_add (eXosip.j_events, (void *) je);
 
+#if !defined (_WIN32_WCE)
   osip_cond_signal ((struct osip_cond *) eXosip.j_cond);
+#endif
+
   __eXosip_wakeup_event ();
   return i;
 }

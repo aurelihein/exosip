@@ -23,6 +23,13 @@
 
 #include <eXosip2/eXosip.h>
 
+#ifdef _WIN32_WCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <winsock2.h>
+#include <osipparser2/osip_port.h>
+#endif
+
 #ifndef WIN32
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

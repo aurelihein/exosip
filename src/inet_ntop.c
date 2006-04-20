@@ -36,7 +36,7 @@
  * SOFTWARE.
  */
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(_WIN32_WCE) 
 
 #include <osipparser2/osip_port.h>
 #include "eXosip2.h"
@@ -102,7 +102,9 @@ _inet_ntop (af, src, dst, size)
       case AF_INET6:
         return (_inet_ntop6 (src, dst, size));
       default:
-        errno = EAFNOSUPPORT;
+#ifndef _WIN32_WCE
+		  errno = EAFNOSUPPORT;
+#endif
         return (NULL);
     }
   /* NOTREACHED */
@@ -131,7 +133,9 @@ _inet_ntop4 (src, dst, size)
   sprintf (tmp, fmt, src[0], src[1], src[2], src[3]);
   if ((size_t) strlen (tmp) > size)
     {
+#ifndef _WIN32_WCE
       errno = ENOSPC;
+#endif
       return (NULL);
     }
   strcpy (dst, tmp);
@@ -239,7 +243,9 @@ _inet_ntop6 (src, dst, size)
    */
   if ((size_t) (tp - tmp) > size)
     {
+#if !defined (_WIN32_WCE)
       errno = ENOSPC;
+#endif
       return (NULL);
     }
   strcpy (dst, tmp);

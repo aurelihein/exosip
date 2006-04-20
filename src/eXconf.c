@@ -210,7 +210,9 @@ eXosip_quit (void)
     }
 
   osip_mutex_destroy ((struct osip_mutex *) eXosip.j_mutexlock);
+#if !defined (_WIN32_WCE)
   osip_cond_destroy ((struct osip_cond *) eXosip.j_cond);
+#endif
 
   if (eXosip.net_interfaces[0].net_socket)
     {
@@ -608,7 +610,9 @@ eXosip_init (void)
   osip_list_init (eXosip.j_transactions);
   eXosip.j_reg = NULL;
 
+#if !defined (_WIN32_WCE)
   eXosip.j_cond = (struct osip_cond *) osip_cond_init ();
+#endif
 
   eXosip.j_mutexlock = (struct osip_mutex *) osip_mutex_init ();
 

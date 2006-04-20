@@ -1626,9 +1626,14 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
       else
         i = select (max + 1, &osip_fdset, NULL, NULL, &tv);
 
+#if defined (_WIN32_WCE)
+      /* TODO: fix me for wince */
+      //if (i == -1)
+        //continue;
+#else
       if ((i == -1) && (errno == EINTR || errno == EAGAIN))
         continue;
-
+#endif
       if ((i > 0) && FD_ISSET (wakeup_socket, &osip_fdset))
         {
           char buf2[500];
@@ -1640,8 +1645,10 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
         {
       } else if (-1 == i)
         {
+#if !defined (_WIN32_WCE)       /* TODO: fix me for wince */
           osip_free (buf);
           return -2;            /* error */
+#endif
       } else if (FD_ISSET (eXosip.net_interfaces[1].net_socket, &osip_fdset))
         {
           /* accept incoming connection */
