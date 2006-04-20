@@ -156,7 +156,6 @@ int main (int argc, char *argv[])
 
 #ifdef _WIN32_WCE
   proxy = osip_strdup("sip:sip.antisip.com");
-  contact = osip_strdup("sip:jack@192.168.2.21");
   fromuser = osip_strdup("sip:jack@sip.antisip.com");
 
 #else
