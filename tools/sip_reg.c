@@ -25,6 +25,7 @@
  *
  */
 
+#if !defined(WIN32) && !defined(_WIN32_WCE)
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -34,25 +35,41 @@
 #include <netdb.h>
 #include <syslog.h>
 #include <pthread.h>
+#endif
+
+#ifdef _WIN32_WCE
+#include <syslog.h>
+#include <winsock2.h>
+#include <osip2/osip_mt.h>
+#endif
+
 #include <eXosip2/eXosip.h>
 
+#if !defined(WIN32) && !defined(_WIN32_WCE)
 #define _GNU_SOURCE
-#ifdef _GNU_SOURCE
+#endif
 #include <getopt.h>
-
-#endif /* _GNU_SOURCE */
 
 #define PROG_NAME "sipreg"
 #define PROG_VER  "1.0"
 #define UA_STRING "SipReg v" PROG_VER
 #define SYSLOG_FACILITY LOG_DAEMON
 
-#ifdef LOG_PERROR
+#if defined(WIN32) || defined(_WIN32_WCE)
+static void syslog_wrapper(int a, const char *fmt, ...)
+{
+  va_list args;
+  va_start (args, fmt);
+  vfprintf (stdout, fmt, args);
+  va_end (args);
+}
+#elif LOG_PERROR
 /* If we can, we use syslog() to emit the debugging messages to stderr. */
 #define syslog_wrapper    syslog
 #else
-#define syslog_wrapper(a,b...) syslog(a,b),fprintf(stderr,b),fprintf(stderr,"\n")
+#define syslog_wrapper(a,b...) fprintf(stderr,b);fprintf(stderr,"\n")
 #endif
+
 
 static void usage (void);
 static void *register_proc (void *arg);
@@ -64,8 +81,8 @@ usage (void)
           "\n\t[required_options]\n"
           "\t-r --proxy\tsip:proxyhost[:port]\n"
           "\t-u --from\tsip:user@host[:port]\n"
-          "\t-c --contact\tsip:user@host[:port]\n"
           "\n\t[optional_options]\n"
+          "\t-c --contact\tsip:user@host[:port]\n"
           "\t-d --debug (log to stderr and do not fork)\n"
           "\t-e --expiry\tnumber (default 3600)\n"
           "\t-f --firewallip\tN.N.N.N\n"
@@ -91,22 +108,36 @@ register_proc (void *arg)
 
   for (;;)
     {
+#ifdef _WIN32_WCE
+      Sleep ((regparam->expiry / 2)*1000);
+#else
       sleep (regparam->expiry / 2);
+#endif
       eXosip_lock ();
       reg = eXosip_register_send_register (regparam->regid, NULL);
       if (0 > reg)
         {
+#ifdef _WIN32_WCE
+          fprintf(stdout, "eXosip_register: error while registring");
+#else
           perror ("eXosip_register");
+#endif
           exit (1);
-        }
+	  }
       regparam->auth = 0;
       eXosip_unlock ();
     }
   return NULL;
 }
 
-int
-main (int argc, char *argv[])
+#ifdef _WIN32_WCE
+int WINAPI WinMain(	HINSTANCE hInstance,
+					HINSTANCE hPrevInstance,
+					LPTSTR    lpCmdLine,
+					int       nCmdShow)
+#else
+int main (int argc, char *argv[])
+#endif
 {
   int c;
   int port = 5060;
@@ -119,10 +150,16 @@ main (int argc, char *argv[])
   char *username = NULL;
   char *password = NULL;
   struct regparam_t regparam = { 0, 3600, 0 };
-  pthread_t register_thread;
+  struct osip_thread *register_thread;
   int debug = 0;
   int nofork = 0;
 
+#ifdef _WIN32_WCE
+  proxy = osip_strdup("sip:sip.antisip.com");
+  contact = osip_strdup("sip:jack@192.168.2.21");
+  fromuser = osip_strdup("sip:jack@sip.antisip.com");
+
+#else
   for (;;)
     {
 #define short_options "c:de:f:hl:p:r:u:U:P:"
@@ -200,13 +237,16 @@ main (int argc, char *argv[])
             break;
         }
     }
+#endif
 
-  if (!proxy || !contact || !fromuser)
+
+  if (!proxy || !fromuser)
     {
       usage ();
       exit (1);
     }
 
+#ifndef _WIN32_WCE
   if (!nofork)
     {
       int cpid = fork ();
@@ -218,8 +258,11 @@ main (int argc, char *argv[])
       close (1);
       close (2);
     }
+#endif
 
+#if 0
   openlog (PROG_NAME, LOG_PID | debug, SYSLOG_FACILITY);
+#endif
 
   syslog_wrapper (LOG_INFO, UA_STRING " up and running");
   syslog_wrapper (LOG_INFO, "proxy: %s", proxy);
@@ -285,7 +328,8 @@ main (int argc, char *argv[])
       }
   }
 
-  if (pthread_create (&register_thread, NULL, register_proc, &regparam))
+  register_thread = osip_thread_create (20000, register_proc, &regparam);
+  if (register_thread==NULL)
     {
       syslog_wrapper (LOG_ERR, "pthread_create failed");
       exit (1);
@@ -297,7 +341,7 @@ main (int argc, char *argv[])
 
       if (!(event = eXosip_event_wait (0, 0)))
         {
-          usleep (10000);
+          osip_usleep (10000);
           continue;
         }
 
