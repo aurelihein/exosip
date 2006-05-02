@@ -106,6 +106,7 @@ static int eXosip_release_finished_calls (eXosip_call_t * jc,
                                           eXosip_dialog_t * jd);
 static int eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd);
 
+static int eXosip_release_finished_transactions (eXosip_dialog_t * jd);
 
 static void
 eXosip_send_default_answer (eXosip_dialog_t * jd,
@@ -1628,8 +1629,8 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 
 #if defined (_WIN32_WCE)
       /* TODO: fix me for wince */
-      //if (i == -1)
-        //continue;
+      /* if (i == -1)
+	 continue; */
 #else
       if ((i == -1) && (errno == EINTR || errno == EAGAIN))
         continue;
@@ -2003,6 +2004,73 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
 }
 
 static int
+eXosip_release_finished_transactions (eXosip_dialog_t *jd)
+{
+  time_t now = time (NULL);
+  osip_transaction_t *inc_tr;
+  osip_transaction_t *out_tr;
+  int pos;
+  int ret;
+  
+  ret = -1;
+  
+  if (jd != NULL)
+    {
+      /* go through all incoming transactions of this dialog */
+      pos = 0;
+      while (!osip_list_eol (jd->d_inc_trs, pos))
+	{
+	  inc_tr = osip_list_get (jd->d_inc_trs, pos);
+	  if (0 == osip_strcasecmp (inc_tr->cseq->method, "INFO"))
+	    {
+	      /* remove, if transaction too old, independent of the state */
+	      if ((inc_tr->state == NIST_TERMINATED) &&
+		  (inc_tr->birth_time + 30 < now))  /* Wait a max of 30 seconds */
+		{
+		  /* remove the transaction from oSIP */
+		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+					  "eXosip: eXosip_release_finished_transactions (did=%i)\n",
+					  jd->d_id));
+		  osip_remove_transaction (eXosip.j_osip, inc_tr);
+		  osip_list_remove (jd->d_inc_trs, pos);
+		  osip_list_add (eXosip.j_transactions, inc_tr, 0);
+		  
+		  ret = 0;
+		}
+	    }
+	  pos++;
+	}
+      
+      /* go through all outgoing transactions of this dialog */
+      pos = 0;
+      while (!osip_list_eol (jd->d_out_trs, pos))
+	{
+	  out_tr = osip_list_get (jd->d_out_trs, pos);
+	  if (0 == osip_strcasecmp (out_tr->cseq->method, "INFO"))
+	    {
+	      /* remove, if transaction too old, independent of the state */
+	      if ((out_tr->state == NICT_TERMINATED) &&
+		  (out_tr->birth_time + 30 < now)) /* Wait a max of 30 seconds */
+		{
+		  /* remove the transaction from oSIP */
+		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+					  "eXosip: eXosip_release_finished_transactions (did=%i)\n",
+					  jd->d_id));
+		  osip_remove_transaction (eXosip.j_osip, out_tr);
+		  osip_list_remove (jd->d_out_trs, pos);
+		  osip_list_add (eXosip.j_transactions, out_tr, 0);
+		  
+		  ret = 0;
+		}
+	    }
+	  pos++;
+	}
+    } 
+  
+  return ret;
+}
+
+static int
 eXosip_release_finished_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
   osip_transaction_t *tr;
@@ -2180,6 +2248,8 @@ eXosip_release_terminated_calls (void)
         {
           jdnext = jd->next;
           if (0 == eXosip_pendingosip_transaction_exist (jc, jd))
+            {
+          } else if (0 == eXosip_release_finished_transactions (jd))
             {
           } else if (0 == eXosip_release_finished_calls (jc, jd))
             {
