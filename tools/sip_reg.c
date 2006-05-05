@@ -223,14 +223,10 @@ int main (int argc, char *argv[])
             fromuser = optarg;
             break;
           case 'U':
-            username = malloc (strlen (optarg));
-            strcpy (username, optarg);
-            memset (optarg, 0, strlen (optarg));
+	    username = optarg;
             break;
           case 'P':
-            password = malloc (strlen (optarg));
-            strcpy (password, optarg);
-            memset (optarg, 0, strlen (optarg));
+	    password = optarg;
             break;
           default:
             break;
