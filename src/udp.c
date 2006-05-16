@@ -729,37 +729,6 @@ eXosip_process_new_invite (osip_transaction_t * transaction, osip_event_t * evt)
 
 }
 
-static int
-eXosip_event_package_is_supported (osip_transaction_t * transaction,
-                                   osip_event_t * evt)
-{
-  osip_header_t *event_hdr;
-  int code;
-
-  /* get the event type and return "489 Bad Event". */
-  osip_message_header_get_byname (evt->sip, "event", 0, &event_hdr);
-  if (event_hdr == NULL || event_hdr->hvalue == NULL)
-    {
-#ifdef SUPPORT_MSN
-      /* msn don't show any event header */
-      code = 200;               /* Bad Request... anyway... */
-#else
-      code = 400;               /* Bad Request */
-#endif
-  } else if (0 != osip_strcasecmp (event_hdr->hvalue, "presence"))
-    code = 489;
-  else
-    code = 200;
-  if (code != 200)
-    {
-      osip_list_add (eXosip.j_transactions, transaction, 0);
-      eXosip_send_default_answer (NULL, transaction, evt, code, NULL, NULL,
-                                  __LINE__);
-      return 0;
-    }
-  return -1;
-}
-
 static void
 eXosip_process_new_subscribe (osip_transaction_t * transaction, osip_event_t * evt)
 {
@@ -1486,11 +1455,6 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 
   if (MSG_IS_SUBSCRIBE (evt->sip))
     {
-
-      if (0 == eXosip_event_package_is_supported (transaction, evt))
-        {
-          return;
-        }
       eXosip_process_new_subscribe (transaction, evt);
       return;
     }
