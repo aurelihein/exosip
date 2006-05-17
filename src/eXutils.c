@@ -27,6 +27,8 @@
 
 extern eXosip_t eXosip;
 
+extern int ipv6_enable;
+
 #if defined(WIN32) || defined(_WIN32_WCE)
 
 /* You need the Platform SDK to compile this. */
@@ -136,7 +138,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   {
       closesocket(sock);
       freeaddrinfo(addrf);
-      snprintf(address, size, "127.0.0.1");
+      snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
       return -1;
   }
 
@@ -145,7 +147,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
     {
       closesocket(sock);
       freeaddrinfo(addrf);
-      snprintf(address, size, "127.0.0.1");
+      snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
       return -1;
     }
   
@@ -155,7 +157,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   if(getnameinfo((const struct sockaddr*)&local_addr,
 		 local_addr_len,address, size, NULL, 0, NI_NUMERICHOST))
     {
-      snprintf(address, size, "127.0.0.1");
+      snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
       return -1;
     }
   
@@ -375,9 +377,9 @@ static int ppl_dns_default_gateway_ipv6 (char *address, int size);
 
 
 int
-eXosip_guess_ip_for_via (int familiy, char *address, int size)
+eXosip_guess_ip_for_via (int family, char *address, int size)
 {
-  if (familiy == AF_INET6)
+  if (family == AF_INET6)
     {
       return ppl_dns_default_gateway_ipv6 (address, size);
   } else
@@ -539,7 +541,11 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
   strcpy (loc, "127.0.0.1");    /* always fallback to local loopback */
 
   memset (&hints, 0, sizeof (hints));
-  hints.ai_family = PF_UNSPEC;
+  if(ipv6_enable)
+    hints.ai_family = PF_INET6;
+  else
+    hints.ai_family = PF_INET;    /* ipv4 only support */
+
   hints.ai_socktype = SOCK_DGRAM;
   /*hints.ai_flags=AI_NUMERICHOST|AI_CANONNAME; */
   err = getaddrinfo (address_to_reach, "5060", &hints, &res);
@@ -562,6 +568,8 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
   if (err < 0)
     {
       eXosip_trace (OSIP_ERROR, ("Error in setsockopt: %s\n", strerror (errno)));
+      freeaddrinfo (res);
+      close (sock);
       return -1;
     }
   err = connect (sock, res->ai_addr, res->ai_addrlen);
@@ -588,6 +596,7 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
   if (err != 0)
     {
       eXosip_trace (OSIP_ERROR, ("getnameinfo error:%s", strerror (errno)));
+      close (sock);
       return -1;
     }
   close (sock);
@@ -718,11 +727,10 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
   else
     hints.ai_flags = AI_NUMERICHOST;
 
-#ifdef IPV6_SUPPORT
-  hints.ai_family = PF_UNSPEC;  /* ipv6 support */
-#else
-  hints.ai_family = PF_INET;    /* ipv4 only support */
-#endif
+  if(ipv6_enable)
+    hints.ai_family = PF_INET6;
+  else
+    hints.ai_family = PF_INET;    /* ipv4 only support */
 
 #endif
 
