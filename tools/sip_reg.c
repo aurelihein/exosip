@@ -38,7 +38,7 @@
 #endif
 
 #ifdef _WIN32_WCE
-#include <syslog.h>
+/* #include <syslog.h> */
 #include <winsock2.h>
 #endif
 
@@ -47,8 +47,8 @@
 
 #if !defined(WIN32) && !defined(_WIN32_WCE)
 #define _GNU_SOURCE
-#endif
 #include <getopt.h>
+#endif
 
 #define PROG_NAME "sipreg"
 #define PROG_VER  "1.0"
@@ -63,6 +63,11 @@ static void syslog_wrapper(int a, const char *fmt, ...)
   vfprintf (stdout, fmt, args);
   va_end (args);
 }
+#define LOG_INFO 0
+#define LOG_ERR 0
+#define LOG_WARNING 0
+#define LOG_DEBUG 0
+
 #elif LOG_PERROR
 /* If we can, we use syslog() to emit the debugging messages to stderr. */
 #define syslog_wrapper    syslog
