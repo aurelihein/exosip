@@ -547,6 +547,10 @@ extern "C"
 
   int eXosip_is_public_address (const char *addr);
 
+  void eXosip_retransmit_lost200ok();
+  int _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer);
+
+
 #ifdef __cplusplus
 }
 #endif
