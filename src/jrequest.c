@@ -38,6 +38,8 @@
 
 extern eXosip_t eXosip;
 
+extern int ipv6_enable;
+
 /* Private functions */
 static int dialog_fill_route_set (osip_dialog_t * dialog,
                                   osip_message_t * request);
@@ -93,18 +95,6 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 	char locip[50];
 	int len;
 
-	if (0 == osip_strcasecmp (transport, "udp"))
-		net = &eXosip.net_interfaces[0];
-	else if (0 == osip_strcasecmp (transport, "tcp"))
-		net = &eXosip.net_interfaces[1];
-	else
-	{
-		OSIP_TRACE (osip_trace
-					(__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: unsupported protocol (default to UDP)\n"));
-		net = &eXosip.net_interfaces[0];
-	}
-
 	if (request==NULL)
 		return -1;
 
@@ -119,6 +109,18 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
     }
 	snprintf(transport, sizeof(transport), "%s", via->protocol);
 
+	if (0 == osip_strcasecmp (transport, "udp"))
+		net = &eXosip.net_interfaces[0];
+	else if (0 == osip_strcasecmp (transport, "tcp"))
+		net = &eXosip.net_interfaces[1];
+	else
+	{
+		OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: unsupported protocol (default to UDP)\n"));
+		net = &eXosip.net_interfaces[0];
+	}
+
 	if (answer==NULL)
 		a_from = request->from;
 	else
@@ -129,25 +131,13 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 
   /*guess the local ip since req uri is known */
 	memset(locip, '\0', sizeof(locip));
-    if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
-#ifndef SM
-	eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
-#else
-	eXosip_get_localip_for (request->req_uri->host, locip, 49);
-#endif
-	if (locip[0]=='\0')
-	{
-		OSIP_TRACE (osip_trace
-					(__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: no default interface defined\n"));
-		return -1;
-	}
 
 	if (a_from->url->username != NULL)
-		len = 50 + 10 + strlen(transport) + strlen (a_from->url->username);
+		len = 2 + 4 + strlen (a_from->url->username) + 1 + 100 + 6 + 10 + strlen(transport);
 	else
-		len = 50;
-	contact = (char *) osip_malloc (len);
+		len = 2 + 4 + 100 + 6 + 10 + strlen(transport);
+
+	contact = (char *) osip_malloc (len+1);
     if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
     {
         char *c_address = request->req_uri->host;
@@ -173,17 +163,44 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 		}
 	}
 
-	if (a_from->url->username != NULL)
-		snprintf (contact, len, "<sip:%s@%s:%s>", a_from->url->username,
-			locip, net->net_port);
+    if (locip[0] == '\0')
+	{
+#ifndef SM
+		eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
+#else
+		eXosip_get_localip_for (request->req_uri->host, locip, 49);
+#endif
+		if (locip[0]=='\0')
+		{
+			OSIP_TRACE (osip_trace
+						(__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"eXosip: no default interface defined\n"));
+			return -1;
+		}
+	}
+
+	if (net->net_ip_family == AF_INET6)
+	{
+		if (a_from->url->username != NULL)
+			snprintf (contact, len, "<sip:%s@[%s]:%s>", a_from->url->username,
+				locip, net->net_port);
+		else
+			snprintf (contact, len-strlen(transport)-10, "<sip:[%s]:%s>", locip, net->net_port);
+	}
 	else
-		snprintf (contact, len, "<sip:%s:%s>", locip, net->net_port);
+	{
+		if (a_from->url->username != NULL)
+			snprintf (contact, len, "<sip:%s@%s:%s>", a_from->url->username,
+				locip, net->net_port);
+		else
+			snprintf (contact, len-strlen(transport)-10, "<sip:%s:%s>", locip, net->net_port);
+	}
 	if (osip_strcasecmp(transport, "UDP")!=0)
 	{
 		contact[strlen(contact)-1]='\0';
 		strcat(contact, "transport=");
 		strcat(contact, transport);
-		strcat(contact, ">\r\n");
+		strcat(contact, ">");
 	}
     osip_message_set_contact (request, contact);
     osip_free (contact);
