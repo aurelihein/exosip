@@ -384,6 +384,11 @@ eXosip_process_ack (eXosip_call_t * jc, eXosip_dialog_t * jd, osip_event_t * evt
   eXosip_event_t *je;
   int i;
 
+  /* stop ACK retransmission, in case there is any */
+  jd->d_count=0;
+  osip_message_free(jd->d_200Ok);
+  jd->d_200Ok=NULL;
+
   je = eXosip_event_init_for_call (EXOSIP_CALL_ACK, jc, jd, NULL);
   if (je != NULL)
     {
