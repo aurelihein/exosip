@@ -90,8 +90,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSII_FP) Debug"
 
@@ -123,8 +123,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSII) Release"
 
@@ -156,8 +156,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSII) Debug"
 
@@ -189,8 +189,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH4) Release"
 
@@ -222,8 +222,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH4) Debug"
 
@@ -255,8 +255,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH4
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH3) Release"
 
@@ -288,8 +288,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH3) Debug"
 
@@ -321,8 +321,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:SH3 /align:4096
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV) Release"
 
@@ -354,8 +354,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV) Debug"
 
@@ -387,8 +387,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE emulator) Release"
 
@@ -420,8 +420,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc)  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
-# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /libpath:"..\..\..\osip\platform\wince\X86Dbg" /libpath:"..\..\..\exosip\platform\wince\X86Dbg" /libpath:"..\..\..\celib-palm-3.0\wince-x86em-pocket-wce300-release" /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc) /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 $(CEx86Corelibc) celib.lib osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /libpath:"..\..\..\osip\platform\wince\X86Dbg" /libpath:"..\..\..\exosip\platform\wince\X86Dbg" /libpath:"..\..\..\celib-palm-3.0\wince-x86em-pocket-wce300-release" /subsystem:$(CESubsystem) /MACHINE:IX86
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE emulator) Debug"
 
@@ -453,8 +453,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc)  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
-# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /libpath:"..\..\..\osip\platform\wince\emulatorDbg" /libpath:"..\..\..\exosip\platform\wince\emulatorDbg" /libpath:"..\..\..\celib-palm-3.0\wince-x86em-pocket-wce300-release" /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc) /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /libpath:"..\..\..\osip\platform\wince\emulatorDbg" /libpath:"..\..\..\exosip2\platform\wince\emulatorDbg" /subsystem:$(CESubsystem) /MACHINE:IX86
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4I) Release"
 
@@ -486,8 +486,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4I) Debug"
 
@@ -519,8 +519,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV_FP) Release"
 
@@ -552,8 +552,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV_FP) Debug"
 
@@ -585,8 +585,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPSFPU
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4) Release"
 
@@ -618,8 +618,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /libpath:"..\..\..\osip\platform\wince\armv4Rel" /libpath:"..\..\..\exosip2\platform\wince\armv4Rel" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4) Debug"
 
@@ -651,8 +651,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /libpath:"..\..\..\osip\platform\wince\armv4Dbg" /libpath:"..\..\..\exosip2\platform\wince\armv4Dbg" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPS16) Release"
 
@@ -684,8 +684,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPS16) Debug"
 
@@ -717,8 +717,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
+# ADD LINK32 celib.lib $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:MIPS16 /ALIGN:4096
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4T) Release"
 
@@ -750,8 +750,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4T) Debug"
 
@@ -783,8 +783,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
-# ADD LINK32 osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
+# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /MACHINE:THUMB
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE x86) Release"
 
@@ -816,8 +816,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc)  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
-# ADD LINK32 $(CEx86Corelibc) osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc) /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 $(CEx86Corelibc) celib.lib osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE x86) Debug"
 
@@ -849,8 +849,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc)  /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
-# ADD LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib osipparser2.lib osip2.lib eXosip2.lib celib.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /libpath:"..\..\..\osip\platform\wince\X86Dbg" /libpath:"..\..\..\exosip\platform\wince\X86Dbg" /libpath:"..\..\..\celib-palm-3.0\wince-x86em-pocket-wce300-release" /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD BASE LINK32 commctrl.lib coredll.lib $(CEx86Corelibc) /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /subsystem:$(CESubsystem) /MACHINE:IX86
+# ADD LINK32 $(CEx86Corelibc) celib.lib osipparser2.lib osip2.lib eXosip2.lib commctrl.lib coredll.lib ws2.lib iphlpapi.lib /nologo /base:"0x00010000" /stack:0x10000,0x1000 /entry:"WinMainCRTStartup" /debug /nodefaultlib:"OLDNAMES.lib" /nodefaultlib:$(CENoDefaultLib) /libpath:"..\..\..\osip\platform\wince\X86Dbg" /libpath:"..\..\..\exosip\platform\wince\X86Dbg" /libpath:"..\..\..\celib-palm-3.0\wince-x86em-pocket-wce300-release" /subsystem:$(CESubsystem) /MACHINE:IX86
 
 !ENDIF 
 
@@ -890,27 +890,6 @@ SOURCE=..\..\tools\sip_reg.c
 !IF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSII_FP) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -959,33 +938,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSII_FP) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1034,33 +1013,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSII) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1109,33 +1088,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSII) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1184,33 +1163,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH4) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1259,33 +1238,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH4) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1334,33 +1313,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH3) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1409,33 +1388,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE SH3) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1484,33 +1463,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1559,33 +1538,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1634,33 +1613,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE emulator) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1709,17 +1688,19 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
-	"..\..\..\osip\include\osipparser2\pna.h"\
-	
-
-!ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE emulator) Debug"
-
-DEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
 	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
 	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
 	"..\..\..\celib-palm-3.0\inc\getopt.h"\
 	"..\..\..\celib-palm-3.0\inc\netdb.h"\
 	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
 	"..\..\..\celib-palm-3.0\inc\strings.h"\
 	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
 	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
@@ -1728,6 +1709,12 @@ DEP_CPP_SIP_R=\
 	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
 	"..\..\..\celib-palm-3.0\inc\syslog.h"\
 	"..\..\..\celib-palm-3.0\inc\unistd.h"\
+	"..\..\..\osip\include\osipparser2\pna.h"\
+	
+
+!ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE emulator) Debug"
+
+DEP_CPP_SIP_R=\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1782,27 +1769,6 @@ NODEP_CPP_SIP_R=\
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4I) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1851,33 +1817,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4I) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -1926,33 +1892,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV_FP) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2001,33 +1967,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPSIV_FP) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2076,12 +2042,6 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
-	"..\..\..\osip\include\osipparser2\pna.h"\
-	
-
-!ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4) Release"
-
-DEP_CPP_SIP_R=\
 	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
 	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
 	"..\..\..\celib-palm-3.0\inc\cectype.h"\
@@ -2103,6 +2063,12 @@ DEP_CPP_SIP_R=\
 	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
 	"..\..\..\celib-palm-3.0\inc\syslog.h"\
 	"..\..\..\celib-palm-3.0\inc\unistd.h"\
+	"..\..\..\osip\include\osipparser2\pna.h"\
+	
+
+!ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4) Release"
+
+DEP_CPP_SIP_R=\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2157,27 +2123,6 @@ NODEP_CPP_SIP_R=\
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2232,27 +2177,6 @@ NODEP_CPP_SIP_R=\
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPS16) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2301,33 +2225,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE MIPS16) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2376,33 +2300,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4T) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2451,33 +2375,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE ARMV4T) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2526,33 +2450,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE x86) Release"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2601,33 +2525,33 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "sip_reg - Win32 (WCE x86) Debug"
 
 DEP_CPP_SIP_R=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\getopt.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\syslog.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip_mt.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
@@ -2676,6 +2600,27 @@ DEP_CPP_SIP_R=\
 	"..\..\include\eXosip2\eXosip.h"\
 	
 NODEP_CPP_SIP_R=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\getopt.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\cdefs.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\syslog.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
