@@ -123,10 +123,10 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
 
   i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, transport, from,
                                             route);
-  _eXosip_dialog_add_contact(sub, NULL);
   osip_to_free (_to);
   if (i != 0)
     return -1;
+  _eXosip_dialog_add_contact(*sub, NULL);
 
   snprintf (tmp, 10, "%i", expires);
   osip_message_set_expires (*sub, tmp);

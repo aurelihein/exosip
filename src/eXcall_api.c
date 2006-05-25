@@ -242,10 +242,10 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
 
   i = generating_request_out_of_dialog (invite, "INVITE", to,
                                           transport, from, route);
-  _eXosip_dialog_add_contact(invite, NULL);
   osip_to_free (_to);
   if (i != 0)
     return -1;
+  _eXosip_dialog_add_contact(*invite, NULL);
 
   if (subject != NULL)
     osip_message_set_subject (*invite, subject);
