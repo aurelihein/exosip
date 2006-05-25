@@ -127,11 +127,33 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     {
 	  if (MSG_IS_REQUEST(sip))
 	  {
-		host = sip->req_uri->host;
+	    osip_route_t *route;
+
+	    osip_message_get_route (sip, 0, &route);
+	    if (route != NULL)
+	      {
+		osip_uri_param_t *lr_param = NULL;
+		
+		osip_uri_uparam_get_byname (route->url, "lr", &lr_param);
+		if (lr_param == NULL)
+		  route = NULL;
+	      }
+	    
+	    if (route != NULL)
+	      {
+		port = 5060;
+		if (route->url->port != NULL)
+		  port = osip_atoi (route->url->port);
+		host = route->url->host;
+	      }
+	    else
+	      {
+		port = 5060;
 		if (sip->req_uri->port != NULL)
-			port = osip_atoi (sip->req_uri->port);
-		else
-			port = 5060;
+		  port = osip_atoi (sip->req_uri->port);
+		host = sip->req_uri->host;
+	      }
+
 	  }
 	  else
 	  {
