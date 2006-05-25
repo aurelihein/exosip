@@ -101,6 +101,7 @@ extern "C"
     osip_dialog_t *d_dialog;    /* active dialog */
 
     time_t d_timer;
+	int d_count;
     osip_message_t *d_200Ok;
     osip_message_t *d_ack;
 

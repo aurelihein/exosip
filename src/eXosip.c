@@ -455,7 +455,6 @@ eXosip_default_action (eXosip_event_t * je)
     return 1;
 }
 
-
 void
 eXosip_automatic_refresh (void)
 {
@@ -523,6 +522,50 @@ eXosip_automatic_refresh (void)
             }
         }
     }
+}
+
+void
+eXosip_retransmit_lost200ok()
+{
+	eXosip_call_t *jc;
+	eXosip_dialog_t *jd;
+	time_t now;
+
+	now = time (NULL);
+
+	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
+	{
+		if (jc->c_id >= 1 && jc->c_dialogs != NULL)
+		{
+			for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
+			{
+				if (jd->d_id >=1 && jd->d_dialog != NULL && jd->d_200Ok!=NULL)
+				{
+					if (jd->d_count==5)
+					{
+						OSIP_TRACE (osip_trace
+									(__FILE__, __LINE__, OSIP_ERROR, NULL,
+									"eXosip: no ACK received during 20s: dropping call\n"));
+						/* hard for users to detect than I sent this BYE... */
+						jd->d_count=0;
+						osip_message_free(jd->d_200Ok);
+						jd->d_200Ok=NULL;
+						eXosip_call_terminate(jc->c_id, jd->d_id);
+					}
+					else if (jd->d_timer<now)
+					{
+						/* a dialog exist: retransmit lost 200ok */
+						jd->d_timer = time (NULL) + 4;
+						jd->d_count++;
+						jd = jc->c_dialogs;
+						/* TU retransmission */
+						cb_snd_message (NULL, jd->d_200Ok, NULL,0, -1);
+					}
+				}
+			}
+		}
+	}
+	return;
 }
 
 void

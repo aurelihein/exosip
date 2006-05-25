@@ -119,18 +119,46 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       && eXosip.net_interfaces[1].net_socket == 0)
     return -1;
 
-  if (host == NULL)
-    {
-      host = sip->req_uri->host;
-      if (sip->req_uri->port != NULL)
-        port = osip_atoi (sip->req_uri->port);
-      else
-        port = 5060;
-    }
-
   via = (osip_via_t *) osip_list_get (&sip->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return -1;
+
+  if (host == NULL)
+    {
+	  if (MSG_IS_REQUEST(sip))
+	  {
+		host = sip->req_uri->host;
+		if (sip->req_uri->port != NULL)
+			port = osip_atoi (sip->req_uri->port);
+		else
+			port = 5060;
+	  }
+	  else
+	  {
+			osip_generic_param_t *maddr;
+			osip_generic_param_t *received;
+			osip_generic_param_t *rport;
+
+			osip_via_param_get_byname (via, "maddr", &maddr);
+			osip_via_param_get_byname (via, "received", &received);
+			osip_via_param_get_byname (via, "rport", &rport);
+			if (maddr != NULL)
+				host = maddr->gvalue;
+			else if (received != NULL)
+				host = received->gvalue;
+			else
+				host = via->host;
+
+			if (rport == NULL || rport->gvalue == NULL)
+			{
+				if (via->port != NULL)
+					port = osip_atoi (via->port);
+				else
+					port = 5060;
+			} else
+				port = osip_atoi (rport->gvalue);
+	  }
+    }
 
   i = -1;
   if (osip_strcasecmp (via->protocol, "udp") == 0)
@@ -1069,7 +1097,7 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
 
   jd->d_STATE = JD_ESTABLISHED;
 
-  eXosip_dialog_set_200ok (jd, sip);
+  //eXosip_dialog_set_200ok (jd, sip);
 
   report_call_event (EXOSIP_CALL_ANSWERED, jc, jd, tr);
 

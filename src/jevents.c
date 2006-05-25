@@ -481,6 +481,10 @@ eXosip_event_wait (int tv_s, int tv_ms)
     if (je != NULL)
       return je;
 
+	eXosip_lock();
+	eXosip_retransmit_lost200ok();
+	eXosip_unlock();
+
     if (tv_s == 0 && tv_ms == 0)
       return NULL;
 

@@ -608,6 +608,7 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
   return 0;
 }
 
+#if 0
 int
 _eXosip_insubscription_answer_2xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
                                    int code)
@@ -690,6 +691,7 @@ g2atii_error_1:
   osip_message_free (response);
   return -1;
 }
+#endif
 
 int
 _eXosip_insubscription_answer_3456xx (eXosip_notify_t * jn,

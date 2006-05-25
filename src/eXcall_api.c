@@ -210,6 +210,7 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
   int i;
   osip_uri_param_t *uri_param = NULL;
   osip_to_t *_to = NULL;
+  char transport[10];
 
   *invite = NULL;
 
@@ -233,25 +234,15 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
 
   osip_uri_uparam_get_byname (_to->url, "transport", &uri_param);
   if (uri_param != NULL && uri_param->gvalue != NULL)
-    {
-      i =
-        generating_request_out_of_dialog (invite, "INVITE", to,
-                                          uri_param->gvalue, from, route);
-  } else
-    {
-      if (eXosip.net_interfaces[0].net_socket > 0)
-        i =
-          generating_request_out_of_dialog (invite, "INVITE", to, "UDP", from,
-                                            route);
-      else if (eXosip.net_interfaces[1].net_socket > 0)
-        i =
-          generating_request_out_of_dialog (invite, "INVITE", to, "TCP", from,
-                                            route);
-      else
-        i =
-          generating_request_out_of_dialog (invite, "INVITE", to, "UDP", from,
-                                            route);
-    }
+	  snprintf(transport, sizeof(transport), "%s", uri_param->gvalue);
+  else if (eXosip.net_interfaces[0].net_socket > 0)
+	  snprintf(transport, sizeof(transport), "%s", "UDP");
+  else
+	  snprintf(transport, sizeof(transport), "%s", "TCP");
+
+  i = generating_request_out_of_dialog (invite, "INVITE", to,
+                                          transport, from, route);
+  _eXosip_dialog_add_contact(invite, NULL);
   osip_to_free (_to);
   if (i != 0)
     return -1;
@@ -918,6 +909,8 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
             i = 0;
 
           eXosip_dialog_set_200ok (jd, answer);
+		  /* wait for a ACK */
+
           osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
       } else if (answer->status_code >= 300 && answer->status_code <= 699)
         {

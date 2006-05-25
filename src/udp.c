@@ -1469,7 +1469,119 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 static void
 eXosip_process_response_out_of_transaction (osip_event_t * evt)
 {
-  osip_event_free (evt);
+	eXosip_call_t *jc;
+	eXosip_dialog_t *jd;
+	time_t now;
+
+	now = time (NULL);
+	if (evt->sip==NULL)
+	{
+		osip_event_free (evt);
+		return;
+	}
+
+	/* search for existing dialog: match branch & to tag */
+	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
+	{
+		/* search for calls with only ONE outgoing transaction */
+		if (jc->c_id >= 1 && jc->c_dialogs != NULL && jc->c_out_tr!=NULL)
+		{
+			for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
+			{
+				if (jd->d_id >=1 && jd->d_dialog != NULL)
+				{
+					/* match answer with dialog */
+					osip_dialog_t *dlg;
+					osip_generic_param_t *tag;
+					osip_transaction_t *last_tr;
+					int i;
+
+					osip_to_get_tag (evt->sip->to, &tag);
+
+					if (jd->d_dialog->remote_tag != NULL && tag == NULL)
+						break;
+					if (jd->d_dialog->remote_tag == NULL && tag != NULL)
+						break;
+					if (jd->d_dialog->remote_tag != NULL && tag != NULL
+							&& tag->gvalue != NULL
+							&& 0 != strcmp (jd->d_dialog->remote_tag, tag->gvalue))
+						break;
+
+					/* we match an existing dialog: send a retransmission of ACK */
+					i = osip_dialog_init_as_uac (&dlg, evt->sip);
+					if (i != 0)
+					{
+						OSIP_TRACE (osip_trace
+									(__FILE__, __LINE__, OSIP_ERROR, NULL,
+									"Cannot build dialog for 200ok.\r\n"));
+					}
+					else
+					{
+						char *transport;
+						osip_message_t *ack;
+						osip_message_t *bye;
+						OSIP_TRACE (osip_trace
+									(__FILE__, __LINE__, OSIP_INFO1, NULL,
+									"The dialog has been replaced with the new one fro 200ok.\r\n"));
+						transport = NULL;
+						transport = _eXosip_transport_protocol (evt->sip);
+						if (transport == NULL)
+							i = _eXosip_build_request_within_dialog (&ack, "ACK", jd->d_dialog, "UDP");
+						else
+							i = _eXosip_build_request_within_dialog (&ack, "ACK", jd->d_dialog, transport);
+						if (i != 0)
+						{
+							return;
+						}
+						/* copy all credentials from INVITE! */
+						last_tr = jc->c_out_tr;
+						if (last_tr!=NULL)
+						{
+							int pos = 0;
+							int i;
+							osip_proxy_authorization_t *pa = NULL;
+
+							i = osip_message_get_proxy_authorization (last_tr->orig_request, pos, &pa);
+							while (i == 0 && pa != NULL)
+							{
+								osip_proxy_authorization_t *pa2;
+
+								i = osip_proxy_authorization_clone (pa, &pa2);
+								if (i != 0)
+								{
+									OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+															"Error in credential from INVITE\n"));
+									break;
+								}
+								osip_list_add (&ack->proxy_authorizations, pa2, -1);
+								pa = NULL;
+								pos++;
+								i = osip_message_get_proxy_authorization (last_tr->orig_request, pos, &pa);
+							}
+						}
+						cb_snd_message (NULL, ack, NULL,0, -1);
+						osip_message_free(ack);
+
+						/* ready to send a BYE */
+						transport = NULL;
+						if (last_tr != NULL && last_tr->orig_request != NULL)
+							transport = _eXosip_transport_protocol (last_tr->orig_request);
+						if (transport == NULL)
+							i = generating_bye (&bye, dlg, "UDP");
+						else
+							i = generating_bye (&bye, dlg, "UDP");
+						cb_snd_message (NULL, bye, NULL,0, -1);
+						osip_message_free(bye);
+					}
+
+					osip_event_free (evt);
+					return;
+				}
+			}
+		}
+	}
+	/* we don't match any existing dialog: send a ACK & send a BYE */
+	osip_event_free (evt);
 }
 
 static int _eXosip_handle_incoming_message (char *buf, size_t len, int socket,

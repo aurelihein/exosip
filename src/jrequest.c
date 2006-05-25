@@ -82,6 +82,150 @@ via_branch_new_random (void)
   return osip_build_random_number ();
 }
 
+int
+_eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
+{
+	osip_via_t *via;
+	osip_from_t *a_from;
+	char transport[10];
+	char *contact=NULL;
+	struct eXosip_net *net;
+	char locip[50];
+	int len;
+
+	if (0 == osip_strcasecmp (transport, "udp"))
+		net = &eXosip.net_interfaces[0];
+	else if (0 == osip_strcasecmp (transport, "tcp"))
+		net = &eXosip.net_interfaces[1];
+	else
+	{
+		OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: unsupported protocol (default to UDP)\n"));
+		net = &eXosip.net_interfaces[0];
+	}
+
+	if (request==NULL)
+		return -1;
+
+	/* search for topmost Via which indicate the transport protocol */
+	via = (osip_via_t *) osip_list_get (&request->vias, 0);
+	if (via == NULL || via->protocol == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: missing via header\n"));
+      return -1;
+    }
+	snprintf(transport, sizeof(transport), "%s", via->protocol);
+
+	if (answer==NULL)
+		a_from = request->from;
+	else
+		a_from = answer->to;
+
+	if (a_from == NULL || a_from->url == NULL)
+		return -1;
+
+  /*guess the local ip since req uri is known */
+	memset(locip, '\0', sizeof(locip));
+    if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
+#ifndef SM
+	eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
+#else
+	eXosip_get_localip_for (request->req_uri->host, locip, 49);
+#endif
+	if (locip[0]=='\0')
+	{
+		OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: no default interface defined\n"));
+		return -1;
+	}
+
+	if (a_from->url->username != NULL)
+		len = 50 + 10 + strlen(transport) + strlen (a_from->url->username);
+	else
+		len = 50;
+	contact = (char *) osip_malloc (len);
+    if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
+    {
+        char *c_address = request->req_uri->host;
+
+        struct addrinfo *addrinfo;
+        struct __eXosip_sockaddr addr;
+		int i;
+
+        i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_TCP);
+        if (i == 0)
+        {
+            memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+            freeaddrinfo (addrinfo);
+            c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                        "eXosip: here is the resolved destination host=%s\n",
+                        c_address));
+        }
+
+        if (eXosip_is_public_address (c_address))
+        {
+			memcpy(locip, eXosip.net_interfaces[0].net_firewall_ip, sizeof(locip));
+		}
+	}
+
+	if (a_from->url->username != NULL)
+		snprintf (contact, len, "<sip:%s@%s:%s>", a_from->url->username,
+			locip, net->net_port);
+	else
+		snprintf (contact, len, "<sip:%s:%s>", locip, net->net_port);
+	if (osip_strcasecmp(transport, "UDP")!=0)
+	{
+		contact[strlen(contact)-1]='\0';
+		strcat(contact, "transport=");
+		strcat(contact, transport);
+		strcat(contact, ">\r\n");
+	}
+    osip_message_set_contact (request, contact);
+    osip_free (contact);
+
+	return 0;
+}
+
+int
+_eXosip_request_add_via(osip_message_t *request, const char *transport)
+{
+  char tmp[200];
+  struct eXosip_net *net;
+
+  if (request==NULL
+	  ||request->call_id==NULL
+	  ||request->call_id->host==NULL)
+	  return -1;
+
+  if (0 == osip_strcasecmp (transport, "udp"))
+    net = &eXosip.net_interfaces[0];
+  else if (0 == osip_strcasecmp (transport, "tcp"))
+    net = &eXosip.net_interfaces[1];
+  else
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: unsupported protocol (default to UDP)\n"));
+      net = &eXosip.net_interfaces[0];
+    }
+
+    if (net->net_ip_family == AF_INET6)
+      snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+                request->call_id->host, net->net_port, via_branch_new_random ());
+    else
+      snprintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+                request->call_id->host, net->net_port, via_branch_new_random ());
+
+    osip_message_set_via (request, tmp);
+
+	return 0;
+}
+
 /* prepare a minimal request (outside of a dialog) with required headers */
 /* 
    method is the type of request. ("INVITE", "REGISTER"...)
@@ -250,154 +394,17 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
     request->cseq = cseq;
   }
 
+  i = _eXosip_request_add_via(request, transport);
+  if (i != 0)
+    goto brood_error_1;
+
   /* always add the Max-Forward header */
   osip_message_set_max_forwards (request, "70"); /* a UA should start a request with 70 */
-
-#define MASQUERADE_VIA
-#ifdef MASQUERADE_VIA
-  /* should be useless with compliant UA */
-  if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
-    {
-      char *c_address = request->req_uri->host;
-
-      struct addrinfo *addrinfo;
-      struct __eXosip_sockaddr addr;
-
-      i =
-        eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_UDP);
-      if (i == 0)
-        {
-          memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-          freeaddrinfo (addrinfo);
-          c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                       "eXosip: here is the resolved destination host=%s\n",
-                       c_address));
-        }
-
-      if (eXosip_is_public_address (c_address))
-        {
-          char tmp[200];
-
-          snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                    transport, eXosip.net_interfaces[0].net_firewall_ip,
-                    net->net_port, via_branch_new_random ());
-          osip_message_set_via (request, tmp);
-      } else
-        {
-          char tmp[200];
-
-          if (net->net_ip_family == AF_INET6)
-            snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u",
-                      transport, locip, net->net_port, via_branch_new_random ());
-          else
-            snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                      transport, locip, net->net_port, via_branch_new_random ());
-          osip_message_set_via (request, tmp);
-        }
-  } else
-    {
-      char tmp[200];
-
-      if (net->net_ip_family == AF_INET6)
-        snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-                  locip, net->net_port, via_branch_new_random ());
-      else
-        snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                  transport, locip, net->net_port, via_branch_new_random ());
-      osip_message_set_via (request, tmp);
-    }
-
-#else
-  {
-    char tmp[200];
-
-    if (net->net_ip_family == AF_INET6)
-      spnrintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-                locip, net->net_port, via_branch_new_random ());
-    else
-      spnrintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-                locip, net->net_port, via_branch_new_random ());
-
-    osip_message_set_via (request, tmp);
-  }
-#endif
 
   /* add specific headers for each kind of request... */
 
   if (0 == strcmp ("INVITE", method) || 0 == strcmp ("SUBSCRIBE", method))
     {
-      char *contact;
-      osip_from_t *a_from;
-      int i;
-
-      i = osip_from_init (&a_from);
-      if (i == 0)
-        i = osip_from_parse (a_from, from);
-
-      if (i == 0 && a_from != NULL
-          && a_from->url != NULL)
-        {
-	  if (a_from->url->username != NULL)
-	    contact = (char *) osip_malloc (50 + strlen (a_from->url->username));
-	  else
-	    contact = (char *) osip_malloc (50);
-          if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
-            {
-              char *c_address = request->req_uri->host;
-
-              struct addrinfo *addrinfo;
-              struct __eXosip_sockaddr addr;
-
-              i =
-                eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060,
-                                     IPPROTO_TCP);
-              if (i == 0)
-                {
-                  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-                  freeaddrinfo (addrinfo);
-                  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                               "eXosip: here is the resolved destination host=%s\n",
-                               c_address));
-                }
-
-              if (eXosip_is_public_address (c_address))
-                {
-		  if (a_from->url->username != NULL)
-		    sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-			     eXosip.net_interfaces[0].net_firewall_ip,
-			     net->net_port);
-		  else
-		    sprintf (contact, "<sip:%s:%s>",
-			     eXosip.net_interfaces[0].net_firewall_ip,
-			     net->net_port);
-		}
-	      else
-		{
-		  if (a_from->url->username != NULL)
-		    sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-			     locip, net->net_port);
-		  else
-		    sprintf (contact, "<sip:%s:%s>",
-			     locip, net->net_port);
-                }
-	    }
-	  else
-	    {
-	      if (a_from->url->username != NULL)
-		sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-			 locip, net->net_port);
-	      else
-		sprintf (contact, "<sip:%s:%s>",
-			 locip, net->net_port);
-            }
-          osip_message_set_contact (request, contact);
-          osip_free (contact);
-        }
-      osip_from_free (a_from);
 
       /* This is probably useless for other messages */
       osip_message_set_allow (request, "INVITE");
@@ -769,79 +776,9 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   osip_message_set_max_forwards (request, "70"); /* a UA should start a request with 70 */
 
 
-  /* even for ACK for 2xx (ACK within a dialog), the branch ID MUST
-     be a new ONE! */
-#ifdef MASQUERADE_VIA
-  /* should be useless with compliant UA */
-  if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
-    {
-      char *c_address = request->req_uri->host;
-
-      struct addrinfo *addrinfo;
-      struct __eXosip_sockaddr addr;
-
-      i =
-        eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_UDP);
-      if (i == 0)
-        {
-          memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-          freeaddrinfo (addrinfo);
-          c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                       "eXosip: here is the resolved destination host=%s\n",
-                       c_address));
-        }
-
-      if (eXosip_is_public_address (c_address))
-        {
-          char tmp[200];
-
-          sprintf (tmp, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
-                   eXosip.net_interfaces[0].net_firewall_ip,
-                   net->net_port, via_branch_new_random ());
-          osip_message_set_via (request, tmp);
-      } else
-        {
-          char tmp[200];
-
-          if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-            snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u",
-                      transport, locip, net->net_port, via_branch_new_random ());
-          else
-            snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                      transport, locip, net->net_port, via_branch_new_random ());
-
-          osip_message_set_via (request, tmp);
-        }
-  } else
-    {
-      char tmp[200];
-
-      if (net->net_ip_family == AF_INET6)
-        snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-                  locip, net->net_port, via_branch_new_random ());
-      else
-        snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-                  transport, locip, net->net_port, via_branch_new_random ());
-
-      osip_message_set_via (request, tmp);
-    }
-
-#else
-  {
-    char tmp[200];
-
-    if (net->net_ip_family == AF_INET6)
-      sprintf (tmp, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
-               locip, net->net_port, via_branch_new_random ());
-    else
-      sprintf (tmp, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
-               locip, net->net_port, via_branch_new_random ());
-
-    osip_message_set_via (request, tmp);
-  }
-#endif
+  i = _eXosip_request_add_via(request, transport);
+  if (i != 0)
+    goto grwd_error_1;
 
   /* add specific headers for each kind of request... */
 
