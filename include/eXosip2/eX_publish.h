@@ -77,9 +77,9 @@ int eXosip_build_publish(osip_message_t **message,
  * Send an Publication Message (PUBLISH request).
  * 
  * @param message is a ready to be sent publish message .
- * @param sip_if_match is the SIP-If-Match header. (NULL for initial publication)
+ * @param to the aor of the publish request 
  */
-int eXosip_publish (osip_message_t *message, const char *sip_if_match);
+int eXosip_publish (osip_message_t *message, const char *to);
 
 
 /** @} */
