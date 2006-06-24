@@ -170,6 +170,14 @@ eXosip_quit (void)
   int i;
   int pos;
 
+  if (eXosip.j_stop_ua==-1)
+  {
+		OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_WARNING, NULL,
+					"eXosip: already stopped!\n"));
+	  return;
+  }
+
   eXosip.j_stop_ua = 1;         /* ask to quit the application */
   __eXosip_wakeup ();
   __eXosip_wakeup_event ();
@@ -297,6 +305,8 @@ eXosip_quit (void)
       osip_free (jauthinfo);
     }
 
+  memset (&eXosip, 0, sizeof (eXosip));
+  eXosip.j_stop_ua = -1;
   return;
 }
 
