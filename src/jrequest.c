@@ -424,6 +424,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
     {
 
       /* This is probably useless for other messages */
+#if 0
       osip_message_set_allow (request, "INVITE");
       osip_message_set_allow (request, "ACK");
       osip_message_set_allow (request, "UPDATE");
@@ -435,6 +436,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
       osip_message_set_allow (request, "SUBSCRIBE");
       osip_message_set_allow (request, "NOTIFY");
       osip_message_set_allow (request, "MESSAGE");
+#endif
     }
 
   if (0 == strcmp ("REGISTER", method))

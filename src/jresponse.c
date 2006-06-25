@@ -136,6 +136,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
         }
     }
 
+#if 0
   osip_message_set_allow (response, "INVITE");
   osip_message_set_allow (response, "ACK");
   osip_message_set_allow (response, "OPTIONS");
@@ -147,6 +148,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
   osip_message_set_allow (response, "INFO");
   osip_message_set_allow (response, "REFER");
   osip_message_set_allow (response, "UPDATE");
+#endif
 
   osip_message_set_user_agent (response, eXosip.user_agent);
 
