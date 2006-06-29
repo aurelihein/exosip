@@ -139,6 +139,7 @@ jpipe ()
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
       osip_free (my_pipe);
+	  return NULL;
     }
 
   j = listen (s, 1);
@@ -149,6 +150,7 @@ jpipe ()
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
       osip_free (my_pipe);
+	  return NULL;
     }
 
   j = setsockopt (my_pipe->pipes[1],
@@ -163,6 +165,7 @@ jpipe ()
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
       osip_free (my_pipe);
+	  return NULL;
     }
 
   connect (my_pipe->pipes[1], (struct sockaddr *) &raddr, sizeof (raddr));
@@ -177,6 +180,7 @@ jpipe ()
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
       osip_free (my_pipe);
+	  return NULL;
     }
 
   return my_pipe;
