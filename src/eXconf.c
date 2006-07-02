@@ -733,7 +733,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
         break;
       case EXOSIP_OPT_UDP_LEARN_PORT:
         val = *((int *) value);
-        eXosip.learn_port = val;        /* value in ms */
+        eXosip.learn_port = val;        /* 1 to learn port */
         break;
       case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
         val = *((int *) value);
@@ -763,6 +763,10 @@ eXosip_set_option (eXosip_option opt, const void *value)
                      eXosip.http_outbound_proxy));
         break;
 
+      case EXOSIP_OPT_DONT_SEND_101:
+        val = *((int *) value);
+        eXosip.dontsend_101 = val;        /* 0 to disable */
+        break;
     }
   return 0;
 }

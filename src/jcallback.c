@@ -119,6 +119,9 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       && eXosip.net_interfaces[1].net_socket == 0)
     return -1;
 
+  if(eXosip.dontsend_101 != 0 && sip->status_code == 101)
+        return 0;
+
   via = (osip_via_t *) osip_list_get (&sip->vias, 0);
   if (via == NULL || via->protocol == NULL)
     return -1;
