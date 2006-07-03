@@ -1472,8 +1472,8 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 static void
 eXosip_process_response_out_of_transaction (osip_event_t * evt)
 {
-	eXosip_call_t *jc;
-	eXosip_dialog_t *jd;
+	eXosip_call_t *jc = NULL;
+	eXosip_dialog_t *jd = NULL;
 	time_t now;
 
 	now = time (NULL);
