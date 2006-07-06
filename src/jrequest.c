@@ -235,7 +235,7 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport)
       snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
                 request->call_id->host, net->net_port, via_branch_new_random ());
     else
-      snprintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", transport,
+      snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
                 request->call_id->host, net->net_port, via_branch_new_random ());
 
     osip_message_set_via (request, tmp);
