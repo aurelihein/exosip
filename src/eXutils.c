@@ -674,8 +674,8 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 
   memset (&hints, 0, sizeof (hints));
 
-  hints.ai_flags = 0; /* AI_ADDRCONFIG; */
-  
+  hints.ai_flags = 0;
+
   if(ipv6_enable)
     hints.ai_family = PF_INET6;
   else
