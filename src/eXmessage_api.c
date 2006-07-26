@@ -57,7 +57,7 @@ eXosip_message_send_request (osip_message_t * message)
   osip_event_t *sipevent;
   int i;
 
-  i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, message);
+  i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, message);
   if (i != 0)
     {
       osip_message_free (message);

@@ -67,6 +67,31 @@ eXosip_unlock (void)
 }
 
 int
+_eXosip_transaction_init (osip_transaction_t ** transaction,
+                       osip_fsm_type_t ctx_type, osip_t * osip,
+                       osip_message_t * message)
+{
+#ifdef SRV_RECORD
+	osip_srv_record_t record;
+#endif
+	int i;
+    i = osip_transaction_init (transaction, ctx_type, osip, message);
+	if (i != 0)
+	{
+		return i;
+	}
+#ifdef SRV_RECORD
+	i = _eXosip_srv_lookup(*transaction, message, &record);
+	if (i<0)
+	{
+		return 0;
+	}
+	osip_transaction_set_srv_record(*transaction, &record);
+#endif
+	return 0;
+}
+
+int
 eXosip_transaction_find (int tid, osip_transaction_t ** transaction)
 {
   int pos = 0;
@@ -200,9 +225,9 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   osip_message_force_update (msg);
 
   if (MSG_IS_INVITE (msg))
-    i = osip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
+    i = _eXosip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
   else
-    i = osip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
+    i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
 
   if (i != 0)
     {

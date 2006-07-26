@@ -25,6 +25,11 @@
 #include <osipparser2/osip_port.h>
 #include "eXosip2.h"
 
+
+#ifdef SRV_RECORD
+#include <WinDNS.h>
+#endif
+
 extern eXosip_t eXosip;
 
 extern int ipv6_enable;
@@ -711,3 +716,139 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 
   return 0;
 }
+
+#ifdef SRV_RECORD
+
+int
+_eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record)
+{
+	int use_srv=1;
+	int port;
+	char *host;
+	osip_via_t *via;
+
+	via = (osip_via_t *) osip_list_get (&sip->vias, 0);
+	if (via == NULL || via->protocol == NULL)
+		return -1;
+
+	if (MSG_IS_REQUEST(sip))
+	{
+	    osip_route_t *route;
+
+	    osip_message_get_route (sip, 0, &route);
+	    if (route != NULL)
+	    {
+			osip_uri_param_t *lr_param = NULL;
+			
+			osip_uri_uparam_get_byname (route->url, "lr", &lr_param);
+			if (lr_param == NULL)
+				route = NULL;
+		}
+	    
+	    if (route != NULL)
+	    {
+			port = 5060;
+			if (route->url->port != NULL)
+			{
+				port = osip_atoi (route->url->port);
+				use_srv=0;
+			}
+			host = route->url->host;
+	    }
+	    else
+	    {
+			port = 5060;
+			if (sip->req_uri->port != NULL)
+			{
+				port = osip_atoi (sip->req_uri->port);
+				use_srv=0;
+			}
+			host = sip->req_uri->host;
+	    }
+	}
+	else
+	{
+		osip_generic_param_t *maddr;
+		osip_generic_param_t *received;
+		osip_generic_param_t *rport;
+
+		osip_via_param_get_byname (via, "maddr", &maddr);
+		osip_via_param_get_byname (via, "received", &received);
+		osip_via_param_get_byname (via, "rport", &rport);
+		if (maddr != NULL)
+			host = maddr->gvalue;
+		else if (received != NULL)
+			host = received->gvalue;
+		else
+			host = via->host;
+
+		if (via->port == NULL)
+			use_srv=0;
+		if (rport == NULL || rport->gvalue == NULL)
+		{
+			if (via->port != NULL)
+				port = osip_atoi (via->port);
+			else
+				port = 5060;
+		} else
+			port = osip_atoi (rport->gvalue);
+	}
+
+	if (use_srv==1)
+	{
+		int i;
+		i = _eXosip_get_srv_record(record, host, via->protocol);
+	}
+	return 0;
+}
+
+int
+_eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol)
+{
+	char zone[1024];
+	PDNS_RECORD answer, tmp;      /* answer buffer from nameserver */
+	int n;
+
+	memset(record, 0, sizeof(struct osip_srv_record));
+	snprintf(zone, 1024, "_sip._%s.%s", protocol, domain);
+
+	OSIP_TRACE (osip_trace
+				(__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"About to ask for '%s IN SRV'\n", zone));
+
+	if (DnsQuery (zone, DNS_TYPE_SRV, DNS_QUERY_STANDARD, NULL, &answer, NULL) != 0)
+	{
+		return -1;
+    }
+
+	n = 0;
+	for (tmp = answer; tmp != NULL; tmp = tmp->pNext)
+	{
+		struct osip_srv_entry *srventry;
+		DNS_SRV_DATA * data;
+		if (tmp->wType != DNS_TYPE_SRV)
+			continue;
+		srventry = &record->srventry[n];
+		data=&tmp->Data.SRV;
+		snprintf(srventry->srv, sizeof(srventry->srv), "%s", data->pNameTarget);
+
+		srventry->priority = data->wPriority;
+		srventry->weight = data->wWeight;
+		if (srventry->weight)
+			srventry->rweight = 1 + rand () % (10000 * srventry->weight);
+		else
+			srventry->rweight = 0;
+		srventry->port = data->wPort;
+
+		OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_INFO2, NULL,
+					"SRV record %s IN SRV -> %s:%i/%i/%i/%i\n",
+					zone, srventry->srv, srventry->port, srventry->priority,
+					srventry->weight, srventry->rweight));
+		n++;
+	}
+
+	return 0;
+}
+
+#endif

@@ -60,7 +60,7 @@ eXosip_options_send_request (osip_message_t * options)
   osip_event_t *sipevent;
   int i;
 
-  i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, options);
+  i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, options);
   if (i != 0)
     {
       osip_message_free (options);

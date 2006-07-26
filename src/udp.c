@@ -1065,7 +1065,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
   transaction = NULL;
   if (ctx_type != -1)
     {
-      i = osip_transaction_init (&transaction,
+      i = _eXosip_transaction_init (&transaction,
                                  (osip_fsm_type_t) ctx_type,
                                  eXosip.j_osip, evt->sip);
       if (i != 0)

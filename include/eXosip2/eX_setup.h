@@ -91,6 +91,19 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  */
   int eXosip_unlock(void);
 
+#ifdef SRV_RECORD
+
+/**
+ * Ask for SRV record.
+ * 
+ * @param record      result structure.
+ * @param domain      domain name for SRV record
+ * @param protocol    protocol to use
+ */
+  int eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
+
+#endif
+
 /**
  * Listen on a specified socket.
  * 

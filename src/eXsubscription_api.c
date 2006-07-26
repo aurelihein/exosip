@@ -154,7 +154,7 @@ eXosip_subscribe_send_initial_request (osip_message_t * subscribe)
       return -1;
     }
 
-  i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, subscribe);
+  i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, subscribe);
   if (i != 0)
     {
       eXosip_subscribe_free (js);
@@ -273,7 +273,7 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
     }
 
   transaction = NULL;
-  i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, sub);
+  i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, sub);
 
   if (i != 0)
     {
@@ -399,7 +399,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
   eXosip_add_authentication_information (msg, out_tr->last_response);
   osip_message_force_update (msg);
 
-  i = osip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
+  i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
 
   if (i != 0)
     {

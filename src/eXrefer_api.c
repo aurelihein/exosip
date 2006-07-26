@@ -54,7 +54,7 @@ eXosip_refer_send_request (osip_message_t * refer)
   if (refer == NULL)
     return -1;
 
-  i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, refer);
+  i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, refer);
   if (i != 0)
     {
       osip_message_free (refer);

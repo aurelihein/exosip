@@ -24,7 +24,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\osip\include,..\..\include"
-				PreprocessorDefinitions="EXOSIP_EXPORTS;_DEBUG;ENABLE_TRACE;WIN32;_WINDOWS;_USRDLL;OSIP_MT;_MT"
+				PreprocessorDefinitions="SRV_RECORD;EXOSIP_EXPORTS;_DEBUG;ENABLE_TRACE;WIN32;_WINDOWS;_USRDLL;OSIP_MT;_MT"
 				ExceptionHandling="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

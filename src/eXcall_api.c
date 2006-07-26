@@ -44,7 +44,7 @@ eXosip_create_transaction (eXosip_call_t * jc,
   osip_transaction_t *tr;
   int i;
 
-  i = osip_transaction_init (&tr, NICT, eXosip.j_osip, request);
+  i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, request);
   if (i != 0)
     {
       /* TODO: release the j_call.. */
@@ -73,7 +73,7 @@ eXosip_create_cancel_transaction (eXosip_call_t * jc,
   osip_transaction_t *tr;
   int i;
 
-  i = osip_transaction_init (&tr, NICT, eXosip.j_osip, request);
+  i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, request);
   if (i != 0)
     {
       /* TODO: release the j_call.. */
@@ -265,7 +265,7 @@ eXosip_call_send_initial_invite (osip_message_t * invite)
 
   eXosip_call_init (&jc);
 
-  i = osip_transaction_init (&transaction, ICT, eXosip.j_osip, invite);
+  i = _eXosip_transaction_init (&transaction, ICT, eXosip.j_osip, invite);
   if (i != 0)
     {
       eXosip_call_free (jc);
@@ -600,10 +600,10 @@ eXosip_call_send_request (int jid, osip_message_t * request)
   transaction = NULL;
   if (0 != osip_strcasecmp (request->sip_method, "INVITE"))
     {
-      i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, request);
+      i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, request);
   } else
     {
-      i = osip_transaction_init (&transaction, ICT, eXosip.j_osip, request);
+      i = _eXosip_transaction_init (&transaction, ICT, eXosip.j_osip, request);
     }
 
   if (i != 0)
@@ -1196,7 +1196,7 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
     }
 
   tr = NULL;
-  i = osip_transaction_init (&tr, NICT, eXosip.j_osip, prack);
+  i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, prack);
 
   if (i != 0)
     {
@@ -1395,10 +1395,10 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
 
   if (0 != osip_strcasecmp (msg->sip_method, "INVITE"))
     {
-      i = osip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
+      i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
   } else
     {
-      i = osip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
+      i = _eXosip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
     }
 
   if (i != 0)
@@ -1564,10 +1564,10 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
 
   if (0 != osip_strcasecmp (msg->sip_method, "INVITE"))
     {
-      i = osip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
+      i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
   } else
     {
-      i = osip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
+      i = _eXosip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
     }
 
   if (i != 0)

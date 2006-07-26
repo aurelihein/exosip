@@ -369,7 +369,7 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
   transport = _eXosip_transport_protocol (reg);
   osip_strncpy (jr->transport, transport, sizeof (jr->transport) - 1);
 
-  i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, reg);
+  i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, reg);
   if (i != 0)
     {
       /* TODO: release the j_call.. */

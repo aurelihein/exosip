@@ -416,7 +416,7 @@ eXosip_insubscription_send_request (int did, osip_message_t * request)
       transaction = NULL;
     }
 
-  i = osip_transaction_init (&transaction, NICT, eXosip.j_osip, request);
+  i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, request);
   if (i != 0)
     {
       osip_message_free (request);
@@ -541,7 +541,7 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
   eXosip_add_authentication_information (msg, out_tr->last_response);
   osip_message_force_update (msg);
 
-  i = osip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
+  i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
 
   if (i != 0)
     {

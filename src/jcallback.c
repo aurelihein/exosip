@@ -107,7 +107,6 @@ static void cb_rcvreq_retransmission (int type, osip_transaction_t * tr,
                                       osip_message_t * sip);
 static void cb_transport_error (int type, osip_transaction_t * tr, int error);
 
-
 int
 cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
                 int port, int out_socket)
@@ -253,11 +252,48 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
         port = 5060;
     }
 
-  i = eXosip_get_addrinfo (&addrinfo, host, port, IPPROTO_UDP);
-  if (i != 0)
-    {
-      return -1;
-    }
+#ifdef SRV_RECORD
+	i=-1;
+	if (tr!=NULL && tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
+	{
+		/* always choose the first here.
+			if a network error occur, remove first entry and
+			replace with next entries.
+		*/
+		osip_srv_entry_t *srv;
+		int n=0;
+		for (srv = &tr->record.srventry[0];
+			n<10 && tr->record.srventry[0].srv[0];
+			srv = &tr->record.srventry[0])
+		{
+			i = eXosip_get_addrinfo (&addrinfo, srv->srv, srv->port, IPPROTO_UDP);
+			if (i == 0)
+			{
+				host = srv->srv;
+				port = srv->port;
+				break;
+			}
+			memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
+			memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
+			i=-1;
+			/* copy next element */
+			n++;
+		}
+	}
+#else
+	i=0;
+#endif
+
+	/* if SRV was used, distination may be already found */
+	if (i != 0)
+	{
+		i = eXosip_get_addrinfo (&addrinfo, host, port, IPPROTO_UDP);
+	}
+
+	if (i != 0)
+	{
+		return -1;
+	}
 
   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
   len = addrinfo->ai_addrlen;
@@ -323,12 +359,23 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
            */
           osip_free (message);
           return 1;
-      } else
-        {
+      }
+	  else
+      {
+
+#ifdef SRV_RECORD
+		  /* delete first SRV entry that is not reachable */
+		  if (tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
+		  {
+			memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
+			memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
+			return 0; /* retry for next retransmission! */
+		  }
+#endif
           /* SIP_NETWORK_ERROR; */
           osip_free (message);
           return -1;
-        }
+      }
     }
 
 
