@@ -830,6 +830,10 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	int n;
 
 	memset(record, 0, sizeof(struct osip_srv_record));
+	if (strlen(domain)+strlen(protocol)>1000)
+		return -1;
+
+	osip_tolower(protocol);
 	snprintf(zone, 1024, "_sip._%s.%s", protocol, domain);
 
 	OSIP_TRACE (osip_trace
@@ -868,6 +872,10 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 		n++;
 	}
 
+	if (n==0)
+		return -1;
+
+	snprintf(record->name, sizeof(record->name), "%s", domain);
 	return 0;
 }
 
@@ -907,6 +915,10 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	int answerno;
 
 	memset(record, 0, sizeof(struct osip_srv_record));
+	if (strlen(domain)+strlen(protocol)>1000)
+		return -1;
+
+	osip_tolower(protocol);
 	snprintf(zone, 1024, "_sip._%s.%s", protocol, domain);
 
 	OSIP_TRACE (osip_trace
@@ -1064,10 +1076,9 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 	}
 
 	if (answerno == 0)
-	{
 		return -1;
-	}
 
+	snprintf(record->name, sizeof(record->name), "%s", domain);
 	return 0;
 }
 
