@@ -555,10 +555,8 @@ extern "C"
 	  osip_fsm_type_t ctx_type, osip_t * osip,
 	  osip_message_t * message);
 
-#ifdef SRV_RECORD
   int _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record);
   int _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
-#endif
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 eXosip2 (3.0.0)
 	* Update to osip2-3.0.0
+	* Add SRV record capabilities.
 	
 eXosip2 (2.2.3)
 	* announce NOTIFY answers to application.

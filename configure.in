@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.40 $)dnl
+AC_REVISION($Revision: 1.41 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -371,6 +371,8 @@ AC_CHECK_HEADERS(sys/select.h)
 AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(fcntl.h)
 AC_CHECK_HEADERS(sys/soundcard.h)
+AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(netdb.h)
 
 AC_OUTPUT(
  Makefile
