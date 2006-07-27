@@ -717,8 +717,6 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
   return 0;
 }
 
-#ifdef SRV_RECORD
-
 int
 _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record)
 {
@@ -802,6 +800,9 @@ _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_sr
 	return 0;
 }
 
+
+#ifdef WIN32
+
 int
 _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol)
 {
@@ -849,6 +850,195 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	}
 
 	return 0;
+}
+
+#elif defined(xxx)
+
+int
+_eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol)
+{
+	querybuf answer;              /* answer buffer from nameserver */
+	int n;
+	char *zone;
+	int ancount, qdcount;         /* answer count and query count */
+	HEADER *hp;                   /* answer buffer header */
+	char hostbuf[256];
+	unsigned char *msg, *eom, *cp;        /* answer buffer positions */
+	int dlen, type, aclass, pref, weight, port;
+	long ttl;
+	int answerno;
+
+	memset(record, 0, sizeof(struct osip_srv_record));
+	snprintf(zone, 1024, "_sip._%s.%s", protocol, domain);
+
+	OSIP_TRACE (osip_trace
+				(__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"About to ask for '%s IN SRV'\n", zone));
+
+	n = res_query (zone, C_IN, T_SRV, (unsigned char *) &answer, sizeof (answer));
+
+	if (n < (int) sizeof (HEADER))
+	{
+		return -1;
+	}
+
+	/* browse message and search for DNS answers part */
+	hp = (HEADER *) answer;
+	qdcount = ntohs (hp->qdcount);
+	ancount = ntohs (hp->ancount);
+
+	msg = (unsigned char *) answer;
+	eom = (unsigned char *) answer + n;
+	cp = (unsigned char *) answer + sizeof (HEADER);
+
+	while (qdcount-- > 0 && cp < eom)
+	{
+		n = dn_expand (msg, eom, cp, (char *) hostbuf, 256);
+		if (n < 0)
+		{
+			OSIP_TRACE (osip_trace
+						(__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"Invalid SRV record answer for '%s': bad format\n", zone));
+			return -1;
+		}
+		cp += n + QFIXEDSZ;
+	}
+
+
+	/* browse DNS answers */
+	answerno = 0;
+
+	/* loop through the answer buffer and extract SRV records */
+	while (ancount-- > 0 && cp < eom)
+	{
+		struct osip_srv_entry *srventry;
+
+		n = dn_expand (msg, eom, cp, (char *) hostbuf, 256);
+		if (n < 0)
+		{
+			OSIP_TRACE (osip_trace
+						(__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"Invalid SRV record answer for '%s': bad format\n", zone));
+			return -1;
+		}
+
+		cp += n;
+
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) ||\
+defined(OLD_NAMESER) || defined(__FreeBSD__)
+		type = _get_short (cp);
+		cp += sizeof (u_short);
+#elif defined(__APPLE_CC__)
+		GETSHORT (type, cp);
+#else
+		NS_GET16 (type, cp);
+#endif
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) ||\
+defined(OLD_NAMESER) || defined(__FreeBSD__)
+		aclass = _get_short (cp);
+		cp += sizeof (u_short);
+#elif defined(__APPLE_CC__)
+		GETSHORT (aclass, cp);
+#else
+		NS_GET16 (aclass, cp);
+#endif
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) ||\
+defined(OLD_NAMESER) || defined(__FreeBSD__)
+		ttl = _get_long (cp);
+		cp += sizeof (u_long);
+#elif defined(__APPLE_CC__)
+		GETLONG (ttl, cp);
+#else
+		NS_GET32 (ttl, cp);
+#endif
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) ||\
+defined(OLD_NAMESER) || defined(__FreeBSD__)
+		dlen = _get_short (cp);
+		cp += sizeof (u_short);
+#elif defined(__APPLE_CC__)
+		GETSHORT (dlen, cp);
+#else
+		NS_GET16 (dlen, cp);
+#endif
+
+		if (type != T_SRV)
+		{
+			cp += dlen;
+			continue;
+		}
+#if defined(__NetBSD__) || defined(__OpenBSD__) ||\
+defined(OLD_NAMESER) || defined(__FreeBSD__)
+		pref = _get_short (cp);
+		cp += sizeof (u_short);
+#elif defined(__APPLE_CC__)
+		GETSHORT (pref, cp);
+#else
+		NS_GET16 (pref, cp);
+#endif
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) ||\
+defined(OLD_NAMESER) || defined(__FreeBSD__)
+		weight = _get_short (cp);
+		cp += sizeof (u_short);
+#elif defined(__APPLE_CC__)
+		GETSHORT (weight, cp);
+#else
+		NS_GET16 (weight, cp);
+#endif
+
+#if defined(__NetBSD__) || defined(__OpenBSD__) ||\
+defined(OLD_NAMESER) || defined(__FreeBSD__)
+		port = _get_short (cp);
+		cp += sizeof (u_short);
+#elif defined(__APPLE_CC__)
+		GETSHORT (port, cp);
+#else
+		NS_GET16 (port, cp);
+#endif
+
+		n = dn_expand (msg, eom, cp, (char *) hostbuf, 256);
+		if (n < 0)
+			break;
+		cp += n;
+
+		srventry = &record->srventry[answerno];
+		snprintf(srventry->srv, sizeof(srventry->srv), "%s", hostbuf);
+
+		srventry->priority = pref;
+		srventry->weight = weight;
+		if (weight)
+			srventry->rweight = 1 + random () % (10000 * srventry->weight);
+		else
+			srventry->rweight = 0;
+		srventry->port = port;
+
+		OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_INFO2, NULL,
+					"SRV record %s IN SRV -> %s:%i/%i/%i/%i\n",
+					zone, srventry->srv, srventry->port, srventry->priority,
+					srventry->weight, srventry->rweight));
+
+		answerno++;
+	}
+
+	if (answerno == 0)
+	{
+		return -1;
+	}
+
+	return 0;
+}
+
+#else
+
+int
+_eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol)
+{
+	return -1;
 }
 
 #endif
