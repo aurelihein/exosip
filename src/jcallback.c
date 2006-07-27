@@ -252,7 +252,6 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
         port = 5060;
     }
 
-#ifdef SRV_RECORD
 	i=-1;
 	if (tr!=NULL && tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
 	{
@@ -280,9 +279,6 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 			n++;
 		}
 	}
-#else
-	i=0;
-#endif
 
 	/* if SRV was used, distination may be already found */
 	if (i != 0)
