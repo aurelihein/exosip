@@ -905,7 +905,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 {
 	querybuf answer;              /* answer buffer from nameserver */
 	int n;
-	char *zone;
+	char zone[1024];
 	int ancount, qdcount;         /* answer count and query count */
 	HEADER *hp;                   /* answer buffer header */
 	char hostbuf[256];

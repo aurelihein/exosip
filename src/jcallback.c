@@ -359,7 +359,6 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  else
       {
 
-#ifdef SRV_RECORD
 		  /* delete first SRV entry that is not reachable */
 		  if (tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
 		  {
@@ -367,7 +366,6 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 			memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
 			return 0; /* retry for next retransmission! */
 		  }
-#endif
           /* SIP_NETWORK_ERROR; */
           osip_free (message);
           return -1;
