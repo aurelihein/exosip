@@ -879,7 +879,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	return 0;
 }
 
-#elif defined(xxx)
+#elif defined(__linux)
 
 /* the biggest packet we'll send and receive */
 #if PACKETSZ > 1024
