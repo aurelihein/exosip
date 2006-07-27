@@ -854,6 +854,25 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 
 #elif defined(xxx)
 
+/* the biggest packet we'll send and receive */
+#if PACKETSZ > 1024
+#define	MAXPACKET PACKETSZ
+#else
+#define	MAXPACKET 1024
+#endif
+
+/* and what we send and receive */
+  typedef union
+  {
+    HEADER hdr;
+    u_char buf[MAXPACKET];
+  }
+  querybuf;
+
+#ifndef T_SRV
+#define T_SRV		33
+#endif
+
 int
 _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol)
 {
