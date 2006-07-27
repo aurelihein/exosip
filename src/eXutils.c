@@ -26,9 +26,28 @@
 #include "eXosip2.h"
 
 
-#ifdef SRV_RECORD
+#if defined(WIN32) || defined(_WIN32_WCE)
 #include <WinDNS.h>
+#else
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#ifdef HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
 #endif
+
+#ifdef HAVE_RESOLV8_COMPAT_H
+#include <nameser8_compat.h>
+#include <resolv8_compat.h>
+#elif defined(HAVE_RESOLV_H) || defined(OpenBSD) || defined(FreeBSD) || defined(NetBSD)
+#include <resolv.h>
+#endif
+
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#endif
+
 
 extern eXosip_t eXosip;
 
