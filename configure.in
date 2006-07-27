@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.41 $)dnl
+AC_REVISION($Revision: 1.42 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -238,6 +238,17 @@ AC_CHECK_LIB(socket,sendto,[EXOSIP_LIB="$EXOSIP_LIB -lsocket"])
 AC_CHECK_LIB(rt,clock_gettime,[JOSUA_LIB="$JOSUA_LIB -lrt"])
 AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
 
+case $OS in
+  openbsd*)
+     ;;
+  *)
+     AC_CHECK_LIB(resolv,res_query,[EXOSIP_LIB="$EXOSIP_LIB -lresolv"])
+     AC_CHECK_LIB(resolv,res_query,[JOSUA_LIB="$JOSUA_LIB -lresolv"])
+     AC_CHECK_LIB(resolv,__res_query,[EXOSIP_LIB="$EXOSIP_LIB -lresolv"])
+     AC_CHECK_LIB(resolv,__res_query,[JOSUA_LIB="$JOSUA_LIB -lresolv"])
+     ;;
+esac
+
 if test "x$enable_josua" = "xyes"; then
   JOSUA_FLAGS="$JOSUA_FLAGS -DNCURSES_SUPPORT"
   AC_CHECK_LIB(ncurses,wgetch,[JOSUA_LIB="-lncurses"])
@@ -372,7 +383,22 @@ AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(fcntl.h)
 AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(arpa/nameser.h)
 AC_CHECK_HEADERS(netdb.h)
+AC_CHECK_HEADERS(resolv8_compat.h)
+
+AC_CHECK_HEADERS([resolv.h], [], [],
+[#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#if HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+])
+
 
 AC_OUTPUT(
  Makefile

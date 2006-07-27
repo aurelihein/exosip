@@ -933,13 +933,13 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	}
 
 	/* browse message and search for DNS answers part */
-	hp = (HEADER *) answer;
+	hp = (HEADER *) &answer;
 	qdcount = ntohs (hp->qdcount);
 	ancount = ntohs (hp->ancount);
 
-	msg = (unsigned char *) answer;
-	eom = (unsigned char *) answer + n;
-	cp = (unsigned char *) answer + sizeof (HEADER);
+	msg = (unsigned char *) (&answer);
+	eom = (unsigned char *) (&answer) + n;
+	cp = (unsigned char *) (&answer) + sizeof (HEADER);
 
 	while (qdcount-- > 0 && cp < eom)
 	{
