@@ -25,8 +25,9 @@
 #ifndef __EX_SETUP_H__
 #define __EX_SETUP_H__
 
-#include <osipparser2/osip_parser.h>
-#include <osip2/osip.h>
+#include <eXosip2/eXosip.h>
+#include <osipparser2/osip_message.h>
+
 #include <time.h>
 
 #ifdef __cplusplus
