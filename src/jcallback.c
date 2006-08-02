@@ -1163,7 +1163,7 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
 
   jd->d_STATE = JD_ESTABLISHED;
 
-  //eXosip_dialog_set_200ok (jd, sip);
+  /* eXosip_dialog_set_200ok (jd, sip); */
 
   report_call_event (EXOSIP_CALL_ANSWERED, jc, jd, tr);
 

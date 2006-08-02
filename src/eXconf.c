@@ -653,12 +653,6 @@ eXosip_init (void)
   eXosip.j_events = (osip_fifo_t *) osip_malloc (sizeof (osip_fifo_t));
   osip_fifo_init (eXosip.j_events);
 
-#if 0
-  {
-	  struct eX_srv_record record;
-	  _eXosip_get_srv_record(&record, "sipcenter.com", "udp");
-  }
-#endif
   return 0;
 }
 

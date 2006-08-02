@@ -556,7 +556,6 @@ extern "C"
 	  osip_message_t * message);
 
   int _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record);
-  int _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
 
 #ifdef __cplusplus
 }

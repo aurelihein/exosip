@@ -26,6 +26,7 @@
 #define __EX_SETUP_H__
 
 #include <osipparser2/osip_parser.h>
+#include <osip2/osip.h>
 #include <time.h>
 
 #ifdef __cplusplus
@@ -91,8 +92,6 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  */
   int eXosip_unlock(void);
 
-#ifdef SRV_RECORD
-
 /**
  * Ask for SRV record.
  * 
@@ -100,9 +99,7 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param domain      domain name for SRV record
  * @param protocol    protocol to use
  */
-  int eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
-
-#endif
+  int _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
 
 /**
  * Listen on a specified socket.
