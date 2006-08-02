@@ -121,6 +121,13 @@ typedef enum eXosip_ss_status {
  */
   int eXosip_subscribe_send_refresh_request(int did, osip_message_t *sub);
 
+/**
+ * Remove outgoing subscription context.
+ * 
+ * @param did          identifier of the subscription.
+ */
+  int eXosip_subscribe_remove (int did);
+
 /** @} */
 
 /**
@@ -179,6 +186,13 @@ typedef enum eXosip_ss_status {
  */
   int eXosip_insubscription_send_request(int did, osip_message_t *request);
 					  
+/**
+ * Remove incoming subscription context.
+ * 
+ * @param did          identifier of the subscription.
+ */
+  int eXosip_insubscription_remove (int did);
+
 /** @} */
 
 

@@ -81,6 +81,27 @@ _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
   return -1;
 }
 
+int eXosip_subscribe_remove (int did)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_subscribe_t *js = NULL;
+
+  if (did > 0)
+    {
+      eXosip_subscribe_dialog_find (did, &js, &jd);
+    }
+  if (jd == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No outgoing subscription here?\n"));
+      return -1;
+    }
+    REMOVE_ELEMENT (eXosip.j_subscribes, js);
+    eXosip_subscribe_free (js);
+    return 0;
+}
+
 int
 eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
                                         const char *from, const char *route,

@@ -82,6 +82,27 @@ _eXosip_insubscription_transaction_find (int tid, eXosip_notify_t ** jn,
   return -1;
 }
 
+int eXosip_insubscription_remove (int did)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_notify_t *jn = NULL;
+
+  if (did > 0)
+    {
+      eXosip_notify_dialog_find (did, &jn, &jd);
+    }
+  if (jd == NULL || jn == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No incoming subscription here?\n"));
+      return -1;
+    }
+    REMOVE_ELEMENT (eXosip.j_notifies, jn);
+    eXosip_notify_free (jn);
+    return 0;
+}
+
 int
 eXosip_insubscription_build_answer (int tid, int status, osip_message_t ** answer)
 {
