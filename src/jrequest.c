@@ -283,7 +283,6 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   memset(locip, '\0', sizeof(locip));
 #ifndef SM
   eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
-#endif
   if (locip[0]=='\0')
     {
       OSIP_TRACE (osip_trace
@@ -291,6 +290,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                    "eXosip: no default interface defined\n"));
       return -1;
     }
+#endif
 
   i = osip_message_init (&request);
   if (i != 0)
@@ -380,6 +380,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
   /* set To and From */
   osip_message_set_from (request, from);
+  if (request->from==NULL)
+    goto brood_error_1;
+
   /* add a tag */
   osip_from_set_tag (request->from, osip_from_tag_new_random ());
 
