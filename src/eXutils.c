@@ -161,7 +161,6 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   if (addrf==NULL)
   {
       closesocket(sock);
-      freeaddrinfo(addrf);
       snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
       return -1;
   }
