@@ -1028,8 +1028,28 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
           osip_transaction_set_your_instance (tr, jinfo);
       } else
         {
-          osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
-          osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
+			if (jd->d_dialog==NULL)
+			{
+			}
+			else if (jd->d_dialog->remote_tag==NULL)
+			{
+				osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
+				osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
+			}
+			else
+			{
+				osip_generic_param_t *tag;
+				int i;
+
+				i = osip_to_get_tag (sip->to, &tag);
+				if (tag != NULL && tag->gvalue != NULL
+					&& 0 == strcmp (jd->d_dialog->remote_tag, tag->gvalue))
+				{
+					/* Update only if it is the same dialog */
+					osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
+					osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
+				}
+			}
         }
 
       if (jd != NULL)
