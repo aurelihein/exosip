@@ -162,10 +162,12 @@ jpipe ()
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "udp plugin; cannot set O_NONBLOCK to the file desciptor!\n"));
+#ifndef _WIN32_WCE
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
       osip_free (my_pipe);
-	  return NULL;
+      return NULL;
+#endif
     }
 
   connect (my_pipe->pipes[1], (struct sockaddr *) &raddr, sizeof (raddr));
