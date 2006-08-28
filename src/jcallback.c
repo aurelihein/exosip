@@ -1047,7 +1047,6 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 				{
 					/* Update only if it is the same dialog */
 					osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
-					osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
 				}
 			}
         }
@@ -1159,11 +1158,12 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
       if (i == 1)               /* just update the dialog */
         {
           osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
-          osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
+          if (jd->d_dialog->remote_tag==NULL)
+	    osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
           osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
       } else
         {
-          /* the best thing is to update the repace the current dialog
+          /* the best thing is to replace the current dialog
              information... Much easier than creating a useless dialog! */
           osip_dialog_free (jd->d_dialog);
           i = osip_dialog_init_as_uac (&(jd->d_dialog), sip);
@@ -1255,7 +1255,8 @@ cb_rcv2xx_4subscribe (osip_transaction_t * tr, osip_message_t * sip)
   } else
     {
       osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
-      osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
+      if (jd->d_dialog->remote_tag==NULL)
+	osip_dialog_update_tag_as_uac (jd->d_dialog, sip);
       osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
     }
 
