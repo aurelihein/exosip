@@ -212,6 +212,7 @@ int
 _eXosip_request_add_via(osip_message_t *request, const char *transport)
 {
   char tmp[200];
+  char tr[20];
   struct eXosip_net *net;
 
   if (request==NULL
@@ -220,9 +221,15 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport)
 	  return -1;
 
   if (0 == osip_strcasecmp (transport, "udp"))
-    net = &eXosip.net_interfaces[0];
+    {
+      snprintf(tr, 20, "UDP");
+      net = &eXosip.net_interfaces[0];
+    }
   else if (0 == osip_strcasecmp (transport, "tcp"))
-    net = &eXosip.net_interfaces[1];
+    {
+      snprintf(tr, 20, "TCP");
+      net = &eXosip.net_interfaces[1];
+    }
   else
     {
       OSIP_TRACE (osip_trace
@@ -232,15 +239,21 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport)
     }
 
     if (net->net_ip_family == AF_INET6)
-      snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", transport,
+      snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", tr,
                 request->call_id->host, net->net_port, via_branch_new_random ());
     else
-      snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", transport,
-                request->call_id->host, net->net_port, via_branch_new_random ());
+      {
+	if (eXosip.use_rport!=0)
+	  snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", tr,
+		    request->call_id->host, net->net_port, via_branch_new_random ());
+	else
+	  snprintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", tr,
+		    request->call_id->host, net->net_port, via_branch_new_random ());	  
+      }
 
     osip_message_set_via (request, tmp);
 
-	return 0;
+    return 0;
 }
 
 /* prepare a minimal request (outside of a dialog) with required headers */

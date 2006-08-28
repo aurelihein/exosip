@@ -122,9 +122,7 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   osip_event_t *sipevent;
   jinfo_t *ji = NULL;
 
-  char locip[256];
   int cseq;
-  char tmp[256];
   osip_via_t *via;
   int i;
 
@@ -174,47 +172,15 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       jd->d_dialog->local_cseq++;
     }
 
-  osip_list_remove (&msg->vias, 0);
-  osip_via_free (via);
-  i = _eXosip_find_protocol (out_tr->orig_request);
-  memset(locip, '\0', sizeof(locip));
-  if (i == IPPROTO_UDP)
+  i = eXosip_update_top_via(msg);
+  if (i!=0)
     {
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
-                               sizeof (locip));
-      if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-        snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[0].net_port,
-                  via_branch_new_random ());
-      else
-        snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[0].net_port,
-                  via_branch_new_random ());
-  } else if (i == IPPROTO_TCP)
-    {
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip,
-                               sizeof (locip));
-      if (eXosip.net_interfaces[1].net_ip_family == AF_INET6)
-        snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[1].net_port,
-                  via_branch_new_random ());
-      else
-        snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[1].net_port,
-                  via_branch_new_random ());
-  } else
-    {
-      /* tls? */
       osip_message_free (msg);
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: unsupported protocol\n"));
       return -1;
     }
-
-  osip_via_init (&via);
-  osip_via_parse (via, tmp);
-  osip_list_add (&msg->vias, via, 0);
 
   if (eXosip_add_authentication_information (msg, out_tr->last_response) < 0)
     {
@@ -1206,57 +1172,33 @@ eXosip_add_authentication_information (osip_message_t * req,
 int
 eXosip_update_top_via (osip_message_t * sip)
 {
-  char locip[50];
-  char *tmp = (char *) osip_malloc (256 * sizeof (char));
+  unsigned int number;
+  char tmp[40];
+  osip_generic_param_t *br=NULL;
   osip_via_t *via = (osip_via_t *) osip_list_get (&sip->vias, 0);
-  int i;
 
-  i = _eXosip_find_protocol (sip);
-
-  osip_list_remove (&sip->vias, 0);
-  osip_via_free (via);
-#ifdef SM
-  eXosip_get_localip_for (sip->req_uri->host, locip, 49);
-#else
-  memset(locip, '\0', sizeof(locip));
-  if (i == IPPROTO_UDP)
-    eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
-  else if (i == IPPROTO_TCP)
-    eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip, 49);
-  else
+  if (via==NULL)
     {
       OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol (using default UDP)\n"));
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "missing via in SIP message\n"));
+      return -1;
     }
-#endif
-  if (i == IPPROTO_UDP)
+  /* browse parameter and replace "branch" */
+  osip_via_param_get_byname (via, "branch", &br);
+
+  if (br==NULL || br->gvalue==NULL)
     {
-      if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-        snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[0].net_port,
-                  via_branch_new_random ());
-      else
-        snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[0].net_port,
-                  via_branch_new_random ());
-  } else if (i == IPPROTO_TCP)
-    {
-      if (eXosip.net_interfaces[1].net_ip_family == AF_INET6)
-        snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[1].net_port,
-                  via_branch_new_random ());
-      else
-        snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[1].net_port,
-                  via_branch_new_random ());
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "missing branch parameter via in SIP message\n"));
+      return -1;
     }
+  
+  osip_free(br->gvalue);
+  number = osip_build_random_number ();
 
-  osip_via_init (&via);
-  osip_via_parse (via, tmp);
-  osip_list_add (&sip->vias, via, 0);
-  osip_free (tmp);
-
+  sprintf (tmp, "z9hG4bK%u", number);
+  br->gvalue = osip_strdup(tmp);
   return 0;
 }

@@ -360,6 +360,7 @@ extern "C"
     char http_proxy[256];
     char http_outbound_proxy[256];
     int dontsend_101;
+    int use_rport;
   };
 
   typedef struct jinfo_t jinfo_t;
@@ -423,6 +424,8 @@ extern "C"
   int generating_ack_for_2xx (osip_message_t ** ack, osip_dialog_t * dialog);
 
   int eXosip_update_top_via (osip_message_t * sip);
+  int _eXosip_request_add_via(osip_message_t *request, const char *transport);
+
   int eXosip_add_authentication_information (osip_message_t * req,
                                              osip_message_t * last_response);
   int _eXosip_reg_find (eXosip_reg_t ** reg, osip_transaction_t * tr);
@@ -548,7 +551,7 @@ extern "C"
 
   int eXosip_is_public_address (const char *addr);
 
-  void eXosip_retransmit_lost200ok();
+  void eXosip_retransmit_lost200ok(void);
   int _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer);
 
   int _eXosip_transaction_init (osip_transaction_t ** transaction,

@@ -465,9 +465,7 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
   osip_message_t *msg = NULL;
   osip_event_t *sipevent;
 
-  char locip[256];
   int cseq;
-  char tmp[256];
   osip_via_t *via;
   int i;
 
@@ -516,48 +514,15 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
       jd->d_dialog->local_cseq++;
     }
 
-  osip_list_remove (&msg->vias, 0);
-  osip_via_free (via);
-
-  i = _eXosip_find_protocol (out_tr->orig_request);
-  memset(locip, '\0', sizeof(locip));
-  if (i == IPPROTO_UDP)
+  i = eXosip_update_top_via(msg);
+  if (i!=0)
     {
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip,
-                               sizeof (locip));
-      if (eXosip.net_interfaces[0].net_ip_family == AF_INET6)
-        snprintf (tmp, 256, "SIP/2.0/UDP [%s]:%s;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[0].net_port,
-                  via_branch_new_random ());
-      else
-        snprintf (tmp, 256, "SIP/2.0/UDP %s:%s;rport;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[0].net_port,
-                  via_branch_new_random ());
-  } else if (i == IPPROTO_TCP)
-    {
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip,
-                               sizeof (locip));
-      if (eXosip.net_interfaces[1].net_ip_family == AF_INET6)
-        snprintf (tmp, 256, "SIP/2.0/TCP [%s]:%s;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[1].net_port,
-                  via_branch_new_random ());
-      else
-        snprintf (tmp, 256, "SIP/2.0/TCP %s:%s;rport;branch=z9hG4bK%u",
-                  locip, eXosip.net_interfaces[1].net_port,
-                  via_branch_new_random ());
-  } else
-    {
-      /* tls? */
       osip_message_free (msg);
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: unsupported protocol\n"));
       return -1;
     }
-
-  osip_via_init (&via);
-  osip_via_parse (via, tmp);
-  osip_list_add (&msg->vias, via, 0);
 
   eXosip_add_authentication_information (msg, out_tr->last_response);
   osip_message_force_update (msg);

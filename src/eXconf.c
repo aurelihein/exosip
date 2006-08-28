@@ -653,6 +653,7 @@ eXosip_init (void)
   eXosip.j_events = (osip_fifo_t *) osip_malloc (sizeof (osip_fifo_t));
   osip_fifo_init (eXosip.j_events);
 
+  eXosip.use_rport = 1;
   return 0;
 }
 
@@ -766,6 +767,11 @@ eXosip_set_option (eXosip_option opt, const void *value)
       case EXOSIP_OPT_DONT_SEND_101:
         val = *((int *) value);
         eXosip.dontsend_101 = val;        /* 0 to disable */
+        break;
+
+      case EXOSIP_OPT_USE_RPORT:
+        val = *((int *) value);
+        eXosip.use_rport = val;       /* 0 to disable (for broken NAT only?) */
         break;
     }
   return 0;

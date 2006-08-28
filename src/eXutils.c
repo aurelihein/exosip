@@ -827,13 +827,18 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	char zone[1024];
 	PDNS_RECORD answer, tmp;      /* answer buffer from nameserver */
 	int n;
+	char tr[100];
 
 	memset(record, 0, sizeof(struct osip_srv_record));
 	if (strlen(domain)+strlen(protocol)>1000)
 		return -1;
 
-	osip_tolower(protocol);
-	snprintf(zone, 1024, "_sip._%s.%s", protocol, domain);
+	if (strlen(protocol)>=100)
+	  return -1;
+	snprintf(tr, 100, protocol);
+	osip_tolower(tr);
+
+	snprintf(zone, 1024, "_sip._%s.%s", tr, domain);
 
 	OSIP_TRACE (osip_trace
 				(__FILE__, __LINE__, OSIP_INFO2, NULL,
@@ -912,13 +917,18 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	int dlen, type, aclass, pref, weight, port;
 	long ttl;
 	int answerno;
+	char tr[100];
 
 	memset(record, 0, sizeof(struct osip_srv_record));
 	if (strlen(domain)+strlen(protocol)>1000)
 		return -1;
 
-	osip_tolower(protocol);
-	snprintf(zone, 1024, "_sip._%s.%s", protocol, domain);
+	if (strlen(protocol)>=100)
+	  return -1;
+	snprintf(tr, 100, protocol);
+	osip_tolower(tr);
+
+	snprintf(zone, 1024, "_sip._%s.%s", tr, domain);
 
 	OSIP_TRACE (osip_trace
 				(__FILE__, __LINE__, OSIP_INFO2, NULL,

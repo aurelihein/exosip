@@ -35,6 +35,8 @@ extern "C"
 {
 #endif
 
+  struct osip_srv_record;
+
 /**
  * @file eX_setup.h
  * @brief eXosip setup API
@@ -68,7 +70,8 @@ typedef enum {
     EXOSIP_OPT_SET_HTTP_TUNNEL_PORT = 3,
     EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY = 4,
     EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY = 5, /* used for http tunnel ONLY */
-    EXOSIP_OPT_DONT_SEND_101 = 6
+    EXOSIP_OPT_DONT_SEND_101 = 6,
+    EXOSIP_OPT_USE_RPORT = 7
 } eXosip_option;
 
 /**
