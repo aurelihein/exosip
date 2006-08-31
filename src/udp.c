@@ -1141,7 +1141,11 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
          4: a NOT-SUPPORTED method with a wrong CSeq.
        */
 
-      if (!MSG_IS_BYE (evt->sip))
+      if (transaction==NULL)
+	{
+	  /* cannot answer ACK transaction */
+	}
+      else if (!MSG_IS_BYE (evt->sip))
         {
           /* reject all requests for a closed dialog */
           old_trn = eXosip_find_last_inc_transaction (jc, jd, "BYE");
