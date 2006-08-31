@@ -424,7 +424,7 @@ extern "C"
   int generating_ack_for_2xx (osip_message_t ** ack, osip_dialog_t * dialog);
 
   int eXosip_update_top_via (osip_message_t * sip);
-  int _eXosip_request_add_via(osip_message_t *request, const char *transport);
+  int _eXosip_request_add_via(osip_message_t *request, const char *transport, const char *locip);
 
   int eXosip_add_authentication_information (osip_message_t * req,
                                              osip_message_t * last_response);

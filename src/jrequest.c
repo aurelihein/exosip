@@ -209,16 +209,26 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 }
 
 int
-_eXosip_request_add_via(osip_message_t *request, const char *transport)
+_eXosip_request_add_via(osip_message_t *request, const char *transport, const char *locip)
 {
   char tmp[200];
   char tr[20];
   struct eXosip_net *net;
+  const char *ip=NULL;
 
-  if (request==NULL
-	  ||request->call_id==NULL
-	  ||request->call_id->host==NULL)
-	  return -1;
+  if (request==NULL)
+    return -1;
+
+  if (request->call_id==NULL)
+    return -1;
+
+  if (locip==NULL && request->call_id->host==NULL)
+    return -1;
+
+  if (locip!=NULL)
+    ip = locip;
+  else if (request->call_id->host!=NULL)
+    ip = request->call_id->host;
 
   if (0 == osip_strcasecmp (transport, "udp"))
     {
@@ -240,15 +250,15 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport)
 
     if (net->net_ip_family == AF_INET6)
       snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", tr,
-                request->call_id->host, net->net_port, via_branch_new_random ());
+                ip, net->net_port, via_branch_new_random ());
     else
       {
 	if (eXosip.use_rport!=0)
 	  snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", tr,
-		    request->call_id->host, net->net_port, via_branch_new_random ());
+		    ip, net->net_port, via_branch_new_random ());
 	else
 	  snprintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", tr,
-		    request->call_id->host, net->net_port, via_branch_new_random ());	  
+		    ip, net->net_port, via_branch_new_random ());	  
       }
 
     osip_message_set_via (request, tmp);
@@ -427,7 +437,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
     request->cseq = cseq;
   }
 
-  i = _eXosip_request_add_via(request, transport);
+  i = _eXosip_request_add_via(request, transport, locip);
   if (i != 0)
     goto brood_error_1;
 
@@ -811,7 +821,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   osip_message_set_max_forwards (request, "70"); /* a UA should start a request with 70 */
 
 
-  i = _eXosip_request_add_via(request, transport);
+  i = _eXosip_request_add_via(request, transport, locip);
   if (i != 0)
     goto grwd_error_1;
 
