@@ -178,47 +178,6 @@ int eXosip_force_masquerade_contact(const char *localip);
  */
   void __eXosip_wakeup_event(void);
 
-#define REMOVE_ELEMENT(first_element, element)   \
-       if (element->parent==NULL)                \
-	{ first_element = element->next;         \
-          if (first_element!=NULL)               \
-          first_element->parent = NULL; }        \
-       else \
-        { element->parent->next = element->next; \
-          if (element->next!=NULL)               \
-	element->next->parent = element->parent; \
-	element->next = NULL;                    \
-	element->parent = NULL; }
-
-#define ADD_ELEMENT(first_element, element) \
-   if (first_element==NULL)                 \
-    {                                       \
-      first_element   = element;            \
-      element->next   = NULL;               \
-      element->parent = NULL;               \
-    }                                       \
-  else                                      \
-    {                                       \
-      element->next   = first_element;      \
-      element->parent = NULL;               \
-      element->next->parent = element;      \
-      first_element = element;              \
-    }
-
-#define APPEND_ELEMENT(type_of_element_t, first_element, element) \
-  if (first_element==NULL)                            \
-    { first_element = element;                        \
-      element->next   = NULL; /* useless */           \
-      element->parent = NULL; /* useless */ }         \
-  else                                                \
-    { type_of_element_t *f;                           \
-      for (f=first_element; f->next!=NULL; f=f->next) \
-         { }                                          \
-      f->next    = element;                           \
-      element->parent = f;                            \
-      element->next   = NULL;                         \
-    }
-
 #endif
 
 /** @} */
