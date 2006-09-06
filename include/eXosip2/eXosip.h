@@ -198,6 +198,20 @@ extern "C"
  */
   sdp_media_t *eXosip_get_audio_media(sdp_message_t *sdp);
 
+/**
+ * Get video connection information for call.
+ * 
+ * @param sdp     sdp information.
+ */
+  sdp_connection_t *eXosip_get_video_connection(sdp_message_t *sdp);
+
+/**
+ * Get video media information for call.
+ * 
+ * @param sdp     sdp information.
+ */
+  sdp_media_t *eXosip_get_video_media(sdp_message_t *sdp);
+
 /** @} */
 
 /**

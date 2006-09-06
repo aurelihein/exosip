@@ -67,3 +67,5 @@ EXPORTS
      eXosip_get_sdp_info
      eXosip_get_audio_connection
      eXosip_get_audio_media
+     eXosip_get_video_connection
+     eXosip_get_video_media
