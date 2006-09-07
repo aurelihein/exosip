@@ -524,7 +524,7 @@ extern "C"
   int eXosip_read_message (int max_message_nb, int sec_max, int usec_max);
   void eXosip_release_terminated_calls (void);
   void eXosip_release_terminated_registrations (void);
-
+  void eXosip_release_unused_transactions(void);
 
   int eXosip_subscribe_init (eXosip_subscribe_t ** js);
   void eXosip_subscribe_free (eXosip_subscribe_t * js);
