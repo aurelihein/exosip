@@ -592,6 +592,8 @@ eXosip_init (void)
 
   memset (&eXosip, 0, sizeof (eXosip));
 
+  eXosip.remove_preloadedroute=1;
+
 #ifdef WIN32
   /* Initializing windows socket library */
   {

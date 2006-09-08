@@ -361,6 +361,7 @@ extern "C"
     char http_outbound_proxy[256];
     int dontsend_101;
     int use_rport;
+    int remove_preloadedroute;
   };
 
   typedef struct jinfo_t jinfo_t;
