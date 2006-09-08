@@ -151,7 +151,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   
   if(family == AF_INET)
     {
-      getaddrinfo("217.12.3.11",NULL,NULL,&addrf);
+      getaddrinfo(eXosip.ipv4_for_gateway,NULL,NULL,&addrf);
     }
   else if(family == AF_INET6)
     {
@@ -205,7 +205,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   best_interface_index = -1;
   /* w2000 and W95/98 only */
 
-  hr = GetBestInterface (inet_addr ("217.12.3.11"), &best_interface_index);
+  hr = GetBestInterface (inet_addr (eXosip.ipv4_for_gateway), &best_interface_index);
   if (hr)
     {
       LPVOID lpMsgBuf;
@@ -429,7 +429,7 @@ ppl_dns_default_gateway_ipv4 (char *address, int size)
   memset (&remote, 0, sizeof (struct sockaddr_in));
 
   remote.sin_family = AF_INET;
-  remote.sin_addr.s_addr = inet_addr ("217.12.3.11");
+  remote.sin_addr.s_addr = inet_addr (eXosip.ipv4_for_gateway);
   remote.sin_port = htons (11111);
 
   memset (&iface_out, 0, sizeof (iface_out));

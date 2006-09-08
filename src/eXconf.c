@@ -593,6 +593,7 @@ eXosip_init (void)
   memset (&eXosip, 0, sizeof (eXosip));
 
   eXosip.remove_preloadedroute=1;
+  snprintf(eXosip.ipv4_for_gateway, 256, "%s", "217.12.3.11");
 
 #ifdef WIN32
   /* Initializing windows socket library */
@@ -776,6 +777,19 @@ eXosip_set_option (eXosip_option opt, const void *value)
         val = *((int *) value);
         eXosip.use_rport = val;       /* 0 to disable (for broken NAT only?) */
         break;
+
+      case EXOSIP_OPT_SET_IPV4_FOR_GATEWAY:
+        tmp = (char *) value;
+        memset (eXosip.ipv4_for_gateway, '\0',
+                sizeof (eXosip.ipv4_for_gateway));
+        if (tmp != NULL && tmp[0] != '\0')
+          strncpy (eXosip.ipv4_for_gateway, tmp, sizeof (eXosip.ipv4_for_gateway));
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                     "eXosip option set: ipv4_for_gateway:%s!\n",
+                     eXosip.ipv4_for_gateway));
+        break;
+
     }
   return 0;
 }

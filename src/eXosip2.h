@@ -362,6 +362,7 @@ extern "C"
     int dontsend_101;
     int use_rport;
     int remove_preloadedroute;
+    char ipv4_for_gateway[256];
   };
 
   typedef struct jinfo_t jinfo_t;
