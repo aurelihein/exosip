@@ -25,8 +25,8 @@
 #include <osipparser2/osip_port.h>
 #include "eXosip2.h"
 
-
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(_WIN32_WCE)
+#elif defined(WIN32)
 #include <WinDNS.h>
 #else
 #include <netinet/in.h>
@@ -819,7 +819,7 @@ _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_sr
 }
 
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_WIN32_WCE)
 
 int
 _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol)

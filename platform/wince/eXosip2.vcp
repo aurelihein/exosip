@@ -898,24 +898,6 @@ DEP_CPP_EXCAL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXCAL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -1056,6 +1038,47 @@ DEP_CPP_EXCAL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXCAL=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -1067,6 +1090,9 @@ DEP_CPP_EXCAL=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXCAL=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -1152,24 +1178,6 @@ DEP_CPP_EXCAL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXCAL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -1224,6 +1232,24 @@ DEP_CPP_EXCAL=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXCAL=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -1413,24 +1439,6 @@ DEP_CPP_EXCON=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXCON=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_condv.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
@@ -1572,6 +1580,48 @@ DEP_CPP_EXCON=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXCON=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_condv.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -1583,6 +1633,9 @@ DEP_CPP_EXCON=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXCON=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -1668,24 +1721,6 @@ DEP_CPP_EXCON=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXCON=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_condv.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
@@ -1741,6 +1776,24 @@ DEP_CPP_EXCON=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXCON=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -1930,24 +1983,6 @@ DEP_CPP_EXINS=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXINS=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -2088,6 +2123,47 @@ DEP_CPP_EXINS=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXINS=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -2099,6 +2175,9 @@ DEP_CPP_EXINS=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXINS=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -2184,24 +2263,6 @@ DEP_CPP_EXINS=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXINS=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -2256,6 +2317,24 @@ DEP_CPP_EXINS=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXINS=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -2445,24 +2524,6 @@ DEP_CPP_EXMES=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXMES=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -2603,6 +2664,47 @@ DEP_CPP_EXMES=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXMES=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -2614,6 +2716,9 @@ DEP_CPP_EXMES=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXMES=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -2699,24 +2804,6 @@ DEP_CPP_EXMES=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXMES=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -2771,6 +2858,24 @@ DEP_CPP_EXMES=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXMES=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -2960,24 +3065,6 @@ DEP_CPP_EXOPT=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXOPT=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -3118,6 +3205,47 @@ DEP_CPP_EXOPT=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXOPT=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -3129,6 +3257,9 @@ DEP_CPP_EXOPT=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXOPT=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -3214,24 +3345,6 @@ DEP_CPP_EXOPT=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXOPT=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -3286,6 +3399,24 @@ DEP_CPP_EXOPT=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXOPT=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -3475,24 +3606,6 @@ DEP_CPP_EXOSI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXOSI=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -3633,6 +3746,47 @@ DEP_CPP_EXOSI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXOSI=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -3644,6 +3798,9 @@ DEP_CPP_EXOSI=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXOSI=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -3729,24 +3886,6 @@ DEP_CPP_EXOSI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXOSI=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -3801,6 +3940,24 @@ DEP_CPP_EXOSI=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXOSI=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -3990,24 +4147,6 @@ DEP_CPP_EXPUB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXPUB=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -4148,6 +4287,47 @@ DEP_CPP_EXPUB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXPUB=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -4159,6 +4339,9 @@ DEP_CPP_EXPUB=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXPUB=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -4244,24 +4427,6 @@ DEP_CPP_EXPUB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXPUB=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -4316,6 +4481,24 @@ DEP_CPP_EXPUB=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXPUB=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -4505,24 +4688,6 @@ DEP_CPP_EXREF=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXREF=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -4663,6 +4828,47 @@ DEP_CPP_EXREF=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXREF=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -4674,6 +4880,9 @@ DEP_CPP_EXREF=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXREF=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -4759,24 +4968,6 @@ DEP_CPP_EXREF=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXREF=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -4831,6 +5022,24 @@ DEP_CPP_EXREF=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXREF=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -5020,24 +5229,6 @@ DEP_CPP_EXREG=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXREG=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -5178,6 +5369,47 @@ DEP_CPP_EXREG=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXREG=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -5189,6 +5421,9 @@ DEP_CPP_EXREG=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXREG=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -5274,24 +5509,6 @@ DEP_CPP_EXREG=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXREG=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -5346,6 +5563,24 @@ DEP_CPP_EXREG=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXREG=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -5535,24 +5770,6 @@ DEP_CPP_EXSUB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXSUB=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -5693,6 +5910,47 @@ DEP_CPP_EXSUB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXSUB=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -5704,6 +5962,9 @@ DEP_CPP_EXSUB=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXSUB=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -5789,24 +6050,6 @@ DEP_CPP_EXSUB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXSUB=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -5861,6 +6104,24 @@ DEP_CPP_EXSUB=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXSUB=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -6050,24 +6311,6 @@ DEP_CPP_EXTRA=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXTRA=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -6208,6 +6451,47 @@ DEP_CPP_EXTRA=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXTRA=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -6219,6 +6503,9 @@ DEP_CPP_EXTRA=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_EXTRA=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -6304,24 +6591,6 @@ DEP_CPP_EXTRA=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXTRA=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -6376,6 +6645,24 @@ DEP_CPP_EXTRA=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_EXTRA=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -6620,26 +6907,6 @@ NODEP_CPP_EXUTI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_EXUTI=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\ioctl.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\param.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -6808,6 +7075,47 @@ NODEP_CPP_EXUTI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_EXUTI=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -6819,11 +7127,12 @@ DEP_CPP_EXUTI=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	{$(INCLUDE)}"ipexport.h"\
+	{$(INCLUDE)}"Iphlpapi.h"\
+	{$(INCLUDE)}"iptypes.h"\
 	
 NODEP_CPP_EXUTI=\
-	".\pexport.h"\
-	".\phlpapi.h"\
-	".\ptypes.h"\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -6934,26 +7243,6 @@ NODEP_CPP_EXUTI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_EXUTI=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\ioctl.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\param.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -7006,12 +7295,32 @@ DEP_CPP_EXUTI=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
-	{$(INCLUDE)}"ipexport.h"\
-	{$(INCLUDE)}"Iphlpapi.h"\
-	{$(INCLUDE)}"iptypes.h"\
 	
 NODEP_CPP_EXUTI=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\ioctl.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\param.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
+	".\pexport.h"\
+	".\phlpapi.h"\
+	".\ptypes.h"\
 	
 
 !ENDIF 
@@ -7266,24 +7575,6 @@ NODEP_CPP_INET_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_INET_=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -7458,6 +7749,47 @@ NODEP_CPP_INET_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_INET_=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -7470,11 +7802,12 @@ DEP_CPP_INET_=\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\inet_ntop.h"\
 	"..\..\src\jpipe.h"\
+	{$(INCLUDE)}"ipexport.h"\
+	{$(INCLUDE)}"Iphlpapi.h"\
+	{$(INCLUDE)}"iptypes.h"\
 	
 NODEP_CPP_INET_=\
-	".\pexport.h"\
-	".\phlpapi.h"\
-	".\ptypes.h"\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -7590,24 +7923,6 @@ NODEP_CPP_INET_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_INET_=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -7661,12 +7976,30 @@ DEP_CPP_INET_=\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\inet_ntop.h"\
 	"..\..\src\jpipe.h"\
-	{$(INCLUDE)}"ipexport.h"\
-	{$(INCLUDE)}"Iphlpapi.h"\
-	{$(INCLUDE)}"iptypes.h"\
 	
 NODEP_CPP_INET_=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
+	".\pexport.h"\
+	".\phlpapi.h"\
+	".\ptypes.h"\
 	
 
 !ENDIF 
@@ -7855,24 +8188,6 @@ DEP_CPP_JAUTH=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JAUTH=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_condv.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
@@ -8015,6 +8330,49 @@ DEP_CPP_JAUTH=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JAUTH=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_condv.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_md5.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -8026,6 +8384,9 @@ DEP_CPP_JAUTH=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JAUTH=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -8111,24 +8472,6 @@ DEP_CPP_JAUTH=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JAUTH=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_condv.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
@@ -8185,6 +8528,24 @@ DEP_CPP_JAUTH=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JAUTH=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -8374,24 +8735,6 @@ DEP_CPP_JCALL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JCALL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -8532,6 +8875,47 @@ DEP_CPP_JCALL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JCALL=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -8543,6 +8927,9 @@ DEP_CPP_JCALL=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JCALL=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -8628,24 +9015,6 @@ DEP_CPP_JCALL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JCALL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -8700,6 +9069,24 @@ DEP_CPP_JCALL=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JCALL=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -8900,25 +9287,6 @@ DEP_CPP_JCALLB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JCALLB=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\wait.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -9065,6 +9433,47 @@ DEP_CPP_JCALLB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JCALLB=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -9077,6 +9486,9 @@ DEP_CPP_JCALLB=\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\inet_ntop.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JCALLB=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -9167,25 +9579,6 @@ DEP_CPP_JCALLB=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JCALLB=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\wait.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -9241,6 +9634,25 @@ DEP_CPP_JCALLB=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JCALLB=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\wait.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -9430,24 +9842,6 @@ DEP_CPP_JDIAL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JDIAL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -9588,6 +9982,47 @@ DEP_CPP_JDIAL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JDIAL=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -9599,6 +10034,9 @@ DEP_CPP_JDIAL=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JDIAL=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -9684,24 +10122,6 @@ DEP_CPP_JDIAL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JDIAL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -9756,6 +10176,24 @@ DEP_CPP_JDIAL=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JDIAL=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -9945,24 +10383,6 @@ DEP_CPP_JEVEN=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JEVEN=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_condv.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
@@ -10104,6 +10524,48 @@ DEP_CPP_JEVEN=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JEVEN=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_condv.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -10115,6 +10577,9 @@ DEP_CPP_JEVEN=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JEVEN=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -10200,24 +10665,6 @@ DEP_CPP_JEVEN=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JEVEN=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_condv.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
@@ -10273,6 +10720,24 @@ DEP_CPP_JEVEN=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JEVEN=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -10462,24 +10927,6 @@ DEP_CPP_JNOTI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JNOTI=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -10620,6 +11067,47 @@ DEP_CPP_JNOTI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JNOTI=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -10631,6 +11119,9 @@ DEP_CPP_JNOTI=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JNOTI=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -10716,24 +11207,6 @@ DEP_CPP_JNOTI=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JNOTI=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -10788,6 +11261,24 @@ DEP_CPP_JNOTI=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JNOTI=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -10966,20 +11457,6 @@ DEP_CPP_JPIPE=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JPIPE=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
@@ -11109,6 +11586,42 @@ DEP_CPP_JPIPE=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JPIPE=\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -11119,6 +11632,9 @@ DEP_CPP_JPIPE=\
 	"..\..\include\eXosip2\eX_subscribe.h"\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JPIPE=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -11199,20 +11715,6 @@ DEP_CPP_JPIPE=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JPIPE=\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
 	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
@@ -11261,6 +11763,20 @@ DEP_CPP_JPIPE=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JPIPE=\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -11450,24 +11966,6 @@ DEP_CPP_JPUBL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JPUBL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -11608,6 +12106,47 @@ DEP_CPP_JPUBL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JPUBL=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -11619,6 +12158,9 @@ DEP_CPP_JPUBL=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JPUBL=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -11704,24 +12246,6 @@ DEP_CPP_JPUBL=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JPUBL=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -11776,6 +12300,24 @@ DEP_CPP_JPUBL=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JPUBL=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -11965,24 +12507,6 @@ DEP_CPP_JREG_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JREG_=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -12123,6 +12647,47 @@ DEP_CPP_JREG_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JREG_=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -12134,6 +12699,9 @@ DEP_CPP_JREG_=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JREG_=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -12219,24 +12787,6 @@ DEP_CPP_JREG_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JREG_=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -12291,6 +12841,24 @@ DEP_CPP_JREG_=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JREG_=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -12535,24 +13103,6 @@ NODEP_CPP_JREQU=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JREQU=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -12721,6 +13271,47 @@ NODEP_CPP_JREQU=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JREQU=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -12732,11 +13323,12 @@ DEP_CPP_JREQU=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	{$(INCLUDE)}"ipexport.h"\
+	{$(INCLUDE)}"Iphlpapi.h"\
+	{$(INCLUDE)}"iptypes.h"\
 	
 NODEP_CPP_JREQU=\
-	".\pexport.h"\
-	".\phlpapi.h"\
-	".\ptypes.h"\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -12847,24 +13439,6 @@ NODEP_CPP_JREQU=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JREQU=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -12917,12 +13491,30 @@ DEP_CPP_JREQU=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
-	{$(INCLUDE)}"ipexport.h"\
-	{$(INCLUDE)}"Iphlpapi.h"\
-	{$(INCLUDE)}"iptypes.h"\
 	
 NODEP_CPP_JREQU=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
+	".\pexport.h"\
+	".\phlpapi.h"\
+	".\ptypes.h"\
 	
 
 !ENDIF 
@@ -13111,24 +13703,6 @@ DEP_CPP_JRESP=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JRESP=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -13269,6 +13843,47 @@ DEP_CPP_JRESP=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JRESP=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -13280,6 +13895,9 @@ DEP_CPP_JRESP=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JRESP=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -13365,24 +13983,6 @@ DEP_CPP_JRESP=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JRESP=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -13437,6 +14037,24 @@ DEP_CPP_JRESP=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JRESP=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -13626,24 +14244,6 @@ DEP_CPP_JSUBS=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_JSUBS=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -13784,6 +14384,47 @@ DEP_CPP_JSUBS=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_JSUBS=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -13795,6 +14436,9 @@ DEP_CPP_JSUBS=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_JSUBS=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -13880,24 +14524,6 @@ DEP_CPP_JSUBS=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_JSUBS=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -13952,6 +14578,24 @@ DEP_CPP_JSUBS=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_JSUBS=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -14141,24 +14785,6 @@ DEP_CPP_MISC_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_MISC_=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -14299,6 +14925,47 @@ DEP_CPP_MISC_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_MISC_=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -14310,6 +14977,9 @@ DEP_CPP_MISC_=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_MISC_=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -14395,24 +15065,6 @@ DEP_CPP_MISC_=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_MISC_=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -14467,6 +15119,24 @@ DEP_CPP_MISC_=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_MISC_=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -14656,24 +15326,6 @@ DEP_CPP_SDP_O=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_SDP_O=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -14814,6 +15466,47 @@ DEP_CPP_SDP_O=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_SDP_O=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -14825,6 +15518,9 @@ DEP_CPP_SDP_O=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_SDP_O=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -14910,24 +15606,6 @@ DEP_CPP_SDP_O=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_SDP_O=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -14982,6 +15660,24 @@ DEP_CPP_SDP_O=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_SDP_O=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
@@ -15171,24 +15867,6 @@ DEP_CPP_UDP_C=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE emulator) Debug"
 
 DEP_CPP_UDP_C=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -15329,6 +16007,47 @@ DEP_CPP_UDP_C=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_UDP_C=\
+	"..\..\..\osip\include\osip2\osip.h"\
+	"..\..\..\osip\include\osip2\osip_dialog.h"\
+	"..\..\..\osip\include\osip2\osip_fifo.h"\
+	"..\..\..\osip\include\osip2\osip_mt.h"\
+	"..\..\..\osip\include\osip2\osip_time.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_accept_language.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_alert_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_allow.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_id.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_call_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_contact.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_disposition.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_encoding.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_length.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_content_type.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_cseq.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_error_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_from.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_header.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_mime_version.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authentication_info.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_proxy_authorization.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_record_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_route.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_to.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_via.h"\
+	"..\..\..\osip\include\osipparser2\headers\osip_www_authenticate.h"\
+	"..\..\..\osip\include\osipparser2\osip_body.h"\
+	"..\..\..\osip\include\osipparser2\osip_const.h"\
+	"..\..\..\osip\include\osipparser2\osip_headers.h"\
+	"..\..\..\osip\include\osipparser2\osip_list.h"\
+	"..\..\..\osip\include\osipparser2\osip_message.h"\
+	"..\..\..\osip\include\osipparser2\osip_parser.h"\
+	"..\..\..\osip\include\osipparser2\osip_port.h"\
+	"..\..\..\osip\include\osipparser2\osip_uri.h"\
+	"..\..\..\osip\include\osipparser2\sdp_message.h"\
 	"..\..\include\eXosip2\eX_call.h"\
 	"..\..\include\eXosip2\eX_message.h"\
 	"..\..\include\eXosip2\eX_options.h"\
@@ -15340,6 +16059,9 @@ DEP_CPP_UDP_C=\
 	"..\..\include\eXosip2\eXosip.h"\
 	"..\..\src\eXosip2.h"\
 	"..\..\src\jpipe.h"\
+	
+NODEP_CPP_UDP_C=\
+	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE MIPS16) Release"
@@ -15425,24 +16147,6 @@ DEP_CPP_UDP_C=\
 !ELSEIF  "$(CFG)" == "eXosip2 - Win32 (WCE x86) Debug"
 
 DEP_CPP_UDP_C=\
-	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
-	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cectype.h"\
-	"..\..\..\celib-palm-3.0\inc\celib.h"\
-	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
-	"..\..\..\celib-palm-3.0\inc\cethread.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
-	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
-	"..\..\..\celib-palm-3.0\inc\netdb.h"\
-	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
-	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
-	"..\..\..\celib-palm-3.0\inc\strings.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
-	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
-	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osip2\osip.h"\
 	"..\..\..\osip\include\osip2\osip_dialog.h"\
 	"..\..\..\osip\include\osip2\osip_fifo.h"\
@@ -15497,6 +16201,24 @@ DEP_CPP_UDP_C=\
 	"..\..\src\jpipe.h"\
 	
 NODEP_CPP_UDP_C=\
+	"..\..\..\celib-palm-3.0\inc\arpa\inet.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt.h"\
+	"..\..\..\celib-palm-3.0\inc\cecrt_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cectype.h"\
+	"..\..\..\celib-palm-3.0\inc\celib.h"\
+	"..\..\..\celib-palm-3.0\inc\celib_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\cestdio.h"\
+	"..\..\..\celib-palm-3.0\inc\cethread.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32.h"\
+	"..\..\..\celib-palm-3.0\inc\cewin32_defs.h"\
+	"..\..\..\celib-palm-3.0\inc\netdb.h"\
+	"..\..\..\celib-palm-3.0\inc\netinet\in.h"\
+	"..\..\..\celib-palm-3.0\inc\stdio-palmsize.h"\
+	"..\..\..\celib-palm-3.0\inc\strings.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\socket.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\time.h"\
+	"..\..\..\celib-palm-3.0\inc\sys\times.h"\
+	"..\..\..\celib-palm-3.0\inc\unistd.h"\
 	"..\..\..\osip\include\osipparser2\pna.h"\
 	
 

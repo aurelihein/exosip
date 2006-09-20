@@ -431,9 +431,11 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
                            curinfo->ai_protocol);
       if (sock < 0)
         {
+#if !defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: Cannot create socket!\n", strerror (errno)));
+#endif
           continue;
         }
 
@@ -461,10 +463,12 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       res = bind (sock, curinfo->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
         {
+#if !defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: Cannot bind socket node:%s family:%d %s\n",
                        node, curinfo->ai_family, strerror (errno)));
+#endif
           close (sock);
           sock = -1;
           continue;
@@ -473,9 +477,11 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       res = getsockname (sock, (struct sockaddr *) &net_int->ai_addr, &len);
       if (res != 0)
         {
+#if !defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: Cannot get socket name (%s)\n", strerror (errno)));
+#endif
           memcpy (&net_int->ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
         }
 
@@ -484,10 +490,12 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
           res = listen (sock, SOMAXCONN);
           if (res < 0)
             {
+#if !defined(_WIN32_WCE)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Cannot bind socket node:%s family:%d %s\n",
                            node, curinfo->ai_family, strerror (errno)));
+#endif
               close (sock);
               sock = -1;
               continue;

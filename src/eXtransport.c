@@ -116,9 +116,11 @@ _eXosip_tcp_connect_socket (char *host, int port)
                            curinfo->ai_protocol);
       if (sock < 0)
         {
+#if !defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_INFO2, NULL,
                        "eXosip: Cannot create socket!\n", strerror (errno)));
+#endif
           continue;
         }
 
@@ -153,10 +155,12 @@ _eXosip_tcp_connect_socket (char *host, int port)
       res = connect (sock, curinfo->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
         {
+#if !defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_INFO2, NULL,
                        "eXosip: Cannot bind socket node:%s family:%d %s\n",
                        host, curinfo->ai_family, strerror (errno)));
+#endif
           close (sock);
           sock = -1;
           continue;

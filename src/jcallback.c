@@ -492,8 +492,10 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       } else
         {
           /* SIP_NETWORK_ERROR; */
+#if !defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                                   "TCP error: \n%s\n", strerror (errno)));
+#endif
           osip_free (message);
           return -1;
         }
