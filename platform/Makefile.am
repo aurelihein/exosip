@@ -1,3 +1,3 @@
 
-SUBDIRS = vsnet 
+SUBDIRS = vsnet wince
 

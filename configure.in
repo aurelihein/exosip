@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.42 $)dnl
+AC_REVISION($Revision: 1.43 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -405,6 +405,7 @@ AC_OUTPUT(
  scripts/Makefile
  platform/Makefile
  platform/vsnet/Makefile
+ platform/wince/Makefile
  include/Makefile
  include/eXosip2/Makefile
  src/Makefile
