@@ -309,7 +309,9 @@ extern "C"
   struct eXosip_event
   {
     eXosip_event_type_t type;               /**< type of the event */
+#if !defined(_WIN32_WCE)
     char                textinfo[256];      /**< text description of event */ 
+#endif
     void               *external_reference; /**< external reference (for calls) */
     
     osip_message_t     *request;   /**< request within current transaction */

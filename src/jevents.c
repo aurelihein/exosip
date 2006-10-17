@@ -189,6 +189,7 @@ eXosip_event_init (eXosip_event_t ** je, int type)
   memset (*je, 0, sizeof (eXosip_event_t));
   (*je)->type = type;
 
+#if !defined(_WIN32_WCE)
   if (type == EXOSIP_CALL_NOANSWER)
     {
       sprintf ((*je)->textinfo, "No answer for this Call!");
@@ -319,6 +320,7 @@ eXosip_event_init (eXosip_event_t ** je, int type)
     {
       (*je)->textinfo[0] = '\0';
     }
+#endif
   return 0;
 }
 
