@@ -3,25 +3,14 @@ Common Install process for linux/UNIX.
 
 1: compile/install libosip first.
 
-2: compile/install ucl common RTP library.
-
-  http://www-mice.cs.ucl.ac.uk/multimedia/software/common/common-1.2.16.tar.gz
-
-  $> tar -xvzf common-1.2.16.tar.gz
-  $> cd common-1.2.16
-  $> ./configure
+  $> tar -xvzf libosip2-x.x.x.tar.gz
+  $> CFLAGS="-I/usr/local/include/" ../configure
   $> make
-  $> su
-     [root password]
-  $> mkdir /usr/local/include/uclmmbase
-  $> cp src/rtp.h /usr/local/include/uclmmbase
-  $> cp src/config_unix.h /usr/local/include/uclmmbase
-  $> cp src/config_win32.h /usr/local/include/uclmmbase
-  $> cp src/uclconf.h /usr/local/include/uclmmbase
+  $> make install      (as root...)
 
-3: compile/install eXosip
+2: compile/install eXosip
 
   $> tar -xvzf libeXosip2-x.x.x.tar.gz
-  $> CFLAGS="-I/usr/local/include/" ../configure --enable-ucl
+  $> CFLAGS="-I/usr/local/include/" ../configure
   $> make
   $> make install      (as root...)

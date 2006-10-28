@@ -24,20 +24,11 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
-/* Define to 1 if you have <mediastreamer.h> header file */
-#undef HAVE_MEDIASTREAMER_H
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define to 1 if you have the <ncurses.h> header file. */
-#undef HAVE_NCURSES_H
-
 /* Define to 1 if you have the <netdb.h> header file. */
 #undef HAVE_NETDB_H
-
-/* Define to 1 if you have <ortp/ortp.h> header file */
-#undef HAVE_ORTP_ORTP_H
 
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
@@ -92,9 +83,6 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
-
-/* Define to 1 if you have <uclmmbase/uclconf.h> header file */
-#undef HAVE_UCLMMBASE_UCLCONF_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H

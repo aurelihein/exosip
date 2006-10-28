@@ -1,6 +1,7 @@
-eXosip2 (3.0.0)
-	* Update to osip2-3.0.0
+eXosip2 (3.0.1)
+	* Update to osip2-3.0.1
 	* Add SRV record capabilities.
+	* add new OPTIONS: do not send 101, remove pre-route set from message.
 	
 eXosip2 (2.2.3)
 	* announce NOTIFY answers to application.
