@@ -1,4 +1,6 @@
 eXosip2 (3.0.1)
+	* add Windows CE support with Visual Studio 2005
+	  (WM5.0,PocketPC 2003/2005, Smartphone)
 	* Update to osip2-3.0.1
 	* Add SRV record capabilities.
 	* add new OPTIONS: do not send 101, remove pre-route set from message.

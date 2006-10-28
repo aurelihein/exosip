@@ -1,3 +1,8 @@
+Oct 2006    : 3.0.1
+  eXosip2 is now ported to macosx, linux, windows, windows Mobile (pocket PC
+  and smartphone). It's stable and mostly complete. Right now, it seems only
+  TLS is missing in this layer: next NEWS will probably announce it!
+
 Nov 2005    : 2.2.2
   eXosip was first made to build a SIP interface for a PBX. Available
   as a library, it appears soon that it was really difficult to use
