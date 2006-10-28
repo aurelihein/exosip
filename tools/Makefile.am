@@ -7,7 +7,7 @@ AM_CFLAGS = @CFLAGS@ @PTHREAD_CFLAGS@ @EXOSIP_FLAGS@
 
 sip_reg_SOURCES = sip_reg.c
 
-sip_reg_LDFLAGS = -O @EXOSIP_LIB@ @PTHREAD_LIBS@ @JOSUA_LIB@ 
+sip_reg_LDFLAGS = -O @EXOSIP_LIB@ @PTHREAD_LIBS@
 
 sip_reg_LDADD = -L$(prefix)/lib $(top_builddir)/src/libeXosip2.la -losip2 -losipparser2
 
