@@ -542,7 +542,12 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
       if (i == 0 && a_from != NULL
           && a_from->url != NULL && a_from->url->username != NULL)
         {
-          contact = (char *) osip_malloc (50 + strlen (a_from->url->username));
+	  int len = 50 + strlen (a_from->url->username);
+	  if (transport!=NULL && osip_strcasecmp(transport, "UDP")!=0)
+	    {
+	      len = len + strlen(transport) + 12; /* strlen(";transport=") */
+	    }
+	  contact = (char *) osip_malloc (len);
           if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
             {
               char *c_address = (*reg)->req_uri->host;
@@ -579,6 +584,14 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
               sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
                        locip, net->net_port);
             }
+	  
+	  if (transport!=NULL && osip_strcasecmp(transport, "UDP")!=0)
+	    {
+	      contact[strlen(contact)-1]='\0';
+	      strcat(contact, ";transport=");
+	      strcat(contact, transport);
+	      strcat(contact, ">");
+	    }
 
           osip_message_set_contact (*reg, contact);
           osip_free (contact);
