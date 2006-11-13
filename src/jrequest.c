@@ -198,7 +198,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 	if (osip_strcasecmp(transport, "UDP")!=0)
 	{
 		contact[strlen(contact)-1]='\0';
-		strcat(contact, "transport=");
+		strcat(contact, ";transport=");
 		strcat(contact, transport);
 		strcat(contact, ">");
 	}
