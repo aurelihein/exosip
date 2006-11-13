@@ -1,3 +1,6 @@
+eXosip2 (3.0.2)
+	* fix missing Contact in INVITE sent with TCP.
+	
 eXosip2 (3.0.1)
 	* add Windows CE support with Visual Studio 2005
 	  (WM5.0,PocketPC 2003/2005, Smartphone)
