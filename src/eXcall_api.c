@@ -1283,7 +1283,7 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
                 {
                   u_param = NULL;
                   /* skip */
-              } else if (0 == osip_strcasecmp (u_param->gvalue, "transport"))
+              } else if (0 == osip_strcasecmp (u_param->gname, "transport"))
                 {
                   if (0 == osip_strcasecmp (u_param->gvalue, "udp"))
                     {
