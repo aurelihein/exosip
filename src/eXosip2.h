@@ -517,6 +517,9 @@ extern "C"
                                                    eXosip_dialog_t * jd);
   osip_transaction_t *eXosip_find_last_out_invite (eXosip_call_t * jc,
                                                    eXosip_dialog_t * jd);
+  osip_transaction_t *eXosip_find_previous_invite (eXosip_call_t * jc,
+                                                   eXosip_dialog_t * jd,
+                                                   osip_transaction_t *last_invite);
 
 
   int eXosip_call_init (eXosip_call_t ** jc);

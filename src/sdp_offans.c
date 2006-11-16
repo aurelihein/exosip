@@ -104,6 +104,34 @@ eXosip_get_remote_sdp (int jid)
 }
 
 sdp_message_t *
+eXosip_get_previous_local_sdp (int jid)
+{
+  eXosip_dialog_t *jd = NULL;
+  eXosip_call_t *jc = NULL;
+  osip_transaction_t *invite_tr = NULL;
+
+  if (jid > 0)
+    {
+      eXosip_call_dialog_find (jid, &jc, &jd);
+    }
+  if (jc == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No call here?\n"));
+      return NULL;
+    }
+  invite_tr = eXosip_find_last_invite (jc, jd);
+  if (invite_tr == NULL)
+    return NULL;
+  invite_tr = eXosip_find_previous_invite (jc, jd, invite_tr);
+  if (invite_tr == NULL)
+    return NULL;
+
+  return _eXosip_get_local_sdp (invite_tr);
+}
+
+sdp_message_t *
 eXosip_get_local_sdp (int jid)
 {
   eXosip_dialog_t *jd = NULL;
@@ -141,6 +169,7 @@ _eXosip_get_remote_sdp (osip_transaction_t * invite_tr)
     message = invite_tr->last_response;
   else
     return NULL;
+
   return eXosip_get_sdp_info (message);
 }
 
@@ -157,6 +186,7 @@ _eXosip_get_local_sdp (osip_transaction_t * invite_tr)
     message = invite_tr->orig_request;
   else
     return NULL;
+
   return eXosip_get_sdp_info (message);
 }
 
