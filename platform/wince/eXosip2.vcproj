@@ -4,6 +4,7 @@
 	Version="8,00"
 	Name="eXosip2"
 	ProjectGUID="{17D316F0-3752-450A-AF36-1ADB740A838F}"
+	RootNamespace="eXosip2"
 	Keyword="MFCDLLProj"
 	>
 	<Platforms>
@@ -205,6 +206,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
+				Optimization="2"
+				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="..\..\include;..\..\..\osip\include"
 				PreprocessorDefinitions="ENABLE_TRACE;OSIP_MT;_WIN32_WCE=$(CEVER);UNDER_CE=$(CEVER);WINCE;$(PLATFORMDEFINES);_DEBUG;_USRDLL;$(ARCHFAM);$(_ARCHFAM_);POCKETPC2003_UI_MODEL;POCKETPC2003_UI_MODEL"
 				RuntimeLibrary="3"
@@ -247,7 +250,7 @@
 			/>
 			<DeploymentTool
 				ForceDirty="-1"
-				RemoteDirectory="\amsip"
+				RemoteDirectory="%CSIDL_PROGRAM_FILES%\vbamsipua"
 				RegisterOutput="0"
 				AdditionalFiles=""
 			/>
@@ -324,9 +327,9 @@
 			/>
 			<DeploymentTool
 				ForceDirty="-1"
-				RemoteDirectory="\amsip"
+				RemoteDirectory="%CSIDL_PROGRAM_FILES%\vbamsipua"
 				RegisterOutput="0"
-				AdditionalFiles="msvcr80.dll|$(BINDIR)\$(INSTRUCTIONSET)\|%CSIDL_PROGRAM_FILES%\$(ProjectName)|0;atl80.dll|$(BINDIR)\$(INSTRUCTIONSET)\|%CSIDL_PROGRAM_FILES%\$(ProjectName)|0;msvcr80d.dll|$(BINDIR)\$(INSTRUCTIONSET)\|%CSIDL_PROGRAM_FILES%\$(ProjectName)|0;MFC80UD.dll|$(BINDIR)\$(INSTRUCTIONSET)\|%CSIDL_PROGRAM_FILES%\$(ProjectName)|0;"
+				AdditionalFiles=""
 			/>
 			<DebuggerTool
 			/>
