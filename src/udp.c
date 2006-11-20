@@ -68,10 +68,10 @@ static int cancel_match_invite (osip_transaction_t * invite,
                                 osip_message_t * cancel);
 static void eXosip_process_cancel (osip_transaction_t * transaction,
                                    osip_event_t * evt);
-static osip_event_t *eXosip_process_reinvite (eXosip_call_t * jc,
-                                              eXosip_dialog_t * jd,
-                                              osip_transaction_t *
-                                              transaction, osip_event_t * evt);
+static void eXosip_process_reinvite (eXosip_call_t * jc,
+				     eXosip_dialog_t * jd,
+				     osip_transaction_t *
+				     transaction, osip_event_t * evt);
 static void eXosip_process_new_options (osip_transaction_t * transaction,
                                         osip_event_t * evt);
 static void eXosip_process_new_invite (osip_transaction_t * transaction,
@@ -647,38 +647,15 @@ eXosip_process_cancel (osip_transaction_t * transaction, osip_event_t * evt)
   }
 }
 
-static osip_event_t *
+static void
 eXosip_process_reinvite (eXosip_call_t * jc, eXosip_dialog_t * jd,
                          osip_transaction_t * transaction, osip_event_t * evt)
 {
-  osip_message_t *answer;
-  osip_event_t *sipevent;
-  int i;
-
-  i = _eXosip_build_response_default (&answer, jd->d_dialog, 100, evt->sip);
-  if (i != 0)
-    {
-      osip_list_add (eXosip.j_transactions, transaction, 0);
-      eXosip_send_default_answer (jd, transaction, evt, 500,
-                                  "Internal SIP Error",
-                                  "Failed to build Answer for INVITE within call",
-                                  __LINE__);
-      return NULL;
-    }
-
-  complete_answer_that_establish_a_dialog (answer, evt->sip);
-
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, jd, NULL, NULL));
-  sipevent = osip_new_outgoing_sipmessage (answer);
-  sipevent->transactionid = transaction->transactionid;
-
   osip_list_add (jd->d_inc_trs, transaction, 0);
-
   osip_ist_execute (eXosip.j_osip);
-
   report_call_event (EXOSIP_CALL_REINVITE, jc, jd, transaction);
-  return sipevent;
 }
 
 static void
