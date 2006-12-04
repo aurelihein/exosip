@@ -440,10 +440,19 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
       host = route->url->host;
   } else
     {
+      /* search for maddr parameter */
+      osip_uri_param_t *maddr_param = NULL;
+      osip_uri_uparam_get_byname (ack->req_uri, "maddr", &maddr_param);
+      host=NULL;
+      if (maddr_param!=NULL && maddr_param->gvalue!=NULL)
+	host = maddr_param->gvalue;
+      
       port = 5060;
       if (ack->req_uri->port != NULL)
-        port = osip_atoi (ack->req_uri->port);
-      host = ack->req_uri->host;
+	port = osip_atoi (ack->req_uri->port);
+      
+      if (host==NULL)
+	host = ack->req_uri->host;
     }
 
   cb_snd_message (NULL, ack, host, port, -1);

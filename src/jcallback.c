@@ -150,12 +150,20 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	      }
 	    else
 	      {
+		/* search for maddr parameter */
+		osip_uri_param_t *maddr_param = NULL;
+		osip_uri_uparam_get_byname (sip->req_uri, "maddr", &maddr_param);
+		host=NULL;
+		if (maddr_param!=NULL && maddr_param->gvalue!=NULL)
+		  host = maddr_param->gvalue;
+		
 		port = 5060;
 		if (sip->req_uri->port != NULL)
 		  port = osip_atoi (sip->req_uri->port);
-		host = sip->req_uri->host;
+		
+		if (host==NULL)
+		  host = sip->req_uri->host;
 	      }
-
 	  }
 	  else
 	  {
@@ -166,9 +174,9 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 			osip_via_param_get_byname (via, "maddr", &maddr);
 			osip_via_param_get_byname (via, "received", &received);
 			osip_via_param_get_byname (via, "rport", &rport);
-			if (maddr != NULL)
+			if (maddr != NULL && maddr->gvalue!=NULL)
 				host = maddr->gvalue;
-			else if (received != NULL)
+			else if (received != NULL && received->gvalue!=NULL)
 				host = received->gvalue;
 			else
 				host = via->host;
