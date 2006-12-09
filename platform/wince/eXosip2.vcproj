@@ -517,7 +517,7 @@
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
 				AdditionalIncludeDirectories="..\..\include;..\..\..\osip\include"
-				PreprocessorDefinitions="ENABLE_TRACE;OSIP_MT;_WIN32_WCE=$(CEVER);UNDER_CE=$(CEVER);WINCE;$(PLATFORMDEFINES);NDEBUG;_USRDLL;$(ARCHFAM);$(_ARCHFAM_);POCKETPC2003_UI_MODEL;POCKETPC2003_UI_MODEL"
+				PreprocessorDefinitions="OSIP_MT;_WIN32_WCE=$(CEVER);UNDER_CE=$(CEVER);WINCE;$(PLATFORMDEFINES);NDEBUG;_USRDLL;$(ARCHFAM);$(_ARCHFAM_);POCKETPC2003_UI_MODEL;POCKETPC2003_UI_MODEL"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="true"
 				UsePrecompiledHeader="0"
