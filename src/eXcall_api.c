@@ -1341,10 +1341,35 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
      check usual parameter like "transport"
    */
 
+  if (msg->req_uri!=NULL && msg->req_uri->host!=NULL && co->url->host!=NULL
+	  && 0==osip_strcasecmp(co->url->host, msg->req_uri->host))
+  {
+		osip_uri_param_t *maddr_param = NULL;
+		osip_uri_uparam_get_byname (co->url, "maddr", &maddr_param);
+		if (maddr_param!=NULL && maddr_param->gvalue!=NULL)
+		{
+			/* This is a redirect server, the route should probably be removed? */
+			osip_route_t *route=NULL;
+			osip_generic_param_t *tag=NULL;
+			osip_message_get_route (msg, 0, &route);
+			if (route!=NULL)
+			{
+				osip_to_get_tag (msg->to, &tag);
+				if (tag==NULL && route != NULL && route->url != NULL)
+				{
+				  osip_list_remove(&msg->routes, 0);
+				  osip_route_free(route);
+				}
+			}
+		}
+  }
+
   /* replace request-uri with NEW contact address */
   osip_uri_free (msg->req_uri);
   msg->req_uri = NULL;
   osip_uri_clone (co->url, &msg->req_uri);
+
+
 
   /* increment cseq */
   cseq = atoi (msg->cseq->number);
