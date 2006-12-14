@@ -194,7 +194,6 @@ sdp_message_t *
 eXosip_get_sdp_info (osip_message_t * message)
 {
   osip_content_type_t *ctt;
-  osip_mime_version_t *mv;
   sdp_message_t *sdp;
   osip_body_t *oldbody;
   int pos;
@@ -204,24 +203,18 @@ eXosip_get_sdp_info (osip_message_t * message)
 
   /* get content-type info */
   ctt = osip_message_get_content_type (message);
-  mv = osip_message_get_mime_version (message);
-  if (mv == NULL && ctt == NULL)
+  if (ctt == NULL)
     return NULL;                /* previous message was not correct or empty */
-  if (mv != NULL)
+
+  if (ctt->type == NULL || ctt->subtype == NULL)
+    return NULL;
+  if (osip_strcasecmp (ctt->type, "multipart") == 0)
     {
-      /* look for the SDP body */
-      /* ... */
-  } else if (ctt != NULL)
-    {
-      if (ctt->type == NULL || ctt->subtype == NULL)
-        /* it can be application/sdp or mime... */
-        return NULL;
-      if (osip_strcasecmp (ctt->type, "application") != 0 ||
-          osip_strcasecmp (ctt->subtype, "sdp") != 0)
-        {
-          return NULL;
-        }
+      /* probably within the multipart attachement */
     }
+  else if (osip_strcasecmp (ctt->type, "application") != 0 ||
+	   osip_strcasecmp (ctt->subtype, "sdp") != 0)
+    return NULL;
 
   pos = 0;
   while (!osip_list_eol (&message->bodies, pos))
