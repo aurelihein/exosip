@@ -518,6 +518,9 @@ eXosip_event_get ()
 {
   eXosip_event_t *je;
 
+  char buf[500];
+  jpipe_read (eXosip.j_socketctl_event, buf, 499);
+
   je = (eXosip_event_t *) osip_fifo_get (eXosip.j_events);
   return je;
 }
