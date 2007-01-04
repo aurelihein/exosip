@@ -231,6 +231,14 @@ extern "C"
  */
   int eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len);
 
+
+/**
+ * Return did (or cid) for the replace header.
+ * 
+ * @param replaces       buffer to be filled with refer-to info.
+ */
+  int eXosip_call_find_by_replaces (char* replaces);
+
 /** @} */
 
 

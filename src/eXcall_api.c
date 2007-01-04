@@ -1633,3 +1633,108 @@ eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
 
   return 0;
 }
+
+int 
+eXosip_call_find_by_replaces (char* ReplacesStr)
+{
+  eXosip_call_t* jc = NULL;
+  eXosip_dialog_t *jd = NULL;
+  osip_transaction_t *tr = NULL;
+  char call_id [256];
+  char* to_tag;
+  char* from_tag;
+  char* early_flag;
+  char* semicolon;
+  
+  // parse replaces string
+  strcpy (call_id, ReplacesStr);
+  to_tag = strstr(call_id,"to-tag=");
+  from_tag = strstr(call_id,"from-tag=");
+  early_flag = strstr(call_id,"early-only");
+  
+  if ((to_tag == NULL) ||
+      (from_tag == NULL))
+    return -1;
+  to_tag += strlen ("to-tag=");
+  from_tag += strlen ("from-tag=");
+  
+  while ((semicolon = strrchr(call_id,';')) != NULL)
+    {
+      *semicolon = '\0';
+    }
+  
+  for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
+    {
+      for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
+	{
+	  tr = eXosip_find_last_invite (jc, jd);   
+	  if (tr == NULL || tr->orig_request == NULL)
+	    {
+	      OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			   "eXosip: No transaction for this call?\n"));
+	    }
+	  else if (jd->d_dialog == NULL)
+	    {
+	      /* skip */
+	    }
+	  else if (jd->d_dialog->type == CALLER)
+	    {
+	      /* dialog-type is caller */
+	      
+	      if ((0 == strcmp (jd->d_dialog->call_id, call_id)) &&
+		  (0 == strcmp (jd->d_dialog->remote_tag, to_tag)) &&
+		  (0 == strcmp (jd->d_dialog->local_tag, from_tag)))
+		{
+		  if ((tr->state == ICT_PROCEEDING) &&
+		      (early_flag != NULL))
+		    return jc->c_id;
+		  if ((tr->state == ICT_COMPLETED) &&
+		      (early_flag == NULL))
+		    return jc->c_id;
+		  if ((tr->state == ICT_TERMINATED) &&
+		      (early_flag == NULL))
+		    return jc->c_id;
+		  
+		  if ((tr->state == ICT_PROCEEDING) &&
+		      (early_flag == NULL))
+		    return -2;        /* answer with 481 */
+		  if ((tr->state == ICT_COMPLETED) &&
+		      (early_flag != NULL))
+		    return -3;       /* answer with 486 */
+		  if (tr->state == ICT_TERMINATED)
+		    return -4;       /* answer with 603 */
+		}
+	    }
+	  else
+	    {
+	      /* dialog-type is callee */
+	      
+	      if ((0 == strcmp (jd->d_dialog->call_id, call_id)) &&
+		  (0 == strcmp (jd->d_dialog->local_tag, to_tag)) &&
+		  (0 == strcmp (jd->d_dialog->remote_tag, from_tag)))
+		{
+		  if ((tr->state == IST_PROCEEDING) &&
+		      (early_flag != NULL))
+		    return jc->c_id;
+		  if ((tr->state == IST_COMPLETED) &&
+		      (early_flag == NULL))
+		    return jc->c_id;
+		  if ((tr->state == IST_TERMINATED) &&
+		      (early_flag == NULL))
+		    return jc->c_id;
+		  
+		  if ((tr->state == IST_PROCEEDING) &&
+		      (early_flag == NULL))
+		    return -2;       /* answer with 481 */
+		  if ((tr->state == IST_COMPLETED) &&
+		      (early_flag != NULL))
+		    return -3;       /* answer with 486 */
+		  if (tr->state == IST_TERMINATED)
+		    return -4;       /* answer with 603 */
+		}
+	    }
+	}
+    }
+  return -1;   /* answer with 481 */
+}
