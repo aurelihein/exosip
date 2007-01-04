@@ -1088,26 +1088,6 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
       osip_transaction_set_your_instance (transaction, NULL);
 
       osip_transaction_add_event (transaction, evt);
-      if (ctx_type == IST)
-        {
-          i = _eXosip_build_response_default (&answer, NULL, 100, evt->sip);
-          if (i != 0)
-            {
-              __eXosip_delete_jinfo (transaction);
-              osip_transaction_free (transaction);
-              return;
-            }
-
-          osip_message_set_content_length (answer, "0");
-          /*  send message to transaction layer */
-
-          evt_answer = osip_new_outgoing_sipmessage (answer);
-          evt_answer->transactionid = transaction->transactionid;
-
-          /* add the REQUEST & the 100 Trying */
-          osip_transaction_add_event (transaction, evt_answer);
-          __eXosip_wakeup ();
-        }
     }
 
   if (MSG_IS_CANCEL (evt->sip))
@@ -1135,7 +1115,52 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
         break;
     }
 
+  /* check CSeq */
+  if (jd!=NULL && transaction!=NULL && evt->sip!=NULL
+      && evt->sip->cseq!=NULL && evt->sip->cseq->number!=NULL)
+    {
+      if (jd->d_dialog!=NULL && jd->d_dialog->remote_cseq>0)
+	{
+	  int cseq = osip_atoi (evt->sip->cseq->number);
+	  if (cseq==jd->d_dialog->remote_cseq)
+	    {
+	      OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			   "eXosip: receive a request with same cseq??\n"));
+	      osip_transaction_free(transaction);
+	      return;
+	    }
+	  if (cseq<=jd->d_dialog->remote_cseq)
+	    {
+	      eXosip_send_default_answer (jd, transaction, evt, 500,
+					  NULL,
+					  "Wrong Lower CSeq", __LINE__);
+	      return;
+	    }
+	}
+    }
 
+  if (ctx_type == IST)
+    {
+      i = _eXosip_build_response_default (&answer, NULL, 100, evt->sip);
+      if (i != 0)
+	{
+	  __eXosip_delete_jinfo (transaction);
+	  osip_transaction_free (transaction);
+	  return;
+	}
+      
+      osip_message_set_content_length (answer, "0");
+      /*  send message to transaction layer */
+      
+      evt_answer = osip_new_outgoing_sipmessage (answer);
+      evt_answer->transactionid = transaction->transactionid;
+      
+      /* add the REQUEST & the 100 Trying */
+      osip_transaction_add_event (transaction, evt_answer);
+      __eXosip_wakeup ();
+    }
+  
   if (jd != NULL)
     {
       osip_transaction_t *old_trn;
