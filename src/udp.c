@@ -2655,40 +2655,7 @@ eXosip_release_terminated_calls (void)
       jcnext = jc->next;
       if (jc->c_dialogs == NULL)
         {
-          /* release call for options requests */
-          if (jc->c_inc_options_tr != NULL)
-            {
-              if (jc->c_inc_options_tr->state == NIST_TERMINATED)
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                               "eXosip: remove an incoming OPTIONS with no final answer\n"));
-                  __eXosip_release_call (jc, NULL);
-              } else if (jc->c_inc_options_tr->state != NIST_TERMINATED
-                         && jc->c_inc_options_tr->birth_time + 180 < now)
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                               "eXosip: remove an incoming OPTIONS with no final answer\n"));
-                  __eXosip_release_call (jc, NULL);
-                }
-          } else if (jc->c_out_options_tr != NULL)
-            {
-              if (jc->c_out_options_tr->state == NICT_TERMINATED)
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                               "eXosip: remove an outgoing OPTIONS with no final answer\n"));
-                  __eXosip_release_call (jc, NULL);
-              } else if (jc->c_out_options_tr->state != NIST_TERMINATED
-                         && jc->c_out_options_tr->birth_time + 180 < now)
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                               "eXosip: remove an outgoing OPTIONS with no final answer\n"));
-                  __eXosip_release_call (jc, NULL);
-                }
-          } else if (jc->c_inc_tr != NULL
+          if (jc->c_inc_tr != NULL
                      && jc->c_inc_tr->state != IST_TERMINATED
                      && jc->c_inc_tr->birth_time + 180 < now)
             {

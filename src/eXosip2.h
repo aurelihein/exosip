@@ -163,8 +163,6 @@ extern "C"
     osip_transaction_t *c_inc_tr;
     osip_transaction_t *c_out_tr;
     int c_retry;                /* avoid too many unsuccessfull retry */
-    osip_transaction_t *c_inc_options_tr;
-    osip_transaction_t *c_out_options_tr;
     void *external_reference;
 
     /* cache old credentials for reuse in next request */
