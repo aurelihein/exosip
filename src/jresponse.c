@@ -254,6 +254,22 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
         }
     }
 
+    {
+      osip_via_t *via;
+      
+      via = (osip_via_t *) osip_list_get (&response->vias, 0);
+      if (via == NULL || via->protocol == NULL)
+	return -1;
+      if (strlen(contact)+strlen(via->protocol)<1000
+	  && 0 != osip_strcasecmp (via->protocol, "UDP"))
+	{
+	  contact[strlen(contact)-1]='\0';
+	  strcat(contact, ";transport=");
+	  strcat(contact, via->protocol);
+	  strcat(contact, ">");
+	}
+    }
+
   osip_message_set_contact (response, contact);
 
   return 0;
