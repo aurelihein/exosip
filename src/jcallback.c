@@ -446,7 +446,27 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   net = &eXosip.net_interfaces[1];
 
-  i = osip_message_to_str (sip, &message, &length);
+  if (eXosip.remove_preloadedroute==1)
+    {
+      osip_route_t *route=NULL;
+      osip_generic_param_t *tag=NULL;
+      osip_message_get_route (sip, 0, &route);
+      
+      osip_to_get_tag (sip->to, &tag);
+      if (tag==NULL && route != NULL && route->url != NULL)
+	{
+	  osip_list_remove(&sip->routes, 0);
+	}
+      i = osip_message_to_str (sip, &message, &length);
+      if (tag==NULL && route != NULL && route->url != NULL)
+	{
+	  osip_list_add(&sip->routes, route, 0);
+	}
+    }
+  else
+    {
+      i = osip_message_to_str (sip, &message, &length);
+    }
 
   if (i != 0 || length <= 0)
     {
