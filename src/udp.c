@@ -1198,7 +1198,8 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
           /* the previous transaction MUST be freed */
           old_trn = eXosip_find_last_inc_invite (jc, jd);
 
-          if (old_trn != NULL && old_trn->state != IST_TERMINATED)
+          if (old_trn != NULL && old_trn->state != IST_COMPLETED
+	      && old_trn->state != IST_TERMINATED)
             {
               osip_list_add (eXosip.j_transactions, transaction, 0);
               eXosip_send_default_answer (jd, transaction, evt, 500,
@@ -1208,7 +1209,8 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
             }
 
           old_trn = eXosip_find_last_out_invite (jc, jd);
-          if (old_trn != NULL && old_trn->state != ICT_TERMINATED)
+          if (old_trn != NULL && old_trn->state != ICT_COMPLETED
+	       && old_trn->state != ICT_TERMINATED)
             {
               osip_list_add (eXosip.j_transactions, transaction, 0);
               eXosip_send_default_answer (jd, transaction, evt, 491, NULL,
