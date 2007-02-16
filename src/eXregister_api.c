@@ -55,6 +55,9 @@ int eXosip_register_remove (int rid)
       return -1;
     }
   jr->r_reg_period = 0;
+  REMOVE_ELEMENT (eXosip.j_reg, jr);
+  eXosip_reg_free (jr);
+  jr=NULL;
   return 0;
 }
 
@@ -244,6 +247,9 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
     {
       if (strcmp (jr->r_aor, from) == 0 && strcmp (jr->r_registrar, proxy) == 0)
         {
+	  REMOVE_ELEMENT (eXosip.j_reg, jr);
+	  eXosip_reg_free (jr);
+	  jr=NULL;
           break;
         }
     }
