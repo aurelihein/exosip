@@ -1,5 +1,8 @@
 eXosip2 (3.0.2)
-	* fix missing Contact in INVITE sent with TCP.
+	* remove registration context immediatly upon eXosip_register_remove.
+	* TCP: fix missing Contact in INVITE sent.
+	* TCP: fix missing "transport" in Contact for answers within dialog.
+	* TCP: fix possible race conditions.
 	
 eXosip2 (3.0.1)
 	* add Windows CE support with Visual Studio 2005
