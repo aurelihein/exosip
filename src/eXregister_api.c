@@ -277,6 +277,8 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
 
   /* build register */
   jr->r_reg_period = expires;
+  if (jr->r_reg_period < 100)      /* too low */
+    jr->r_reg_period = 100;
 
   i = _eXosip_register_build_register (jr, reg);
   if (i != 0)
@@ -309,8 +311,8 @@ eXosip_register_build_register (int rid, int expires, osip_message_t ** reg)
     } /* unregistration */
   else if (jr->r_reg_period > 3600)
     jr->r_reg_period = 3600;
-  else if (jr->r_reg_period < 200)      /* too low */
-    jr->r_reg_period = 200;
+  else if (jr->r_reg_period < 100)      /* too low */
+    jr->r_reg_period = 100;
 
   if (jr->r_last_tr != NULL)
     {
