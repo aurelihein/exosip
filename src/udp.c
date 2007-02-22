@@ -568,6 +568,28 @@ eXosip_process_new_invite (osip_transaction_t * transaction, osip_event_t * evt)
   eXosip_call_t *jc;
   eXosip_dialog_t *jd;
   osip_message_t *answer;
+  osip_generic_param_t *to_tag=NULL;
+  if (evt->sip!=NULL && evt->sip->to!=NULL)
+	  osip_from_param_get_byname (evt->sip->to, "tag", &to_tag);
+
+  if (to_tag!=NULL)
+  {
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		  "ERROR: Existing To-Tag in new INVITE -> reject with 400\n"));
+	  i = _eXosip_build_response_default (&answer, NULL, 400, evt->sip);
+	  if (i == 0)	
+	  {
+		  evt_answer = osip_new_outgoing_sipmessage (answer);
+		  evt_answer->transactionid = transaction->transactionid;
+		  eXosip_update ();
+		  osip_transaction_add_event (transaction, evt_answer);
+		  return;
+	  }
+	  osip_message_set_content_length (answer, "0");
+	  osip_list_add (eXosip.j_transactions, transaction, 0);
+	  osip_transaction_set_your_instance (transaction, NULL);
+	  return;
+  }
 
   eXosip_call_init (&jc);
 
