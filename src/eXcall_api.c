@@ -900,6 +900,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
                   ADD_ELEMENT (jc->c_dialogs, jd);
                 }
             }
+
       } else if (MSG_IS_STATUS_2XX (answer))
         {
           if (jd == NULL)
@@ -1058,8 +1059,13 @@ eXosip_call_terminate (int cid, int did)
       if (tr != NULL && tr->last_response != NULL &&
           MSG_IS_STATUS_1XX (tr->last_response))
         {                       /* answer with 603 */
+		  osip_generic_param_t *to_tag;
+		  osip_from_param_get_byname (tr->orig_request->to, "tag", &to_tag);
+
           i = eXosip_call_send_answer (tr->transactionid, 603, NULL);
-          return i;
+
+		  if (to_tag==NULL)
+			  return i;
         }
     }
 
