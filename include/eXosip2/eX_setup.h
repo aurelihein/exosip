@@ -72,8 +72,14 @@ typedef enum {
     EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY = 5, /* used for http tunnel ONLY */
     EXOSIP_OPT_DONT_SEND_101 = 6,
     EXOSIP_OPT_USE_RPORT = 7,
-    EXOSIP_OPT_SET_IPV4_FOR_GATEWAY = 8
+    EXOSIP_OPT_SET_IPV4_FOR_GATEWAY = 8,
+	EXOSIP_OPT_ADD_DNS_CACHE = 9
 } eXosip_option;
+
+struct eXosip_dns_cache {
+    char host[1024];
+    char ip[256];
+};
 
 /**
  * Set eXosip options.

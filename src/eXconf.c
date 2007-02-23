@@ -740,6 +740,59 @@ eXosip_set_option (eXosip_option opt, const void *value)
 
   switch (opt)
     {
+      case EXOSIP_OPT_ADD_DNS_CACHE:
+		  {
+			  struct eXosip_dns_cache *entry;
+			  int i;
+			  entry = (struct eXosip_dns_cache*) value;
+			  if (entry==NULL || entry->host[0]=='\0')
+			  {
+				  return -1;
+			  }
+			  for (i=0;i<MAX_EXOSIP_DNS_ENTRY;i++)
+			  {
+				  if (eXosip.dns_entries[i].host[0]!='\0'
+					  &&0==osip_strcasecmp(eXosip.dns_entries[i].host, entry->host))
+				  {
+					  /* update entry */
+					  if (entry->ip[0]!='\0')
+					  {
+						  snprintf(eXosip.dns_entries[i].ip, sizeof(eXosip.dns_entries[i].ip), "%s", entry->ip);
+						  OSIP_TRACE (osip_trace
+										(__FILE__, __LINE__, OSIP_INFO1, NULL,
+										 "eXosip option set: dns cache updated:%s -> %s\n", entry->host, entry->ip));
+					  }
+					  else
+					  {
+						  eXosip.dns_entries[i].host[0]='\0';
+						  OSIP_TRACE (osip_trace
+										(__FILE__, __LINE__, OSIP_INFO2, NULL,
+										 "eXosip option set: dns cache deleted :%s\n", entry->host));
+					  }
+					  return 0;
+				  }
+			  }
+			  if (entry->ip[0]=='\0')
+			  {
+				  return -1;
+			  }
+			  /* not found case: */
+			  for (i=0;i<MAX_EXOSIP_DNS_ENTRY;i++)
+			  {
+				  if (eXosip.dns_entries[i].host[0]=='\0')
+				  {
+					  /* add entry */
+					  snprintf(eXosip.dns_entries[i].host, sizeof(entry->host), "%s", entry->host);
+					  snprintf(eXosip.dns_entries[i].ip, sizeof(entry->ip), "%s", entry->ip);
+					  OSIP_TRACE (osip_trace
+									(__FILE__, __LINE__, OSIP_INFO2, NULL,
+									 "eXosip option set: dns cache added:%s -> %s\n", entry->host, entry->ip));
+					  return 0;
+				  }
+			  }
+			  return -1;
+		  }
+        break;
       case EXOSIP_OPT_UDP_KEEP_ALIVE:
         val = *((int *) value);
         eXosip.keep_alive = val;        /* value in ms */

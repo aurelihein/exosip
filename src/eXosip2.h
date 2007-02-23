@@ -323,6 +323,10 @@ extern "C"
   int _eXosip_sendto (int s, const void *buf, size_t len, int flags,
                       const struct sockaddr *to, socklen_t tolen);
 
+#ifndef MAX_EXOSIP_DNS_ENTRY
+#define MAX_EXOSIP_DNS_ENTRY 10
+#endif
+
   typedef struct eXosip_t eXosip_t;
 
   struct eXosip_t
@@ -361,6 +365,7 @@ extern "C"
     int use_rport;
     int remove_preloadedroute;
     char ipv4_for_gateway[256];
+	struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
   };
 
   typedef struct jinfo_t jinfo_t;

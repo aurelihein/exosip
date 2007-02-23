@@ -693,6 +693,27 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
     return -1;
 
   if (service != -1)            /* -1 for SRV record */
+  {
+	  int i;
+	  for (i=0;i<MAX_EXOSIP_DNS_ENTRY;i++)
+	  {
+		  if (eXosip.dns_entries[i].host[0]!='\0'
+			  &&0==osip_strcasecmp(eXosip.dns_entries[i].host, hostname))
+		  {
+			  /* update entry */
+			  if (eXosip.dns_entries[i].ip[0]!='\0')
+			  {
+				  hostname = eXosip.dns_entries[i].ip;
+				  OSIP_TRACE (osip_trace
+								(__FILE__, __LINE__, OSIP_INFO1, NULL,
+								 "eXosip option set: dns cache used:%s -> %s\n",
+								 eXosip.dns_entries[i].host, eXosip.dns_entries[i].ip));
+			  }
+		  }
+	  }
+  }
+
+  if (service != -1)            /* -1 for SRV record */
     snprintf (portbuf, sizeof (portbuf), "%i", service);
 
   memset (&hints, 0, sizeof (hints));
