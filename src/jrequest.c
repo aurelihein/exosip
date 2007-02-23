@@ -348,6 +348,44 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                        to));
           goto brood_error_1;
         }
+
+	  /* REMOVE ALL URL PARAMETERS from to->url headers and add them as headers */
+	  if (request->to!=NULL &&
+		  request->to->url!=NULL)
+	  {
+		  osip_uri_t *url = request->to->url;
+		  while (osip_list_size(&url->url_headers)>0)
+		  {
+			  osip_uri_header_t *u_header;
+			  u_header = (osip_uri_param_t *) osip_list_get (&url->url_headers, 0);
+			  if (u_header==NULL)
+				break;
+
+			  if (osip_strcasecmp(u_header->gname, "from")==0)
+			  {
+			  }
+			  else if (osip_strcasecmp(u_header->gname, "to")==0)
+			  {
+			  }
+			  else if (osip_strcasecmp(u_header->gname, "call-id")==0)
+			  {
+			  }
+			  else if (osip_strcasecmp(u_header->gname, "cseq")==0)
+			  {
+			  }
+			  else if (osip_strcasecmp(u_header->gname, "via")==0)
+			  {
+			  }
+			  else if (osip_strcasecmp(u_header->gname, "contact")==0)
+			  {
+			  }
+			  else
+				  osip_message_set_header(request, u_header->gname, u_header->gvalue);
+			  osip_list_remove (&url->url_headers, 0);
+			  osip_uri_param_free (u_header);
+		  }
+	  }
+
       if (proxy != NULL && proxy[0] != 0)
         {                       /* equal to a pre-existing route set */
           /* if the pre-existing route set contains a "lr" (compliance
