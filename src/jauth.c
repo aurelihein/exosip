@@ -290,13 +290,11 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
     HASHHEX Response;
     const char *pha1 = NULL;
 
-    if (qop!=NULL)
-      {
+#if 0
 	if (qop!=NULL)
-	  {
+      {
 	    /* only accept qop="auth" */
 	    pszQop = osip_strdup("auth");
-	  }
 	szNonceCount = osip_strdup ("00000001");
 	pszCNonce = osip_strdup ("0a4f113b");
 	
@@ -309,6 +307,7 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
 	  osip_authorization_set_cnonce (aut, tmp);
 	}
       }
+#endif
 
     pszPass = passwd;
 
@@ -358,6 +357,8 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
 {
   osip_proxy_authorization_t *aut;
   osip_proxy_authenticate_t *wa;
+
+  char *qop=NULL;
 
   osip_message_get_proxy_authenticate (previous_answer, 0, &wa);
 
@@ -421,6 +422,10 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
   }
   osip_proxy_authorization_set_algorithm (aut, osip_strdup ("MD5"));
 
+  qop = osip_www_authenticate_get_qop_options (wa);
+  if (qop==NULL || qop[0]=='\0' || strlen(qop)<4)
+    qop=NULL;
+
   {
     char *pszNonce = NULL;
     char *pszCNonce = NULL;
@@ -450,13 +455,25 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
     /* should upgrade pszCNonce */
     /* should add pszCNonce in aut */
 
-    if (osip_proxy_authenticate_get_qop_options (wa) != NULL)
+#if 0
+    if (qop!=NULL)
       {
-        szNonceCount = osip_strdup ("00000001");
-        /* MUST be incremented on each */
-        pszQop = osip_strdup (osip_proxy_authenticate_get_qop_options (wa));
-        pszCNonce = osip_strdup ("234abcc436e2667097e7fe6eia53e8dd");
+	    /* only accept qop="auth" */
+	    pszQop = osip_strdup("auth");
+	szNonceCount = osip_strdup ("00000001");
+	pszCNonce = osip_strdup ("0a4f113b");
+	
+	osip_proxy_authorization_set_message_qop (aut, osip_strdup ("auth"));
+	osip_proxy_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
+	
+	{
+	  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
+	  sprintf (tmp, "\"%s\"", pszCNonce);
+	  osip_proxy_authorization_set_cnonce (aut, tmp);
+	}
       }
+#endif
+
     if (ha1 && ha1[0])
       {
         /* Depending on algorithm=md5 */
