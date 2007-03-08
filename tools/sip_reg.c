@@ -217,7 +217,7 @@ int main (int argc, char *argv[])
           case 'p':
             service = getservbyname (optarg, "udp");
             if (service)
-              port = service->s_port;
+              port = ntohs(service->s_port);
             else
               port = atoi (optarg);
             break;
