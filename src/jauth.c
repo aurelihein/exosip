@@ -193,18 +193,17 @@ end:
 
 
 int
-__eXosip_create_authorization_header (osip_message_t * previous_answer,
+__eXosip_create_authorization_header (osip_www_authenticate_t *wa,
                                       const char *rquri, const char *username,
                                       const char *passwd, const char *ha1,
                                       osip_authorization_t ** auth,
-                                      const char *method)
+                                      const char *method,
+									  const char *pCNonce,
+									  int iNonceCount)
 {
   osip_authorization_t *aut;
-  osip_www_authenticate_t *wa = NULL;
 
   char *qop=NULL;
-
-  osip_message_get_www_authenticate (previous_answer, 0, &wa);
 
   /* make some test */
   if (passwd == NULL)
@@ -290,24 +289,25 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
     HASHHEX Response;
     const char *pha1 = NULL;
 
-#if 0
 	if (qop!=NULL)
       {
 	    /* only accept qop="auth" */
 	    pszQop = osip_strdup("auth");
-	szNonceCount = osip_strdup ("00000001");
-	pszCNonce = osip_strdup ("0a4f113b");
+
+		szNonceCount = osip_malloc(10);
+		snprintf(szNonceCount, 9, "%.8i", iNonceCount);
+
+		pszCNonce = osip_strdup (pCNonce);
 	
-	osip_authorization_set_message_qop (aut, osip_strdup ("auth"));
-	osip_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
+		osip_authorization_set_message_qop (aut, osip_strdup ("auth"));
+		osip_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
 	
-	{
-	  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
-	  sprintf (tmp, "\"%s\"", pszCNonce);
-	  osip_authorization_set_cnonce (aut, tmp);
-	}
+		{
+		  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
+		  sprintf (tmp, "\"%s\"", pszCNonce);
+		  osip_authorization_set_cnonce (aut, tmp);
+		}
       }
-#endif
 
     pszPass = passwd;
 
@@ -347,20 +347,19 @@ __eXosip_create_authorization_header (osip_message_t * previous_answer,
 }
 
 int
-__eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
-                                            const char *rquri,
+__eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
+											const char *rquri,
                                             const char *username,
                                             const char *passwd,
                                             const char *ha1,
                                             osip_proxy_authorization_t **
-                                            auth, const char *method)
+                                            auth, const char *method,
+											const char *pCNonce,
+											int iNonceCount)
 {
   osip_proxy_authorization_t *aut;
-  osip_proxy_authenticate_t *wa;
 
   char *qop=NULL;
-
-  osip_message_get_proxy_authenticate (previous_answer, 0, &wa);
 
   /* make some test */
   if (passwd == NULL)
@@ -450,29 +449,25 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
       return -1;
     pszNonce = osip_strdup_without_quote (osip_www_authenticate_get_nonce (wa));
 
-    /* should upgrade szNonceCount */
-    /* should add szNonceCount in aut */
-    /* should upgrade pszCNonce */
-    /* should add pszCNonce in aut */
-
-#if 0
     if (qop!=NULL)
       {
 	    /* only accept qop="auth" */
 	    pszQop = osip_strdup("auth");
-	szNonceCount = osip_strdup ("00000001");
-	pszCNonce = osip_strdup ("0a4f113b");
-	
-	osip_proxy_authorization_set_message_qop (aut, osip_strdup ("auth"));
-	osip_proxy_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
-	
-	{
-	  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
-	  sprintf (tmp, "\"%s\"", pszCNonce);
-	  osip_proxy_authorization_set_cnonce (aut, tmp);
-	}
+		
+		szNonceCount = osip_malloc(10);
+		snprintf(szNonceCount, 9, "%.8i", iNonceCount);
+
+		pszCNonce = osip_strdup (pCNonce);
+
+		osip_proxy_authorization_set_message_qop (aut, osip_strdup ("auth"));
+		osip_proxy_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
+
+		{
+		  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
+		  sprintf (tmp, "\"%s\"", pszCNonce);
+		  osip_proxy_authorization_set_cnonce (aut, tmp);
+		}
       }
-#endif
 
     if (ha1 && ha1[0])
       {
@@ -505,4 +500,73 @@ __eXosip_create_proxy_authorization_header (osip_message_t * previous_answer,
 
   *auth = aut;
   return 0;
+}
+
+int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa)
+{
+	struct eXosip_http_auth *http_auth;
+	int pos;
+
+	/* update entries with same call_id */
+	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
+	{
+		http_auth = &eXosip.http_auths[pos];
+		if (http_auth->pszCallId[0]=='\0')
+			continue;
+		if (osip_strcasecmp(http_auth->pszCallId, call_id)==0
+			&& osip_strcasecmp(http_auth->wa->realm, wa->realm)==0)
+		{
+			osip_proxy_authenticate_free(http_auth->wa);
+			http_auth->wa=NULL;
+			osip_proxy_authenticate_clone(wa, &(http_auth->wa));
+			http_auth->iNonceCount = 1;
+			if (http_auth->wa==NULL)
+				memset(http_auth, 0, sizeof(struct eXosip_http_auth));
+			return 0;
+		}
+	}
+
+	/* not found */
+	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
+	{
+		http_auth = &eXosip.http_auths[pos];
+		if (http_auth->pszCallId[0]=='\0')
+		{
+			snprintf(http_auth->pszCallId, sizeof(http_auth->pszCallId),
+				call_id);
+			snprintf(http_auth->pszCNonce, sizeof(http_auth->pszCNonce),
+				"0a4f113b");
+			http_auth->iNonceCount = 1;
+			osip_proxy_authenticate_clone(wa, &(http_auth->wa));
+			if (http_auth->wa==NULL)
+				memset(http_auth, 0, sizeof(struct eXosip_http_auth));
+			return 0;
+		}
+	}
+
+	OSIP_TRACE (osip_trace
+                (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                 "Compile with higher MAX_EXOSIP_HTTP_AUTH value (current=%i)\n", MAX_EXOSIP_HTTP_AUTH));
+	return -1;
+}
+
+int _eXosip_delete_nonce(const char *call_id)
+{
+	struct eXosip_http_auth *http_auth;
+	int pos;
+
+	/* update entries with same call_id */
+	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
+	{
+		http_auth = &eXosip.http_auths[pos];
+		if (http_auth->pszCallId[0]=='\0')
+			continue;
+		if (osip_strcasecmp(http_auth->pszCallId, call_id)==0)
+		{
+			osip_proxy_authenticate_free(http_auth->wa);
+			memset(http_auth, 0, sizeof(struct eXosip_http_auth));
+			return 0;
+		}
+	}
+	return -1;
 }

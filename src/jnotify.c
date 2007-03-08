@@ -139,6 +139,15 @@ eXosip_notify_free (eXosip_notify_t * jn)
 
   eXosip_dialog_t *jd;
 
+  if (jn->n_inc_tr!=NULL && jn->n_inc_tr->orig_request!=NULL
+	  && jn->n_inc_tr->orig_request->call_id!=NULL
+	  && jn->n_inc_tr->orig_request->call_id->number!=NULL)
+	  _eXosip_delete_nonce(jn->n_inc_tr->orig_request->call_id->number);
+  else if (jn->n_out_tr!=NULL && jn->n_out_tr->orig_request!=NULL
+	  && jn->n_out_tr->orig_request->call_id!=NULL
+	  && jn->n_out_tr->orig_request->call_id->number!=NULL)
+	  _eXosip_delete_nonce(jn->n_out_tr->orig_request->call_id->number);
+
   for (jd = jn->n_dialogs; jd != NULL; jd = jn->n_dialogs)
     {
       REMOVE_ELEMENT (jn->n_dialogs, jd);

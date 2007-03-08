@@ -535,6 +535,8 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
 
   if (jc->response_auth != NULL)
     eXosip_add_authentication_information (*request, jc->response_auth);
+  else
+	eXosip_add_authentication_information(*request, NULL);
 
   return 0;
 }
@@ -1030,6 +1032,8 @@ eXosip_call_terminate (int cid, int did)
 
           if (jc->response_auth != NULL)
             eXosip_add_authentication_information (request, jc->response_auth);
+		  else
+            eXosip_add_authentication_information (request, NULL);
 
           i = eXosip_create_transaction (jc, jd, request);
           if (i != 0)
@@ -1086,6 +1090,8 @@ eXosip_call_terminate (int cid, int did)
     }
   if (jc->response_auth != NULL)
     eXosip_add_authentication_information (request, jc->response_auth);
+  else
+    eXosip_add_authentication_information (request, NULL);
 
   i = eXosip_create_transaction (jc, jd, request);
   if (i != 0)
@@ -1396,7 +1402,8 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
       return -1;
     }
 
-  eXosip_add_authentication_information (msg, out_tr->last_response);
+  /* eXosip_add_authentication_information (msg, out_tr->last_response); */
+  eXosip_add_authentication_information (msg, NULL);
   osip_message_force_update (msg);
 
   if (0 != osip_strcasecmp (msg->sip_method, "INVITE"))

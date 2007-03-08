@@ -1,4 +1,5 @@
 eXosip2 (3.0.2)
+	* add support for qop authentication.
 	* remove registration context immediatly upon eXosip_register_remove.
 	* TCP: fix missing Contact in INVITE sent.
 	* TCP: fix missing "transport" in Contact for answers within dialog.

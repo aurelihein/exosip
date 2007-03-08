@@ -235,21 +235,26 @@ extern "C"
   };
 
   int
-    __eXosip_create_authorization_header (osip_message_t * previous_answer,
+    __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
                                           const char *rquri,
                                           const char *username,
                                           const char *passwd,
                                           const char *ha1,
                                           osip_authorization_t ** auth,
-                                          const char *method);
-  int __eXosip_create_proxy_authorization_header (osip_message_t *
-                                                  previous_answer,
+                                          const char *method,
+										  const char *pszCNonce,
+										  int iNonceCount);
+  int __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
                                                   const char *rquri,
                                                   const char *username,
                                                   const char *passwd,
                                                   const char *ha1,
                                                   osip_proxy_authorization_t
-                                                  ** auth, const char *method);
+                                                  ** auth, const char *method,
+												  const char *pszCNonce,
+												  int iNonceCount);
+  int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa);
+  int _eXosip_delete_nonce(const char *call_id);
 
   eXosip_event_t *eXosip_event_init_for_call (int type, eXosip_call_t * jc,
                                               eXosip_dialog_t * jd,
@@ -327,6 +332,10 @@ extern "C"
 #define MAX_EXOSIP_DNS_ENTRY 10
 #endif
 
+#ifndef MAX_EXOSIP_HTTP_AUTH
+#define MAX_EXOSIP_HTTP_AUTH 10
+#endif
+
   typedef struct eXosip_t eXosip_t;
 
   struct eXosip_t
@@ -366,6 +375,7 @@ extern "C"
     int remove_preloadedroute;
     char ipv4_for_gateway[256];
 	struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
+	struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
   };
 
   typedef struct jinfo_t jinfo_t;

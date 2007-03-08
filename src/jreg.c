@@ -60,6 +60,11 @@ eXosip_reg_free (eXosip_reg_t * jreg)
 
   if (jreg->r_last_tr != NULL)
     {
+	  if (jreg->r_last_tr!=NULL && jreg->r_last_tr->orig_request!=NULL
+		  && jreg->r_last_tr->orig_request->call_id!=NULL
+		  && jreg->r_last_tr->orig_request->call_id->number!=NULL)
+		  _eXosip_delete_nonce(jreg->r_last_tr->orig_request->call_id->number);
+
       if (jreg->r_last_tr->state == IST_TERMINATED ||
           jreg->r_last_tr->state == ICT_TERMINATED ||
           jreg->r_last_tr->state == NICT_TERMINATED ||

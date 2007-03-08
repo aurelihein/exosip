@@ -94,6 +94,15 @@ eXosip_call_free (eXosip_call_t * jc)
   if (jc->response_auth != NULL)
     osip_message_free (jc->response_auth);
 
+  if (jc->c_inc_tr!=NULL && jc->c_inc_tr->orig_request!=NULL
+	  && jc->c_inc_tr->orig_request->call_id!=NULL
+	  && jc->c_inc_tr->orig_request->call_id->number!=NULL)
+	  _eXosip_delete_nonce(jc->c_inc_tr->orig_request->call_id->number);
+  else if (jc->c_out_tr!=NULL && jc->c_out_tr->orig_request!=NULL
+	  && jc->c_out_tr->orig_request->call_id!=NULL
+	  && jc->c_out_tr->orig_request->call_id->number!=NULL)
+	  _eXosip_delete_nonce(jc->c_out_tr->orig_request->call_id->number);
+
   for (jd = jc->c_dialogs; jd != NULL; jd = jc->c_dialogs)
     {
       REMOVE_ELEMENT (jc->c_dialogs, jd);

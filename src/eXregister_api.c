@@ -212,6 +212,8 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
                 {
                   eXosip_add_authentication_information (reg, last_response);
                 }
+			  else
+                  eXosip_add_authentication_information (reg, NULL);
               osip_message_free (last_response);
             }
         }

@@ -81,6 +81,13 @@ struct eXosip_dns_cache {
     char ip[256];
 };
 
+struct eXosip_http_auth {
+	char pszCallId[64];
+	osip_proxy_authenticate_t *wa;
+	char pszCNonce[64];
+	int  iNonceCount;
+};
+
 /**
  * Set eXosip options.
  * See eXosip_option for available options.
