@@ -28,7 +28,9 @@
 
 
 #ifndef  WIN32
+#if !defined(__arc__)
 #include <memory.h>
+#endif
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

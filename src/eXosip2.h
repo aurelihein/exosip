@@ -74,11 +74,38 @@
 
 #endif
 
-#define EXOSIP_VERSION	"3.0.1"
+#define EXOSIP_VERSION	"3.0.2"
 
 #ifdef __cplusplus
 extern "C"
 {
+#endif
+
+#if defined(__arc__)
+
+#define NI_MAXHOST      1025
+#define NI_MAXSERV      32
+#define NI_NUMERICHOST  1
+
+#define PF_INET6        AF_INET6
+
+  struct sockaddr_storage {
+    unsigned char sa_len;
+    unsigned char sa_family;         /* Address family AF_XXX */
+    char          sa_data[14];       /* Protocol specific address */
+  };
+  
+  struct addrinfo
+  {
+    int ai_flags;                 /* Input flags.  */
+    int ai_family;                /* Protocol family for socket.  */
+    int ai_socktype;              /* Socket type.  */
+    int ai_protocol;              /* Protocol for socket.  */
+    socklen_t ai_addrlen;         /* Length of socket address.  */
+    struct sockaddr *ai_addr;     /* Socket address for socket.  */
+    char *ai_canonname;           /* Canonical name for service location.  */
+    struct addrinfo *ai_next;     /* Pointer to next in list.  */
+  };
 #endif
 
   void eXosip_update (void);
@@ -101,7 +128,7 @@ extern "C"
     osip_dialog_t *d_dialog;    /* active dialog */
 
     time_t d_timer;
-	int d_count;
+    int d_count;
     osip_message_t *d_200Ok;
     osip_message_t *d_ack;
 

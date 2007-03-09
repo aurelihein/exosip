@@ -25,6 +25,13 @@
  *
  */
 
+
+#if defined(__arc__)
+#define LOG_PERROR 1
+#include <includes_api.h>
+#include <os_cfg_pub.h>
+#endif
+
 #if !defined(WIN32) && !defined(_WIN32_WCE)
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +52,7 @@
 #include <osip2/osip_mt.h>
 #include <eXosip2/eXosip.h>
 
-#if !defined(WIN32) && !defined(_WIN32_WCE)
+#if !defined(WIN32) && !defined(_WIN32_WCE) && !defined(__arc__)
 #define _GNU_SOURCE
 #include <getopt.h>
 #endif
@@ -68,7 +75,7 @@ static void syslog_wrapper(int a, const char *fmt, ...)
 #define LOG_WARNING 0
 #define LOG_DEBUG 0
 
-#elif LOG_PERROR
+#elif defined(LOG_PERROR)
 /* If we can, we use syslog() to emit the debugging messages to stderr. */
 #define syslog_wrapper    syslog
 #else
@@ -151,7 +158,9 @@ int main (int argc, char *argv[])
   const char *localip = NULL;
   const char *firewallip = NULL;
   char *proxy = NULL;
+#if !defined(__arc__)
   struct servent *service;
+#endif
   char *username = NULL;
   char *password = NULL;
   struct regparam_t regparam = { 0, 3600, 0 };
@@ -215,11 +224,15 @@ int main (int argc, char *argv[])
             localip = optarg;
             break;
           case 'p':
+#if !defined(__arc__)
             service = getservbyname (optarg, "udp");
             if (service)
               port = ntohs(service->s_port);
             else
               port = atoi (optarg);
+#else
+	    port = atoi (optarg);
+#endif
             break;
           case 'r':
             proxy = optarg;
