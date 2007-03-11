@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.48 $)dnl
+AC_REVISION($Revision: 1.49 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -128,27 +128,31 @@ else
   AC_CHECK_HEADERS(sys/sem.h)
 fi
 
-case $OS in
-  linux*)
+if test "x$host_cpu" = "x$build_cpu"; then
+  case $OS in
+   linux*)
      EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
      ;;
-  irix*)
+   irix*)
      ;;
-  hpux* | hp-ux*)
+   hpux* | hp-ux*)
      ;;
-  aix*)
+   aix*)
      ;;
-  osf*)
+   osf*)
      AC_CHECK_LIB(rt,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
      ;;
-  sunos*)
+   sunos*)
      ;;
-  darwin*)
+   darwin*)
      EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
      ;;
-  *)
+   *)
      ;;
-esac
+ esac
+else
+ AC_MSG_NOTICE([Cross compiling exosip.])
+fi
 
 if test "x$enable_debug" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DENABLE_DEBUG -g"
