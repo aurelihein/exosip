@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.46 $)dnl
+AC_REVISION($Revision: 1.47 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -107,7 +107,7 @@ enable_sysv=$enableval,enable_sysv="no")
 dnl compile with mt support
 if test "x$enable_pthread" = "xyes"; then
   EXOSIP_FLAGS="-DHAVE_PTHREAD"
-  EXOSIP_LIB="-lpthread"
+  dnl EXOSIP_LIB="-lpthread"
 else
   ACX_PTHREAD()
 fi
