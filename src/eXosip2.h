@@ -25,6 +25,11 @@
 #ifndef __EXOSIP2_H__
 #define __EXOSIP2_H__
 
+#include <stdio.h>
+#ifndef _WIN32_WCE
+#include <errno.h>
+#endif
+
 #ifdef _WIN32_WCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -390,12 +395,16 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     eXosip_reg_t *j_reg;        /* my registrations */
     eXosip_pub_t *j_pub;        /* my publications  */
 
+#ifdef OSIP_MT
     void *j_cond;
     void *j_mutexlock;
+#endif
 
     osip_t *j_osip;
     int j_stop_ua;
+#ifdef OSIP_MT
     void *j_thread;
+#endif
     jpipe_t *j_socketctl;
     jpipe_t *j_socketctl_event;
 

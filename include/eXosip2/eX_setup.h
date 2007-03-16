@@ -64,6 +64,13 @@ extern "C"
  */
   void eXosip_quit(void);
 
+
+/**
+ * Process (non-threaded mode ONLY) eXosip events.
+ * 
+ */
+  int eXosip_execute (void);
+
 typedef enum {
     EXOSIP_OPT_UDP_KEEP_ALIVE = 1,
     EXOSIP_OPT_UDP_LEARN_PORT = 2,
@@ -98,6 +105,8 @@ struct eXosip_http_auth {
  */
 int eXosip_set_option(eXosip_option opt, const void *value);
 
+#ifdef OSIP_MT
+
 /**
  * Lock the eXtented oSIP library.
  * 
@@ -109,6 +118,14 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * 
  */
   int eXosip_unlock(void);
+
+#else
+
+#define eXosip_lock() ;
+
+#define eXosip_unlock() ;
+
+#endif
 
 /**
  * Ask for SRV record.

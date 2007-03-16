@@ -378,8 +378,10 @@ eXosip_event_add (eXosip_event_t * je)
 {
   int i = osip_fifo_add (eXosip.j_events, (void *) je);
 
+#ifdef OSIP_MT
 #if !defined (_WIN32_WCE)
   osip_cond_signal ((struct osip_cond *) eXosip.j_cond);
+#endif
 #endif
 
   __eXosip_wakeup_event ();
@@ -513,6 +515,8 @@ eXosip_event_wait (int tv_s, int tv_ms)
   return je;
 }
 
+#ifdef OSIP_MT
+
 eXosip_event_t *
 eXosip_event_get ()
 {
@@ -524,3 +528,5 @@ eXosip_event_get ()
   je = (eXosip_event_t *) osip_fifo_get (eXosip.j_events);
   return je;
 }
+
+#endif

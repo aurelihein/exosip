@@ -41,7 +41,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <syslog.h>
+#ifdef OSIP_MT
 #include <pthread.h>
+#endif
 #endif
 
 #ifdef _WIN32_WCE
@@ -84,7 +86,9 @@ static void syslog_wrapper(int a, const char *fmt, ...)
 
 
 static void usage (void);
+#ifdef OSIP_MT
 static void *register_proc (void *arg);
+#endif
 
 static void
 usage (void)
@@ -112,6 +116,7 @@ typedef struct regparam_t
   int auth;
 } regparam_t;
 
+#ifdef OSIP_MT
 static void *
 register_proc (void *arg)
 {
@@ -141,6 +146,7 @@ register_proc (void *arg)
     }
   return NULL;
 }
+#endif
 
 #ifdef _WIN32_WCE
 int WINAPI WinMain(	HINSTANCE hInstance,
@@ -164,7 +170,9 @@ int main (int argc, char *argv[])
   char *username = NULL;
   char *password = NULL;
   struct regparam_t regparam = { 0, 3600, 0 };
+#ifdef OSIP_MT
   struct osip_thread *register_thread;
+#endif
   int debug = 0;
   int nofork = 0;
 
@@ -284,6 +292,7 @@ int main (int argc, char *argv[])
   syslog_wrapper (LOG_INFO, "expiry: %d", regparam.expiry);
   syslog_wrapper (LOG_INFO, "local port: %d", port);
 
+  TRACE_INITIALIZE (6, NULL);
   if (eXosip_init ())
     {
       syslog_wrapper (LOG_ERR, "eXosip_init failed");
@@ -291,7 +300,7 @@ int main (int argc, char *argv[])
     }
   if (eXosip_listen_addr (IPPROTO_UDP, NULL, port, AF_INET, 0))
     {
-      syslog_wrapper (LOG_ERR, "eXosip_listen_to failed");
+      syslog_wrapper (LOG_ERR, "eXosip_listen_addr failed");
       exit (1);
     }
 
@@ -326,7 +335,7 @@ int main (int argc, char *argv[])
     int i;
 
     regparam.regid =
-      eXosip_register_build_initial_register (fromuser, proxy, contact, 3600,
+      eXosip_register_build_initial_register (fromuser, proxy, contact, regparam.expiry*2,
                                               &reg);
     if (regparam.regid < 1)
       {
@@ -341,23 +350,34 @@ int main (int argc, char *argv[])
       }
   }
 
+#ifdef OSIP_MT
   register_thread = osip_thread_create (20000, register_proc, &regparam);
   if (register_thread==NULL)
     {
       syslog_wrapper (LOG_ERR, "pthread_create failed");
       exit (1);
     }
+#endif
 
   for (;;)
     {
       eXosip_event_t *event;
 
-      if (!(event = eXosip_event_wait (0, 0)))
+      if (!(event = eXosip_event_wait (0, 1)))
         {
+#ifndef OSIP_MT
+	  eXosip_execute();
+	  eXosip_automatic_action ();
+#endif
           osip_usleep (10000);
           continue;
         }
 
+#ifndef OSIP_MT
+      eXosip_execute();
+#endif
+
+      eXosip_automatic_action ();
       switch (event->type)
         {
           case EXOSIP_REGISTRATION_NEW:
@@ -368,14 +388,8 @@ int main (int argc, char *argv[])
             break;
           case EXOSIP_REGISTRATION_FAILURE:
             eXosip_lock ();
-            if (regparam.auth)
-              {
-                syslog_wrapper (LOG_WARNING, "registration failed");
-                regparam.auth = 0;
-                eXosip_unlock ();
-                break;
-              }
-            eXosip_register_send_register (regparam.regid, NULL);
+	    if (regparam.auth && (event->response->status_code == 407 || event->response->status_code == 401))
+	      eXosip_default_action (event);
             eXosip_unlock ();
             regparam.auth = 1;
             break;

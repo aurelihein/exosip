@@ -31,8 +31,9 @@ extern eXosip_t eXosip;
 
 int ipv6_enable = 0;
 
+#ifdef OSIP_MT
 static void *_eXosip_thread (void *arg);
-static int _eXosip_execute (void);
+#endif
 static void _eXosip_keep_alive (void);
 
 void
@@ -167,7 +168,9 @@ eXosip_quit (void)
   eXosip_subscribe_t *js;
   eXosip_reg_t *jreg;
   eXosip_pub_t *jpub;
+#ifdef OSIP_MT
   int i;
+#endif
   int pos;
 
   if (eXosip.j_stop_ua==-1)
@@ -182,6 +185,7 @@ eXosip_quit (void)
   __eXosip_wakeup ();
   __eXosip_wakeup_event ();
 
+#ifdef OSIP_MT
   if (eXosip.j_thread!=NULL)
   {
     i = osip_thread_join ((struct osip_thread *) eXosip.j_thread);
@@ -196,6 +200,7 @@ eXosip_quit (void)
 
   jpipe_close (eXosip.j_socketctl);
   jpipe_close (eXosip.j_socketctl_event);
+#endif
 
   osip_free (eXosip.user_agent);
 
@@ -217,9 +222,11 @@ eXosip_quit (void)
       eXosip_notify_free (jn);
     }
 
+#ifdef OSIP_MT
   osip_mutex_destroy ((struct osip_mutex *) eXosip.j_mutexlock);
 #if !defined (_WIN32_WCE)
   osip_cond_destroy ((struct osip_cond *) eXosip.j_cond);
+#endif
 #endif
 
   if (eXosip.net_interfaces[0].net_socket)
@@ -322,6 +329,7 @@ eXosip_set_socket (int transport, int socket, int port)
   snprintf (eXosip.net_interfaces[0].net_port,
             sizeof (eXosip.net_interfaces[0].net_port), "%i", port);
 
+#ifdef OSIP_MT
   eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
   if (eXosip.j_thread == NULL)
     {
@@ -330,6 +338,7 @@ eXosip_set_socket (int transport, int socket, int port)
                    "eXosip: Cannot start thread!\n"));
       return -1;
     }
+#endif
   return 0;
 }
 
@@ -431,10 +440,14 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
                            curinfo->ai_protocol);
       if (sock < 0)
         {
-#if !defined(_WIN32_WCE)
+#if defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Cannot create socket!\n", strerror (errno)));
+                       "eXosip: Cannot create socket!\n"));
+#else
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: Cannot create socket %s!\n", strerror (errno)));
 #endif
           continue;
         }
@@ -451,10 +464,16 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
             {
               close (sock);
               sock = -1;
+#if defined(_WIN32_WCE)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: Cannot set socket option!\n",
+                           "eXosip: Cannot set socket option!\n"));
+#else
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "eXosip: Cannot set socket option %s!\n",
                            strerror (errno)));
+#endif
               continue;
             }
 #endif /* IPV6_V6ONLY */
@@ -463,7 +482,12 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       res = bind (sock, curinfo->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
         {
-#if !defined(_WIN32_WCE)
+#if defined(_WIN32_WCE)
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: Cannot bind socket node:%s family:%d\n",
+                       node, curinfo->ai_family));
+#else
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: Cannot bind socket node:%s family:%d %s\n",
@@ -477,7 +501,11 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       res = getsockname (sock, (struct sockaddr *) &net_int->ai_addr, &len);
       if (res != 0)
         {
-#if !defined(_WIN32_WCE)
+#if defined(_WIN32_WCE)
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: Cannot get socket name\n"));
+#else
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: Cannot get socket name (%s)\n", strerror (errno)));
@@ -490,7 +518,12 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
           res = listen (sock, SOMAXCONN);
           if (res < 0)
             {
-#if !defined(_WIN32_WCE)
+#if defined(_WIN32_WCE)
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "eXosip: Cannot bind socket node:%s family:%d\n",
+                           node, curinfo->ai_family));
+#else
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Cannot bind socket node:%s family:%d %s\n",
@@ -582,6 +615,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
         return -1;
     }
 
+#ifdef OSIP_MT
   eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
   if (eXosip.j_thread == NULL)
     {
@@ -590,6 +624,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
                    "eXosip: Cannot start thread!\n"));
       return -1;
     }
+#endif
   return 0;
 }
 
@@ -626,16 +661,20 @@ eXosip_init (void)
 
   eXosip.j_calls = NULL;
   eXosip.j_stop_ua = 0;
+#ifdef OSIP_MT
   eXosip.j_thread = NULL;
+#endif
   eXosip.j_transactions = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
   osip_list_init (eXosip.j_transactions);
   eXosip.j_reg = NULL;
 
+#ifdef OSIP_MT
 #if !defined (_WIN32_WCE)
   eXosip.j_cond = (struct osip_cond *) osip_cond_init ();
 #endif
 
   eXosip.j_mutexlock = (struct osip_mutex *) osip_mutex_init ();
+#endif
 
   if (-1 == osip_init (&osip))
     {
@@ -669,12 +708,13 @@ eXosip_init (void)
 }
 
 
-static int
-_eXosip_execute (void)
+int
+eXosip_execute (void)
 {
   struct timeval lower_tv;
   int i;
 
+#ifdef OSIP_MT
   osip_timers_gettimeout (eXosip.j_osip, &lower_tv);
   if (lower_tv.tv_sec > 15)
     {
@@ -698,6 +738,10 @@ _eXosip_execute (void)
                    "eXosip: timer sec:%i usec:%i!\n",
                    lower_tv.tv_sec, lower_tv.tv_usec));
     }
+#else
+  lower_tv.tv_sec = 0;
+  lower_tv.tv_usec = 0;
+#endif
   i = eXosip_read_message (1, lower_tv.tv_sec, lower_tv.tv_usec);
 
   if (i == -2)
@@ -904,6 +948,7 @@ _eXosip_keep_alive (void)
     }
 }
 
+#ifdef OSIP_MT
 void *
 _eXosip_thread (void *arg)
 {
@@ -911,10 +956,12 @@ _eXosip_thread (void *arg)
 
   while (eXosip.j_stop_ua == 0)
     {
-      i = _eXosip_execute ();
+      i = eXosip_execute ();
       if (i == -2)
         osip_thread_exit ();
     }
   osip_thread_exit ();
   return NULL;
 }
+
+#endif

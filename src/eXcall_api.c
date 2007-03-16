@@ -1659,7 +1659,7 @@ eXosip_call_find_by_replaces (char* ReplacesStr)
   char* early_flag;
   char* semicolon;
   
-  // parse replaces string
+  /* parse replaces string */
   strcpy (call_id, ReplacesStr);
   to_tag = strstr(call_id,"to-tag=");
   from_tag = strstr(call_id,"from-tag=");

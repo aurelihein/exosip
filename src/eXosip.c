@@ -56,6 +56,8 @@ __eXosip_wakeup_event (void)
 }
 
 
+#ifdef OSIP_MT
+
 int
 eXosip_lock (void)
 {
@@ -67,6 +69,8 @@ eXosip_unlock (void)
 {
   return osip_mutex_unlock ((struct osip_mutex *) eXosip.j_mutexlock);
 }
+
+#endif
 
 int
 _eXosip_transaction_init (osip_transaction_t ** transaction,

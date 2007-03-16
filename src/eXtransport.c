@@ -116,10 +116,14 @@ _eXosip_tcp_connect_socket (char *host, int port)
                            curinfo->ai_protocol);
       if (sock < 0)
         {
-#if !defined(_WIN32_WCE)
+#if !defined(OSIP_MT) || defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "eXosip: Cannot create socket!\n", strerror (errno)));
+                       "eXosip: Cannot create socket!\n"));
+#else
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "eXosip: Cannot create socket %s!\n", strerror (errno)));
 #endif
           continue;
         }
@@ -131,31 +135,30 @@ _eXosip_tcp_connect_socket (char *host, int port)
             {
               close (sock);
               sock = -1;
+#if !defined(OSIP_MT) || defined(_WIN32_WCE)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                           "eXosip: Cannot set socket option!\n",
+                           "eXosip: Cannot set socket option!\n"));
+#else
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                           "eXosip: Cannot set socket option %s!\n",
                            strerror (errno)));
+#endif
               continue;
             }
 #endif /* IPV6_V6ONLY */
         }
-#if 0
-      res = bind (sock, (struct sockaddr *) &net->ai_addr, curinfo->ai_addrlen);
-      if (res < 0)
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "eXosip: Cannot bind socket %s\n", strerror (errno)));
-          close (sock);
-          sock = -1;
-          continue;
-        }
-#endif
 
       res = connect (sock, curinfo->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
         {
-#if !defined(_WIN32_WCE)
+#if !defined(OSIP_MT) || defined(_WIN32_WCE)
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "eXosip: Cannot bind socket node:%s family:%d\n",
+                       host, curinfo->ai_family));
+#else
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_INFO2, NULL,
                        "eXosip: Cannot bind socket node:%s family:%d %s\n",
