@@ -127,10 +127,6 @@ static struct addrinfo *osip_he2ai(struct hostent *he, int port, int protocol)
   return firstai;
 }
 
-#if 1
-typedef unsigned long in_addr_t;
-#endif
-
 /*
  * osip_ip2addr() takes a 32bit ipv4 internet address as input parameter
  * together with a pointer to the string version of the address, and it
@@ -140,7 +136,7 @@ typedef unsigned long in_addr_t;
  * The input parameters ARE NOT checked for validity but they are expected
  * to have been checked already when this is called.
  */
-struct addrinfo *osip_ip2addr(in_addr_t num, const char *hostname, int port,  int protocol)
+static struct addrinfo *osip_ip2addr(in_addr_t num, const char *hostname, int port,  int protocol)
 {
   struct addrinfo *ai;
   struct hostent *h;
@@ -166,7 +162,7 @@ struct addrinfo *osip_ip2addr(in_addr_t num, const char *hostname, int port,  in
   return ai;
 }
 
-int
+static int
 eXosip_inet_pton (int family, const char *src, void *dst)
 {
   if (strchr (src, ':'))        /* possible IPv6 address */
