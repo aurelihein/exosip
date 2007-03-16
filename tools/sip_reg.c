@@ -292,7 +292,9 @@ int main (int argc, char *argv[])
   syslog_wrapper (LOG_INFO, "expiry: %d", regparam.expiry);
   syslog_wrapper (LOG_INFO, "local port: %d", port);
 
-  TRACE_INITIALIZE (6, NULL);
+  if (debug>0)
+    TRACE_INITIALIZE (6, NULL);
+
   if (eXosip_init ())
     {
       syslog_wrapper (LOG_ERR, "eXosip_init failed");
