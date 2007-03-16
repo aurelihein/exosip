@@ -21,6 +21,8 @@
 #ifndef _JPIPE_H_
 #define _JPIPE_H_
 
+#ifdef OSIP_MT
+
 #include <eXosip2/eXosip.h>
 
 #ifdef _WIN32_WCE
@@ -118,5 +120,8 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+#endif
+
 /** @} */
 #endif

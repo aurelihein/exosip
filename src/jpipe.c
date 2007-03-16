@@ -22,10 +22,11 @@
 #include <mpatrol.h>
 #endif
 
-#include "jpipe.h"
-
+#ifdef OSIP_MT
 
 #if !defined(WIN32) && !defined(__arc__)
+
+#include "jpipe.h"
 
 #include <fcntl.h>
 
@@ -280,5 +281,7 @@ jpipe_get_read_descr (jpipe_t * apipe)
     return -1;
   return apipe->pipes[0];
 }
+
+#endif
 
 #endif
