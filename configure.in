@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.50 $)dnl
+AC_REVISION($Revision: 1.51 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -109,15 +109,23 @@ AC_ARG_ENABLE(minisize,
 [  --enable-minisize       only compile minimal voip related code).],
 enable_minisize=$enableval,enable_minisize="no")
 
+dnl build with multithreaded support (need semaphore).
+AC_ARG_ENABLE(mt,
+[  --enable-mt             compile eXosip2 without multi-thread support.],
+enable_mt=$enableval,enable_mt="yes")
+
 dnl compile with mt support
-if test "x$enable_pthread" = "xyes"; then
-  EXOSIP_FLAGS="-DHAVE_PTHREAD"
-  dnl EXOSIP_LIB="-lpthread"
-else
-  ACX_PTHREAD()
+if test "x$enable_mt" = "xyes"; then
+  if test "x$enable_pthread" = "xyes"; then
+    EXOSIP_FLAGS="-DOSIP_MT -DHAVE_PTHREAD"
+    SIP_FSM_FLAGS="-DHAVE_PTHREAD"
+    dnl FSM_LIB="-lpthread"
+  else
+    EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
+    ACX_PTHREAD()
+  fi
 fi
 
-EXOSIP_FLAGS="$EXOSIP_FLAGS -DOSIP_MT"
 
 
 AM_CONDITIONAL(COMPILE_TOOLS, test "x$enable_tools" = "xyes")
