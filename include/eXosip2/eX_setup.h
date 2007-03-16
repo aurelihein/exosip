@@ -207,7 +207,11 @@ int eXosip_force_masquerade_contact(const char *localip);
  * Wake Up the eXosip_event_wait method.
  * 
  */
+#ifdef OSIP_MT
   void __eXosip_wakeup_event(void);
+#else
+#define __eXosip_wakeup_event()   ;
+#endif
 
 #endif
 

@@ -423,6 +423,24 @@ __eXosip_clock_gettime (unsigned int clock_id, struct timespec *time)
 #endif
 #endif
 
+#ifndef OSIP_MT
+
+eXosip_event_t *
+eXosip_event_wait (int tv_s, int tv_ms)
+{
+  eXosip_event_t *je = NULL;
+  je = (eXosip_event_t *) osip_fifo_tryget (eXosip.j_events);
+  if (je != NULL)
+    return je;
+  
+  eXosip_lock();
+  eXosip_retransmit_lost200ok();
+  eXosip_unlock();
+  return NULL;
+}
+
+#else
+
 eXosip_event_t *
 eXosip_event_wait (int tv_s, int tv_ms)
 {
@@ -514,8 +532,6 @@ eXosip_event_wait (int tv_s, int tv_ms)
 
   return je;
 }
-
-#ifdef OSIP_MT
 
 eXosip_event_t *
 eXosip_event_get ()

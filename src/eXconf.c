@@ -690,6 +690,7 @@ eXosip_init (void)
 
   eXosip.j_osip = osip;
 
+#ifdef OSIP_MT
   /* open a TCP socket to wake up the application when needed. */
   eXosip.j_socketctl = jpipe ();
   if (eXosip.j_socketctl == NULL)
@@ -698,6 +699,7 @@ eXosip_init (void)
   eXosip.j_socketctl_event = jpipe ();
   if (eXosip.j_socketctl_event == NULL)
     return -1;
+#endif
 
   /* To be changed in osip! */
   eXosip.j_events = (osip_fifo_t *) osip_malloc (sizeof (osip_fifo_t));

@@ -125,7 +125,11 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 #endif
 
   void eXosip_update (void);
+#ifdef OSIP_MT
   void __eXosip_wakeup (void);
+#else
+#define __eXosip_wakeup()  ;
+#endif
 
   struct __eXosip_sockaddr
   {
@@ -404,9 +408,9 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     int j_stop_ua;
 #ifdef OSIP_MT
     void *j_thread;
-#endif
     jpipe_t *j_socketctl;
     jpipe_t *j_socketctl_event;
+#endif
 
     osip_fifo_t *j_events;
 

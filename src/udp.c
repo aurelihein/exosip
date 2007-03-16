@@ -1679,7 +1679,9 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
     {
       int i;
       int max=0;
+#ifdef OSIP_MT
       int wakeup_socket = jpipe_get_read_descr (eXosip.j_socketctl);
+#endif
 
       FD_ZERO (&osip_fdset);
       if (eXosip.net_interfaces[0].net_socket > 0)
@@ -1715,9 +1717,11 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
         }
 
 
+#ifdef OSIP_MT
       eXFD_SET (wakeup_socket, &osip_fdset);
       if (wakeup_socket > max)
         max = wakeup_socket;
+#endif
 
       if ((sec_max == -1) || (usec_max == -1))
         i = select (max + 1, &osip_fdset, NULL, NULL, NULL);
@@ -1732,12 +1736,14 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
       if ((i == -1) && (errno == EINTR || errno == EAGAIN))
         continue;
 #endif
+#ifdef OSIP_MT
       if ((i > 0) && FD_ISSET (wakeup_socket, &osip_fdset))
         {
           char buf2[500];
 
           jpipe_read (eXosip.j_socketctl, buf2, 499);
         }
+#endif
 
       if (0 == i || eXosip.j_stop_ua != 0)
         {

@@ -43,6 +43,8 @@ static jauthinfo_t *eXosip_find_authentication_info (const char *username,
 
 eXosip_t eXosip;
 
+#ifdef OSIP_MT
+
 void
 __eXosip_wakeup (void)
 {
@@ -54,9 +56,6 @@ __eXosip_wakeup_event (void)
 {
   jpipe_write (eXosip.j_socketctl_event, "w", 1);
 }
-
-
-#ifdef OSIP_MT
 
 int
 eXosip_lock (void)
