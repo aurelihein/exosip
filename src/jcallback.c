@@ -302,7 +302,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
   len = addrinfo->ai_addrlen;
 
-  freeaddrinfo (addrinfo);
+  eXosip_freeaddrinfo (addrinfo);
 
   /* remove preloaded route if there is no tag in the To header
      (sip.iptel.org is refusing this: I can't understand why...)
@@ -334,14 +334,14 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       return -1;
     }
 
-  switch (addr.ss_family)
+  switch ( ((struct sockaddr *)&addr)->sa_family )
     {
       case AF_INET:
-        inet_ntop (addr.ss_family, &(((struct sockaddr_in *) &addr)->sin_addr),
+        inet_ntop (((struct sockaddr *)&addr)->sa_family, &(((struct sockaddr_in *) &addr)->sin_addr),
                    ipbuf, sizeof (ipbuf));
         break;
       case AF_INET6:
-        inet_ntop (addr.ss_family,
+        inet_ntop (((struct sockaddr *)&addr)->sa_family,
                    &(((struct sockaddr_in6 *) &addr)->sin6_addr), ipbuf,
                    sizeof (ipbuf));
         break;

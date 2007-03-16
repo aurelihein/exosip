@@ -150,7 +150,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
         if (i == 0)
         {
             memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-            freeaddrinfo (addrinfo);
+            eXosip_freeaddrinfo (addrinfo);
             c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
             OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                         "eXosip: here is the resolved destination host=%s\n",
@@ -599,7 +599,7 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
               if (i == 0)
                 {
                   memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-                  freeaddrinfo (addrinfo);
+                  eXosip_freeaddrinfo (addrinfo);
                   c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
                   OSIP_TRACE (osip_trace
                               (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -894,7 +894,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
         if (i == 0)
           {
             memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-            freeaddrinfo (addrinfo);
+            eXosip_freeaddrinfo (addrinfo);
             c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
             OSIP_TRACE (osip_trace
                         (__FILE__, __LINE__, OSIP_INFO1, NULL,

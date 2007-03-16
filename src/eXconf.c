@@ -505,7 +505,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       break;
     }
 
-  freeaddrinfo (addrinfo);
+  eXosip_freeaddrinfo (addrinfo);
 
   if (sock < 0)
     {

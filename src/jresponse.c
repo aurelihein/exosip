@@ -231,7 +231,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
           if (i == 0)
             {
               memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-              freeaddrinfo (addrinfo);
+              eXosip_freeaddrinfo (addrinfo);
               c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_INFO1, NULL,

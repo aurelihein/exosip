@@ -53,6 +53,346 @@ extern eXosip_t eXosip;
 
 extern int ipv6_enable;
 
+#if defined(__arc__)
+#define USE_GETHOSTBYNAME
+#endif
+
+#if defined(USE_GETHOSTBYNAME)
+
+void eXosip_freeaddrinfo(struct addrinfo *ai)
+{
+  struct addrinfo *next;
+  while(ai) {
+    next = ai->ai_next;
+    free(ai);
+    ai = next;
+  }
+}
+
+struct namebuf {
+  struct hostent hostentry;
+  char *h_addr_list[2];
+  struct in_addr addrentry;
+  char h_name[16]; /* 123.123.123.123 = 15 letters is maximum */
+};
+
+static struct addrinfo *osip_he2ai(struct hostent *he, int port, int protocol)
+{
+  struct addrinfo *ai;
+  struct addrinfo *prevai = NULL;
+  struct addrinfo *firstai = NULL;
+  struct sockaddr_in *addr;
+  int i;
+  struct in_addr *curr;
+
+  if(!he)
+    /* no input == no output! */
+    return NULL;
+
+  for(i=0; (curr = (struct in_addr *)he->h_addr_list[i]); i++) {
+
+    ai = calloc(1, sizeof(struct addrinfo) + sizeof(struct sockaddr_in));
+
+    if(!ai)
+      break;
+
+    if(!firstai)
+      /* store the pointer we want to return from this function */
+      firstai = ai;
+
+    if(prevai)
+      /* make the previous entry point to this */
+      prevai->ai_next = ai;
+
+    ai->ai_family = AF_INET;              /* we only support this */
+	if (protocol == IPPROTO_UDP)
+		ai->ai_socktype = SOCK_DGRAM;
+	else
+		ai->ai_socktype = SOCK_STREAM;
+    ai->ai_addrlen = sizeof(struct sockaddr_in);
+    /* make the ai_addr point to the address immediately following this struct
+       and use that area to store the address */
+    ai->ai_addr = (struct sockaddr *) ((char*)ai + sizeof(struct addrinfo));
+
+    /* leave the rest of the struct filled with zero */
+
+    addr = (struct sockaddr_in *)ai->ai_addr; /* storage area for this info */
+
+    memcpy((char *)&(addr->sin_addr), curr, sizeof(struct in_addr));
+    addr->sin_family = he->h_addrtype;
+    addr->sin_port = htons((unsigned short)port);
+
+    prevai = ai;
+  }
+  return firstai;
+}
+
+#if 1
+typedef unsigned long in_addr_t;
+#endif
+
+/*
+ * osip_ip2addr() takes a 32bit ipv4 internet address as input parameter
+ * together with a pointer to the string version of the address, and it
+ * returns a struct addrinfo chain filled in correctly with information for this
+ * address/host.
+ *
+ * The input parameters ARE NOT checked for validity but they are expected
+ * to have been checked already when this is called.
+ */
+struct addrinfo *osip_ip2addr(in_addr_t num, const char *hostname, int port,  int protocol)
+{
+  struct addrinfo *ai;
+  struct hostent *h;
+  struct in_addr *addrentry;
+  struct namebuf buffer;
+  struct namebuf *buf = &buffer;
+
+  h = &buf->hostentry;
+  h->h_addr_list = &buf->h_addr_list[0];
+  addrentry = &buf->addrentry;
+  addrentry->s_addr = num;
+  h->h_addr_list[0] = (char*)addrentry;
+  h->h_addr_list[1] = NULL;
+  h->h_addrtype = AF_INET;
+  h->h_length = sizeof(*addrentry);
+  h->h_name = &buf->h_name[0];
+  h->h_aliases = NULL;
+
+  /* Now store the dotted version of the address */
+  snprintf((char *)h->h_name, 16, "%s", hostname);
+
+  ai = osip_he2ai(h, port, protocol);
+  return ai;
+}
+
+int
+eXosip_inet_pton (int family, const char *src, void *dst)
+{
+  if (strchr (src, ':'))        /* possible IPv6 address */
+    return -1;                  /* (inet_pton(AF_INET6, src, dst)); */
+  else if (strchr (src, '.'))   /* possible IPv4 address */
+    {
+      struct in_addr *tmp = dst;
+      tmp->s_addr = inet_addr (src);    /* already in N. byte order */
+      if (tmp->s_addr == INADDR_NONE)
+        return 0;
+
+      return 1;                 /* (inet_pton(AF_INET, src, dst)); */
+  } else                        /* Impossibly a valid ip address */
+    return INADDR_NONE;
+}
+
+/*
+ * osip_getaddrinfo() - the ipv4 synchronous version.
+ *
+ * The original code to this function was from the Dancer source code, written
+ * by Bjorn Reese, it has since been patched and modified considerably.
+ *
+ * gethostbyname_r() is the thread-safe version of the gethostbyname()
+ * function. When we build for plain IPv4, we attempt to use this
+ * function. There are _three_ different gethostbyname_r() versions, and we
+ * detect which one this platform supports in the configure script and set up
+ * the HAVE_GETHOSTBYNAME_R_3, HAVE_GETHOSTBYNAME_R_5 or
+ * HAVE_GETHOSTBYNAME_R_6 defines accordingly. Note that HAVE_GETADDRBYNAME
+ * has the corresponding rules. This is primarily on *nix. Note that some unix
+ * flavours have thread-safe versions of the plain gethostbyname() etc.
+ *
+ */
+int eXosip_get_addrinfo(struct addrinfo **addrinfo,
+                                const char *hostname,
+                                int port,
+                                int protocol)
+{
+  struct hostent *h = NULL;
+  in_addr_t in;
+  struct hostent *buf = NULL;
+  char portbuf[10];
+
+  *addrinfo = NULL; /* default return */
+
+  if (port < 0)            /* -1 for SRV record */
+	  return -1;
+
+  if (port != -1)            /* -1 for SRV record */
+    snprintf (portbuf, sizeof (portbuf), "%i", port);
+
+  if(1 == eXosip_inet_pton(AF_INET, hostname, &in))
+    /* This is a dotted IP address 123.123.123.123-style */
+  {
+	  *addrinfo = osip_ip2addr(in, hostname, port, protocol);
+	  return 0;
+  }
+
+#if defined(HAVE_GETHOSTBYNAME_R)
+  /*
+   * gethostbyname_r() is the preferred resolve function for many platforms.
+   * Since there are three different versions of it, the following code is
+   * somewhat #ifdef-ridden.
+   */
+  else {
+    int h_errnop;
+    int res=ERANGE;
+
+    buf = (struct hostent *)calloc(CURL_HOSTENT_SIZE, 1);
+    if(!buf)
+      return NULL; /* major failure */
+    /*
+     * The clearing of the buffer is a workaround for a gethostbyname_r bug in
+     * qnx nto and it is also _required_ for some of these functions on some
+     * platforms.
+     */
+
+#ifdef HAVE_GETHOSTBYNAME_R_5
+    /* Solaris, IRIX and more */
+    (void)res; /* prevent compiler warning */
+    h = gethostbyname_r(hostname,
+                        (struct hostent *)buf,
+                        (char *)buf + sizeof(struct hostent),
+                        CURL_HOSTENT_SIZE - sizeof(struct hostent),
+                        &h_errnop);
+
+    /* If the buffer is too small, it returns NULL and sets errno to
+     * ERANGE. The errno is thread safe if this is compiled with
+     * -D_REENTRANT as then the 'errno' variable is a macro defined to get
+     * used properly for threads.
+     */
+
+    if(h) {
+      ;
+    }
+    else
+#endif /* HAVE_GETHOSTBYNAME_R_5 */
+#ifdef HAVE_GETHOSTBYNAME_R_6
+    /* Linux */
+
+    res=gethostbyname_r(hostname,
+                        (struct hostent *)buf,
+                        (char *)buf + sizeof(struct hostent),
+                        CURL_HOSTENT_SIZE - sizeof(struct hostent),
+                        &h, /* DIFFERENCE */
+                        &h_errnop);
+    /* Redhat 8, using glibc 2.2.93 changed the behavior. Now all of a
+     * sudden this function returns EAGAIN if the given buffer size is too
+     * small. Previous versions are known to return ERANGE for the same
+     * problem.
+     *
+     * This wouldn't be such a big problem if older versions wouldn't
+     * sometimes return EAGAIN on a common failure case. Alas, we can't
+     * assume that EAGAIN *or* ERANGE means ERANGE for any given version of
+     * glibc.
+     *
+     * For now, we do that and thus we may call the function repeatedly and
+     * fail for older glibc versions that return EAGAIN, until we run out of
+     * buffer size (step_size grows beyond CURL_HOSTENT_SIZE).
+     *
+     * If anyone has a better fix, please tell us!
+     *
+     * -------------------------------------------------------------------
+     *
+     * On October 23rd 2003, Dan C dug up more details on the mysteries of
+     * gethostbyname_r() in glibc:
+     *
+     * In glibc 2.2.5 the interface is different (this has also been
+     * discovered in glibc 2.1.1-6 as shipped by Redhat 6). What I can't
+     * explain, is that tests performed on glibc 2.2.4-34 and 2.2.4-32
+     * (shipped/upgraded by Redhat 7.2) don't show this behavior!
+     *
+     * In this "buggy" version, the return code is -1 on error and 'errno'
+     * is set to the ERANGE or EAGAIN code. Note that 'errno' is not a
+     * thread-safe variable.
+     */
+
+    if(!h) /* failure */
+#endif/* HAVE_GETHOSTBYNAME_R_6 */
+#ifdef HAVE_GETHOSTBYNAME_R_3
+    /* AIX, Digital Unix/Tru64, HPUX 10, more? */
+
+    /* For AIX 4.3 or later, we don't use gethostbyname_r() at all, because of
+     * the plain fact that it does not return unique full buffers on each
+     * call, but instead several of the pointers in the hostent structs will
+     * point to the same actual data! This have the unfortunate down-side that
+     * our caching system breaks down horribly. Luckily for us though, AIX 4.3
+     * and more recent versions have a "completely thread-safe"[*] libc where
+     * all the data is stored in thread-specific memory areas making calls to
+     * the plain old gethostbyname() work fine even for multi-threaded
+     * programs.
+     *
+     * This AIX 4.3 or later detection is all made in the configure script.
+     *
+     * Troels Walsted Hansen helped us work this out on March 3rd, 2003.
+     *
+     * [*] = much later we've found out that it isn't at all "completely
+     * thread-safe", but at least the gethostbyname() function is.
+     */
+
+    if(CURL_HOSTENT_SIZE >=
+       (sizeof(struct hostent)+sizeof(struct hostent_data))) {
+
+      /* August 22nd, 2000: Albert Chin-A-Young brought an updated version
+       * that should work! September 20: Richard Prescott worked on the buffer
+       * size dilemma.
+       */
+
+      res = gethostbyname_r(hostname,
+                            (struct hostent *)buf,
+                            (struct hostent_data *)((char *)buf +
+                                                    sizeof(struct hostent)));
+      h_errnop= errno; /* we don't deal with this, but set it anyway */
+    }
+    else
+      res = -1; /* failure, too smallish buffer size */
+
+    if(!res) { /* success */
+
+      h = buf; /* result expected in h */
+
+      /* This is the worst kind of the different gethostbyname_r() interfaces.
+       * Since we don't know how big buffer this particular lookup required,
+       * we can't realloc down the huge alloc without doing closer analysis of
+       * the returned data. Thus, we always use CURL_HOSTENT_SIZE for every
+       * name lookup. Fixing this would require an extra malloc() and then
+       * calling struct addrinfo_copy() that subsequent realloc()s down the new
+       * memory area to the actually used amount.
+       */
+    }
+    else
+#endif /* HAVE_GETHOSTBYNAME_R_3 */
+      {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                   "gethostbyname failure. %s:%s (%s)\n", hostname, port));
+      h = NULL; /* set return code to NULL */
+      free(buf);
+    }
+#else /* HAVE_GETHOSTBYNAME_R */
+    /*
+     * Here is code for platforms that don't have gethostbyname_r() or for
+     * which the gethostbyname() is the preferred() function.
+     */
+  else {
+    h = gethostbyname(hostname);
+    if (!h)
+	{
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                   "gethostbyname failure. %s:%s (%s)\n", hostname, port));
+	}
+#endif /*HAVE_GETHOSTBYNAME_R */
+  }
+
+  if(h) {
+    *addrinfo = osip_he2ai(h, port, protocol);
+
+    if (buf) /* used a *_r() function */
+      free(buf);
+  }
+
+  return 0;
+}
+
+#endif
+
 #if defined(WIN32) || defined(_WIN32_WCE)
 
 /* You need the Platform SDK to compile this. */
@@ -169,13 +509,13 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
 	      &local_addr, sizeof(local_addr), &local_addr_len, NULL, NULL) != 0)
     {
       closesocket(sock);
-      freeaddrinfo(addrf);
+      freeaddrinfo (addrf);
       snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
       return -1;
     }
   
   closesocket(sock);
-  freeaddrinfo(addrf);
+  freeaddrinfo (addrf);
   
   if(getnameinfo((const struct sockaddr*)&local_addr,
 		 local_addr_len,address, size, NULL, 0, NI_NUMERICHOST))
@@ -591,7 +931,7 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
   if (err < 0)
     {
       eXosip_trace (OSIP_ERROR, ("Error in setsockopt: %s\n", strerror (errno)));
-      freeaddrinfo (res);
+      eXosip_freeaddrinfo (res);
       close (sock);
       return -1;
     }
@@ -599,11 +939,11 @@ eXosip_get_localip_for (const char *address_to_reach, char *loc, int size)
   if (err < 0)
     {
       eXosip_trace (OSIP_ERROR, ("Error in connect: %s\n", strerror (errno)));
-      freeaddrinfo (res);
+      eXosip_freeaddrinfo (res);
       close (sock);
       return -1;
     }
-  freeaddrinfo (res);
+  eXosip_freeaddrinfo (res);
   res = NULL;
   s = sizeof (addr);
   err = getsockname (sock, (struct sockaddr *) &addr, &s);
@@ -681,6 +1021,8 @@ strdup_printf (const char *fmt, ...)
     }
 }
 
+#if !defined(USE_GETHOSTBYNAME)
+
 int
 eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
                      int service, int protocol)
@@ -755,6 +1097,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 
   return 0;
 }
+#endif
 
 int
 _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record)

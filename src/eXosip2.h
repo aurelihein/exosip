@@ -82,6 +82,10 @@ extern "C"
 #endif
 
 #if defined(__arc__)
+#define USE_GETHOSTBYNAME
+#endif
+
+#if defined(USE_GETHOSTBYNAME)
 
 #define NI_MAXHOST      1025
 #define NI_MAXSERV      32
@@ -106,6 +110,13 @@ extern "C"
     char *ai_canonname;           /* Canonical name for service location.  */
     struct addrinfo *ai_next;     /* Pointer to next in list.  */
   };
+
+void eXosip_freeaddrinfo(struct addrinfo *ai);
+
+#else
+
+#define eXosip_freeaddrinfo freeaddrinfo 
+
 #endif
 
   void eXosip_update (void);

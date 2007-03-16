@@ -169,7 +169,7 @@ _eXosip_tcp_connect_socket (char *host, int port)
       break;
     }
 
-  freeaddrinfo (addrinfo);
+  eXosip_freeaddrinfo (addrinfo);
 
   if (sock > 0)
     {
