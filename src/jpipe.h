@@ -36,6 +36,12 @@
 #endif
 #endif
 
+#if defined(__arc__)
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#endif
+
 #ifdef WIN32
 #include <windows.h>
 #endif

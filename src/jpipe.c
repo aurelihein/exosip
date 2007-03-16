@@ -24,7 +24,8 @@
 
 #include "jpipe.h"
 
-#ifndef WIN32
+
+#if !defined(WIN32) && !defined(__arc__)
 
 #include <fcntl.h>
 
@@ -123,7 +124,11 @@ jpipe ()
   my_pipe->pipes[1] = (int) socket (PF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (0 > my_pipe->pipes[1])
     {
+#if defined(__arc__)
+      close (s);
+#else
       closesocket (s);
+#endif
       osip_free (my_pipe);
       return NULL;
     }
@@ -147,10 +152,15 @@ jpipe ()
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                               "Failed to bind a local socket, aborting!\n"));
+#if defined(__arc__)
+      close (s);
+      close (my_pipe->pipes[1]);
+#else
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
+#endif
       osip_free (my_pipe);
-	  return NULL;
+      return NULL;
     }
 
   j = listen (s, 1);
@@ -158,28 +168,45 @@ jpipe ()
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                               "Failed to listen on a local socket, aborting!\n"));
+#if defined(__arc__)
+      close (s);
+      close (my_pipe->pipes[1]);
+#else
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
+#endif
       osip_free (my_pipe);
-	  return NULL;
+      return NULL;
     }
 
   j = setsockopt (my_pipe->pipes[1],
                   SOL_SOCKET,
                   SO_RCVTIMEO, (const char *) &timeout, sizeof (timeout));
+#if defined(__arc__)
+  if (j != 0)
+    {
+      /* failed for some reason... */
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "udp plugin; cannot set O_NONBLOCK to the file desciptor!\n"));
+      close (s);
+      close (my_pipe->pipes[1]);
+      osip_free (my_pipe);
+      return NULL;
+    }
+#elif !defined(WIN32_WCE)
   if (j != NO_ERROR)
     {
       /* failed for some reason... */
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "udp plugin; cannot set O_NONBLOCK to the file desciptor!\n"));
-#ifndef _WIN32_WCE
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
       osip_free (my_pipe);
       return NULL;
-#endif
     }
+#endif
 
   connect (my_pipe->pipes[1], (struct sockaddr *) &raddr, sizeof (raddr));
 
@@ -190,10 +217,15 @@ jpipe ()
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "udp plugin; Failed to call accept!\n"));
+#if defined(__arc__)
+      close (s);
+      close (my_pipe->pipes[1]);
+#else
       closesocket (s);
       closesocket (my_pipe->pipes[1]);
+#endif
       osip_free (my_pipe);
-	  return NULL;
+      return NULL;
     }
 
   return my_pipe;
@@ -204,8 +236,13 @@ jpipe_close (jpipe_t * apipe)
 {
   if (apipe == NULL)
     return -1;
+#if defined(__arc__)
+  close (apipe->pipes[0]);
+  close (apipe->pipes[1]);
+#else
   closesocket (apipe->pipes[0]);
   closesocket (apipe->pipes[1]);
+#endif
   osip_free (apipe);
   return 0;
 }
