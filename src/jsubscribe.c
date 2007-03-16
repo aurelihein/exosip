@@ -22,6 +22,7 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
 
 #include "eXosip2.h"
 
@@ -157,3 +158,5 @@ eXosip_subscribe_need_refresh (eXosip_subscribe_t * js, eXosip_dialog_t * jd,
     return 0;
   return -1;
 }
+
+#endif

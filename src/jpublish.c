@@ -21,6 +21,8 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
+
 #include "eXosip2.h"
 
 extern eXosip_t eXosip;
@@ -139,3 +141,5 @@ _eXosip_pub_free (eXosip_pub_t * pub)
     osip_list_add (eXosip.j_transactions, pub->p_last_tr, 0);
   osip_free (pub);
 }
+
+#endif

@@ -22,6 +22,8 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
+
 #ifndef __EX_OPTIONS_H__
 #define __EX_OPTIONS_H__
 
@@ -95,6 +97,8 @@ extern "C"
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

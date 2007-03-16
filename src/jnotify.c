@@ -22,6 +22,7 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
 
 #include "eXosip2.h"
 
@@ -208,3 +209,5 @@ _eXosip_notify_add_expires_in_2XX_for_subscribe (eXosip_notify_t * jn,
     }
   osip_message_set_expires (answer, tmp);
 }
+
+#endif

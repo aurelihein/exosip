@@ -22,6 +22,8 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
+
 #ifndef __EX_REFER_H__
 #define __EX_REFER_H__
 
@@ -78,6 +80,8 @@ int eXosip_refer_send_request(osip_message_t *refer);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

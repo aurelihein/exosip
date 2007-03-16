@@ -22,6 +22,8 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
+
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
@@ -72,3 +74,5 @@ eXosip_refer_send_request (osip_message_t * refer)
   __eXosip_wakeup ();
   return 0;
 }
+
+#endif

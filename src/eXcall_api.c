@@ -59,7 +59,11 @@ eXosip_create_transaction (eXosip_call_t * jc,
   sipevent = osip_new_outgoing_sipmessage (request);
   sipevent->transactionid = tr->transactionid;
 
+#ifndef MINISIZE
   osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd, NULL, NULL));
+#else
+  osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd));
+#endif
   osip_transaction_add_event (tr, sipevent);
   __eXosip_wakeup ();
   return 0;
@@ -278,8 +282,13 @@ eXosip_call_send_initial_invite (osip_message_t * invite)
   sipevent = osip_new_outgoing_sipmessage (invite);
   sipevent->transactionid = transaction->transactionid;
 
+#ifndef MINISIZE
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, NULL, NULL, NULL));
+#else
+  osip_transaction_set_your_instance (transaction,
+                                      __eXosip_new_jinfo (jc, NULL));
+#endif
   osip_transaction_add_event (transaction, sipevent);
 
   jc->external_reference = NULL;
@@ -628,8 +637,13 @@ eXosip_call_send_request (int jid, osip_message_t * request)
   sipevent = osip_new_outgoing_sipmessage (request);
   sipevent->transactionid = transaction->transactionid;
 
+#ifndef MINISIZE
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, jd, NULL, NULL));
+#else
+  osip_transaction_set_your_instance (transaction,
+                                      __eXosip_new_jinfo (jc, jd));
+#endif
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
   return 0;
@@ -1230,7 +1244,11 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
   sipevent = osip_new_outgoing_sipmessage (prack);
   sipevent->transactionid = tr->transactionid;
 
+#ifndef MINISIZE
   osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd, NULL, NULL));
+#else
+  osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd));
+#endif
   osip_transaction_add_event (tr, sipevent);
   __eXosip_wakeup ();
   return 0;
@@ -1441,7 +1459,11 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
 
   sipevent = osip_new_outgoing_sipmessage (msg);
 
+#ifndef MINISIZE
   osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd, NULL, NULL));
+#else
+  osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd));
+#endif
   osip_transaction_add_event (tr, sipevent);
 
   eXosip_update ();             /* fixed? */
@@ -1576,7 +1598,11 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
 
   sipevent = osip_new_outgoing_sipmessage (msg);
 
+#ifndef MINISIZE
   osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd, NULL, NULL));
+#else
+  osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd));
+#endif
   osip_transaction_add_event (tr, sipevent);
 
   eXosip_update ();             /* fixed? */

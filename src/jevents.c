@@ -90,6 +90,8 @@ eXosip_event_init_for_call (int type, eXosip_call_t * jc,
   return je;
 }
 
+#ifndef MINISIZE
+
 eXosip_event_t *
 eXosip_event_init_for_subscribe (int type, eXosip_subscribe_t * js,
                                  eXosip_dialog_t * jd, osip_transaction_t * tr)
@@ -145,6 +147,8 @@ eXosip_event_init_for_notify (int type, eXosip_notify_t * jn,
 
   return je;
 }
+
+#endif
 
 eXosip_event_t *
 eXosip_event_init_for_reg (int type, eXosip_reg_t * jr, osip_transaction_t * tr)
@@ -354,22 +358,6 @@ report_call_event (int evt, eXosip_call_t * jc,
   eXosip_event_t *je;
 
   je = eXosip_event_init_for_call (evt, jc, jd, tr);
-  report_event (je, NULL);
-}
-
-void
-report_options_event (int evt, osip_transaction_t * tr)
-{
-  eXosip_event_t *je;
-
-  eXosip_event_init (&je, evt);
-  if (je == NULL)
-    return;
-
-  if (tr != NULL)
-    je->tid = tr->transactionid;
-
-  _eXosip_event_fill_messages (je, tr);
   report_event (je, NULL);
 }
 

@@ -49,6 +49,8 @@ eXosip_call_dialog_find (int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
   return -1;
 }
 
+#ifndef MINISIZE
+
 int
 eXosip_notify_dialog_find (int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
 {
@@ -84,6 +86,8 @@ eXosip_subscribe_dialog_find (int sid, eXosip_subscribe_t ** js,
   *js = NULL;
   return -1;
 }
+
+#endif
 
 int
 eXosip_dialog_set_200ok (eXosip_dialog_t * jd, osip_message_t * _200Ok)

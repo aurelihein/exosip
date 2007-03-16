@@ -903,8 +903,10 @@ eXosip_update ()
 {
   static int static_id = 1;
   eXosip_call_t *jc;
+#ifndef MINISIZE
   eXosip_subscribe_t *js;
   eXosip_notify_t *jn;
+#endif
   eXosip_dialog_t *jd;
   time_t now;
 
@@ -933,6 +935,7 @@ eXosip_update ()
         }
     }
 
+#ifndef MINISIZE
   for (js = eXosip.j_subscribes; js != NULL; js = js->next)
     {
       if (js->s_id < 1)
@@ -974,6 +977,7 @@ eXosip_update ()
             jd->d_id = -1;
         }
     }
+#endif
 }
 
 static jauthinfo_t *

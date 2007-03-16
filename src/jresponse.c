@@ -565,6 +565,7 @@ _eXosip_default_answer_invite_3456xx (eXosip_call_t * jc,
   return 0;
 }
 
+#ifndef MINISIZE
 
 int
 _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
@@ -626,91 +627,6 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
   return 0;
 }
 
-#if 0
-int
-_eXosip_insubscription_answer_2xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
-                                   int code)
-{
-  osip_event_t *evt_answer;
-  osip_message_t *response;
-  int i;
-  osip_transaction_t *tr;
-
-  tr = eXosip_find_last_inc_subscribe (jn, jd);
-
-  if (tr == NULL || tr->orig_request == NULL)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot find transaction to answer\n"));
-      return -1;
-    }
-
-  if (jd != NULL && jd->d_dialog == NULL)
-    {                           /* element previously removed, this is a no hop! */
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot answer this closed transaction\n"));
-      return -1;
-    }
-
-  if (jd == NULL)
-    i = _eXosip_build_response_default (&response, NULL, code, tr->orig_request);
-  else
-    i =
-      _eXosip_build_response_default (&response, jd->d_dialog, code,
-                                      tr->orig_request);
-
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                   "ERROR: Could not create response for subscribe\n"));
-      code = 500;               /* ? which code to use? */
-      return -1;
-    }
-
-  /* request that estabish a dialog: */
-  /* 12.1.1 UAS Behavior */
-  {
-    i = complete_answer_that_establish_a_dialog (response, tr->orig_request);
-    if (i != 0)
-      goto g2atii_error_1;;     /* ?? */
-  }
-
-  /* THIS RESPONSE MUST BE SENT RELIABILY until the final ACK is received !! */
-  /* this response must be stored at the upper layer!!! (it will be destroyed */
-  /* right after being sent! */
-
-  if (jd == NULL)
-    {
-      i = eXosip_dialog_init_as_uas (&jd, tr->orig_request, response);
-      if (i != 0)
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: cannot create dialog!\n"));
-          return -1;
-        }
-      ADD_ELEMENT (jn->n_dialogs, jd);
-    }
-
-  eXosip_dialog_set_200ok (jd, response);
-  evt_answer = osip_new_outgoing_sipmessage (response);
-  evt_answer->transactionid = tr->transactionid;
-
-  osip_transaction_add_event (tr, evt_answer);
-  __eXosip_wakeup ();
-
-  osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
-  return 0;
-
-g2atii_error_1:
-  osip_message_free (response);
-  return -1;
-}
-#endif
-
 int
 _eXosip_insubscription_answer_3456xx (eXosip_notify_t * jn,
                                       eXosip_dialog_t * jd, int code)
@@ -755,3 +671,5 @@ _eXosip_insubscription_answer_3456xx (eXosip_notify_t * jn,
   __eXosip_wakeup ();
   return 0;
 }
+
+#endif

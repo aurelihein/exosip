@@ -22,6 +22,7 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
 
 #include "eXosip2.h"
 
@@ -198,3 +199,5 @@ eXosip_options_send_answer (int tid, int status, osip_message_t * answer)
   __eXosip_wakeup ();
   return 0;
 }
+
+#endif

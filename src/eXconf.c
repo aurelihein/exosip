@@ -164,10 +164,12 @@ eXosip_quit (void)
 {
   jauthinfo_t *jauthinfo;
   eXosip_call_t *jc;
+  eXosip_reg_t *jreg;
+#ifndef MINISIZE
   eXosip_notify_t *jn;
   eXosip_subscribe_t *js;
-  eXosip_reg_t *jreg;
   eXosip_pub_t *jpub;
+#endif
 #ifdef OSIP_MT
   int i;
 #endif
@@ -210,6 +212,7 @@ eXosip_quit (void)
       eXosip_call_free (jc);
     }
 
+#ifndef MINISIZE
   for (js = eXosip.j_subscribes; js != NULL; js = eXosip.j_subscribes)
     {
       REMOVE_ELEMENT (eXosip.j_subscribes, js);
@@ -221,6 +224,7 @@ eXosip_quit (void)
       REMOVE_ELEMENT (eXosip.j_notifies, jn);
       eXosip_notify_free (jn);
     }
+#endif
 
 #ifdef OSIP_MT
   osip_mutex_destroy ((struct osip_mutex *) eXosip.j_mutexlock);
@@ -261,11 +265,13 @@ eXosip_quit (void)
       eXosip_reg_free (jreg);
     }
 
+#ifndef MINISIZE
   for (jpub = eXosip.j_pub; jpub != NULL; jpub = eXosip.j_pub)
     {
       REMOVE_ELEMENT (eXosip.j_pub, jpub);
       _eXosip_pub_free (jpub);
     }
+#endif
 
   while (!osip_list_eol (eXosip.j_transactions, 0))
     {
@@ -765,7 +771,9 @@ eXosip_execute (void)
   /* free all Calls that are in the TERMINATED STATE? */
   eXosip_release_terminated_calls ();
   eXosip_release_terminated_registrations ();
+#ifndef MINISIZE
   eXosip_release_unused_transactions();
+#endif
 
   eXosip_unlock ();
 
