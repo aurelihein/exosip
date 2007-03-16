@@ -307,6 +307,7 @@ _eXosip_redirect_invite (eXosip_event_t * je)
   return _eXosip_call_redirect_request (jc, jd, tr);
 }
 
+#ifndef MINISIZE
 static int
 _eXosip_retry_subscribe_with_auth (eXosip_event_t * je)
 {
@@ -372,6 +373,8 @@ _eXosip_retry_notify_with_auth (eXosip_event_t * je)
 
 }
 
+#endif
+
 static int
 eXosip_retry_with_auth (eXosip_event_t * je)
 {
@@ -386,6 +389,7 @@ eXosip_retry_with_auth (eXosip_event_t * je)
     {
       return _eXosip_retry_invite_with_auth (je);
     }
+#ifndef MINISIZE
   else if (je->sid>0)
     {
       return _eXosip_retry_subscribe_with_auth (je);
@@ -396,6 +400,7 @@ eXosip_retry_with_auth (eXosip_event_t * je)
     }
   else if (MSG_IS_PUBLISH (je->request))
     return _eXosip_retry_publish_with_auth (je);
+#endif
   else
     {
       osip_transaction_t *tr=NULL;
@@ -454,14 +459,17 @@ eXosip_default_action (eXosip_event_t * je)
 void
 eXosip_automatic_refresh (void)
 {
+#ifndef MINISIZE
   eXosip_subscribe_t *js;
   eXosip_dialog_t *jd;
+#endif
 
   eXosip_reg_t *jr;
   time_t now;
 
   now = time (NULL);
 
+#ifndef MINISIZE
   for (js = eXosip.j_subscribes; js != NULL; js = js->next)
     {
       for (jd = js->s_dialogs; jd != NULL; jd = jd->next)
@@ -493,6 +501,7 @@ eXosip_automatic_refresh (void)
             }
         }
     }
+#endif
 
   for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
     {
@@ -568,9 +577,11 @@ void
 eXosip_automatic_action (void)
 {
   eXosip_call_t *jc;
-  eXosip_subscribe_t *js;
   eXosip_dialog_t *jd;
+#ifndef MINISIZE
+  eXosip_subscribe_t *js;
   eXosip_notify_t *jn;
+#endif
 
   eXosip_reg_t *jr;
   time_t now;
@@ -701,6 +712,8 @@ eXosip_automatic_action (void)
             }
         }
     }
+
+#ifndef MINISIZE
 
   for (js = eXosip.j_subscribes; js != NULL; js = js->next)
     {
@@ -845,6 +858,7 @@ eXosip_automatic_action (void)
         }
     }
 
+#endif
 
   for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
     {

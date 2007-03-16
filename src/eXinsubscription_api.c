@@ -22,6 +22,7 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
 
 #include "eXosip2.h"
 
@@ -547,3 +548,5 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
   __eXosip_wakeup ();
   return 0;
 }
+
+#endif

@@ -22,6 +22,8 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef MINISIZE
+
 #ifndef __EX_PUBLISH_H__
 #define __EX_PUBLISH_H__
 
@@ -87,6 +89,8 @@ int eXosip_publish (osip_message_t *message, const char *to);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

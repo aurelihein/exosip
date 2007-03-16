@@ -83,6 +83,9 @@ typedef enum eXosip_ss_status {
   EXOSIP_NOTIFY_CLOSED       /**< closed status */
 } eXosip_ss_status_t;
 
+
+#ifndef MINISIZE
+
 /**
  * Build a default initial SUBSCRIBE request.
  * 
@@ -193,6 +196,9 @@ typedef enum eXosip_ss_status {
  */
   int eXosip_insubscription_remove (int did);
 
+
+#endif
+
 /** @} */
 
 
@@ -201,3 +207,4 @@ typedef enum eXosip_ss_status {
 #endif
 
 #endif
+
