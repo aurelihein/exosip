@@ -1794,6 +1794,32 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
           else
             recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
 
+#if defined(__arc__)
+	  {
+	    struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
+	    char *tmp;
+	    tmp = inet_ntoa(fromsa->sin_addr);
+	    if (tmp==NULL)
+	      {
+		OSIP_TRACE (osip_trace
+			    (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			     "Message received from: NULL:%i inet_ntoa failure\n",
+			     recvport));
+	      }
+	    else
+	      {
+		snprintf(src6host, sizeof(src6host), "%s", tmp);
+		OSIP_TRACE (osip_trace
+			    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+			     "Message received from: %s:%i\n", src6host, recvport));
+		osip_strncpy (eXosip.net_interfaces[1].net_socket_tab[pos].
+			      remote_ip, src6host,
+			      sizeof (eXosip.net_interfaces[1].
+				      net_socket_tab[pos].remote_ip));
+		eXosip.net_interfaces[1].net_socket_tab[pos].remote_port = recvport;
+	      }
+	  }
+#else
           i = getnameinfo ((struct sockaddr *) &sa, slen,
                            src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 
@@ -1801,9 +1827,10 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
             {
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "Message received from: %s:%i Error with getnameinfo\n",
-                           src6host, recvport));
-          } else
+                           "Message received from: NULL:%i getnameinfo failure\n",
+                           recvport));
+	    }
+	  else
             {
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -1814,6 +1841,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
                                     net_socket_tab[pos].remote_ip));
               eXosip.net_interfaces[1].net_socket_tab[pos].remote_port = recvport;
             }
+#endif
 
       } else if (FD_ISSET (eXosip.net_interfaces[0].net_socket, &osip_fdset))
         {
@@ -1861,11 +1889,9 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
                   if (!eXosip.http_port)
                     {
                       char src6host[NI_MAXHOST];
-                      char src6buf[NI_MAXSERV];
                       int recvport = 0;
 
                       memset (src6host, 0, sizeof (src6host));
-                      memset (src6buf, 0, sizeof (src6buf));
 
                       if (ipv6_enable == 0)
                         recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
@@ -1873,6 +1899,27 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
                         recvport =
                           ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
 
+#if defined(__arc__)
+		      {
+			struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
+			char *tmp;
+			tmp = inet_ntoa(fromsa->sin_addr);
+			if (tmp==NULL)
+			  {
+			    OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_ERROR, NULL,
+					 "Message received from: NULL:%i inet_ntoa failure\n",
+					 recvport));
+			  }
+			else
+			  {
+			    snprintf(src6host, sizeof(src6host), "%s", tmp);
+			    OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_INFO1, NULL,
+					 "Message received from: %s:%i\n", src6host, recvport));
+			  }
+		      }
+#else
                       i = getnameinfo ((struct sockaddr *) &sa, slen,
                                        src6host, NI_MAXHOST,
                                        NULL, 0, NI_NUMERICHOST);
@@ -1881,20 +1928,22 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
                         {
                           OSIP_TRACE (osip_trace
                                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                       "Message received from: %s:%i (serv=%s) Error with getnameinfo\n",
-                                       src6host, recvport, src6buf));
-                      } else
+                                       "Message received from: NULL:%i getnameinfo failure\n",
+                                       recvport));
+			}
+		      else
                         {
                           OSIP_TRACE (osip_trace
                                       (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                       "Message received from: %s:%i (serv=%s)\n",
-                                       src6host, recvport, src6buf));
+                                       "Message received from: %s:%i\n",
+                                       src6host, recvport));
                         }
+#endif
 
                       OSIP_TRACE (osip_trace
                                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                   "Message received from: %s:%i (serv=%s)\n",
-                                   src6host, recvport, src6buf));
+                                   "Message received from: %s:%i\n",
+                                   src6host, recvport));
 
                       osip_message_fix_last_via_header (sipevent->sip,
                                                         src6host, recvport);
