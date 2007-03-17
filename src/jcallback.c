@@ -55,20 +55,20 @@ extern eXosip_t eXosip;
 
 
 /* Private functions */
-static void rcvregister_failure (int type, osip_transaction_t * tr,
+static void rcvregister_failure (osip_transaction_t * tr,
                                  osip_message_t * sip);
-static void cb_ict_kill_transaction (int type, osip_transaction_t * tr);
-static void cb_ist_kill_transaction (int type, osip_transaction_t * tr);
-static void cb_nict_kill_transaction (int type, osip_transaction_t * tr);
-static void cb_nist_kill_transaction (int type, osip_transaction_t * tr);
+static void cb_xixt_kill_transaction (int type, osip_transaction_t * tr);
+#ifndef MINISIZE
 static void cb_rcvinvite (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_rcvack (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_rcvack2 (int type, osip_transaction_t * tr, osip_message_t * sip);
+static void cb_rcvcancel (int type, osip_transaction_t * tr, osip_message_t * sip);
+#endif
 static void cb_rcvregister (int type, osip_transaction_t * tr,
                             osip_message_t * sip);
-static void cb_rcvcancel (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_rcvrequest (int type, osip_transaction_t * tr,
                            osip_message_t * sip);
+#ifndef MINISIZE
 static void cb_sndinvite (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_sndack (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_sndregister (int type, osip_transaction_t * tr,
@@ -83,6 +83,7 @@ static void cb_sndsubscribe (int type, osip_transaction_t * tr,
                              osip_message_t * sip);
 static void cb_sndunkrequest (int type, osip_transaction_t * tr,
                               osip_message_t * sip);
+#endif
 static void cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip);
 #ifndef MINISIZE
@@ -557,53 +558,9 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 }
 
 static void
-cb_ict_kill_transaction (int type, osip_transaction_t * tr)
+cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
 {
   int i;
-
-  OSIP_TRACE (osip_trace
-              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-               "cb_ict_kill_transaction (id=%i)\r\n", tr->transactionid));
-
-  i = osip_remove_transaction (eXosip.j_osip, tr);
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_BUG, NULL,
-                   "cb_ict_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n",
-                   tr->transactionid));
-    }
-}
-
-static void
-cb_ist_kill_transaction (int type, osip_transaction_t * tr)
-{
-  int i;
-
-  OSIP_TRACE (osip_trace
-              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-               "cb_ist_kill_transaction (id=%i)\r\n", tr->transactionid));
-  i = osip_remove_transaction (eXosip.j_osip, tr);
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_BUG, NULL,
-                   "cb_ist_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n",
-                   tr->transactionid));
-    }
-}
-
-static void
-cb_nict_kill_transaction (int type, osip_transaction_t * tr)
-{
-  int i;
-#ifndef MINISIZE
-  eXosip_dialog_t *jd;
-  eXosip_call_t *jc;
-  eXosip_subscribe_t *js;
-  eXosip_notify_t *jn;
-  jinfo_t *jinfo = (jinfo_t *) osip_transaction_get_your_instance (tr);
-#endif
 
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -620,118 +577,95 @@ cb_nict_kill_transaction (int type, osip_transaction_t * tr)
   if (MSG_IS_REGISTER (tr->orig_request)
       && type == OSIP_NICT_KILL_TRANSACTION && tr->last_response == NULL)
     {
-      eXosip_event_t *je;
-      eXosip_reg_t *jreg = NULL;
-
-      /* find matching j_reg */
-      _eXosip_reg_find (&jreg, tr);
-      if (jreg != NULL)
-        {
-          je = eXosip_event_init_for_reg (EXOSIP_REGISTRATION_FAILURE, jreg, tr);
-          report_event (je, NULL);
-        }
+      rcvregister_failure (tr, NULL);
       return;
     }
 
 #ifndef MINISIZE
-  if (jinfo == NULL)
-    return;
-  jd = jinfo->jd;
-  jc = jinfo->jc;
-  jn = jinfo->jn;
-  js = jinfo->js;
-
-  if (jn == NULL && js == NULL)
-    return;
-
-  /* no answer to a NOTIFY request! */
-  if (MSG_IS_NOTIFY (tr->orig_request)
-      && type == OSIP_NICT_KILL_TRANSACTION && tr->last_response == NULL)
+  if (type == OSIP_NICT_KILL_TRANSACTION)
     {
-      /* delete the dialog! */
-      REMOVE_ELEMENT (eXosip.j_notifies, jn);
-      eXosip_notify_free (jn);
-      return;
-    }
-
-  if (MSG_IS_NOTIFY (tr->orig_request)
-      && type == OSIP_NICT_KILL_TRANSACTION
-      && tr->last_response != NULL && tr->last_response->status_code > 299)
-    {
-      /* delete the dialog! */
-      if (tr->last_response->status_code != 407
-          && tr->last_response->status_code != 401)
-        {
-          REMOVE_ELEMENT (eXosip.j_notifies, jn);
-          eXosip_notify_free (jn);
-          return;
-        }
-    }
-
-  if (MSG_IS_NOTIFY (tr->orig_request)
-      && type == OSIP_NICT_KILL_TRANSACTION
-      && tr->last_response != NULL
-      && tr->last_response->status_code > 199
-      && tr->last_response->status_code < 300)
-    {
-      if (jn->n_ss_status == EXOSIP_SUBCRSTATE_TERMINATED)
-        {
-          /* delete the dialog! */
-          REMOVE_ELEMENT (eXosip.j_notifies, jn);
-          eXosip_notify_free (jn);
-          return;
-        }
-    }
-
-  /* no answer to a SUBSCRIBE request! */
-  if (MSG_IS_SUBSCRIBE (tr->orig_request)
-      && type == OSIP_NICT_KILL_TRANSACTION && tr->last_response == NULL)
-    {
-      /* delete the dialog! */
-      REMOVE_ELEMENT (eXosip.j_subscribes, js);
-      eXosip_subscribe_free (js);
-      return;
-    }
-
-  /* detect SUBSCRIBE request that close the dialogs! */
-  /* expires=0 with MSN */
-  if (MSG_IS_SUBSCRIBE (tr->orig_request) && type == OSIP_NICT_KILL_TRANSACTION)
-    {
-      osip_header_t *expires;
-
-      osip_message_get_expires (tr->orig_request, 0, &expires);
-      if (expires == NULL || expires->hvalue == NULL)
-        {
-      } else if (0 == strcmp (expires->hvalue, "0"))
-        {
-          /* delete the dialog! */
-          REMOVE_ELEMENT (eXosip.j_subscribes, js);
-          eXosip_subscribe_free (js);
-          return;
-        }
+      eXosip_dialog_t *jd;
+      eXosip_subscribe_t *js;
+      eXosip_notify_t *jn;
+      jinfo_t *jinfo = (jinfo_t *) osip_transaction_get_your_instance (tr);
+      
+      if (jinfo == NULL)
+	return;
+      jd = jinfo->jd;
+      jc = jinfo->jc;
+      jn = jinfo->jn;
+      js = jinfo->js;
+      
+      if (jn == NULL && js == NULL)
+	return;
+      
+      /* no answer to a NOTIFY request! */
+      if (MSG_IS_NOTIFY (tr->orig_request) && tr->last_response == NULL)
+	{
+	  /* delete the dialog! */
+	  REMOVE_ELEMENT (eXosip.j_notifies, jn);
+	  eXosip_notify_free (jn);
+	  return;
+	}
+      
+      if (MSG_IS_NOTIFY (tr->orig_request)
+	  && tr->last_response != NULL && tr->last_response->status_code > 299)
+	{
+	  /* delete the dialog! */
+	  if (tr->last_response->status_code != 407
+	      && tr->last_response->status_code != 401)
+	    {
+	      REMOVE_ELEMENT (eXosip.j_notifies, jn);
+	      eXosip_notify_free (jn);
+	      return;
+	    }
+	}
+      
+      if (MSG_IS_NOTIFY (tr->orig_request)
+	  && tr->last_response != NULL
+	  && tr->last_response->status_code > 199
+	  && tr->last_response->status_code < 300)
+	{
+	  if (jn->n_ss_status == EXOSIP_SUBCRSTATE_TERMINATED)
+	    {
+	      /* delete the dialog! */
+	      REMOVE_ELEMENT (eXosip.j_notifies, jn);
+	      eXosip_notify_free (jn);
+	      return;
+	    }
+	}
+      
+      /* no answer to a SUBSCRIBE request! */
+      if (MSG_IS_SUBSCRIBE (tr->orig_request) && tr->last_response == NULL)
+	{
+	  /* delete the dialog! */
+	  REMOVE_ELEMENT (eXosip.j_subscribes, js);
+	  eXosip_subscribe_free (js);
+	  return;
+	}
+      
+      /* detect SUBSCRIBE request that close the dialogs! */
+      /* expires=0 with MSN */
+      if (MSG_IS_SUBSCRIBE (tr->orig_request))
+	{
+	  osip_header_t *expires;
+	  
+	  osip_message_get_expires (tr->orig_request, 0, &expires);
+	  if (expires == NULL || expires->hvalue == NULL)
+	    {
+	    } else if (0 == strcmp (expires->hvalue, "0"))
+	      {
+		/* delete the dialog! */
+		REMOVE_ELEMENT (eXosip.j_subscribes, js);
+		eXosip_subscribe_free (js);
+		return;
+	      }
+	}
     }
 #endif
-
 }
 
-static void
-cb_nist_kill_transaction (int type, osip_transaction_t * tr)
-{
-  int i;
-
-  OSIP_TRACE (osip_trace
-              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-               "cb_nist_kill_transaction (id=%i)\r\n", tr->transactionid));
-  i = osip_remove_transaction (eXosip.j_osip, tr);
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_BUG, NULL,
-                   "cb_nist_kill_transaction Error: Could not remove transaction from the oSIP stack? (id=%i)\r\n",
-                   tr->transactionid));
-    }
-
-}
+#ifndef MINISIZE
 
 static void
 cb_rcvinvite (int type, osip_transaction_t * tr, osip_message_t * sip)
@@ -758,6 +692,16 @@ cb_rcvack2 (int type, osip_transaction_t * tr, osip_message_t * sip)
 }
 
 static void
+cb_rcvcancel (int type, osip_transaction_t * tr, osip_message_t * sip)
+{
+  OSIP_TRACE (osip_trace
+              (__FILE__, __LINE__, OSIP_INFO3, NULL,
+               "cb_rcvcancel (id=%i)\r\n", tr->transactionid));
+}
+
+#endif
+
+static void
 cb_rcvregister (int type, osip_transaction_t * tr, osip_message_t * sip)
 {
   eXosip_event_t *je;
@@ -769,14 +713,6 @@ cb_rcvregister (int type, osip_transaction_t * tr, osip_message_t * sip)
   je = eXosip_event_init_for_message (EXOSIP_MESSAGE_NEW, tr);
   eXosip_event_add (je);
   return;
-}
-
-static void
-cb_rcvcancel (int type, osip_transaction_t * tr, osip_message_t * sip)
-{
-  OSIP_TRACE (osip_trace
-              (__FILE__, __LINE__, OSIP_INFO3, NULL,
-               "cb_rcvcancel (id=%i)\r\n", tr->transactionid));
 }
 
 static void
@@ -870,6 +806,8 @@ cb_rcvrequest (int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
 }
 
+#ifndef MINISIZE
+
 static void
 cb_sndinvite (int type, osip_transaction_t * tr, osip_message_t * sip)
 {
@@ -949,6 +887,8 @@ cb_sndunkrequest (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL,
                "cb_sndunkrequest (id=%i)\r\n", tr->transactionid));
 }
+
+#endif
 
 void
 __eXosip_delete_jinfo (osip_transaction_t * transaction)
@@ -1554,7 +1494,7 @@ eXosip_delete_early_dialog (eXosip_dialog_t * jd)
 }
 
 static void
-rcvregister_failure (int type, osip_transaction_t * tr, osip_message_t * sip)
+rcvregister_failure (osip_transaction_t * tr, osip_message_t * sip)
 {
   eXosip_event_t *je;
   eXosip_reg_t *jreg = NULL;
@@ -1608,7 +1548,7 @@ cb_rcv3xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
     if (MSG_IS_RESPONSE_FOR (sip, "REGISTER"))
     {
-      rcvregister_failure (type, tr, sip);
+      rcvregister_failure (tr, sip);
       return;
     }
 
@@ -1728,7 +1668,7 @@ cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
     if (MSG_IS_RESPONSE_FOR (sip, "REGISTER"))
     {
-      rcvregister_failure (type, tr, sip);
+      rcvregister_failure (tr, sip);
       return;
     }
 
@@ -1859,7 +1799,7 @@ cb_rcv5xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
     if (MSG_IS_RESPONSE_FOR (sip, "REGISTER"))
     {
-      rcvregister_failure (type, tr, sip);
+      rcvregister_failure (tr, sip);
       return;
     }
 
@@ -1977,7 +1917,7 @@ cb_rcv6xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
     if (MSG_IS_RESPONSE_FOR (sip, "REGISTER"))
     {
-      rcvregister_failure (type, tr, sip);
+      rcvregister_failure (tr, sip);
       return;
     }
 
@@ -2331,13 +2271,13 @@ eXosip_set_callbacks (osip_t * osip)
   osip_set_cb_send_message (osip, &cb_snd_message);
 
   osip_set_kill_transaction_callback (osip, OSIP_ICT_KILL_TRANSACTION,
-                                      &cb_ict_kill_transaction);
+                                      &cb_xixt_kill_transaction);
   osip_set_kill_transaction_callback (osip, OSIP_IST_KILL_TRANSACTION,
-                                      &cb_ist_kill_transaction);
+                                      &cb_xixt_kill_transaction);
   osip_set_kill_transaction_callback (osip, OSIP_NICT_KILL_TRANSACTION,
-                                      &cb_nict_kill_transaction);
+                                      &cb_xixt_kill_transaction);
   osip_set_kill_transaction_callback (osip, OSIP_NIST_KILL_TRANSACTION,
-                                      &cb_nist_kill_transaction);
+                                      &cb_xixt_kill_transaction);
 
   osip_set_message_callback (osip, OSIP_ICT_STATUS_2XX_RECEIVED_AGAIN,
                              &cb_rcvresp_retransmission);
@@ -2373,6 +2313,7 @@ eXosip_set_callbacks (osip_t * osip)
   osip_set_transport_error_callback (osip, OSIP_NIST_TRANSPORT_ERROR,
                                      &cb_transport_error);
 
+#ifndef MINISIZE
   osip_set_message_callback (osip, OSIP_ICT_INVITE_SENT, &cb_sndinvite);
   osip_set_message_callback (osip, OSIP_ICT_ACK_SENT, &cb_sndack);
   osip_set_message_callback (osip, OSIP_NICT_REGISTER_SENT, &cb_sndregister);
@@ -2385,6 +2326,7 @@ eXosip_set_callbacks (osip_t * osip)
   /*  osip_set_cb_nict_sndprack   (osip,&cb_sndprack); */
   osip_set_message_callback (osip, OSIP_NICT_UNKNOWN_REQUEST_SENT,
                              &cb_sndunkrequest);
+#endif
 
   osip_set_message_callback (osip, OSIP_ICT_STATUS_1XX_RECEIVED, &cb_rcv1xx);
   osip_set_message_callback (osip, OSIP_ICT_STATUS_2XX_RECEIVED, &cb_rcv2xx);
@@ -2414,11 +2356,13 @@ eXosip_set_callbacks (osip_t * osip)
   osip_set_message_callback (osip, OSIP_NIST_STATUS_5XX_SENT, &cb_snd5xx);
   osip_set_message_callback (osip, OSIP_NIST_STATUS_6XX_SENT, &cb_snd6xx);
 
+#ifndef MINISIZE
   osip_set_message_callback (osip, OSIP_IST_INVITE_RECEIVED, &cb_rcvinvite);
   osip_set_message_callback (osip, OSIP_IST_ACK_RECEIVED, &cb_rcvack);
   osip_set_message_callback (osip, OSIP_IST_ACK_RECEIVED_AGAIN, &cb_rcvack2);
-  osip_set_message_callback (osip, OSIP_NIST_REGISTER_RECEIVED, &cb_rcvregister);
   osip_set_message_callback (osip, OSIP_NIST_CANCEL_RECEIVED, &cb_rcvcancel);
+#endif
+  osip_set_message_callback (osip, OSIP_NIST_REGISTER_RECEIVED, &cb_rcvregister);
   osip_set_message_callback (osip, OSIP_NIST_BYE_RECEIVED, &cb_rcvrequest);
   osip_set_message_callback (osip, OSIP_NIST_INFO_RECEIVED, &cb_rcvrequest);
   osip_set_message_callback (osip, OSIP_NIST_OPTIONS_RECEIVED, &cb_rcvrequest);
