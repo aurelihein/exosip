@@ -1453,8 +1453,11 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
       return -1;
     }
 
-  /* eXosip_add_authentication_information (msg, out_tr->last_response); */
-  eXosip_add_authentication_information (msg, NULL);
+  if (out_tr->last_response->status_code==401
+      ||out_tr->last_response->status_code==407)
+    eXosip_add_authentication_information (msg, out_tr->last_response);
+  else
+    eXosip_add_authentication_information (msg, NULL);
   osip_message_force_update (msg);
 
   if (0 != osip_strcasecmp (msg->sip_method, "INVITE"))
