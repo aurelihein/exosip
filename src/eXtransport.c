@@ -204,6 +204,7 @@ eXosip_transport_set (osip_message_t * msg, const char *transport)
   return 0;
 }
 
+#ifndef MINISIZE
 int
 _eXosip_recvfrom (int s, char *buf, int len, unsigned int flags,
                   struct sockaddr *from, socklen_t * fromlen)
@@ -293,3 +294,5 @@ _eXosip_sendto (int s, const void *buf, size_t len, int flags,
 
   return i;
 }
+
+#endif

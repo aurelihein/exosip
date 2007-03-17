@@ -120,8 +120,13 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       && eXosip.net_interfaces[1].net_socket == 0)
     return -1;
 
+#ifndef MINISIZE
   if(eXosip.dontsend_101 != 0 && sip->status_code == 101)
         return 0;
+#else
+  if(sip->status_code == 101)
+        return 0;
+#endif
 
   via = (osip_via_t *) osip_list_get (&sip->vias, 0);
   if (via == NULL || via->protocol == NULL)
@@ -234,6 +239,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   net = &eXosip.net_interfaces[0];
 
+#ifndef MINISIZE
   if (eXosip.http_port)
     {
       i = osip_message_to_str (sip, &message, &length);
@@ -252,6 +258,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
         }
       return 0;
     }
+#endif
 
   if (host == NULL)
     {
@@ -263,6 +270,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
 
 	i=-1;
+#ifndef MINISIZE
 	if (tr!=NULL && tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
 	{
 		/* always choose the first here.
@@ -289,6 +297,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 			n++;
 		}
 	}
+#endif
 
 	/* if SRV was used, distination may be already found */
 	if (i != 0)
@@ -309,7 +318,9 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   /* remove preloaded route if there is no tag in the To header
      (sip.iptel.org is refusing this: I can't understand why...)
    */
+#ifndef MINISIZE
   if (eXosip.remove_preloadedroute==1)
+#endif
     {
       osip_route_t *route=NULL;
       osip_generic_param_t *tag=NULL;
@@ -326,10 +337,12 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  osip_list_add(&sip->routes, route, 0);
 	}
     }
+#ifndef MINISIZE
   else
     {
       i = osip_message_to_str (sip, &message, &length);
     }
+#endif
 
   if (i != 0 || length <= 0)
     {
@@ -392,13 +405,16 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  else
       {
 
+#ifndef MINISIZE
 		  /* delete first SRV entry that is not reachable */
 		  if (tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
 		  {
 			memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
 			memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
+			osip_free (message);
 			return 0; /* retry for next retransmission! */
 		  }
+#endif
           /* SIP_NETWORK_ERROR; */
           osip_free (message);
           return -1;
@@ -448,7 +464,9 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   net = &eXosip.net_interfaces[1];
 
+#ifndef MINISIZE
   if (eXosip.remove_preloadedroute==1)
+#endif
     {
       osip_route_t *route=NULL;
       osip_generic_param_t *tag=NULL;
@@ -465,10 +483,12 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  osip_list_add(&sip->routes, route, 0);
 	}
     }
+#ifndef MINISIZE
   else
     {
       i = osip_message_to_str (sip, &message, &length);
     }
+#endif
 
   if (i != 0 || length <= 0)
     {

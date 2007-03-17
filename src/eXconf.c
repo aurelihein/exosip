@@ -36,11 +36,15 @@ static void *_eXosip_thread (void *arg);
 #endif
 static void _eXosip_keep_alive (void);
 
+#ifndef MINISIZE
+
 void
 eXosip_enable_ipv6 (int _ipv6_enable)
 {
   ipv6_enable = _ipv6_enable;
 }
+
+#endif
 
 void
 eXosip_masquerade_contact (const char *public_address, int port)
@@ -384,11 +388,13 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       return -1;
     }
 
+#ifndef MINISIZE
   if (eXosip.http_port)
     {
       /* USE TUNNEL CAPABILITY */
       transport = IPPROTO_TCP;
     }
+#endif
 
   if (port < 0)
     {
@@ -399,6 +405,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
     }
 
   net_int->net_ip_family = family;
+#ifndef MINISIZE
   if (family == AF_INET6)
     {
       ipv6_enable = 1;
@@ -406,6 +413,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "IPv6 is enabled. Pls report bugs\n"));
     }
+#endif
 
   eXosip_guess_localip (net_int->net_ip_family, localip, sizeof (localip));
   if (localip[0] == '\0')
@@ -458,10 +466,12 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
           continue;
         }
 
+#ifndef MINISIZE
       if (eXosip.http_port)
         {
           break;
         }
+#endif
 
       if (curinfo->ai_family == AF_INET6)
         {
@@ -554,10 +564,11 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       return -1;
     }
 
-  if (eXosip.http_port)
-    net_int->net_protocol = IPPROTO_UDP;
-  else
+  net_int->net_protocol = IPPROTO_UDP;
+#ifndef MINISIZE
+  if (!eXosip.http_port)
     net_int->net_protocol = transport;
+#endif
   net_int->net_socket = sock;
 
   if (port == 0)
@@ -576,6 +587,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 
 
 
+#ifndef MINISIZE
   if (eXosip.http_port)
     {
       /* only ipv4 */
@@ -620,6 +632,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       } else
         return -1;
     }
+#endif
 
 #ifdef OSIP_MT
   eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
@@ -641,7 +654,6 @@ eXosip_init (void)
 
   memset (&eXosip, 0, sizeof (eXosip));
 
-  eXosip.remove_preloadedroute=1;
   snprintf(eXosip.ipv4_for_gateway, 256, "%s", "217.12.3.11");
 
 #ifdef WIN32
@@ -855,6 +867,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
         val = *((int *) value);
         eXosip.learn_port = val;        /* 1 to learn port */
         break;
+#ifndef MINISIZE
       case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
         val = *((int *) value);
         eXosip.http_port = val; /* value in ms */
@@ -887,6 +900,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
         val = *((int *) value);
         eXosip.dontsend_101 = val;        /* 0 to disable */
         break;
+#endif
 
       case EXOSIP_OPT_USE_RPORT:
         val = *((int *) value);
@@ -904,7 +918,8 @@ eXosip_set_option (eXosip_option opt, const void *value)
                      "eXosip option set: ipv4_for_gateway:%s!\n",
                      eXosip.ipv4_for_gateway));
         break;
-
+    default:
+      return -1;
     }
   return 0;
 }

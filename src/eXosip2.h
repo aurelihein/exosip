@@ -380,11 +380,19 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int _eXosip_tcp_connect_socket (char *host, int port);
   int setsockopt_ipv6only (int sock);
 
+#ifndef MINISIZE
+
   int _eXosip_recvfrom (int s, char *buf, int len, unsigned int flags,
                         struct sockaddr *from, socklen_t * fromlen);
   int _eXosip_sendto (int s, const void *buf, size_t len, int flags,
                       const struct sockaddr *to, socklen_t tolen);
 
+#else
+
+#define _eXosip_recvfrom(A, B, C, D, E, F)  recvfrom(A, B, C, D, E, F)
+#define _eXosip_sendto(A, B, C, D, E, F)    sendto(A, B, C, D, E, F)
+
+#endif
 #ifndef MAX_EXOSIP_DNS_ENTRY
 #define MAX_EXOSIP_DNS_ENTRY 10
 #endif
@@ -432,15 +440,16 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 
     int keep_alive;
     int learn_port;
+#ifndef MINISIZE
     int http_port;
     char http_proxy[256];
     char http_outbound_proxy[256];
     int dontsend_101;
+#endif
     int use_rport;
-    int remove_preloadedroute;
     char ipv4_for_gateway[256];
-	struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
-	struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
+    struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
+    struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
   };
 
   typedef struct jinfo_t jinfo_t;

@@ -63,8 +63,6 @@ static void eXosip_process_reinvite (eXosip_call_t * jc,
 				     eXosip_dialog_t * jd,
 				     osip_transaction_t *
 				     transaction, osip_event_t * evt);
-static void eXosip_process_new_options (osip_transaction_t * transaction,
-                                        osip_event_t * evt);
 static void eXosip_process_new_invite (osip_transaction_t * transaction,
                                        osip_event_t * evt);
 #ifndef MINISIZE
@@ -81,10 +79,6 @@ static void eXosip_process_notify_within_dialog (eXosip_subscribe_t * js,
 static int eXosip_match_notify_for_subscribe (eXosip_subscribe_t * js,
                                               osip_message_t * notify);
 #endif
-static void eXosip_process_message_outside_of_dialog (osip_transaction_t * tr,
-                                                      osip_event_t * evt);
-static void eXosip_process_refer_outside_of_dialog (osip_transaction_t * tr,
-                                                    osip_event_t * evt);
 static void eXosip_process_message_within_dialog (eXosip_call_t * jc,
                                                   eXosip_dialog_t * jd,
                                                   osip_transaction_t *
@@ -493,13 +487,6 @@ eXosip_process_reinvite (eXosip_call_t * jc, eXosip_dialog_t * jd,
 }
 
 static void
-eXosip_process_new_options (osip_transaction_t * transaction, osip_event_t * evt)
-{
-  osip_list_add (eXosip.j_transactions, transaction, 0);
-  __eXosip_wakeup ();           /* needed? */
-}
-
-static void
 eXosip_process_new_invite (osip_transaction_t * transaction, osip_event_t * evt)
 {
   osip_event_t *evt_answer;
@@ -873,23 +860,6 @@ eXosip_match_notify_for_subscribe (eXosip_subscribe_t * js,
 
 #endif
 
-static void
-eXosip_process_message_outside_of_dialog (osip_transaction_t * transaction,
-                                          osip_event_t * evt)
-{
-  osip_list_add (eXosip.j_transactions, transaction, 0);
-  __eXosip_wakeup ();           /* needed? */
-  return;
-}
-
-static void
-eXosip_process_refer_outside_of_dialog (osip_transaction_t * transaction,
-                                        osip_event_t * evt)
-{
-  osip_list_add (eXosip.j_transactions, transaction, 0);
-  __eXosip_wakeup ();           /* needed? */
-  return;
-}
 
 static void
 eXosip_process_message_within_dialog (eXosip_call_t * jc,
@@ -914,8 +884,10 @@ static void
 eXosip_process_newrequest (osip_event_t * evt, int socket)
 {
   osip_transaction_t *transaction;
+#ifndef MINISIZE
   osip_event_t *evt_answer;
   osip_message_t *answer;
+#endif
   int i;
   int ctx_type;
   eXosip_call_t *jc;
@@ -1012,6 +984,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 	}
     }
 
+#ifndef MINISIZE
   if (ctx_type == IST)
     {
       i = _eXosip_build_response_default (&answer, NULL, 100, evt->sip);
@@ -1032,6 +1005,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
       osip_transaction_add_event (transaction, evt_answer);
       __eXosip_wakeup ();
     }
+#endif
   
   if (jd != NULL)
     {
@@ -1141,15 +1115,12 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
       eXosip_send_default_answer (jd, transaction, evt, 481, NULL, NULL, __LINE__);
       return;                   /* fixed */
     }
-  if (MSG_IS_OPTIONS (evt->sip))
-    {
-      eXosip_process_new_options (transaction, evt);
-      return;
-  } else if (MSG_IS_INVITE (evt->sip))
+  if (MSG_IS_INVITE (evt->sip))
     {
       eXosip_process_new_invite (transaction, evt);
       return;
-  } else if (MSG_IS_BYE (evt->sip))
+    }
+  else if (MSG_IS_BYE (evt->sip))
     {
       osip_list_add (eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer (jd, transaction, evt, 481, NULL, NULL, __LINE__);
@@ -1336,18 +1307,6 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 
 #endif
 
-  if (MSG_IS_MESSAGE (evt->sip))
-    {
-      eXosip_process_message_outside_of_dialog (transaction, evt);
-      return;
-    }
-
-  if (MSG_IS_REFER (evt->sip))
-    {
-      eXosip_process_refer_outside_of_dialog (transaction, evt);
-      return;
-    }
-
 #ifndef MINISIZE
   if (MSG_IS_SUBSCRIBE (evt->sip))
     {
@@ -1358,6 +1317,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 
   /* default answer */
   osip_list_add (eXosip.j_transactions, transaction, 0);
+  __eXosip_wakeup ();           /* needed? */
 }
 
 static void
@@ -1431,6 +1391,7 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 	    return;
 	  }
 
+#ifndef MINISIZE
 	if (jc!=NULL && jd!=NULL)
 	  {
 	    /* we have to restransmit the ACK (if already available) */
@@ -1453,12 +1414,15 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 	    osip_event_free (evt);
 	    return;
 	  }
+#endif
 
 	if (jc!=NULL)
 	  {
 	    /* match answer with dialog */
 	    osip_dialog_t *dlg;
+#ifndef MINISIZE
 	    osip_transaction_t *last_tr;
+#endif
 	    int i;
 	    
 	    /* we match an existing dialog: send a retransmission of ACK */
@@ -1471,16 +1435,16 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 		osip_event_free (evt);
 		return;
 	      }
-	    OSIP_TRACE (osip_trace
+
+ 	    OSIP_TRACE (osip_trace
 			(__FILE__, __LINE__, OSIP_INFO1, NULL,
 			 "sending ACK for 2xx out of transaction.\r\n"));
 
 	    {
-	      char *transport;
-	      osip_message_t *ack;
 	      osip_message_t *bye;
-	      transport = NULL;
-	      transport = _eXosip_transport_protocol (evt->sip);
+	      char *transport = _eXosip_transport_protocol (evt->sip);
+#ifndef MINISIZE  /* Don't send ACK in MINISIZE mode to save code size */
+	      osip_message_t *ack;
 	      if (transport == NULL)
 		i = _eXosip_build_request_within_dialog (&ack, "ACK", dlg, "UDP");
 	      else
@@ -1519,15 +1483,13 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 		}
 	      cb_snd_message (NULL, ack, NULL,0, -1);
 	      osip_message_free(ack);
+#endif
 	      
 	      /* ready to send a BYE */
-	      transport = NULL;
-	      if (last_tr != NULL && last_tr->orig_request != NULL)
-		transport = _eXosip_transport_protocol (last_tr->orig_request);
 	      if (transport == NULL)
 		i = generating_bye (&bye, dlg, "UDP");
 	      else
-		i = generating_bye (&bye, dlg, "UDP");
+		i = generating_bye (&bye, dlg, transport);
 	      cb_snd_message (NULL, bye, NULL,0, -1);
 	      osip_message_free(bye);
 	    }
@@ -1548,12 +1510,10 @@ static int
 _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
                                  char *host, int port)
 {
-  osip_transaction_t *transaction = NULL;
   osip_event_t *sipevent;
   int i;
 
   sipevent = osip_parse (buf, len);
-  transaction = NULL;
   if (sipevent != NULL && sipevent->sip != NULL)
     {
   } else
@@ -1809,8 +1769,8 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
             {
               /* Message might not end with a "\0" but we know the number of */
               /* char received! */
-              osip_transaction_t *transaction = NULL;
-              osip_event_t *sipevent;
+	      char src6host[NI_MAXHOST];
+	      int recvport = 0;
 
               osip_strncpy (buf + i, "\0", 1);
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -1824,106 +1784,83 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
                 }
 #endif
 
-              sipevent = osip_parse (buf, i);
-              transaction = NULL;
-              if (sipevent != NULL && sipevent->sip != NULL)
-                {
-                  if (!eXosip.http_port)
-                    {
-                      char src6host[NI_MAXHOST];
-                      int recvport = 0;
-
-                      memset (src6host, 0, sizeof (src6host));
-
-                      if (ipv6_enable == 0)
-                        recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
-                      else
-                        recvport =
-                          ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
-
-#if defined(__arc__)
-		      {
-			struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
-			char *tmp;
-			tmp = inet_ntoa(fromsa->sin_addr);
-			if (tmp==NULL)
-			  {
-			    OSIP_TRACE (osip_trace
-					(__FILE__, __LINE__, OSIP_ERROR, NULL,
-					 "Message received from: NULL:%i inet_ntoa failure\n",
-					 recvport));
-			  }
-			else
-			  {
-			    snprintf(src6host, sizeof(src6host), "%s", tmp);
-			    OSIP_TRACE (osip_trace
-					(__FILE__, __LINE__, OSIP_INFO1, NULL,
-					 "Message received from: %s:%i\n", src6host, recvport));
-			  }
-		      }
-#else
-                      i = getnameinfo ((struct sockaddr *) &sa, slen,
-                                       src6host, NI_MAXHOST,
-                                       NULL, 0, NI_NUMERICHOST);
-
-                      if (i != 0)
-                        {
-                          OSIP_TRACE (osip_trace
-                                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                       "Message received from: NULL:%i getnameinfo failure\n",
-                                       recvport));
-			}
-		      else
-                        {
-                          OSIP_TRACE (osip_trace
-                                      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                       "Message received from: %s:%i\n",
-                                       src6host, recvport));
-                        }
+#ifndef MINISIZE
+	      if (!eXosip.http_port)
 #endif
+		{
+		  int err;
+		  
+		  memset (src6host, 0, sizeof (src6host));
+		  
+		  if (ipv6_enable == 0)
+		    recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
+		  else
+		    recvport =
+		      ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
+		  
+#if defined(__arc__)
+		  {
+		    struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
+		    char *tmp;
+		    tmp = inet_ntoa(fromsa->sin_addr);
+		    if (tmp==NULL)
+		      {
+			OSIP_TRACE (osip_trace
+				    (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				     "Message received from: NULL:%i inet_ntoa failure\n",
+				     recvport));
+		      }
+		    else
+		      {
+			snprintf(src6host, sizeof(src6host), "%s", tmp);
+			OSIP_TRACE (osip_trace
+				    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				     "Message received from: %s:%i\n", src6host, recvport));
+		      }
+		  }
+#else
+		  err = getnameinfo ((struct sockaddr *) &sa, slen,
+				   src6host, NI_MAXHOST,
+				   NULL, 0, NI_NUMERICHOST);
+		  
+		  if (err != 0)
+		    {
+		      OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "Message received from: NULL:%i getnameinfo failure\n",
+				   recvport));
+		    }
+		  else
+		    {
+		      OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				   "Message received from: %s:%i\n",
+				   src6host, recvport));
+		    }
+#endif
+		  
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_INFO1, NULL,
+			       "Message received from: %s:%i\n",
+			       src6host, recvport));
+		  
+		}
+	      
+	      _eXosip_handle_incoming_message(buf, i, eXosip.net_interfaces[0].net_socket, src6host, recvport);
 
-                      OSIP_TRACE (osip_trace
-                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                   "Message received from: %s:%i\n",
-                                   src6host, recvport));
-
-                      osip_message_fix_last_via_header (sipevent->sip,
-                                                        src6host, recvport);
-                    }
-                  i =
-                    osip_find_transaction_and_add_event (eXosip.j_osip, sipevent);
-                  if (i != 0)
-                    {
-                      /* this event has no transaction, */
-                      OSIP_TRACE (osip_trace
-                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                   "This is a request\n", buf));
-                      eXosip_lock ();
-                      if (MSG_IS_REQUEST (sipevent->sip))
-                        eXosip_process_newrequest (sipevent, 0);
-                      else if (MSG_IS_RESPONSE (sipevent->sip))
-                        eXosip_process_response_out_of_transaction (sipevent);
-                      eXosip_unlock ();
-                  } else
-                    {
-                      /* handled by oSIP ! */
-                    }
-              } else
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                               "Could not parse SIP message\n"));
-                  osip_event_free (sipevent);
-                }
-          } else if (i < 0)
+	    }
+#ifndef MINISIZE
+	  else if (i < 0)
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                                       "Could not read socket\n"));
-          } else
+	    }
+	  else
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                                       "Dummy SIP message received\n"));
             }
+#endif
       } else
         {
           /* loop over all TCP socket */
@@ -1985,13 +1922,16 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
                       close (eXosip.net_interfaces[1].net_socket_tab[pos].socket);
                       memset (&(eXosip.net_interfaces[1].net_socket_tab[pos]),
                               0, sizeof (struct eXosip_socket));
-                  } else
+		    }
+#ifndef MINISIZE
+		  else
                     {
                       /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
                       OSIP_TRACE (osip_trace
                                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                                    "Dummy SIP message received (size=%i)\n", i));
                     }
+#endif
                 }
             }
         }
@@ -2415,7 +2355,9 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
             {
               /* OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
                  "eXosip: eXosip_release_aborted_calls transaction with no answer\n")); */
-          } else if (MSG_IS_STATUS_3XX (jc->c_inc_tr->last_response))
+	    }
+#ifndef MINISIZE
+	  else if (MSG_IS_STATUS_3XX (jc->c_inc_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a 3xx\n"));
@@ -2440,7 +2382,17 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               __eXosip_release_call (jc, jd);
               return 0;
             }
-      } else if (tr == jc->c_out_tr)
+#else
+	  else if (jc->c_inc_tr->last_response->status_code >= 300)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                      "eXosip: eXosip_release_aborted_calls answered with a answer above 3xx\n"));
+              __eXosip_release_call (jc, jd);
+              return 0;
+          }
+#endif
+	}
+      else if (tr == jc->c_out_tr)
         {
           if (jc->c_out_tr->last_response == NULL)
             {
@@ -2448,7 +2400,9 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
                                       "eXosip: eXosip_release_aborted_calls completed with no answer\n"));
               __eXosip_release_call (jc, jd);
               return 0;
-          } else if (MSG_IS_STATUS_3XX (jc->c_out_tr->last_response))
+	    } 
+#ifndef MINISIZE
+	  else if (MSG_IS_STATUS_3XX (jc->c_out_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
@@ -2473,6 +2427,15 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               __eXosip_release_call (jc, jd);
               return 0;
             }
+#else
+	  else if (jc->c_out_tr->last_response->status_code >= 300)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                      "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
+              __eXosip_release_call (jc, jd);
+              return 0;
+          }
+#endif
         }
     }
 
