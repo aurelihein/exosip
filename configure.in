@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.51 $)dnl
+AC_REVISION($Revision: 1.52 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -188,6 +188,7 @@ fi
 if test "x$enable_minisize" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DMINISIZE"
 fi
+AM_CONDITIONAL(BUILD_MAXSIZE, test x$enable_minisize = xno)
 
 dnl Checks for libraries.
 AC_CHECK_LIB(posix4,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lposix4 -mt"])
