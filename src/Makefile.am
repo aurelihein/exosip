@@ -20,7 +20,7 @@ jcallback.c      jdialog.c        \
 udp.c            jcall.c          \
 jreg.c           eXutils.c        \
 jevents.c        misc.c           \
-jauth.c          sdp_offans.c     \
+jauth.c                           \
 eXosip2.h
 
 if BUILD_MAXSIZE
@@ -30,7 +30,8 @@ eXinsubscription_api.c  eXpublish_api.c    \
 jnotify.c               jsubscribe.c       \
 inet_ntop.c             inet_ntop.h        \
 jpipe.c                 jpipe.h            \
-eXrefer_api.c           jpublish.c
+eXrefer_api.c           jpublish.c         \
+sdp_offans.c
 endif
 
 libeXosip2_la_LDFLAGS = -L$(prefix)/lib -version-info $(LIBEXOSIP_SO_VERSION)

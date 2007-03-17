@@ -649,6 +649,8 @@ eXosip_call_send_request (int jid, osip_message_t * request)
   return 0;
 }
 
+#ifndef MINISIZE
+
 int
 eXosip_call_build_refer (int did, const char *refer_to, osip_message_t ** request)
 {
@@ -746,6 +748,8 @@ eXosip_call_build_notify (int did, int subscription_status,
 
   return 0;
 }
+
+#endif
 
 int
 eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
@@ -1122,6 +1126,8 @@ eXosip_call_terminate (int cid, int did)
   return 0;
 }
 
+#ifndef MINISIZE
+
 int
 eXosip_call_build_prack (int tid, osip_message_t ** prack)
 {
@@ -1254,6 +1260,7 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
   return 0;
 }
 
+#endif
 
 int
 _eXosip_call_redirect_request (eXosip_call_t * jc,
@@ -1610,6 +1617,8 @@ _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
   return 0;
 }
 
+#ifndef MINISIZE
+
 int
 eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
 {
@@ -1777,3 +1786,5 @@ eXosip_call_find_by_replaces (char* ReplacesStr)
     }
   return -1;   /* answer with 481 */
 }
+
+#endif
