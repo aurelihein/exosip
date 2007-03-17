@@ -389,10 +389,6 @@ int main (int argc, char *argv[])
             syslog_wrapper (LOG_INFO, "registrered successfully");
             break;
           case EXOSIP_REGISTRATION_FAILURE:
-            eXosip_lock ();
-	    if (regparam.auth && (event->response->status_code == 407 || event->response->status_code == 401))
-	      eXosip_default_action (event);
-            eXosip_unlock ();
             regparam.auth = 1;
             break;
           case EXOSIP_REGISTRATION_TERMINATED:

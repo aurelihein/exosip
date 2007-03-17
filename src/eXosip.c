@@ -117,6 +117,8 @@ eXosip_transaction_find (int tid, osip_transaction_t ** transaction)
   return -1;
 }
 
+#ifndef MINISIZE
+
 static int
 _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
                          int *retry)
@@ -233,7 +235,6 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   return 0;
 }
 
-
 static int
 _eXosip_retry_register_with_auth (eXosip_event_t * je)
 {
@@ -282,7 +283,7 @@ _eXosip_retry_invite_with_auth (eXosip_event_t * je)
   if (*retry < 3)
     {
       (*retry)++;
-      return _eXosip_call_send_request_with_credential(jc, jd, tr);
+      return _eXosip_call_retry_request(jc, jd, tr);
     }
   return -1;
 }
@@ -304,10 +305,9 @@ _eXosip_redirect_invite (eXosip_event_t * je)
       return -1;
     }
   
-  return _eXosip_call_redirect_request (jc, jd, tr);
+  return _eXosip_call_retry_request (jc, jd, tr);
 }
 
-#ifndef MINISIZE
 static int
 _eXosip_retry_subscribe_with_auth (eXosip_event_t * je)
 {
@@ -372,8 +372,6 @@ _eXosip_retry_notify_with_auth (eXosip_event_t * je)
   return _eXosip_insubscription_send_request_with_credential (jn, jd, tr);
 
 }
-
-#endif
 
 static int
 eXosip_retry_with_auth (eXosip_event_t * je)
@@ -441,7 +439,6 @@ _eXosip_redirect (eXosip_event_t * je)
     }
 }
 
-
 int
 eXosip_default_action (eXosip_event_t * je)
 {
@@ -459,17 +456,14 @@ eXosip_default_action (eXosip_event_t * je)
 void
 eXosip_automatic_refresh (void)
 {
-#ifndef MINISIZE
   eXosip_subscribe_t *js;
   eXosip_dialog_t *jd;
-#endif
 
   eXosip_reg_t *jr;
   time_t now;
 
   now = time (NULL);
 
-#ifndef MINISIZE
   for (js = eXosip.j_subscribes; js != NULL; js = js->next)
     {
       for (jd = js->s_dialogs; jd != NULL; jd = jd->next)
@@ -501,7 +495,6 @@ eXosip_automatic_refresh (void)
             }
         }
     }
-#endif
 
   for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
     {
@@ -528,6 +521,7 @@ eXosip_automatic_refresh (void)
         }
     }
 }
+#endif
 
 void
 eXosip_retransmit_lost200ok()
@@ -616,7 +610,7 @@ eXosip_automatic_action (void)
                 {
                   int i;
 
-                  i = _eXosip_call_send_request_with_credential (jc, NULL, out_tr);
+                  i = _eXosip_call_retry_request (jc, NULL, out_tr);
                   if (i != 0)
                     {
                       OSIP_TRACE (osip_trace
@@ -639,7 +633,7 @@ eXosip_automatic_action (void)
               /* retry with credential */
               int i;
 
-              i = _eXosip_call_redirect_request (jc, NULL, out_tr);
+              i = _eXosip_call_retry_request (jc, NULL, out_tr);
               if (i != 0)
                 {
                   OSIP_TRACE (osip_trace
@@ -678,7 +672,7 @@ eXosip_automatic_action (void)
                       int i;
 
                       i =
-                        _eXosip_call_send_request_with_credential (jc, jd, out_tr);
+                        _eXosip_call_retry_request (jc, jd, out_tr);
                       if (i != 0)
                         {
                           OSIP_TRACE (osip_trace
@@ -701,7 +695,7 @@ eXosip_automatic_action (void)
                   /* retry with credential */
                   int i;
 
-                  i = _eXosip_call_redirect_request (jc, jd, out_tr);
+                  i = _eXosip_call_retry_request (jc, jd, out_tr);
                   if (i != 0)
                     {
                       OSIP_TRACE (osip_trace

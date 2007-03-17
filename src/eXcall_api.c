@@ -1263,7 +1263,7 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
 #endif
 
 int
-_eXosip_call_redirect_request (eXosip_call_t * jc,
+_eXosip_call_retry_request (eXosip_call_t * jc,
                                eXosip_dialog_t * jd, osip_transaction_t * out_tr)
 {
   osip_transaction_t *tr = NULL;
@@ -1307,106 +1307,132 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
       return -1;
     }
 
-  co = NULL;
-  pos = 0;
-  while (!osip_list_eol (&out_tr->last_response->contacts, pos))
+  if (MSG_IS_STATUS_3XX(out_tr->last_response))
     {
-      co = (osip_contact_t *) osip_list_get (&out_tr->last_response->contacts, pos);
-      if (co != NULL && co->url != NULL)
-        {
-          /* check tranport? Only allow UDP, right now */
-          osip_uri_param_t *u_param;
-          int pos2;
-
-          u_param = NULL;
-          pos2 = 0;
-          while (!osip_list_eol (&co->url->url_params, pos2))
-            {
-              u_param =
-                (osip_uri_param_t *) osip_list_get (&co->url->url_params, pos2);
-              if (u_param == NULL || u_param->gname == NULL
-                  || u_param->gvalue == NULL)
-                {
-                  u_param = NULL;
-                  /* skip */
-              } else if (0 == osip_strcasecmp (u_param->gname, "transport"))
-                {
-                  if (0 == osip_strcasecmp (u_param->gvalue, "udp"))
-                    {
-#if 0
-                      /* remove the UDP parameter */
-                      osip_list_remove (co->url->url_params, pos2);
-                      osip_uri_param_free (u_param);
-#endif
-                      u_param = NULL;
-                      protocol = IPPROTO_UDP;
-                      break;    /* ok */
-                  } else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
-                    {
-#if 0
-                      osip_list_remove (co->url->url_params, pos2);
-                      osip_uri_param_free (u_param);
-#endif
-                      protocol = IPPROTO_TCP;
-                      u_param = NULL;
-                    }
-                  break;
-                }
-              pos2++;
-            }
-
-          if (u_param == NULL || u_param->gname == NULL || u_param->gvalue == NULL)
-            {
-              break;            /* default is udp! */
-            }
-        }
-      pos++;
       co = NULL;
-    }
-
-  if (co == NULL || co->url == NULL)
-    {
-      osip_message_free (msg);
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: contact header\n"));
-      return -1;
-    }
-
-  /* TODO:
-     remove extra parameter from new request-uri
-     check usual parameter like "transport"
-   */
-
-  if (msg->req_uri!=NULL && msg->req_uri->host!=NULL && co->url->host!=NULL
-	  && 0==osip_strcasecmp(co->url->host, msg->req_uri->host))
-  {
-		osip_uri_param_t *maddr_param = NULL;
-		osip_uri_uparam_get_byname (co->url, "maddr", &maddr_param);
-		if (maddr_param!=NULL && maddr_param->gvalue!=NULL)
+      pos = 0;
+      while (!osip_list_eol (&out_tr->last_response->contacts, pos))
+	{
+	  co = (osip_contact_t *) osip_list_get (&out_tr->last_response->contacts, pos);
+	  if (co != NULL && co->url != NULL)
+	    {
+	      /* check tranport? Only allow UDP, right now */
+	      osip_uri_param_t *u_param;
+	      int pos2;
+	      
+	      u_param = NULL;
+	      pos2 = 0;
+	      while (!osip_list_eol (&co->url->url_params, pos2))
 		{
-			/* This is a redirect server, the route should probably be removed? */
-			osip_route_t *route=NULL;
-			osip_generic_param_t *tag=NULL;
-			osip_message_get_route (msg, 0, &route);
-			if (route!=NULL)
-			{
-				osip_to_get_tag (msg->to, &tag);
-				if (tag==NULL && route != NULL && route->url != NULL)
-				{
-				  osip_list_remove(&msg->routes, 0);
-				  osip_route_free(route);
-				}
-			}
+		  u_param =
+		    (osip_uri_param_t *) osip_list_get (&co->url->url_params, pos2);
+		  if (u_param == NULL || u_param->gname == NULL
+		      || u_param->gvalue == NULL)
+		    {
+		      u_param = NULL;
+		      /* skip */
+		    } else if (0 == osip_strcasecmp (u_param->gname, "transport"))
+		      {
+			if (0 == osip_strcasecmp (u_param->gvalue, "udp"))
+			  {
+#if 0
+			    /* remove the UDP parameter */
+			    osip_list_remove (co->url->url_params, pos2);
+			    osip_uri_param_free (u_param);
+#endif
+			    u_param = NULL;
+			    protocol = IPPROTO_UDP;
+			    break;    /* ok */
+			  } else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
+			    {
+#if 0
+			      osip_list_remove (co->url->url_params, pos2);
+			      osip_uri_param_free (u_param);
+#endif
+			      protocol = IPPROTO_TCP;
+			      u_param = NULL;
+			    }
+			break;
+		      }
+		  pos2++;
 		}
-  }
+	      
+	      if (u_param == NULL || u_param->gname == NULL || u_param->gvalue == NULL)
+		{
+		  break;            /* default is udp! */
+		}
+	    }
+	  pos++;
+	  co = NULL;
+	}
+      
+      if (co == NULL || co->url == NULL)
+	{
+	  osip_message_free (msg);
+	  OSIP_TRACE (osip_trace
+		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		       "eXosip: contact header\n"));
+	  return -1;
+	}
+      
+      /* TODO:
+	 remove extra parameter from new request-uri
+	 check usual parameter like "transport"
+      */
+      
+      if (msg->req_uri!=NULL && msg->req_uri->host!=NULL && co->url->host!=NULL
+	  && 0==osip_strcasecmp(co->url->host, msg->req_uri->host))
+	{
+	  osip_uri_param_t *maddr_param = NULL;
+	  osip_uri_uparam_get_byname (co->url, "maddr", &maddr_param);
+	  if (maddr_param!=NULL && maddr_param->gvalue!=NULL)
+	    {
+	      /* This is a redirect server, the route should probably be removed? */
+	      osip_route_t *route=NULL;
+	      osip_generic_param_t *tag=NULL;
+	      osip_message_get_route (msg, 0, &route);
+	      if (route!=NULL)
+		{
+		  osip_to_get_tag (msg->to, &tag);
+		  if (tag==NULL && route != NULL && route->url != NULL)
+		    {
+		      osip_list_remove(&msg->routes, 0);
+		      osip_route_free(route);
+		    }
+		}
+	    }
+	}
 
-  /* replace request-uri with NEW contact address */
-  osip_uri_free (msg->req_uri);
-  msg->req_uri = NULL;
-  osip_uri_clone (co->url, &msg->req_uri);
+      /* replace request-uri with NEW contact address */
+      osip_uri_free (msg->req_uri);
+      msg->req_uri = NULL;
+      osip_uri_clone (co->url, &msg->req_uri);
+    }
 
-
+  /* remove all previous authentication headers */
+  pos = 0;
+  while (!osip_list_eol (&msg->authorizations, pos))
+    {
+      osip_authorization_t *auth;
+	  
+      auth = (osip_authorization_t *) osip_list_get (&msg->authorizations, pos);
+      osip_list_remove (&msg->authorizations, pos);
+      osip_authorization_free (auth);
+      pos++;
+    }
+  
+  pos = 0;
+  while (!osip_list_eol (&msg->proxy_authorizations, pos))
+    {
+      osip_proxy_authorization_t *auth;
+      
+      auth =
+	(osip_proxy_authorization_t *) osip_list_get (&msg->
+						      proxy_authorizations, pos);
+      osip_list_remove (&msg->proxy_authorizations, pos);
+      osip_authorization_free (auth);
+      pos++;
+    }
 
   /* increment cseq */
   cseq = atoi (msg->cseq->number);
@@ -1429,145 +1455,6 @@ _eXosip_call_redirect_request (eXosip_call_t * jc,
 
   /* eXosip_add_authentication_information (msg, out_tr->last_response); */
   eXosip_add_authentication_information (msg, NULL);
-  osip_message_force_update (msg);
-
-  if (0 != osip_strcasecmp (msg->sip_method, "INVITE"))
-    {
-      i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
-  } else
-    {
-      i = _eXosip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
-    }
-
-  if (i != 0)
-    {
-      osip_message_free (msg);
-      return -1;
-    }
-
-  if (out_tr == jc->c_out_tr)
-    {
-      /* replace with the new tr */
-      osip_list_add (eXosip.j_transactions, jc->c_out_tr, 0);
-      jc->c_out_tr = tr;
-
-      /* fix dialog issue */
-      if (jd != NULL)
-        {
-          REMOVE_ELEMENT (jc->c_dialogs, jd);
-          eXosip_dialog_free (jd);
-          jd = NULL;
-        }
-  } else
-    {
-      /* add the new tr for the current dialog */
-      osip_list_add (jd->d_out_trs, tr, 0);
-    }
-
-  sipevent = osip_new_outgoing_sipmessage (msg);
-
-#ifndef MINISIZE
-  osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd, NULL, NULL));
-#else
-  osip_transaction_set_your_instance (tr, __eXosip_new_jinfo (jc, jd));
-#endif
-  osip_transaction_add_event (tr, sipevent);
-
-  eXosip_update ();             /* fixed? */
-  __eXosip_wakeup ();
-  return 0;
-}
-
-int
-_eXosip_call_send_request_with_credential (eXosip_call_t * jc,
-                                           eXosip_dialog_t * jd,
-                                           osip_transaction_t * out_tr)
-{
-  osip_transaction_t *tr = NULL;
-  osip_message_t *msg = NULL;
-  osip_event_t *sipevent;
-
-  int cseq;
-  osip_via_t *via;
-  int i;
-  int pos;
-
-  if (jc == NULL)
-    return -1;
-  if (jd != NULL)
-    {
-      if (jd->d_out_trs == NULL)
-        return -1;
-    }
-  if (out_tr == NULL
-      || out_tr->orig_request == NULL || out_tr->last_response == NULL)
-    return -1;
-
-  osip_message_clone (out_tr->orig_request, &msg);
-  if (msg == NULL)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: could not clone msg for authentication\n"));
-      return -1;
-    }
-
-  /* remove all previous authentication headers */
-  pos = 0;
-  while (!osip_list_eol (&msg->authorizations, pos))
-    {
-      osip_authorization_t *auth;
-
-      auth = (osip_authorization_t *) osip_list_get (&msg->authorizations, pos);
-      osip_list_remove (&msg->authorizations, pos);
-      osip_authorization_free (auth);
-      pos++;
-    }
-
-  pos = 0;
-  while (!osip_list_eol (&msg->proxy_authorizations, pos))
-    {
-      osip_proxy_authorization_t *auth;
-
-      auth =
-        (osip_proxy_authorization_t *) osip_list_get (&msg->
-                                                      proxy_authorizations, pos);
-      osip_list_remove (&msg->proxy_authorizations, pos);
-      osip_authorization_free (auth);
-      pos++;
-    }
-
-
-  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
-  if (via == NULL || msg->cseq == NULL || msg->cseq->number == NULL)
-    {
-      osip_message_free (msg);
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: missing via or cseq header\n"));
-      return -1;
-    }
-
-  /* increment cseq */
-  cseq = atoi (msg->cseq->number);
-  osip_free (msg->cseq->number);
-  msg->cseq->number = strdup_printf ("%i", cseq + 1);
-  if (jd != NULL && jd->d_dialog != NULL)
-    {
-      jd->d_dialog->local_cseq++;
-    }
-
-  i = eXosip_update_top_via(msg);
-  if (i!=0)
-    {
-      osip_message_free (msg);
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol\n"));
-      return -1;
-    }
-
-  eXosip_add_authentication_information (msg, out_tr->last_response);
   osip_message_force_update (msg);
 
   if (0 != osip_strcasecmp (msg->sip_method, "INVITE"))

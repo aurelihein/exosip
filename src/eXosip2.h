@@ -534,12 +534,9 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
                                      eXosip_dialog_t ** jd,
                                      osip_transaction_t ** tr);
-  int _eXosip_call_redirect_request (eXosip_call_t * jc,
+  int _eXosip_call_retry_request (eXosip_call_t * jc,
                                      eXosip_dialog_t * jd,
                                      osip_transaction_t * out_tr);
-  int _eXosip_call_send_request_with_credential (eXosip_call_t * jc,
-                                                 eXosip_dialog_t * jd,
-                                                 osip_transaction_t * out_tr);
   int eXosip_transaction_find (int tid, osip_transaction_t ** transaction);
   int eXosip_call_dialog_find (int jid, eXosip_call_t ** jc,
                                eXosip_dialog_t ** jd);
