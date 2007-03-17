@@ -1098,6 +1098,8 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 }
 #endif
 
+#ifdef SRV_RECORD
+
 int
 _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record)
 {
@@ -1192,7 +1194,6 @@ _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_sr
 	}
 	return 0;
 }
-
 
 #if defined(WIN32) && !defined(_WIN32_WCE)
 
@@ -1473,5 +1474,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 {
 	return -1;
 }
+
+#endif
 
 #endif

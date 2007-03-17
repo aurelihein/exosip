@@ -238,6 +238,8 @@ eXosip_find_last_out_invite (eXosip_call_t * jc, eXosip_dialog_t * jd)
   return out_tr;
 }
 
+#ifndef MINISIZE
+
 osip_transaction_t *
 eXosip_find_previous_invite (eXosip_call_t * jc, eXosip_dialog_t * jd, osip_transaction_t *last_invite)
 {
@@ -313,3 +315,5 @@ eXosip_find_previous_invite (eXosip_call_t * jc, eXosip_dialog_t * jd, osip_tran
     return inc_tr;
   return out_tr;
 }
+
+#endif
