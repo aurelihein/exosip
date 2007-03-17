@@ -367,7 +367,10 @@ int eXosip_get_addrinfo(struct addrinfo **addrinfo,
      * which the gethostbyname() is the preferred() function.
      */
   else {
+    h=NULL;
+#if !defined(__arc__)
     h = gethostbyname(hostname);
+#endif
     if (!h)
 	{
       OSIP_TRACE (osip_trace
