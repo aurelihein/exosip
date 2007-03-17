@@ -95,6 +95,7 @@ static void cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_rcv5xx (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_rcv6xx (int type, osip_transaction_t * tr, osip_message_t * sip);
 static void cb_snd123456xx (int type, osip_transaction_t * tr, osip_message_t * sip);
+#ifndef MINISIZE
 static void cb_rcvresp_retransmission (int type, osip_transaction_t * tr,
                                        osip_message_t * sip);
 static void cb_sndreq_retransmission (int type, osip_transaction_t * tr,
@@ -103,6 +104,7 @@ static void cb_sndresp_retransmission (int type, osip_transaction_t * tr,
                                        osip_message_t * sip);
 static void cb_rcvreq_retransmission (int type, osip_transaction_t * tr,
                                       osip_message_t * sip);
+#endif
 static void cb_transport_error (int type, osip_transaction_t * tr, int error);
 
 int
@@ -2061,6 +2063,8 @@ cb_snd123456xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 
 }
 
+#ifndef MINISIZE
+
 static void
 cb_rcvresp_retransmission (int type, osip_transaction_t * tr, osip_message_t * sip)
 {
@@ -2092,6 +2096,8 @@ cb_rcvreq_retransmission (int type, osip_transaction_t * tr, osip_message_t * si
               (__FILE__, __LINE__, OSIP_INFO1, NULL,
                "cb_rcvreq_retransmission (id=%i)\r\n", tr->transactionid));
 }
+
+#endif
 
 static void
 cb_transport_error (int type, osip_transaction_t * tr, int error)
@@ -2165,6 +2171,7 @@ eXosip_set_callbacks (osip_t * osip)
   osip_set_kill_transaction_callback (osip, OSIP_NIST_KILL_TRANSACTION,
                                       &cb_xixt_kill_transaction);
 
+#ifndef MINISIZE
   osip_set_message_callback (osip, OSIP_ICT_STATUS_2XX_RECEIVED_AGAIN,
                              &cb_rcvresp_retransmission);
   osip_set_message_callback (osip, OSIP_ICT_STATUS_3456XX_RECEIVED_AGAIN,
@@ -2189,6 +2196,7 @@ eXosip_set_callbacks (osip_t * osip)
                              &cb_sndresp_retransmission);
   osip_set_message_callback (osip, OSIP_NIST_REQUEST_RECEIVED_AGAIN,
                              &cb_rcvreq_retransmission);
+#endif
 
   osip_set_transport_error_callback (osip, OSIP_ICT_TRANSPORT_ERROR,
                                      &cb_transport_error);
