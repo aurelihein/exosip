@@ -314,11 +314,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   eXosip_freeaddrinfo (addrinfo);
 
   /* remove preloaded route if there is no tag in the To header
-     (sip.iptel.org is refusing this: I can't understand why...)
    */
-#ifndef MINISIZE
-  if (eXosip.remove_preloadedroute==1)
-#endif
     {
       osip_route_t *route=NULL;
       osip_generic_param_t *tag=NULL;
@@ -335,12 +331,6 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  osip_list_add(&sip->routes, route, 0);
 	}
     }
-#ifndef MINISIZE
-  else
-    {
-      i = osip_message_to_str (sip, &message, &length);
-    }
-#endif
 
   if (i != 0 || length <= 0)
     {
@@ -462,9 +452,8 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   net = &eXosip.net_interfaces[1];
 
-#ifndef MINISIZE
-  if (eXosip.remove_preloadedroute==1)
-#endif
+  /* remove preloaded route if there is no tag in the To header
+   */
     {
       osip_route_t *route=NULL;
       osip_generic_param_t *tag=NULL;
@@ -481,12 +470,6 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  osip_list_add(&sip->routes, route, 0);
 	}
     }
-#ifndef MINISIZE
-  else
-    {
-      i = osip_message_to_str (sip, &message, &length);
-    }
-#endif
 
   if (i != 0 || length <= 0)
     {
@@ -589,7 +572,6 @@ cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
       if (jinfo == NULL)
 	return;
       jd = jinfo->jd;
-      jc = jinfo->jc;
       jn = jinfo->jn;
       js = jinfo->js;
       
