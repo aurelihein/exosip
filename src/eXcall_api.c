@@ -843,7 +843,6 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Wrong parameter?\n"));
-              osip_message_free (answer);
               return -1;
             }
         }
@@ -1260,20 +1259,11 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 		      {
 			if (0 == osip_strcasecmp (u_param->gvalue, "udp"))
 			  {
-#if 0
-			    /* remove the UDP parameter */
-			    osip_list_remove (co->url->url_params, pos2);
-			    osip_uri_param_free (u_param);
-#endif
 			    u_param = NULL;
 			    protocol = IPPROTO_UDP;
 			    break;    /* ok */
 			  } else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
 			    {
-#if 0
-			      osip_list_remove (co->url->url_params, pos2);
-			      osip_uri_param_free (u_param);
-#endif
 			      protocol = IPPROTO_TCP;
 			      u_param = NULL;
 			    }
@@ -1333,31 +1323,9 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
       msg->req_uri = NULL;
       osip_uri_clone (co->url, &msg->req_uri);
     }
-
   /* remove all previous authentication headers */
-  pos = 0;
-  while (!osip_list_eol (&msg->authorizations, pos))
-    {
-      osip_authorization_t *auth;
-	  
-      auth = (osip_authorization_t *) osip_list_get (&msg->authorizations, pos);
-      osip_list_remove (&msg->authorizations, pos);
-      osip_authorization_free (auth);
-      pos++;
-    }
-  
-  pos = 0;
-  while (!osip_list_eol (&msg->proxy_authorizations, pos))
-    {
-      osip_proxy_authorization_t *auth;
-      
-      auth =
-	(osip_proxy_authorization_t *) osip_list_get (&msg->
-						      proxy_authorizations, pos);
-      osip_list_remove (&msg->proxy_authorizations, pos);
-      osip_authorization_free (auth);
-      pos++;
-    }
+  osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
+  osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
 
   /* increment cseq */
   cseq = atoi (msg->cseq->number);

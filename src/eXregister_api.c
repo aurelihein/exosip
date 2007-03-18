@@ -106,31 +106,8 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
             int length = strlen (reg->cseq->number);
 
 
-            osip_authorization_t *aut;
-            osip_proxy_authorization_t *proxy_aut;
-
-            aut = (osip_authorization_t *) osip_list_get (&reg->authorizations, 0);
-            while (aut != NULL)
-              {
-                osip_list_remove (&reg->authorizations, 0);
-                osip_authorization_free (aut);
-                aut =
-                  (osip_authorization_t *) osip_list_get (&reg->authorizations, 0);
-              }
-
-            proxy_aut =
-              (osip_proxy_authorization_t *) osip_list_get (&reg->
-                                                            proxy_authorizations,
-                                                            0);
-            while (proxy_aut != NULL)
-              {
-                osip_list_remove (&reg->proxy_authorizations, 0);
-                osip_proxy_authorization_free (proxy_aut);
-                proxy_aut =
-                  (osip_proxy_authorization_t *) osip_list_get (&reg->
-                                                                proxy_authorizations,
-                                                                0);
-              }
+	    osip_list_special_free(&reg->authorizations, (void *(*)(void *)) &osip_authorization_free);
+	    osip_list_special_free(&reg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
 
             if (0 == osip_strcasecmp (jr->transport, "udp"))
               net = &eXosip.net_interfaces[0];
