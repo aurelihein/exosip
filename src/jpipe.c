@@ -24,9 +24,9 @@
 
 #ifdef OSIP_MT
 
-#if !defined(WIN32) && !defined(__arc__)
-
 #include "jpipe.h"
+
+#if !defined(WIN32) && !defined(__arc__)
 
 #include <fcntl.h>
 
