@@ -555,14 +555,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int eXosip_call_find (int cid, eXosip_call_t ** jc);
   int eXosip_dialog_set_200ok (eXosip_dialog_t * _jd, osip_message_t * _200Ok);
 
-  int _eXosip_answer_invite_3456xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
-                                    int code, osip_message_t ** answer);
-  int _eXosip_answer_invite_12xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
-				  int code, osip_message_t ** answer);
-  int _eXosip_default_answer_invite_1xx (eXosip_call_t * jc,
-                                         eXosip_dialog_t * jd, int code);
-  int _eXosip_default_answer_invite_3456xx (eXosip_call_t * jc,
-                                            eXosip_dialog_t * jd, int code);
+  int _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
+				  int code, osip_message_t ** answer, int send);
 #ifndef MINISIZE
   int _eXosip_insubscription_answer_1xx (eXosip_notify_t * jc,
                                          eXosip_dialog_t * jd, int code);

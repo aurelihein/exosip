@@ -277,8 +277,8 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
 }
 
 int
-_eXosip_answer_invite_12xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
-                           osip_message_t ** answer)
+_eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
+                           osip_message_t ** answer, int send)
 {
   int i;
   osip_transaction_t *tr;
@@ -294,7 +294,7 @@ _eXosip_answer_invite_12xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
       return -1;
     }
 
-  if (code>=200 && jd != NULL && jd->d_dialog == NULL)
+  if (code>=200 && code<300 && jd != NULL && jd->d_dialog == NULL)
     {                           /* element previously removed */
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -327,197 +327,40 @@ _eXosip_answer_invite_12xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
       return -1;
     }
 
-#if 0
-  if (code<200)
-    osip_message_set_content_length (*answer, "0");
-#endif
-
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
-  if (code > 100)
+  if (code > 100 && code <300)
   {
     i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
     if (i != 0)
       goto g2atii_error_1;;     /* ?? */
   }
 
+
+  if (send==1)
+    {
+      osip_event_t *evt_answer;
+      if (code >= 200 && code <300 && jd!=NULL)
+	{
+	  eXosip_dialog_set_200ok (jd, *answer);
+	  /* wait for a ACK */
+	  osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
+	}
+
+      evt_answer = osip_new_outgoing_sipmessage (*answer);
+      evt_answer->transactionid = tr->transactionid;
+      
+      osip_transaction_add_event (tr, evt_answer);
+      __eXosip_wakeup ();
+      *answer=NULL;
+    }
+
   return 0;
 
 g2atii_error_1:
   osip_message_free (*answer);
+  *answer=NULL;
   return -1;
-}
-
-int
-_eXosip_answer_invite_3456xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
-                              int code, osip_message_t ** answer)
-{
-  int i;
-  osip_transaction_t *tr;
-
-  *answer = NULL;
-  tr = eXosip_find_last_inc_invite (jc, jd);
-  if (tr == NULL)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot find transaction to answer"));
-      return -1;
-    }
-  /* is the transaction already answered? */
-  if (tr->state == IST_COMPLETED
-      || tr->state == IST_CONFIRMED || tr->state == IST_TERMINATED)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: transaction already answered\n"));
-      return -1;
-    }
-
-  i =
-    _eXosip_build_response_default (answer, jd->d_dialog, code, tr->orig_request);
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                   "ERROR: Could not create response for invite\n"));
-      return -1;
-    }
-
-  if ((300 <= code) && (code <= 399))
-    {
-      /* Should add contact fields */
-      /* ... */
-    }
-
-  osip_message_set_content_length (*answer, "0");
-  /*  send message to transaction layer */
-
-  return 0;
-}
-
-int
-_eXosip_default_answer_invite_1xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
-                                   int code)
-{
-  osip_event_t *evt_answer;
-  osip_message_t *response;
-  int i;
-  osip_transaction_t *tr;
-
-  tr = eXosip_find_last_inc_invite (jc, jd);
-  if (tr == NULL)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot find transaction to answer"));
-      return -1;
-    }
-  /* is the transaction already answered? */
-  if (tr->state == IST_COMPLETED
-      || tr->state == IST_CONFIRMED || tr->state == IST_TERMINATED)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: transaction already answered\n"));
-      return -1;
-    }
-
-  if (jd == NULL)
-    i = _eXosip_build_response_default (&response, NULL, code, tr->orig_request);
-  else
-    i =
-      _eXosip_build_response_default (&response, jd->d_dialog, code,
-                                      tr->orig_request);
-
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "ERROR: Could not create response for invite\n"));
-      return -2;
-    }
-
-  osip_message_set_content_length (response, "0");
-  /*  send message to transaction layer */
-
-  if (code > 100)
-    {
-      /* request that estabish a dialog: */
-      /* 12.1.1 UAS Behavior */
-      i = complete_answer_that_establish_a_dialog (response, tr->orig_request);
-
-      if (jd == NULL)
-        {
-          i = eXosip_dialog_init_as_uas (&jd, tr->orig_request, response);
-          if (i != 0)
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: cannot create dialog!\n"));
-          } else
-            {
-              ADD_ELEMENT (jc->c_dialogs, jd);
-            }
-        }
-    }
-
-  evt_answer = osip_new_outgoing_sipmessage (response);
-  evt_answer->transactionid = tr->transactionid;
-
-  osip_transaction_add_event (tr, evt_answer);
-  __eXosip_wakeup ();
-
-  return 0;
-}
-
-int
-_eXosip_default_answer_invite_3456xx (eXosip_call_t * jc,
-                                      eXosip_dialog_t * jd, int code)
-{
-  osip_event_t *evt_answer;
-  osip_message_t *response;
-  int i;
-  osip_transaction_t *tr;
-
-  tr = eXosip_find_last_inc_invite (jc, jd);
-  if (tr == NULL)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot find transaction to answer"));
-      return -1;
-    }
-  /* is the transaction already answered? */
-  if (tr->state == IST_COMPLETED
-      || tr->state == IST_CONFIRMED || tr->state == IST_TERMINATED)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: transaction already answered\n"));
-      return -1;
-    }
-
-  i =
-    _eXosip_build_response_default (&response, jd->d_dialog, code,
-                                    tr->orig_request);
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                   "ERROR: Could not create response for invite\n"));
-      return -1;
-    }
-
-  osip_message_set_content_length (response, "0");
-  /*  send message to transaction layer */
-
-  evt_answer = osip_new_outgoing_sipmessage (response);
-  evt_answer->transactionid = tr->transactionid;
-
-  osip_transaction_add_event (tr, evt_answer);
-  __eXosip_wakeup ();
-  return 0;
 }
 
 #ifndef MINISIZE

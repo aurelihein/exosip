@@ -775,12 +775,9 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
 
   if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
     {
-      if (status > 100 && status < 300)
+      if (status > 100 && status <= 699)
         {
-          i = _eXosip_answer_invite_12xx (jc, jd, status, answer);
-      } else if (status > 300 && status <= 699)
-        {
-          i = _eXosip_answer_invite_3456xx (jc, jd, status, answer);
+          i = _eXosip_answer_invite_123456xx (jc, jd, status, answer, 0);
       } else
         {
           OSIP_TRACE (osip_trace
@@ -818,7 +815,6 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
 int
 eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
 {
-  int i = -1;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   osip_transaction_t *tr = NULL;
@@ -842,11 +838,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
     {
       if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
         {
-          if (status >= 100 && status <= 199)
-            {
-          } else if (status >= 300 && status <= 699)
-            {
-          } else
+          if (status >= 200 && status <= 299)
             {
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -874,87 +866,23 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
     {
       if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
         {
-          if (status < 200)
-            i = _eXosip_default_answer_invite_1xx (jc, jd, status);
-          else
-            i = _eXosip_default_answer_invite_3456xx (jc, jd, status);
-          if (i != 0)
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: cannot send response!\n"));
-              return -1;
-            }
-      } else
-        {
-          /* TODO */
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: a response must be given!\n"));
-          return -1;
-        }
-      return 0;
-  } else
-    {
-      i = 0;
-    }
-
+	  osip_message_t *response;
+          return _eXosip_answer_invite_123456xx (jc, jd, status, &response, 1);
+	}
+      return -1;
+  }
+  
   if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
     {
-      if (MSG_IS_STATUS_1XX (answer))
-        {
-          if (jd == NULL)
-            {
-              i = eXosip_dialog_init_as_uas (&jd, tr->orig_request, answer);
-              if (i != 0)
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                               "eXosip: cannot create dialog!\n"));
-                  i = 0;
-              } else
-                {
-                  ADD_ELEMENT (jc->c_dialogs, jd);
-                }
-            }
-
-      } else if (MSG_IS_STATUS_2XX (answer))
-        {
-          if (jd == NULL)
-            {
-              i = eXosip_dialog_init_as_uas (&jd, tr->orig_request, answer);
-              if (i != 0)
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                               "eXosip: cannot create dialog!\n"));
-                  osip_message_free (answer);
-                  return -1;
-                }
-              ADD_ELEMENT (jc->c_dialogs, jd);
-          } else
-            i = 0;
-
-          eXosip_dialog_set_200ok (jd, answer);
-		  /* wait for a ACK */
-
-          osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
-      } else if (answer->status_code >= 300 && answer->status_code <= 699)
-        {
-          i = 0;
-      } else
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: wrong status code (101<status<=699)\n"));
-          osip_message_free (answer);
-          return -1;
-        }
-      if (i != 0)
-        {
-          osip_message_free (answer);
-          return -1;
-        }
+      if (MSG_IS_STATUS_2XX (answer) && jd!=NULL)
+	{
+	  if (status >= 200 && status <300 && jd!=NULL)
+	    {
+	      eXosip_dialog_set_200ok (jd, answer);
+	      /* wait for a ACK */
+	      osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
+	    }
+	}
     }
 
   evt_answer = osip_new_outgoing_sipmessage (answer);
