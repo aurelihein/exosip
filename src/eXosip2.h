@@ -557,10 +557,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 
   int _eXosip_answer_invite_3456xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
                                     int code, osip_message_t ** answer);
-  int _eXosip_answer_invite_2xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
-                                 int code, osip_message_t ** answer);
-  int _eXosip_answer_invite_1xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
-                                 int code, osip_message_t ** answer);
+  int _eXosip_answer_invite_12xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
+				  int code, osip_message_t ** answer);
   int _eXosip_default_answer_invite_1xx (eXosip_call_t * jc,
                                          eXosip_dialog_t * jd, int code);
   int _eXosip_default_answer_invite_3456xx (eXosip_call_t * jc,

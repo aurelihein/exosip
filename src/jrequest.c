@@ -482,27 +482,6 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   /* always add the Max-Forward header */
   osip_message_set_max_forwards (request, "70"); /* a UA should start a request with 70 */
 
-  /* add specific headers for each kind of request... */
-
-  if (0 == strcmp ("INVITE", method) || 0 == strcmp ("SUBSCRIBE", method))
-    {
-
-      /* This is probably useless for other messages */
-#if 0
-      osip_message_set_allow (request, "INVITE");
-      osip_message_set_allow (request, "ACK");
-      osip_message_set_allow (request, "UPDATE");
-      osip_message_set_allow (request, "INFO");
-      osip_message_set_allow (request, "CANCEL");
-      osip_message_set_allow (request, "BYE");
-      osip_message_set_allow (request, "OPTIONS");
-      osip_message_set_allow (request, "REFER");
-      osip_message_set_allow (request, "SUBSCRIBE");
-      osip_message_set_allow (request, "NOTIFY");
-      osip_message_set_allow (request, "MESSAGE");
-#endif
-    }
-
   if (0 == strcmp ("REGISTER", method))
     {
   } else if (0 == strcmp ("INFO", method))

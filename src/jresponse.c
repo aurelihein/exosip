@@ -51,6 +51,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
   sprintf (response->sip_version, "SIP/2.0");
   osip_message_set_status_code (response, status);
 
+#ifndef MINISIZE
   /* handle some internal reason definitions. */
   if (MSG_IS_NOTIFY (request) && status == 481)
     {
@@ -71,6 +72,18 @@ _eXosip_build_response_default (osip_message_t ** dest,
       response->req_uri = NULL;
       response->sip_method = NULL;
     }
+#else
+  response->reason_phrase = osip_strdup (osip_message_get_reason (status));
+  if (response->reason_phrase == NULL)
+    {
+      if (response->status_code == 101)
+	response->reason_phrase = osip_strdup ("Dialog Establishement");
+      else
+	response->reason_phrase = osip_strdup ("Unknown code");
+    }
+  response->req_uri = NULL;
+  response->sip_method = NULL;
+#endif
 
   i = osip_to_clone (request->to, &(response->to));
   if (i != 0)
@@ -115,6 +128,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
   if (i != 0)
     goto grd_error_1;
 
+#ifndef MINISIZE
   if (MSG_IS_SUBSCRIBE (request))
     {
       osip_header_t *exp;
@@ -135,19 +149,6 @@ _eXosip_build_response_default (osip_message_t ** dest,
             osip_list_add (&response->headers, cp, 0);
         }
     }
-
-#if 0
-  osip_message_set_allow (response, "INVITE");
-  osip_message_set_allow (response, "ACK");
-  osip_message_set_allow (response, "OPTIONS");
-  osip_message_set_allow (response, "CANCEL");
-  osip_message_set_allow (response, "BYE");
-  osip_message_set_allow (response, "SUBSCRIBE");
-  osip_message_set_allow (response, "NOTIFY");
-  osip_message_set_allow (response, "MESSAGE");
-  osip_message_set_allow (response, "INFO");
-  osip_message_set_allow (response, "REFER");
-  osip_message_set_allow (response, "UPDATE");
 #endif
 
   osip_message_set_user_agent (response, eXosip.user_agent);
@@ -276,59 +277,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
 }
 
 int
-_eXosip_answer_invite_1xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
-                           osip_message_t ** answer)
-{
-  int i;
-  osip_transaction_t *tr;
-
-  *answer = NULL;
-  tr = eXosip_find_last_inc_invite (jc, jd);
-  if (tr == NULL)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: cannot find transaction to answer"));
-      return -1;
-    }
-  /* is the transaction already answered? */
-  if (tr->state == IST_COMPLETED
-      || tr->state == IST_CONFIRMED || tr->state == IST_TERMINATED)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: transaction already answered\n"));
-      return -1;
-    }
-
-  if (jd == NULL)
-    i = _eXosip_build_response_default (answer, NULL, code, tr->orig_request);
-  else
-    i =
-      _eXosip_build_response_default (answer, jd->d_dialog, code,
-                                      tr->orig_request);
-
-  if (i != 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "ERROR: Could not create response for invite\n"));
-      return -2;
-    }
-
-  osip_message_set_content_length (*answer, "0");
-  /*  send message to transaction layer */
-
-  if (code > 100)
-    {
-      i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
-    }
-
-  return 0;
-}
-
-int
-_eXosip_answer_invite_2xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
+_eXosip_answer_invite_12xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
                            osip_message_t ** answer)
 {
   int i;
@@ -345,7 +294,7 @@ _eXosip_answer_invite_2xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
       return -1;
     }
 
-  if (jd != NULL && jd->d_dialog == NULL)
+  if (code>=200 && jd != NULL && jd->d_dialog == NULL)
     {                           /* element previously removed */
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -378,8 +327,14 @@ _eXosip_answer_invite_2xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
       return -1;
     }
 
+#if 0
+  if (code<200)
+    osip_message_set_content_length (*answer, "0");
+#endif
+
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
+  if (code > 100)
   {
     i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
     if (i != 0)

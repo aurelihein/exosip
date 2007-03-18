@@ -775,12 +775,9 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
 
   if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
     {
-      if (status > 100 && status < 200)
+      if (status > 100 && status < 300)
         {
-          i = _eXosip_answer_invite_1xx (jc, jd, status, answer);
-      } else if (status > 199 && status < 300)
-        {
-          i = _eXosip_answer_invite_2xx (jc, jd, status, answer);
+          i = _eXosip_answer_invite_12xx (jc, jd, status, answer);
       } else if (status > 300 && status <= 699)
         {
           i = _eXosip_answer_invite_3456xx (jc, jd, status, answer);
