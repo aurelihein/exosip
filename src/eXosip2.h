@@ -405,7 +405,6 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 
   struct eXosip_t
   {
-    int forced_localip;         /* set to 1 for masquerading contact headers */
     struct eXosip_net net_interfaces[3];
     char *user_agent;
 

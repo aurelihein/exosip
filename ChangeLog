@@ -1,4 +1,6 @@
 eXosip2 (3.0.2)
+	* fix call transfer issue with "Replaces" header.
+	* allow build/run eXosip in non-threaded model (without -DOSIP_MT).
 	* initial support for ucos.
 	* add support for qop authentication.
 	* remove registration context immediatly upon eXosip_register_remove.

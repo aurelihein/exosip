@@ -205,11 +205,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
     }
 
   memset(locip, '\0', sizeof(locip));
-#ifdef SM
-  eXosip_get_localip_from_via (response, locip, 49);
-#else
   eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
-#endif
 
   if (request->to->url->username == NULL)
     snprintf (contact, 1000, "<sip:%s:%s>", locip, net->net_port);

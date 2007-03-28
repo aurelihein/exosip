@@ -309,7 +309,7 @@ int main (int argc, char *argv[])
   if (localip)
     {
       syslog_wrapper (LOG_INFO, "local address: %s", localip);
-      eXosip_force_masquerade_contact (localip);
+      eXosip_masquerade_contact (localip, port);
     }
 
   if (firewallip)

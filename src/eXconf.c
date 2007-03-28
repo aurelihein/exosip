@@ -83,27 +83,6 @@ eXosip_masquerade_contact (const char *public_address, int port)
 }
 
 int
-eXosip_force_masquerade_contact (const char *public_address)
-{
-  if (public_address == NULL || public_address[0] == '\0')
-    {
-      memset (eXosip.net_interfaces[0].net_firewall_ip, '\0',
-              sizeof (eXosip.net_interfaces[0].net_firewall_ip));
-      memset (eXosip.net_interfaces[1].net_firewall_ip, '\0',
-              sizeof (eXosip.net_interfaces[1].net_firewall_ip));
-      memset (eXosip.net_interfaces[2].net_firewall_ip, '\0',
-              sizeof (eXosip.net_interfaces[2].net_firewall_ip));
-      eXosip.forced_localip = 0;
-      return 0;
-    }
-  eXosip.forced_localip = 1;
-  snprintf (eXosip.net_interfaces[0].net_firewall_ip, 50, "%s", public_address);
-  snprintf (eXosip.net_interfaces[1].net_firewall_ip, 50, "%s", public_address);
-  snprintf (eXosip.net_interfaces[2].net_firewall_ip, 50, "%s", public_address);
-  return 0;
-}
-
-int
 eXosip_guess_localip (int family, char *address, int size)
 {
   return eXosip_guess_ip_for_via (family, address, size);

@@ -165,11 +165,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 
     if (locip[0] == '\0')
 	{
-#ifndef SM
 		eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
-#else
-		eXosip_get_localip_for (request->req_uri->host, locip, 49);
-#endif
 		if (locip[0]=='\0')
 		{
 			OSIP_TRACE (osip_trace
@@ -304,7 +300,6 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
   /*guess the local ip since req uri is known */
   memset(locip, '\0', sizeof(locip));
-#ifndef SM
   eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
   if (locip[0]=='\0')
     {
@@ -313,7 +308,6 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                    "eXosip: no default interface defined\n"));
       return -1;
     }
-#endif
 
   i = osip_message_init (&request);
   if (i != 0)
@@ -433,9 +427,6 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
         }
     }
 
-#ifdef SM
-  eXosip_get_localip_for (request->req_uri->host, locip, 49);
-#endif
   if (locip[0]=='\0')
     goto brood_error_1;
 
@@ -534,11 +525,7 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
     }
 
   memset(locip, '\0', sizeof(locip));
-#ifdef SM
-  eXosip_get_localip_for ((*reg)->req_uri->host, locip, 49);
-#else
   eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
-#endif
 
   if (locip[0]=='\0')
     {
@@ -631,6 +618,8 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
   return 0;
 }
 
+#ifndef MINISIZE
+
 int
 generating_publish (osip_message_t ** message, const char *to,
                     const char *from, const char *route)
@@ -652,6 +641,8 @@ generating_publish (osip_message_t ** message, const char *to,
 
   return 0;
 }
+
+#endif
 
 static int
 dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
@@ -774,11 +765,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
     }
 
   memset(locip, '\0', sizeof(locip));
-#ifdef SM
-  eXosip_get_localip_for (dialog->remote_contact_uri->url->host, locip, 49);
-#else
   eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
-#endif
   if (locip[0]=='\0')
     {
       OSIP_TRACE (osip_trace
