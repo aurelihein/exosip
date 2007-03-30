@@ -1322,6 +1322,28 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
       osip_uri_free (msg->req_uri);
       msg->req_uri = NULL;
       osip_uri_clone (co->url, &msg->req_uri);
+
+	  /* support for diversions headers/draft! */
+	  {
+		  int count=0;
+		  pos=0;
+		  while (!osip_list_eol (&out_tr->last_response->headers, pos))
+		  {
+			  osip_header_t *copy=NULL;
+			  osip_header_t *head = osip_list_get (&out_tr->last_response->headers, pos);
+			  if (head!=NULL && 0==osip_strcasecmp(head->hname, "diversion"))
+			  {
+				  i = osip_header_clone(head, &copy);
+				  if (i==0)
+				  {
+					  osip_list_add (&msg->headers,  copy, count);
+					  count++;
+				  }
+			  }
+			  pos++;
+		  }
+	  }
+
     }
   /* remove all previous authentication headers */
   osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
