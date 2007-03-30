@@ -1148,7 +1148,10 @@ eXosip_add_authentication_information (osip_message_t * req,
 
 			if (aut != NULL)
 			{
-				osip_list_add (&req->authorizations, aut, -1);
+				if (osip_strcasecmp(req->sip_method, "REGISTER")==0)
+					osip_list_add (&req->authorizations, aut, -1);
+				else
+					osip_list_add (&req->proxy_authorizations, aut, -1);
 				osip_message_force_update (req);
 			}
 		}
