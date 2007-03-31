@@ -132,6 +132,15 @@ extern "C"
  */
   void eXosip_automatic_action(void);
 
+#ifndef MINISIZE
+  /**
+ * Automatic internal handling of known package.
+ * 
+ * @param evt          event related to an incoming subscription.
+ */
+  int eXosip_insubscription_automatic(eXosip_event_t *evt);
+#endif
+
 /**
  * Generate random string:
  *

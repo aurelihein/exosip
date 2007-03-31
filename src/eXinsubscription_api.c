@@ -549,4 +549,163 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
   return 0;
 }
 
+int
+_eXosip_insubscription_auto_send_notify (int did,
+                          int subscription_status, int subscription_reason)
+{
+	osip_message_t *notify;
+	int i;
+	char xml[4096];
+	char *entity;
+	eXosip_call_t *jc;
+	eXosip_dialog_t *jd;
+
+	i = eXosip_insubscription_build_notify (did, subscription_status,
+										  subscription_reason, &notify);
+	if (i != 0)
+	{
+		return -1;
+	}
+
+	/* build dialog xml state */
+	memset(xml, 0, sizeof(xml));
+
+	osip_uri_to_str(notify->from->url , &entity);
+	if (entity==NULL)
+		return -1;
+	snprintf(xml, sizeof(xml),
+		   "<?xml version=\"1.0\"?>" "\r\n"
+		   "<dialog-info xmlns=\"urn:ietf:params:xml:ns:dialog-info\"" "\r\n"
+		   "	version=\"2\" state=\"full\"" "\r\n"
+		   "	entity=\"%s\">" "\r\n",
+		   entity);
+	osip_free(entity);
+
+	/* loop over all jc/jd */
+	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
+	{
+		for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
+		{
+			if (jd->d_dialog == NULL)     /* finished call */
+			{
+			}
+			else
+			{
+				char tmp_dialog[2048];
+				char direction[20];
+				char dlg_state[20];
+				char *remote_uri=NULL;
+
+				if (jd->d_dialog->type == CALLER)
+					strcpy(direction, "initiator");
+				else
+					strcpy(direction, "recipient");
+				if (jd->d_dialog->state == DIALOG_CONFIRMED)
+					strcpy(dlg_state, "confirmed");
+				else
+					strcpy(dlg_state, "early");
+
+				if (jd->d_dialog->remote_uri!=NULL
+					&&jd->d_dialog->remote_uri->url!=NULL)
+				{
+					osip_uri_to_str(jd->d_dialog->remote_uri->url, &remote_uri);
+				}
+				if (remote_uri!=NULL)
+				{
+					/* add dialog info */
+					snprintf(tmp_dialog, sizeof(tmp_dialog),
+						"	<dialog id=\"%s\" call-id=\"%s\"" "\r\n"
+						"		local-tag=\"%s\" remote-tag=\"%s\"" "\r\n"
+						"		direction=\"%s\">" "\r\n"
+						"		<state>%s</state>" "\r\n"
+						"		<remote>" "\r\n"
+						"			<identity>%s</identity>" "\r\n"
+						"		</remote>" "\r\n"
+						"	</dialog>" "\r\n",
+						jd->d_dialog->call_id,
+						jd->d_dialog->call_id,
+						jd->d_dialog->local_tag,
+						jd->d_dialog->remote_tag,
+						direction,
+						dlg_state,
+						remote_uri);
+					strcat(xml, tmp_dialog);
+				}
+			}
+		}
+	}
+	strcat(xml, "</dialog-info>" "\r\n");
+	osip_message_set_content_type (notify, "application/dialog-info+xml");
+	osip_message_set_body (notify, xml, strlen(xml));
+
+	return eXosip_insubscription_send_request (did, notify);
+}
+
+int
+eXosip_insubscription_automatic(eXosip_event_t *evt)
+{
+	eXosip_dialog_t *jd = NULL;
+	eXosip_notify_t *jn = NULL;
+
+	osip_header_t *event_header;
+	if (evt->did<=0 || evt->nid<=0)
+		return -1;
+	if (evt->request==NULL)
+		return -1;
+
+	eXosip_notify_dialog_find (evt->did, &jn, &jd);
+	if (jd == NULL || jn == NULL)
+	{
+		OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "eXosip: No incoming subscription here?\n"));
+		return -1;
+	}
+
+    osip_message_header_get_byname (evt->request , "event",
+                                    0, &event_header);
+    if (event_header == NULL || event_header->hvalue == NULL)
+	{
+		eXosip_insubscription_send_answer (evt->tid, 400, NULL);
+		return 0;
+	}
+
+	/* this event should be handled internally */
+	if (osip_strcasecmp(event_header->hvalue, "dialog") == 0)
+	{
+		/* send 200 ok to SUBSCRIBEs */
+
+		if (evt->type == EXOSIP_IN_SUBSCRIPTION_NEW)
+		{
+			osip_message_t *answer;
+			int i;
+
+			i = eXosip_insubscription_build_answer (evt->tid, 202, &answer);
+			if (i == 0)
+			{
+				i = eXosip_insubscription_send_answer (evt->tid, 202, answer);
+			}
+			if (i != 0)
+			{
+				i = eXosip_insubscription_send_answer (evt->tid, 400, NULL);
+				return 0;
+			}
+
+			/* send initial notify */
+			i = _eXosip_insubscription_auto_send_notify(evt->did , EXOSIP_SUBCRSTATE_ACTIVE, PROBATION);
+			if (i != 0)
+			{
+				/* delete subscription... */
+				return 0;
+			}
+		}
+	}
+	else
+	{
+		eXosip_insubscription_send_answer (evt->tid, 489, NULL);
+	}
+
+	return 0;
+}
+
 #endif

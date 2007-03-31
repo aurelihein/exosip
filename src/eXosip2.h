@@ -192,7 +192,6 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     int n_ss_status;
     int n_ss_reason;
     time_t n_ss_expires;
-	int s_auto;
     eXosip_dialog_t *n_dialogs;
 
     osip_transaction_t *n_inc_tr;
@@ -447,6 +446,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 #endif
     int use_rport;
     char ipv4_for_gateway[256];
+	char event_package[256];
     struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
     struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
   };

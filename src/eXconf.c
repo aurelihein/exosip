@@ -634,6 +634,7 @@ eXosip_init (void)
   memset (&eXosip, 0, sizeof (eXosip));
 
   snprintf(eXosip.ipv4_for_gateway, 256, "%s", "217.12.3.11");
+  snprintf(eXosip.event_package, 256, "%s", "dialog");
 
 #ifdef WIN32
   /* Initializing windows socket library */
@@ -897,6 +898,18 @@ eXosip_set_option (eXosip_option opt, const void *value)
                      "eXosip option set: ipv4_for_gateway:%s!\n",
                      eXosip.ipv4_for_gateway));
         break;
+	  case EXOSIP_OPT_EVENT_PACKAGE:
+        tmp = (char *) value;
+        memset (eXosip.event_package, '\0',
+                sizeof (eXosip.event_package));
+        if (tmp != NULL && tmp[0] != '\0')
+          strncpy (eXosip.event_package, tmp, sizeof (eXosip.event_package));
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                     "eXosip option set: event_package:%s!\n",
+                     eXosip.event_package));
+        break;
+
     default:
       return -1;
     }

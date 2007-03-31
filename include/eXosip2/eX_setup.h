@@ -80,7 +80,8 @@ typedef enum {
     EXOSIP_OPT_DONT_SEND_101 = 6,
     EXOSIP_OPT_USE_RPORT = 7,
     EXOSIP_OPT_SET_IPV4_FOR_GATEWAY = 8,
-	EXOSIP_OPT_ADD_DNS_CACHE = 9
+	EXOSIP_OPT_ADD_DNS_CACHE = 9,
+	EXOSIP_OPT_EVENT_PACKAGE = 10
 } eXosip_option;
 
 struct eXosip_dns_cache {
