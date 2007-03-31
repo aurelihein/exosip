@@ -197,7 +197,7 @@ eXosip_subscribe_send_initial_request (osip_message_t * subscribe)
   ADD_ELEMENT (eXosip.j_subscribes, js);
   eXosip_update ();             /* fixed? */
   __eXosip_wakeup ();
-  return 0;
+  return js->s_id;
 }
 
 int
