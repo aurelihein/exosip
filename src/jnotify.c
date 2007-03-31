@@ -83,30 +83,8 @@ int
 eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
 {
   osip_contact_t *co;
-  char *uri;
-  int i;
-  char locip[50];
 
-  i = _eXosip_find_protocol (inc_subscribe);
-  memset(locip, '\0', sizeof(locip));
-  if (i == IPPROTO_UDP)
-    {
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
-  } else if (i == IPPROTO_TCP)
-    {
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[1].net_ip_family, locip, 49);
-  } else
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol (default to UDP)\n"));
-      eXosip_guess_ip_for_via (eXosip.net_interfaces[0].net_ip_family, locip, 49);
-      return -1;
-    }
-
-  if (inc_subscribe == NULL
-      || inc_subscribe->to == NULL || inc_subscribe->to->url == NULL)
-    return -1;
+  *jn=NULL;
   co = (osip_contact_t *) osip_list_get (&inc_subscribe->contacts, 0);
   if (co == NULL || co->url == NULL)
     return -1;
@@ -115,16 +93,6 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
   if (*jn == NULL)
     return -1;
   memset (*jn, 0, sizeof (eXosip_notify_t));
-
-  i = osip_uri_to_str (co->url, &uri);
-  if (i != 0)
-    {
-      osip_free (*jn);
-      *jn = NULL;
-      return -1;
-    }
-  osip_strncpy ((*jn)->n_uri, uri, 254);
-  osip_free (uri);
 
   return 0;
 }

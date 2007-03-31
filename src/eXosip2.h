@@ -187,12 +187,12 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   {
 
     int n_id;
-    char n_uri[255];
     int n_online_status;
 
     int n_ss_status;
     int n_ss_reason;
     time_t n_ss_expires;
+	int s_auto;
     eXosip_dialog_t *n_dialogs;
 
     osip_transaction_t *n_inc_tr;
