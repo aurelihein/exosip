@@ -540,8 +540,8 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
 
 #include <stdio.h>
 
-static int ppl_dns_default_gateway_ipv4 (char *address, int size);
-static int ppl_dns_default_gateway_ipv6 (char *address, int size);
+static int _eXosip_default_gateway_ipv4 (char *address, int size);
+static int _eXosip_default_gateway_ipv6 (char *address, int size);
 
 
 int
@@ -549,10 +549,10 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
 {
   if (family == AF_INET6)
     {
-      return ppl_dns_default_gateway_ipv6 (address, size);
+      return _eXosip_default_gateway_ipv6 (address, size);
   } else
     {
-      return ppl_dns_default_gateway_ipv4 (address, size);
+      return _eXosip_default_gateway_ipv4 (address, size);
     }
 }
 
@@ -560,7 +560,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
  * The ip of the default interface is returned.
  */
 static int
-ppl_dns_default_gateway_ipv4 (char *address, int size)
+_eXosip_default_gateway_ipv4 (char *address, int size)
 {
 #ifdef __APPLE_CC__
   int len;
@@ -621,7 +621,7 @@ ppl_dns_default_gateway_ipv4 (char *address, int size)
  * The ip of the default interface is returned.
  */
 static int
-ppl_dns_default_gateway_ipv6 (char *address, int size)
+_eXosip_default_gateway_ipv6 (char *address, int size)
 {
 #ifdef __APPLE_CC__
   int len;
