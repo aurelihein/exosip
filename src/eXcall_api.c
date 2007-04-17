@@ -212,9 +212,7 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
                                   const char *route, const char *subject)
 {
   int i;
-  osip_uri_param_t *uri_param = NULL;
   osip_to_t *_to = NULL;
-  char transport[10];
 
   *invite = NULL;
 
@@ -236,16 +234,8 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
       return -1;
     }
 
-  osip_uri_uparam_get_byname (_to->url, "transport", &uri_param);
-  if (uri_param != NULL && uri_param->gvalue != NULL)
-	  snprintf(transport, sizeof(transport), "%s", uri_param->gvalue);
-  else if (eXosip.net_interfaces[0].net_socket > 0)
-	  snprintf(transport, sizeof(transport), "%s", "UDP");
-  else
-	  snprintf(transport, sizeof(transport), "%s", "TCP");
-
   i = generating_request_out_of_dialog (invite, "INVITE", to,
-                                          transport, from, route);
+                                          eXosip.transport, from, route);
   osip_to_free (_to);
   if (i != 0)
     return -1;
@@ -479,7 +469,6 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
   eXosip_call_t *jc = NULL;
 
   osip_transaction_t *transaction;
-  char *transport;
   int i;
 
   *request = NULL;
@@ -526,19 +515,8 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
         }
     }
 
-  transport = NULL;
-  transaction = eXosip_find_last_invite (jc, jd);
-  if (transaction != NULL && transaction->orig_request != NULL)
-    transport = _eXosip_transport_protocol (transaction->orig_request);
-
-  transaction = NULL;
-
-  if (transport == NULL)
-    i = _eXosip_build_request_within_dialog (request, method, jd->d_dialog, "UDP");
-  else
-    i =
-      _eXosip_build_request_within_dialog (request, method, jd->d_dialog,
-                                           transport);
+  i = _eXosip_build_request_within_dialog (request, method, jd->d_dialog,
+                                           eXosip.transport);
   if (i != 0)
     return -2;
 
@@ -901,7 +879,6 @@ eXosip_call_terminate (int cid, int did)
   osip_message_t *request = NULL;
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
-  char *transport = NULL;
 
   if (did > 0)
     {
@@ -957,13 +934,7 @@ eXosip_call_terminate (int cid, int did)
       /* Check if some dialog exists */
       if (jd != NULL && jd->d_dialog != NULL)
         {
-          transport = NULL;
-          if (tr != NULL && tr->orig_request != NULL)
-            transport = _eXosip_transport_protocol (tr->orig_request);
-          if (transport == NULL)
-            i = generating_bye (&request, jd->d_dialog, "UDP");
-          else
-            i = generating_bye (&request, jd->d_dialog, transport);
+	  i = generating_bye (&request, jd->d_dialog, eXosip.transport);
           if (i != 0)
             {
               OSIP_TRACE (osip_trace
@@ -1015,13 +986,7 @@ eXosip_call_terminate (int cid, int did)
         }
     }
 
-  transport = NULL;
-  if (tr != NULL && tr->orig_request != NULL)
-    transport = _eXosip_transport_protocol (tr->orig_request);
-  if (transport == NULL)
-    i = generating_bye (&request, jd->d_dialog, "UDP");
-  else
-    i = generating_bye (&request, jd->d_dialog, transport);
+  i = generating_bye (&request, jd->d_dialog, eXosip.transport);
 
   if (i != 0)
     {
@@ -1262,11 +1227,12 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 			    u_param = NULL;
 			    protocol = IPPROTO_UDP;
 			    break;    /* ok */
-			  } else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
-			    {
-			      protocol = IPPROTO_TCP;
-			      u_param = NULL;
-			    }
+			  }
+			else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
+			  {
+			    protocol = IPPROTO_TCP;
+			    u_param = NULL;
+			  }
 			break;
 		      }
 		  pos2++;

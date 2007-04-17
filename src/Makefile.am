@@ -23,6 +23,13 @@ jevents.c        misc.c           \
 jauth.c                           \
 eXosip2.h
 
+libeXosip2_la_SOURCES+= \
+eXtl.c \
+eXtl_udp.c \
+eXtl_tcp.c \
+eXtl_dtls.c \
+eXtl_tls.c
+
 if BUILD_MAXSIZE
 libeXosip2_la_SOURCES+= \
 eXsubscription_api.c    eXoptions_api.c    \

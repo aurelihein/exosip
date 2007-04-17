@@ -57,6 +57,7 @@
 #include <osip2/osip_dialog.h>
 
 #include <eXosip2/eXosip.h>
+#include "eXtransport.h"
 
 #include "jpipe.h"
 
@@ -238,8 +239,6 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     osip_transaction_t *r_last_tr;
     int r_retry;                /* avoid too many unsuccessfull retry */
 
-    char transport[10];         /* transport used for registration */
-
     struct __eXosip_sockaddr addr;
     int len;
 
@@ -354,6 +353,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 #define EXOSIP_MAX_SOCKETS 200
 #endif
 
+#if 0
   /* structure used for keepalive management with connected protocols (TCP or TLS) */
   struct eXosip_socket
   {
@@ -372,6 +372,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     int net_protocol;           /* initial socket for receiving message/connection */
     struct eXosip_socket net_socket_tab[EXOSIP_MAX_SOCKETS];
   };
+#endif
 
   char *_eXosip_transport_protocol (osip_message_t * msg);
   int _eXosip_find_protocol (osip_message_t * msg);
@@ -404,7 +405,11 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 
   struct eXosip_t
   {
+#if 0
     struct eXosip_net net_interfaces[3];
+#endif
+    struct eXtl_protocol *eXtl;
+    char transport[10];
     char *user_agent;
 
     eXosip_call_t *j_calls;     /* my calls        */
@@ -655,6 +660,9 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 	  osip_message_t * message);
 
   int _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record);
+
+  int _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
+				       char *host, int port);
 
 #ifdef __cplusplus
 }

@@ -114,10 +114,6 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   int i;
   osip_via_t *via;
 
-  if (eXosip.net_interfaces[0].net_socket == 0
-      && eXosip.net_interfaces[1].net_socket == 0)
-    return -1;
-
 #ifndef MINISIZE
   if(eXosip.dontsend_101 != 0 && sip->status_code == 101)
         return 0;
@@ -200,10 +196,19 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   i = -1;
   if (osip_strcasecmp (via->protocol, "udp") == 0)
     {
-      i = cb_udp_snd_message (tr, sip, host, port, out_socket);
-  } else
+      i = eXtl_udp.tl_send_message (tr, sip, host, port, out_socket);
+    }
+  else if (osip_strcasecmp (via->protocol, "tcp") == 0)
     {
-      i = cb_tcp_snd_message (tr, sip, host, port, out_socket);
+      i = eXtl_tcp.tl_send_message (tr, sip, host, port, out_socket);
+    }
+  else if (osip_strcasecmp (via->protocol, "tls") == 0)
+    {
+      i = eXtl_tls.tl_send_message (tr, sip, host, port, out_socket);
+    }
+  else if (osip_strcasecmp (via->protocol, "dtls-udp") == 0)
+    {
+      i = eXtl_dtls.tl_send_message (tr, sip, host, port, out_socket);
     }
   if (i != 0)
     {
@@ -214,6 +219,7 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 }
 
+#if 0
 int
 cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
                     int port, int out_socket)
@@ -536,6 +542,7 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   return 0;
 
 }
+#endif
 
 static void
 cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
@@ -903,38 +910,6 @@ __eXosip_new_jinfo (eXosip_call_t * jc, eXosip_dialog_t * jd)
   return ji;
 }
 
-static void
-_eXosip_learn_port_from_via(osip_transaction_t * tr, osip_message_t * sip);
-
-static void
-_eXosip_learn_port_from_via(osip_transaction_t * tr, osip_message_t * sip)
-{
-    /* EXOSIP_OPT_UDP_LEARN_PORT option set */ 
-    if (eXosip.learn_port > 0)
-    {
-        struct eXosip_net *net;
-        osip_via_t *via = NULL;
-        osip_generic_param_t *br;
-
-        net = &eXosip.net_interfaces[0];
-
-        osip_message_get_via (sip, 0, &via);
-        if (via != NULL && via->protocol != NULL
-            && osip_strcasecmp (via->protocol, "udp") == 0)
-        {
-            osip_via_param_get_byname (via, "rport", &br);
-            if (br != NULL && br->gvalue != NULL)
-            {
-                snprintf (net->net_port, 20, "%s", br->gvalue);
-                OSIP_TRACE (osip_trace
-                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                            "_eXosip_learn_port_from_via (id=%i) SIP port modified from rport in SIP answer\r\n",
-                            tr->transactionid));
-            }
-        }
-    }
-    return;
-}
 
 static void
 cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
@@ -951,7 +926,7 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv1xx (id=%i)\r\n",
                tr->transactionid));
 
-  _eXosip_learn_port_from_via(tr, sip);
+  udp_tl_learn_port_from_via(sip);
 
   if (jinfo == NULL)
     return;
@@ -1329,7 +1304,7 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv2xx (id=%i)\r\n",
                tr->transactionid));
 
-  _eXosip_learn_port_from_via(tr, sip);
+  udp_tl_learn_port_from_via(sip);
 
 #ifndef MINISIZE
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
@@ -1502,7 +1477,7 @@ cb_rcv3xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv3xx (id=%i)\r\n",
                tr->transactionid));
 
-  _eXosip_learn_port_from_via(tr, sip);
+  udp_tl_learn_port_from_via(sip);
 
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
@@ -1598,7 +1573,7 @@ cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv4xx (id=%i)\r\n",
                tr->transactionid));
 
-  _eXosip_learn_port_from_via(tr, sip);
+  udp_tl_learn_port_from_via(sip);
 
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
@@ -1707,7 +1682,7 @@ cb_rcv5xx (int type, osip_transaction_t * tr, osip_message_t * sip)
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv5xx (id=%i)\r\n",
                tr->transactionid));
 
-  _eXosip_learn_port_from_via(tr, sip);
+  udp_tl_learn_port_from_via(sip);
 
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
@@ -1798,7 +1773,7 @@ cb_rcv6xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   eXosip_notify_t *jn;
   jinfo_t *jinfo = (jinfo_t *) osip_transaction_get_your_instance (tr);
 
-  _eXosip_learn_port_from_via(tr, sip);
+  udp_tl_learn_port_from_via(sip);
 
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv6xx (id=%i)\r\n",
@@ -1902,7 +1877,7 @@ cb_rcv3456xx (int type, osip_transaction_t * tr, osip_message_t * sip,
               (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv3456xx (id=%i)\r\n",
                tr->transactionid));
 
-  _eXosip_learn_port_from_via(tr, sip);
+  udp_tl_learn_port_from_via(sip);
 
   if (MSG_IS_RESPONSE_FOR (sip, "REGISTER"))
     {

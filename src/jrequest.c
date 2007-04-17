@@ -87,130 +87,123 @@ via_branch_new_random (void)
 int
 _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 {
-	osip_via_t *via;
-	osip_from_t *a_from;
-	char transport[10];
-	char *contact=NULL;
-	struct eXosip_net *net;
-	char locip[50];
-	int len;
+  osip_via_t *via;
+  osip_from_t *a_from;
+  char *contact=NULL;
+  char locip[50];
+  char firewall_ip[50];
+  char firewall_port[10];
+  int len;
 
-	if (request==NULL)
-		return -1;
+  if (request==NULL)
+    return -1;
 
-	/* search for topmost Via which indicate the transport protocol */
-	via = (osip_via_t *) osip_list_get (&request->vias, 0);
-	if (via == NULL || via->protocol == NULL)
+  if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
+    {
+      eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+					     firewall_port, sizeof(&firewall_port));
+    }
+
+  /* search for topmost Via which indicate the transport protocol */
+  via = (osip_via_t *) osip_list_get (&request->vias, 0);
+  if (via == NULL || via->protocol == NULL)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: missing via header\n"));
       return -1;
     }
-	snprintf(transport, sizeof(transport), "%s", via->protocol);
 
-	if (0 == osip_strcasecmp (transport, "udp"))
-		net = &eXosip.net_interfaces[0];
-	else if (0 == osip_strcasecmp (transport, "tcp"))
-		net = &eXosip.net_interfaces[1];
-	else
-	{
-		OSIP_TRACE (osip_trace
-					(__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: unsupported protocol (default to UDP)\n"));
-		net = &eXosip.net_interfaces[0];
-	}
+  if (answer==NULL)
+    a_from = request->from;
+  else
+    a_from = answer->to;
 
-	if (answer==NULL)
-		a_from = request->from;
-	else
-		a_from = answer->to;
-
-	if (a_from == NULL || a_from->url == NULL)
-		return -1;
+  if (a_from == NULL || a_from->url == NULL)
+    return -1;
 
   /*guess the local ip since req uri is known */
-	memset(locip, '\0', sizeof(locip));
+  memset(locip, '\0', sizeof(locip));
 
-	if (a_from->url->username != NULL)
-		len = 2 + 4 + strlen (a_from->url->username) + 1 + 100 + 6 + 10 + strlen(transport);
-	else
-		len = 2 + 4 + 100 + 6 + 10 + strlen(transport);
+  if (a_from->url->username != NULL)
+    len = 2 + 4 + strlen (a_from->url->username) + 1 + 100 + 6 + 10 + strlen(eXosip.transport);
+  else
+    len = 2 + 4 + 100 + 6 + 10 + strlen(eXosip.transport);
 
-	contact = (char *) osip_malloc (len+1);
-    if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
+  contact = (char *) osip_malloc (len+1);
+  if (firewall_ip[0] != '\0')
     {
-        char *c_address = request->req_uri->host;
+      char *c_address = request->req_uri->host;
 
-        struct addrinfo *addrinfo;
-        struct __eXosip_sockaddr addr;
-		int i;
+      struct addrinfo *addrinfo;
+      struct __eXosip_sockaddr addr;
+      int i;
 
-        i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_TCP);
-        if (i == 0)
+      i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_TCP);
+      if (i == 0)
         {
-            memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-            eXosip_freeaddrinfo (addrinfo);
-            c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
-            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                        "eXosip: here is the resolved destination host=%s\n",
-                        c_address));
+	  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+	  eXosip_freeaddrinfo (addrinfo);
+	  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				  "eXosip: here is the resolved destination host=%s\n",
+				  c_address));
         }
 
-        if (eXosip_is_public_address (c_address))
+      if (eXosip_is_public_address (c_address))
         {
-			memcpy(locip, eXosip.net_interfaces[0].net_firewall_ip, sizeof(locip));
-		}
+	  memcpy(locip, firewall_ip, sizeof(locip));
 	}
+    }
 
-    if (locip[0] == '\0')
+  if (locip[0] == '\0')
+    {
+      eXosip_guess_ip_for_via (eXosip.eXtl->proto_family, locip, 49);
+      if (locip[0]=='\0')
 	{
-		eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
-		if (locip[0]=='\0')
-		{
-			OSIP_TRACE (osip_trace
-						(__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: no default interface defined\n"));
-			return -1;
-		}
+	  OSIP_TRACE (osip_trace
+		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		       "eXosip: no default interface defined\n"));
+	  return -1;
 	}
+    }
 
-	if (net->net_ip_family == AF_INET6)
-	{
-		if (a_from->url->username != NULL)
-			snprintf (contact, len, "<sip:%s@[%s]:%s>", a_from->url->username,
-				locip, net->net_port);
-		else
-			snprintf (contact, len-strlen(transport)-10, "<sip:[%s]:%s>", locip, net->net_port);
-	}
-	else
-	{
-		if (a_from->url->username != NULL)
-			snprintf (contact, len, "<sip:%s@%s:%s>", a_from->url->username,
-				locip, net->net_port);
-		else
-			snprintf (contact, len-strlen(transport)-10, "<sip:%s:%s>", locip, net->net_port);
-	}
-	if (osip_strcasecmp(transport, "UDP")!=0)
-	{
-		contact[strlen(contact)-1]='\0';
-		strcat(contact, ";transport=");
-		strcat(contact, transport);
-		strcat(contact, ">");
-	}
-    osip_message_set_contact (request, contact);
-    osip_free (contact);
+  if (eXosip.eXtl->proto_family == AF_INET6)
+    {
+      if (a_from->url->username != NULL)
+	snprintf (contact, len, "<sip:%s@[%s]:%s>", a_from->url->username,
+		  locip, firewall_port);
+      else
+	snprintf (contact, len-strlen(eXosip.transport)-10, "<sip:[%s]:%s>", locip, firewall_port);
+    }
+  else
+    {
+      if (a_from->url->username != NULL)
+	snprintf (contact, len, "<sip:%s@%s:%s>", a_from->url->username,
+		  locip, firewall_port);
+      else
+	snprintf (contact, len-strlen(eXosip.transport)-10, "<sip:%s:%s>", locip, firewall_port);
+    }
+  if (osip_strcasecmp(eXosip.transport, "UDP")!=0)
+    {
+      contact[strlen(contact)-1]='\0';
+      strcat(contact, ";transport=");
+      strcat(contact, eXosip.transport);
+      strcat(contact, ">");
+    }
+  osip_message_set_contact (request, contact);
+  osip_free (contact);
 
-	return 0;
+  return 0;
 }
 
 int
 _eXosip_request_add_via(osip_message_t *request, const char *transport, const char *locip)
 {
   char tmp[200];
-  char tr[20];
-  struct eXosip_net *net;
   const char *ip=NULL;
+  char firewall_ip[50];
+  char firewall_port[10];
 
   if (request==NULL)
     return -1;
@@ -226,40 +219,31 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport, const ch
   else if (request->call_id->host!=NULL)
     ip = request->call_id->host;
 
-  if (0 == osip_strcasecmp (transport, "udp"))
+  if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
-      snprintf(tr, 20, "UDP");
-      net = &eXosip.net_interfaces[0];
+      eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+					     firewall_port, sizeof(&firewall_port));
     }
-  else if (0 == osip_strcasecmp (transport, "tcp"))
-    {
-      snprintf(tr, 20, "TCP");
-      net = &eXosip.net_interfaces[1];
-    }
+
+  if (eXosip.eXtl->proto_family == AF_INET6)
+    snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u",
+	      eXosip.transport,
+	      ip, firewall_port, via_branch_new_random ());
   else
     {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol (default to UDP)\n"));
-      net = &eXosip.net_interfaces[0];
+      if (eXosip.use_rport!=0)
+	snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
+		  eXosip.transport,
+		  ip, firewall_port, via_branch_new_random ());
+      else
+	snprintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u",
+		  eXosip.transport,
+		  ip, firewall_port, via_branch_new_random ());	  
     }
-
-    if (net->net_ip_family == AF_INET6)
-      snprintf (tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u", tr,
-                ip, net->net_port, via_branch_new_random ());
-    else
-      {
-	if (eXosip.use_rport!=0)
-	  snprintf (tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u", tr,
-		    ip, net->net_port, via_branch_new_random ());
-	else
-	  snprintf (tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u", tr,
-		    ip, net->net_port, via_branch_new_random ());	  
-      }
-
-    osip_message_set_via (request, tmp);
-
-    return 0;
+  
+  osip_message_set_via (request, tmp);
+  
+  return 0;
 }
 
 /* prepare a minimal request (outside of a dialog) with required headers */
@@ -282,25 +266,12 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   char locip[50];
   int doing_register;
   char *register_callid_number = NULL;
-  struct eXosip_net *net;
-
-  if (0 == osip_strcasecmp (transport, "udp"))
-    net = &eXosip.net_interfaces[0];
-  else if (0 == osip_strcasecmp (transport, "tcp"))
-    net = &eXosip.net_interfaces[1];
-  else
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol (default to UDP)\n"));
-      net = &eXosip.net_interfaces[0];
-    }
 
   *dest = NULL;
 
   /*guess the local ip since req uri is known */
   memset(locip, '\0', sizeof(locip));
-  eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
+  eXosip_guess_ip_for_via (eXosip.eXtl->proto_family, locip, 49);
   if (locip[0]=='\0')
     {
       OSIP_TRACE (osip_trace
@@ -500,7 +471,13 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
   osip_from_t *a_from;
   int i;
   char locip[50];
-  struct eXosip_net *net;
+  char firewall_ip[50];
+  char firewall_port[10];
+  if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
+    {
+      eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+					     firewall_port, sizeof(&firewall_port));
+    }
 
   i =
     generating_request_out_of_dialog (reg, "REGISTER", NULL, transport, from,
@@ -508,24 +485,8 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
   if (i != 0)
     return -1;
 
-  i = _eXosip_find_protocol (*reg);
-  if (i == IPPROTO_UDP)
-    net = &eXosip.net_interfaces[0];
-  else if (i == IPPROTO_TCP)
-    net = &eXosip.net_interfaces[1];
-  else
-    {
-      net = &eXosip.net_interfaces[0];
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol\n"));
-      osip_message_free(*reg);
-      *reg=NULL;
-      return -1;
-    }
-
   memset(locip, '\0', sizeof(locip));
-  eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
+  eXosip_guess_ip_for_via (eXosip.eXtl->proto_family, locip, 49);
 
   if (locip[0]=='\0')
     {
@@ -552,7 +513,7 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
 	      len = len + strlen(transport) + 12; /* strlen(";transport=") */
 	    }
 	  contact = (char *) osip_malloc (len);
-          if (eXosip.net_interfaces[0].net_firewall_ip[0] != '\0')
+          if (firewall_ip[0] != '\0')
             {
               char *c_address = (*reg)->req_uri->host;
 
@@ -576,17 +537,17 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
               if (eXosip_is_public_address (c_address))
                 {
                   sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                           eXosip.net_interfaces[0].net_firewall_ip,
-                           net->net_port);
+                           firewall_ip,
+                           firewall_port);
               } else
                 {
                   sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                           locip, net->net_port);
+                           locip, firewall_port);
                 }
           } else
             {
               sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                       locip, net->net_port);
+                       locip, firewall_port);
             }
 	  
 	  if (transport!=NULL && osip_strcasecmp(transport, "UDP")!=0)
@@ -735,7 +696,13 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   int i;
   osip_message_t *request;
   char locip[50];
-  struct eXosip_net *net;
+  char firewall_ip[50];
+  char firewall_port[10];
+  if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
+    {
+      eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+					     firewall_port, sizeof(&firewall_port));
+    }
 
   *dest=NULL;
 
@@ -752,20 +719,9 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
       return -1;
     }
 
-  if (0 == osip_strcasecmp (transport, "udp"))
-    net = &eXosip.net_interfaces[0];
-  else if (0 == osip_strcasecmp (transport, "tcp"))
-    net = &eXosip.net_interfaces[1];
-  else
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol -%s- (default to UDP)\n"));
-      net = &eXosip.net_interfaces[0];
-    }
 
   memset(locip, '\0', sizeof(locip));
-  eXosip_guess_ip_for_via (net->net_ip_family, locip, 49);
+  eXosip_guess_ip_for_via (eXosip.eXtl->proto_family, locip, 49);
   if (locip[0]=='\0')
     {
       OSIP_TRACE (osip_trace
@@ -847,7 +803,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   {
     char contact[200];
 
-    if (net->net_firewall_ip[0] != '\0')
+    if (firewall_ip[0] != '\0')
       {
         char *c_address = request->req_uri->host;
 
@@ -872,16 +828,16 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
           {
             sprintf (contact, "<sip:%s@%s:%s>",
                      dialog->local_uri->url->username,
-                     eXosip.net_interfaces[0].net_firewall_ip, net->net_port);
+                     firewall_ip, firewall_port);
         } else
           {
             sprintf (contact, "<sip:%s@%s:%s>",
-                     dialog->local_uri->url->username, locip, net->net_port);
+                     dialog->local_uri->url->username, locip, firewall_port);
           }
     } else
       {
         sprintf (contact, "<sip:%s@%s:%s>", dialog->local_uri->url->username,
-                 locip, net->net_port);
+                 locip, firewall_port);
       }
     osip_message_set_contact (request, contact);
     /* Here we'll add the supported header if it's needed! */

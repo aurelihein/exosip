@@ -110,9 +110,7 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
 {
   char tmp[10];
   int i;
-  osip_uri_param_t *uri_param = NULL;
   osip_to_t *_to = NULL;
-  char transport[10];
 
   *sub = NULL;
   if (to == NULL || *to == '\0')
@@ -135,15 +133,7 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
       return -1;
     }
 
-  osip_uri_uparam_get_byname (_to->url, "transport", &uri_param);
-  if (uri_param != NULL && uri_param->gvalue != NULL)
-	  snprintf(transport, sizeof(transport), "%s", uri_param->gvalue);
-  else if (eXosip.net_interfaces[0].net_socket > 0)
-	  snprintf(transport, sizeof(transport), "%s", "UDP");
-  else
-	  snprintf(transport, sizeof(transport), "%s", "TCP");
-
-  i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, transport, from,
+  i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, eXosip.transport, from,
                                             route);
   osip_to_free (_to);
   if (i != 0)

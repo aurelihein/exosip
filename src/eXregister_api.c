@@ -65,7 +65,6 @@ static int
 _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 {
   osip_message_t *reg = NULL;
-  struct eXosip_net *net;
   int i;
 
   reg = NULL;
@@ -109,50 +108,6 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 	    osip_list_special_free(&reg->authorizations, (void *(*)(void *)) &osip_authorization_free);
 	    osip_list_special_free(&reg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
 
-            if (0 == osip_strcasecmp (jr->transport, "udp"))
-              net = &eXosip.net_interfaces[0];
-            else if (0 == osip_strcasecmp (jr->transport, "tcp"))
-              net = &eXosip.net_interfaces[1];
-            else
-              {
-                OSIP_TRACE (osip_trace
-                            (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                             "eXosip: unsupported protocol '%s' (default to UDP)\n",
-                             jr->transport));
-                net = &eXosip.net_interfaces[0];
-              }
-
-            /*
-               modify the port number when masquerading is ON.
-             */
-            if (net->net_firewall_ip[0] != '\0')
-              {
-                int pos = 0;
-
-                while (!osip_list_eol (&reg->contacts, pos))
-                  {
-                    osip_contact_t *co;
-
-                    co = (osip_contact_t *) osip_list_get (&reg->contacts, pos);
-                    pos++;
-                    if (co != NULL && co->url != NULL && co->url->host != NULL
-                        && 0 == osip_strcasecmp (co->url->host,
-                                                 net->net_firewall_ip))
-                      {
-                        if (co->url->port == NULL &&
-                            0 != osip_strcasecmp (net->net_port, "5060"))
-                          {
-                            co->url->port = osip_strdup (net->net_port);
-                        } else if (co->url->port != NULL &&
-                                   0 != osip_strcasecmp (net->net_port,
-                                                         co->url->port))
-                          {
-                            osip_free (co->url->port);
-                            co->url->port = osip_strdup (net->net_port);
-                          }
-                      }
-                  }
-              }
 
             if (-1 == eXosip_update_top_via (reg))
               {
@@ -197,7 +152,7 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
     }
   if (reg == NULL)
     {
-      i = generating_register (&reg, jr->transport,
+      i = generating_register (&reg, eXosip.transport,
                                jr->r_aor, jr->r_registrar, jr->r_contact,
                                jr->r_reg_period);
       if (i != 0)
@@ -219,11 +174,6 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
   int i;
 
   *reg = NULL;
-
-  if (eXosip.net_interfaces[0].net_socket <= 0
-      && eXosip.net_interfaces[1].net_socket <= 0
-      && eXosip.net_interfaces[2].net_socket <= 0)
-    return -1;
 
   /* Avoid adding the same registration info twice to prevent mem leaks */
   for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
@@ -249,14 +199,6 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
         }
       ADD_ELEMENT (eXosip.j_reg, jr);
     }
-
-  /* Guess transport from existing connections */
-  if (eXosip.net_interfaces[0].net_socket > 0)
-    osip_strncpy (jr->transport, "UDP", sizeof (jr->transport) - 1);
-  else if (eXosip.net_interfaces[1].net_socket > 0)
-    osip_strncpy (jr->transport, "TCP", sizeof (jr->transport) - 1);
-  else if (eXosip.net_interfaces[2].net_socket > 0)
-    osip_strncpy (jr->transport, "TLS", sizeof (jr->transport) - 1);
 
   /* build register */
   jr->r_reg_period = expires;
@@ -327,7 +269,6 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
   osip_transaction_t *transaction;
   osip_event_t *sipevent;
   eXosip_reg_t *jr;
-  char *transport;
   int i;
 
   jr = eXosip_reg_find (rid);
@@ -358,9 +299,6 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
           return i;
         }
     }
-
-  transport = _eXosip_transport_protocol (reg);
-  osip_strncpy (jr->transport, transport, sizeof (jr->transport) - 1);
 
   i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, reg);
   if (i != 0)

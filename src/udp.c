@@ -1503,10 +1503,7 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 	osip_event_free (evt);
 }
 
-static int _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
-                                            char *host, int port);
-
-static int
+int
 _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
                                  char *host, int port)
 {
@@ -1565,12 +1562,10 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 {
   fd_set osip_fdset;
   struct timeval tv;
-  char *buf;
 
   tv.tv_sec = sec_max;
   tv.tv_usec = usec_max;
 
-  buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
   while (max_message_nb != 0 && eXosip.j_stop_ua == 0)
     {
       int i;
@@ -1580,38 +1575,10 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 #endif
 
       FD_ZERO (&osip_fdset);
-      if (eXosip.net_interfaces[0].net_socket > 0)
-        {
-          eXFD_SET (eXosip.net_interfaces[0].net_socket, &osip_fdset);
-          max = eXosip.net_interfaces[0].net_socket;
-        }
-      if (eXosip.net_interfaces[1].net_socket > 0)
-        {
-          int pos;
-          struct eXosip_net *net = &eXosip.net_interfaces[1];
-
-          eXFD_SET (net->net_socket, &osip_fdset);
-          if (net->net_socket > max)
-            max = net->net_socket;
-
-          for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
-            {
-              if (net->net_socket_tab[pos].socket != 0)
-                {
-                  eXFD_SET (net->net_socket_tab[pos].socket, &osip_fdset);
-                  if (net->net_socket_tab[pos].socket > max)
-                    max = net->net_socket_tab[pos].socket;
-                }
-            }
-        }
-
-      if (eXosip.net_interfaces[2].net_socket > 0)
-        {
-          eXFD_SET (eXosip.net_interfaces[2].net_socket, &osip_fdset);
-          if (eXosip.net_interfaces[2].net_socket > max)
-            max = eXosip.net_interfaces[2].net_socket;
-        }
-
+      eXtl_udp.tl_set_fdset(&osip_fdset, &max);
+      eXtl_tcp.tl_set_fdset(&osip_fdset, &max);
+      eXtl_dtls.tl_set_fdset(&osip_fdset, &max);
+      eXtl_tls.tl_set_fdset(&osip_fdset, &max);
 
 #ifdef OSIP_MT
       eXFD_SET (wakeup_socket, &osip_fdset);
@@ -1643,303 +1610,23 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 
       if (0 == i || eXosip.j_stop_ua != 0)
         {
-      } else if (-1 == i)
+	}
+      else if (-1 == i)
         {
 #if !defined (_WIN32_WCE)       /* TODO: fix me for wince */
-          osip_free (buf);
           return -2;            /* error */
 #endif
-      } else if (FD_ISSET (eXosip.net_interfaces[1].net_socket, &osip_fdset))
-        {
-          /* accept incoming connection */
-          char src6host[NI_MAXHOST];
-          int recvport = 0;
-          struct sockaddr_storage sa;
-          int sock;
-          int i;
-          int pos;
-
-#ifdef __linux
-          socklen_t slen;
-#else
-          int slen;
-#endif
-          if (ipv6_enable == 0)
-            slen = sizeof (struct sockaddr_in);
-          else
-            slen = sizeof (struct sockaddr_in6);
-
-          for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
-            {
-              if (eXosip.net_interfaces[1].net_socket_tab[pos].socket == 0)
-                break;
-            }
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
-                                  "creating TCP socket at index: %i\n", pos));
-          sock =
-            accept (eXosip.net_interfaces[1].net_socket,
-                    (struct sockaddr *) &sa, &slen);
-          if (sock < 0)
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                      "Error accepting TCP socket\n"));
-              break;
-            }
-          eXosip.net_interfaces[1].net_socket_tab[pos].socket = sock;
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                  "New TCP connection accepted\n"));
-
-          memset (src6host, 0, sizeof (src6host));
-
-          if (ipv6_enable == 0)
-            recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
-          else
-            recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
-
-#if defined(__arc__)
-	  {
-	    struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
-	    char *tmp;
-	    tmp = inet_ntoa(fromsa->sin_addr);
-	    if (tmp==NULL)
-	      {
-		OSIP_TRACE (osip_trace
-			    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			     "Message received from: NULL:%i inet_ntoa failure\n",
-			     recvport));
-	      }
-	    else
-	      {
-		snprintf(src6host, sizeof(src6host), "%s", tmp);
-		OSIP_TRACE (osip_trace
-			    (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			     "Message received from: %s:%i\n", src6host, recvport));
-		osip_strncpy (eXosip.net_interfaces[1].net_socket_tab[pos].
-			      remote_ip, src6host,
-			      sizeof (eXosip.net_interfaces[1].
-				      net_socket_tab[pos].remote_ip));
-		eXosip.net_interfaces[1].net_socket_tab[pos].remote_port = recvport;
-	      }
-	  }
-#else
-          i = getnameinfo ((struct sockaddr *) &sa, slen,
-                           src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-
-          if (i != 0)
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "Message received from: NULL:%i getnameinfo failure\n",
-                           recvport));
-	    }
-	  else
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                           "Message received from: %s:%i\n", src6host, recvport));
-              osip_strncpy (eXosip.net_interfaces[1].net_socket_tab[pos].
-                            remote_ip, src6host,
-                            sizeof (eXosip.net_interfaces[1].
-                                    net_socket_tab[pos].remote_ip));
-              eXosip.net_interfaces[1].net_socket_tab[pos].remote_port = recvport;
-            }
-#endif
-
-      } else if (FD_ISSET (eXosip.net_interfaces[0].net_socket, &osip_fdset))
-        {
-          /*AMDstruct sockaddr_in sa; */
-          struct sockaddr_storage sa;
-
-#ifdef __linux
-          socklen_t slen;
-#else
-          int slen;
-#endif
-          if (ipv6_enable == 0)
-            slen = sizeof (struct sockaddr_in);
-          else
-            slen = sizeof (struct sockaddr_in6);
-
-          i =
-            _eXosip_recvfrom (eXosip.net_interfaces[0].net_socket, buf,
-                              SIP_MESSAGE_MAX_LENGTH, 0,
-                              (struct sockaddr *) &sa, &slen);
-
-          if (i > 5)            /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
-            {
-              /* Message might not end with a "\0" but we know the number of */
-              /* char received! */
-	      char src6host[NI_MAXHOST];
-	      int recvport = 0;
-
-              osip_strncpy (buf + i, "\0", 1);
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                      "Received message: \n%s\n", buf));
-#ifdef WIN32
-              if (strlen (buf) > 412)
-                {
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                               "Message suite: \n%s\n", buf + 412));
-                }
-#endif
-
-#ifndef MINISIZE
-	      if (!eXosip.http_port)
-#endif
-		{
-		  int err;
-		  
-		  memset (src6host, 0, sizeof (src6host));
-		  
-		  if (ipv6_enable == 0)
-		    recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
-		  else
-		    recvport =
-		      ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
-		  
-#if defined(__arc__)
-		  {
-		    struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
-		    char *tmp;
-		    tmp = inet_ntoa(fromsa->sin_addr);
-		    if (tmp==NULL)
-		      {
-			OSIP_TRACE (osip_trace
-				    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				     "Message received from: NULL:%i inet_ntoa failure\n",
-				     recvport));
-		      }
-		    else
-		      {
-			snprintf(src6host, sizeof(src6host), "%s", tmp);
-			OSIP_TRACE (osip_trace
-				    (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				     "Message received from: %s:%i\n", src6host, recvport));
-		      }
-		  }
-#else
-		  err = getnameinfo ((struct sockaddr *) &sa, slen,
-				   src6host, NI_MAXHOST,
-				   NULL, 0, NI_NUMERICHOST);
-		  
-		  if (err != 0)
-		    {
-		      OSIP_TRACE (osip_trace
-				  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				   "Message received from: NULL:%i getnameinfo failure\n",
-				   recvport));
-		    }
-		  else
-		    {
-		      OSIP_TRACE (osip_trace
-				  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				   "Message received from: %s:%i\n",
-				   src6host, recvport));
-		    }
-#endif
-		  
-		  OSIP_TRACE (osip_trace
-			      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			       "Message received from: %s:%i\n",
-			       src6host, recvport));
-		  
-		}
-	      
-	      _eXosip_handle_incoming_message(buf, i, eXosip.net_interfaces[0].net_socket, src6host, recvport);
-
-	    }
-#ifndef MINISIZE
-	  else if (i < 0)
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                      "Could not read socket\n"));
-	    }
-	  else
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                      "Dummy SIP message received\n"));
-            }
-#endif
-      } else
-        {
-          /* loop over all TCP socket */
-          int pos = 0;
-
-          for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
-            {
-              if (eXosip.net_interfaces[1].net_socket_tab[pos].socket > 0
-                  && FD_ISSET (eXosip.net_interfaces[1].net_socket_tab[pos].
-                               socket, &osip_fdset))
-                {
-                  i =
-                    recv (eXosip.net_interfaces[1].net_socket_tab[pos].socket,
-                          buf, SIP_MESSAGE_MAX_LENGTH, 0);
-                  if (i > 5)
-                    {
-                      osip_strncpy (buf + i, "\0", 1);
-                      OSIP_TRACE (osip_trace
-                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                   "Received TCP message: \n%s\n", buf));
-#ifdef WIN32
-                      if (strlen (buf) > 412)
-                        {
-                          OSIP_TRACE (osip_trace
-                                      (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                       "Message suite: \n%s\n", buf + 412));
-                        }
-#endif
-                      _eXosip_handle_incoming_message (buf, i,
-                                                       eXosip.
-                                                       net_interfaces[1].
-                                                       net_socket_tab[pos].
-                                                       socket,
-                                                       eXosip.
-                                                       net_interfaces[1].
-                                                       net_socket_tab[pos].
-                                                       remote_ip,
-                                                       eXosip.
-                                                       net_interfaces[1].
-                                                       net_socket_tab[pos].
-                                                       remote_port);
-                  } else if (i < 0)
-                    {
-                      OSIP_TRACE (osip_trace
-                                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                   "Could not read socket - close it\n"));
-                      close (eXosip.net_interfaces[1].net_socket_tab[pos].socket);
-                      memset (&(eXosip.net_interfaces[1].net_socket_tab[pos]),
-                              0, sizeof (struct eXosip_socket));
-                  } else if (i == 0)
-                    {
-                      OSIP_TRACE (osip_trace
-                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                   "End of stream (read 0 byte from %s:%i)\n",
-                                   eXosip.net_interfaces[1].
-                                   net_socket_tab[pos].remote_ip,
-                                   eXosip.net_interfaces[1].
-                                   net_socket_tab[pos].remote_port));
-                      close (eXosip.net_interfaces[1].net_socket_tab[pos].socket);
-                      memset (&(eXosip.net_interfaces[1].net_socket_tab[pos]),
-                              0, sizeof (struct eXosip_socket));
-		    }
-#ifndef MINISIZE
-		  else
-                    {
-                      /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
-                      OSIP_TRACE (osip_trace
-                                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                   "Dummy SIP message received (size=%i)\n", i));
-                    }
-#endif
-                }
-            }
+	}
+      else 
+	{
+	  eXtl_udp.tl_read_message(&osip_fdset);
+	  eXtl_tcp.tl_read_message(&osip_fdset);
+	  eXtl_dtls.tl_read_message(&osip_fdset);
+	  eXtl_tls.tl_read_message(&osip_fdset);
         }
-
 
       max_message_nb--;
     }
-  osip_free (buf);
   return 0;
 }
 
