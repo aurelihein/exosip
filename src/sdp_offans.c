@@ -313,3 +313,42 @@ eXosip_get_video_media (sdp_message_t * sdp)
 
   return NULL;
 }
+
+sdp_connection_t *
+eXosip_get_connection (sdp_message_t * sdp, const char *media)
+{
+  int pos = 0;
+  sdp_media_t *med = (sdp_media_t *) osip_list_get (&sdp->m_medias, 0);
+
+  while (med != NULL)
+    {
+      if (med->m_media != NULL && osip_strcasecmp (med->m_media, media) == 0)
+        break;
+      pos++;
+      med = (sdp_media_t *) osip_list_get (&sdp->m_medias, pos);
+    }
+  if (med == NULL)
+    return NULL;                /* no video stream */
+  if (osip_list_eol (&med->c_connections, 0))
+    return sdp->c_connection;
+
+  /* just return the first one... */
+  return (sdp_connection_t *) osip_list_get (&med->c_connections, 0);
+}
+
+sdp_media_t *
+eXosip_get_media (sdp_message_t * sdp, const char *media)
+{
+  int pos = 0;
+  sdp_media_t *med = (sdp_media_t *) osip_list_get (&sdp->m_medias, 0);
+
+  while (med != NULL)
+    {
+      if (med->m_media != NULL && osip_strcasecmp (med->m_media, media) == 0)
+        return med;
+      pos++;
+      med = (sdp_media_t *) osip_list_get (&sdp->m_medias, pos);
+    }
+
+  return NULL;
+}

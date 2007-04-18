@@ -228,6 +228,22 @@ extern "C"
  */
   sdp_media_t *eXosip_get_video_media(sdp_message_t *sdp);
 
+/**
+ * Get media connection information for call.
+ * 
+ * @param sdp     sdp information.
+ * @param media   media to search.
+ */
+  sdp_connection_t *eXosip_get_connection (sdp_message_t * sdp, const char *media);
+
+/**
+ * Get media information for call.
+ * 
+ * @param sdp     sdp information.
+ * @param media   media to search.
+ */
+  sdp_media_t *eXosip_get_media (sdp_message_t * sdp, const char *media);
+
 /** @} */
 
 /**
