@@ -358,13 +358,13 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   struct eXosip_socket
   {
     int socket;
-    char remote_ip[50];
+    char remote_ip[65];
     int remote_port;
   };
 
   struct eXosip_net
   {
-    char net_firewall_ip[50];   /* ip address to use for masquerading contacts */
+    char net_firewall_ip[65];   /* ip address to use for masquerading contacts */
     int net_ip_family;          /* AF_INET6 or AF_INET */
     struct sockaddr_storage ai_addr;
     char net_port[20];          /* port for receiving message/connection */

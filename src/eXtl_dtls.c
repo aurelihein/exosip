@@ -25,6 +25,12 @@
 #include "eXosip2.h"
 #include "eXtransport.h"
 
+#ifdef _WIN32_WCE
+#include "inet_ntop.h"
+#elif WIN32
+#include "inet_ntop.h"
+#endif
+
 extern eXosip_t eXosip;
 
 #if defined(_WIN32_WCE)
@@ -315,7 +321,7 @@ dtls_tl_read_message(fd_set *osip_fdset)
   return 0;
 }
 
-#ifdef INET6_ADDRSTRLEN
+#ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
 #endif
 

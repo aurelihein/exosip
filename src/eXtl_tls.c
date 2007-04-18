@@ -39,7 +39,7 @@ static char tls_firewall_port[10];
 struct socket_tab
 {
   int socket;
-  char remote_ip[50];
+  char remote_ip[65];
   int remote_port;
 };
 

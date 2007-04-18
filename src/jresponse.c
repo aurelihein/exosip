@@ -168,8 +168,8 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
   int i;
   int pos = 0;
   char contact[1000];
-  char locip[50];
-  char firewall_ip[50];
+  char locip[65];
+  char firewall_ip[65];
   char firewall_port[10];
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {

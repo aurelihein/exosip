@@ -90,8 +90,8 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
   osip_via_t *via;
   osip_from_t *a_from;
   char *contact=NULL;
-  char locip[50];
-  char firewall_ip[50];
+  char locip[65];
+  char firewall_ip[65];
   char firewall_port[10];
   int len;
 
@@ -202,7 +202,7 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport, const ch
 {
   char tmp[200];
   const char *ip=NULL;
-  char firewall_ip[50];
+  char firewall_ip[65];
   char firewall_port[10];
 
   if (request==NULL)
@@ -263,7 +263,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
    */
   int i;
   osip_message_t *request;
-  char locip[50];
+  char locip[65];
   int doing_register;
   char *register_callid_number = NULL;
 
@@ -470,8 +470,8 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
 {
   osip_from_t *a_from;
   int i;
-  char locip[50];
-  char firewall_ip[50];
+  char locip[65];
+  char firewall_ip[65];
   char firewall_port[10];
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
@@ -695,8 +695,8 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 {
   int i;
   osip_message_t *request;
-  char locip[50];
-  char firewall_ip[50];
+  char locip[65];
+  char firewall_ip[65];
   char firewall_port[10];
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {

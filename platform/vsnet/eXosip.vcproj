@@ -223,6 +223,26 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\eXtl.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\eXtl_dtls.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\eXtl_tcp.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\eXtl_tls.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\eXtl_udp.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\eXtransport.c"
 				>
 			</File>
@@ -337,6 +357,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\eXosip2.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\eXtransport.h"
 				>
 			</File>
 			<File
