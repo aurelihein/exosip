@@ -449,6 +449,22 @@ _tcp_tl_connect_socket (char *host, int port)
           continue;
         }
 
+      res = getnameinfo ((struct sockaddr *) curinfo->ai_addr, curinfo->ai_addrlen,
+		       src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+      
+      if (res == 0)
+	{
+	  int i = _tcp_tl_find_socket (src6host, port);
+	  if (i>=0)
+	    {
+	      eXosip_freeaddrinfo (addrinfo);
+	      return i;
+	    }
+	  OSIP_TRACE (osip_trace
+		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		       "New binding with %s\n", src6host));
+	}
+
       sock = (int) socket (curinfo->ai_family, curinfo->ai_socktype,
                            curinfo->ai_protocol);
       if (sock < 0)
@@ -505,16 +521,6 @@ _tcp_tl_connect_socket (char *host, int port)
           sock = -1;
           continue;
         }
-
-      res = getnameinfo ((struct sockaddr *) curinfo->ai_addr, curinfo->ai_addrlen,
-		       src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-      
-      if (res == 0)
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "New binding with %s\n", src6host));
-	}
 
       break;
     }
