@@ -68,7 +68,7 @@ dtls_tl_open(void)
   int sock = -1;
 
   if (eXtl_dtls.proto_port < 0)
-    eXtl_dtls.proto_port = 5060;
+    eXtl_dtls.proto_port = 5061;
 
 
   res = eXosip_get_addrinfo (&addrinfo,
@@ -179,6 +179,7 @@ dtls_tl_open(void)
                    "eXosip: Binding on port %i!\n", eXtl_dtls.proto_port));
     }
 
+  snprintf(dtls_firewall_port, sizeof(dtls_firewall_port), "%i", eXtl_dtls.proto_port);
   return 0;
 }
 
@@ -340,8 +341,10 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
       if (sip->req_uri->port != NULL)
         port = osip_atoi (sip->req_uri->port);
       else
-        port = 5060;
+        port = 5061;
     }
+  if (port==5060)
+    port=5061;
 
   i=-1;
 #ifndef MINISIZE
@@ -519,10 +522,24 @@ dtls_tl_masquerade_contact(const char *public_address, int port)
   return 0;
 }
 
+static int
+dtls_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
+{
+  memset(ip, 0, ip_size);
+  memset(port, 0, port_size);
+
+  if (dtls_firewall_ip!='\0')
+    snprintf(ip, ip_size, "%s", dtls_firewall_ip);
+  
+  if (dtls_firewall_port!='\0')
+    snprintf(port, port_size, "%s", dtls_firewall_port);
+  return 0;
+}
+
 struct eXtl_protocol eXtl_dtls = 
   {
     1,
-    5060,
+    5061,
     "DTLS",
     "0.0.0.0",
     IPPROTO_UDP,
@@ -539,5 +556,5 @@ struct eXtl_protocol eXtl_dtls =
     &dtls_tl_keepalive,
     &dtls_tl_set_socket,
     &dtls_tl_masquerade_contact,
-    NULL
+    &dtls_tl_get_masquerade_contact
 };

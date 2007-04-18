@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.52 $)dnl
+AC_REVISION($Revision: 1.53 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -195,6 +195,8 @@ AC_CHECK_LIB(posix4,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lposix4 -mt"])
 AC_CHECK_LIB(nsl,nis_add,[EXOSIP_LIB="$EXOSIP_LIB -lnsl"])
 AC_CHECK_LIB(socket,sendto,[EXOSIP_LIB="$EXOSIP_LIB -lsocket"])
 AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
+
+AC_CHECK_LIB(ssl,SSL_CTX_new,[EXOSIP_LIB="$EXOSIP_LIB -lssl"])
 
 case $OS in
   openbsd*)
