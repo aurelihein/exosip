@@ -420,6 +420,9 @@ _tcp_tl_connect_socket (char *host, int port)
   struct addrinfo *curinfo;
   int sock = -1;
 
+  char src6host[NI_MAXHOST];
+  memset (src6host, 0, sizeof (src6host));
+
   for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
       if (tcp_socket_tab[pos].socket == 0)
@@ -503,6 +506,16 @@ _tcp_tl_connect_socket (char *host, int port)
           continue;
         }
 
+      res = getnameinfo ((struct sockaddr *) curinfo->ai_addr, curinfo->ai_addrlen,
+		       src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+      
+      if (res == 0)
+	{
+	  OSIP_TRACE (osip_trace
+		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		       "New binding with %s\n", src6host));
+	}
+
       break;
     }
 
@@ -511,8 +524,14 @@ _tcp_tl_connect_socket (char *host, int port)
   if (sock > 0)
     {
       tcp_socket_tab[pos].socket = sock;
-      osip_strncpy (tcp_socket_tab[pos].remote_ip, host,
-                    sizeof (tcp_socket_tab[pos].remote_ip) - 1);
+
+      if (src6host[0]=='\0')
+	osip_strncpy (tcp_socket_tab[pos].remote_ip, host,
+		      sizeof (tcp_socket_tab[pos].remote_ip) - 1);
+      else
+	osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
+		      sizeof (tcp_socket_tab[pos].remote_ip) - 1);
+
       tcp_socket_tab[pos].remote_port = port;
       return sock;
     }
@@ -579,7 +598,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                               "Message sent: \n%s (reusing REQUEST connection)\n",
-                              message, host, port));
+                              message));
     }
 
   if (out_socket <= 0)
