@@ -187,6 +187,15 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  */
   void eXosip_masquerade_contact(const char *public_address, int port);
 
+/**
+ * This method is used to find out an free IPPROTO_UDP or IPPROTO_TCP port.
+ *
+ * @param free_port          	initial port for search.
+ * @param transport          	IPPROTO_UDP or IPPROTO_TCP protocol.
+ * 
+ */
+  int eXosip_find_free_port(int free_port, int transport);
+
 #ifndef DOXYGEN
 
 /**

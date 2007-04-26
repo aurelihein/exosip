@@ -51,8 +51,10 @@ eXosip_masquerade_contact (const char *public_address, int port)
 {
   eXtl_udp.tl_masquerade_contact(public_address, port);
   eXtl_tcp.tl_masquerade_contact(public_address, port);
+#ifndef DISABLE_TLS
   eXtl_tls.tl_masquerade_contact(public_address, port);
   eXtl_dtls.tl_masquerade_contact(public_address, port);
+#endif
   return;
 }
 
@@ -250,8 +252,10 @@ eXosip_quit (void)
 
   eXtl_udp.tl_free();
   eXtl_tcp.tl_free();
+#ifndef DISABLE_TLS
   eXtl_dtls.tl_free();
   eXtl_tls.tl_free();
+#endif
 
   memset (&eXosip, 0, sizeof (eXosip));
   eXosip.j_stop_ua = -1;
@@ -302,293 +306,236 @@ setsockopt_ipv6only (int sock)
 }
 #endif /* IPV6_V6ONLY */
 
-#if 0
-int
-eXosip_listen_addr (int transport, const char *addr, int port, int family,
-                    int secure)
+#ifndef MINISIZE
+int eXosip_find_free_port(int free_port, int transport)
 {
-  int res;
-  struct addrinfo *addrinfo = NULL;
-  struct addrinfo *curinfo;
-  const char *node = addr;
-  int sock = -1;
-  struct eXosip_net *net_int;
-  char localip[256];
+  int res1;
+  int res2;
+  struct addrinfo *addrinfo_rtp = NULL;
+  struct addrinfo *curinfo_rtp;
+  struct addrinfo *addrinfo_rtcp = NULL;
+  struct addrinfo *curinfo_rtcp;
+  int sock;
+  int count;
 
-  if (transport == IPPROTO_UDP)
-    net_int = &eXosip.net_interfaces[0];
-  else if (transport == IPPROTO_TCP)
-    net_int = &eXosip.net_interfaces[1];
-  else if (transport == IPPROTO_TCP && secure != 0)
-    net_int = &eXosip.net_interfaces[2];
-  else
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unknown protocol (use IPPROTO_UDP or IPPROTO_TCP!\n"));
-      return -1;
-    }
+  for (count=0;count<8;count++)
+  {
+	  res1 = eXosip_get_addrinfo (&addrinfo_rtp, "0.0.0.0", free_port + count*2, transport);
+	  if (res1)
+		return -1;
+	  res2 = eXosip_get_addrinfo (&addrinfo_rtcp, "0.0.0.0", free_port + count*2+ 1, transport);
+	  if (res2)
+	  {
+		  eXosip_freeaddrinfo (addrinfo_rtp);
+		  return -1;
+	  }
 
-#ifndef MINISIZE
-  if (eXosip.http_port)
-    {
-      /* USE TUNNEL CAPABILITY */
-      transport = IPPROTO_TCP;
-    }
-#endif
+	  sock=-1;
+	  for (curinfo_rtp = addrinfo_rtp; curinfo_rtp; curinfo_rtp = curinfo_rtp->ai_next)
+		{
+		  if (curinfo_rtp->ai_protocol && curinfo_rtp->ai_protocol != transport)
+			{
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_INFO3, NULL,
+						   "eXosip: Skipping protocol %d\n", curinfo_rtp->ai_protocol));
+			  continue;
+			}
 
-  if (port < 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: port must be higher than 0!\n"));
-      return -1;
-    }
+		  sock = (int) socket (curinfo_rtp->ai_family, curinfo_rtp->ai_socktype,
+							   curinfo_rtp->ai_protocol);
+		  if (sock < 0)
+			{
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						   "eXosip: Cannot create socket!\n"));
+			  continue;
+			}
 
-  net_int->net_ip_family = family;
-#ifndef MINISIZE
-  if (family == AF_INET6)
-    {
-      ipv6_enable = 1;
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                   "IPv6 is enabled. Pls report bugs\n"));
-    }
-#endif
-
-  eXosip_guess_localip (net_int->net_ip_family, localip, sizeof (localip));
-  if (localip[0] == '\0')
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: No ethernet interface found!\n"));
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: using 127.0.0.1 (debug mode)!\n"));
-      /* we should always fallback on something. The linphone user will surely
-         start linphone BEFORE setting its dial up connection. */
-    }
-
-  if (!node)
-    {
-      node = ipv6_enable ? "::" : "0.0.0.0";
-    }
-
-
-  res = eXosip_get_addrinfo (&addrinfo, node, port, transport);
-  if (res)
-    return -1;
-
-  for (curinfo = addrinfo; curinfo; curinfo = curinfo->ai_next)
-    {
-      socklen_t len;
-
-      if (curinfo->ai_protocol && curinfo->ai_protocol != transport)
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO3, NULL,
-                       "eXosip: Skipping protocol %d\n", curinfo->ai_protocol));
-          continue;
-        }
-
-      sock = (int) socket (curinfo->ai_family, curinfo->ai_socktype,
-                           curinfo->ai_protocol);
-      if (sock < 0)
-        {
-#if defined(_WIN32_WCE)
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Cannot create socket!\n"));
-#else
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Cannot create socket %s!\n", strerror (errno)));
-#endif
-          continue;
-        }
-
-#ifndef MINISIZE
-      if (eXosip.http_port)
-        {
-          break;
-        }
-#endif
-
-      if (curinfo->ai_family == AF_INET6)
-        {
+		  if (curinfo_rtp->ai_family == AF_INET6)
+			{
 #ifdef IPV6_V6ONLY
-          if (setsockopt_ipv6only (sock))
-            {
-              close (sock);
-              sock = -1;
-#if defined(_WIN32_WCE)
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: Cannot set socket option!\n"));
-#else
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: Cannot set socket option %s!\n",
-                           strerror (errno)));
-#endif
-              continue;
-            }
+			  if (setsockopt_ipv6only (sock))
+				{
+				  close (sock);
+				  sock = -1;
+				  OSIP_TRACE (osip_trace
+							  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+							   "eXosip: Cannot set socket option!\n"));
+				  continue;
+				}
 #endif /* IPV6_V6ONLY */
-        }
+			}
 
-      res = bind (sock, curinfo->ai_addr, curinfo->ai_addrlen);
-      if (res < 0)
-        {
-#if defined(_WIN32_WCE)
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Cannot bind socket node:%s family:%d\n",
-                       node, curinfo->ai_family));
-#else
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Cannot bind socket node:%s family:%d %s\n",
-                       node, curinfo->ai_family, strerror (errno)));
-#endif
-          close (sock);
-          sock = -1;
-          continue;
-        }
-      len = sizeof (net_int->ai_addr);
-      res = getsockname (sock, (struct sockaddr *) &net_int->ai_addr, &len);
-      if (res != 0)
-        {
-#if defined(_WIN32_WCE)
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Cannot get socket name\n"));
-#else
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Cannot get socket name (%s)\n", strerror (errno)));
-#endif
-          memcpy (&net_int->ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
-        }
+		  res1 = bind (sock, curinfo_rtp->ai_addr, curinfo_rtp->ai_addrlen);
+		  if (res1 < 0)
+			{
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_WARNING, NULL,
+						  "eXosip: Cannot bind socket node: 0.0.0.0 family:%d\n",
+						   curinfo_rtp->ai_family));
+			  close (sock);
+			  sock = -1;
+			  continue;
+			}
+		  break;
+	  }
 
-      if (transport != IPPROTO_UDP)
-        {
-          res = listen (sock, SOMAXCONN);
-          if (res < 0)
-            {
-#if defined(_WIN32_WCE)
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: Cannot bind socket node:%s family:%d\n",
-                           node, curinfo->ai_family));
-#else
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: Cannot bind socket node:%s family:%d %s\n",
-                           node, curinfo->ai_family, strerror (errno)));
-#endif
-              close (sock);
-              sock = -1;
-              continue;
-            }
-        }
+	  eXosip_freeaddrinfo (addrinfo_rtp);
 
-      break;
-    }
+	  if (sock==-1)
+	  {
+		  eXosip_freeaddrinfo (addrinfo_rtcp);
+		  continue;
+	  }
 
-  eXosip_freeaddrinfo (addrinfo);
+	  close(sock);
+	  sock=-1;
+	  for (curinfo_rtcp = addrinfo_rtcp; curinfo_rtcp; curinfo_rtcp = curinfo_rtcp->ai_next)
+		{
+		  if (curinfo_rtcp->ai_protocol && curinfo_rtcp->ai_protocol != transport)
+			{
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_INFO3, NULL,
+						   "eXosip: Skipping protocol %d\n", curinfo_rtcp->ai_protocol));
+			  continue;
+			}
 
-  if (sock < 0)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: Cannot bind on port: %i\n", port));
-      return -1;
-    }
+		  sock = (int) socket (curinfo_rtcp->ai_family, curinfo_rtcp->ai_socktype,
+							   curinfo_rtcp->ai_protocol);
+		  if (sock < 0)
+			{
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						   "eXosip: Cannot create socket!\n"));
+			  continue;
+			}
 
-  net_int->net_protocol = IPPROTO_UDP;
-#ifndef MINISIZE
-  if (!eXosip.http_port)
-    net_int->net_protocol = transport;
-#endif
-  net_int->net_socket = sock;
+		  if (curinfo_rtcp->ai_family == AF_INET6)
+			{
+#ifdef IPV6_V6ONLY
+			  if (setsockopt_ipv6only (sock))
+				{
+				  close (sock);
+				  sock = -1;
+				  OSIP_TRACE (osip_trace
+							  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+							   "eXosip: Cannot set socket option!\n"));
+				  continue;
+				}
+#endif /* IPV6_V6ONLY */
+			}
 
-  if (port == 0)
-    {
-      /* get port number from socket */
-      if (ipv6_enable == 0)
-        port = ntohs (((struct sockaddr_in *) &net_int->ai_addr)->sin_port);
-      else
-        port = ntohs (((struct sockaddr_in6 *) &net_int->ai_addr)->sin6_port);
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                   "eXosip: Binding on port %i!\n", port));
-    }
+		  res1 = bind (sock, curinfo_rtcp->ai_addr, curinfo_rtcp->ai_addrlen);
+		  if (res1 < 0)
+			{
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_WARNING, NULL,
+						  "eXosip: Cannot bind socket node: 0.0.0.0 family:%d\n",
+						   curinfo_rtp->ai_family));
+			  close (sock);
+			  sock = -1;
+			  continue;
+			}
+		  break;
+	  }
 
-  snprintf (net_int->net_port, sizeof (net_int->net_port) - 1, "%i", port);
+	  eXosip_freeaddrinfo (addrinfo_rtcp);
 
+	  /* the pair must be free */
+	  if (sock==-1)
+		  continue;
 
+	  close(sock);
+	  sock=-1;
+	  return free_port + count*2;
+  }
 
-#ifndef MINISIZE
-  if (eXosip.http_port)
-    {
-      /* only ipv4 */
-      struct sockaddr_in _addr;
-      char http_req[2048];
-      char http_reply[2048];
-      int len;
+  /* just get a free port */
+  res1 = eXosip_get_addrinfo (&addrinfo_rtp, "0.0.0.0", 0, transport);
+  if (res1)
+	return -1;
 
-      _addr.sin_port = (unsigned short) htons (eXosip.http_port);
-      _addr.sin_addr.s_addr = inet_addr (eXosip.http_proxy);
-      _addr.sin_family = PF_INET;
+  sock=-1;
+  for (curinfo_rtp = addrinfo_rtp; curinfo_rtp; curinfo_rtp = curinfo_rtp->ai_next)
+	{
+	  socklen_t len;
+	  struct sockaddr_storage ai_addr;
 
-      if (connect
-          (net_int->net_socket, (struct sockaddr *) &_addr, sizeof (_addr)) == -1)
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: Failed to connect to http server on %s:%i!\n",
-                       eXosip.http_proxy, port));
-          return -1;
-        }
+	  if (curinfo_rtp->ai_protocol && curinfo_rtp->ai_protocol != transport)
+		{
+		  OSIP_TRACE (osip_trace
+					  (__FILE__, __LINE__, OSIP_INFO3, NULL,
+					   "eXosip: Skipping protocol %d\n", curinfo_rtp->ai_protocol));
+		  continue;
+		}
 
-      sprintf (http_req, "GET / HTTP/1.1\r\nUdpHost: %s:%d\r\n\r\n",
-               eXosip.http_outbound_proxy, 5060);
+	  sock = (int) socket (curinfo_rtp->ai_family, curinfo_rtp->ai_socktype,
+						   curinfo_rtp->ai_protocol);
+	  if (sock < 0)
+		{
+		  OSIP_TRACE (osip_trace
+					  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					   "eXosip: Cannot create socket!\n"));
+		  continue;
+		}
 
-      len = send (net_int->net_socket, http_req, (int) strlen (http_req), 0);
+	  if (curinfo_rtp->ai_family == AF_INET6)
+		{
+#ifdef IPV6_V6ONLY
+		  if (setsockopt_ipv6only (sock))
+			{
+			  close (sock);
+			  sock = -1;
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						   "eXosip: Cannot set socket option!\n"));
+			  continue;
+			}
+#endif /* IPV6_V6ONLY */
+		}
 
-      if (len < 0)
-        return -1;
+	  res1 = bind (sock, curinfo_rtp->ai_addr, curinfo_rtp->ai_addrlen);
+	  if (res1 < 0)
+		{
+		  OSIP_TRACE (osip_trace
+					  (__FILE__, __LINE__, OSIP_WARNING, NULL,
+					  "eXosip: Cannot bind socket node: 0.0.0.0 family:%d\n",
+					   curinfo_rtp->ai_family));
+		  close (sock);
+		  sock = -1;
+		  continue;
+		}
 
-      osip_usleep (50000);
+      len = sizeof (ai_addr);
+      res1 = getsockname (sock, (struct sockaddr *) &ai_addr, &len);
+      if (res1 != 0)      
+	  {
+		  close (sock);
+		  sock = -1;
+		  continue;
+	  }
 
-      if ((len =
-           recv (net_int->net_socket, http_reply, sizeof (http_reply), 0)) > 0)
-        http_reply[len] = '\0';
-      else
-        return -1;
+	  close(sock);
+	  sock=-1;
+	  eXosip_freeaddrinfo (addrinfo_rtp);
 
-      if (strncmp (http_reply, "HTTP/1.0 200 OK\r\n", 17) == 0
-          || strncmp (http_reply, "HTTP/1.1 200 OK\r\n", 17) == 0)
-        {
-      } else
-        return -1;
-    }
-#endif
+	  if (ipv6_enable == 0)
+		return ntohs (((struct sockaddr_in *) &ai_addr)->sin_port);
+	  else
+		return ntohs (((struct sockaddr_in6 *) &ai_addr)->sin6_port);
+  }
 
-#ifdef OSIP_MT
-  eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
-  if (eXosip.j_thread == NULL)
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: Cannot start thread!\n"));
-      return -1;
-    }
-#endif
-  return 0;
+  eXosip_freeaddrinfo (addrinfo_rtp);
+
+  if (sock!=-1)
+  {
+	  close(sock);
+	  sock=-1;
+  }
+
+  return -1;
 }
-
-#else
+#endif
 
 int
 eXosip_listen_addr (int transport, const char *addr, int port, int family,
@@ -610,10 +557,12 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
     eXtl = &eXtl_udp;
   else if (transport==IPPROTO_TCP && secure==0)
     eXtl = &eXtl_tcp;
+#ifndef DISABLE_TLS
   else if (transport==IPPROTO_UDP)
     eXtl = &eXtl_dtls;
   else if (transport==IPPROTO_TCP)
     eXtl = &eXtl_tls;
+#endif
 
   if (eXtl==NULL)
     return -1;
@@ -655,8 +604,6 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 
   return 0;
 }
-
-#endif
 
 int
 eXosip_init (void)
@@ -743,8 +690,10 @@ eXosip_init (void)
 
   eXtl_udp.tl_init();
   eXtl_tcp.tl_init();
+#ifndef DISABLE_TLS
   eXtl_dtls.tl_init();
   eXtl_tls.tl_init();
+#endif
   return 0;
 }
 
