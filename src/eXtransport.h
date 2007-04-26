@@ -52,8 +52,10 @@ struct eXtl_protocol {
 
 extern struct eXtl_protocol eXtl_udp;
 extern struct eXtl_protocol eXtl_tcp;
+#ifndef DISABLE_TLS
 extern struct eXtl_protocol eXtl_tls;
 extern struct eXtl_protocol eXtl_dtls;
+#endif
 
 #if defined (WIN32) || defined (_WIN32_WCE)
 #define eXFD_SET(A, B)   FD_SET((unsigned int) A, B)

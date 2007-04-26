@@ -22,6 +22,8 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef DISABLE_TLS
+
 #include "eXosip2.h"
 #include "eXtransport.h"
 
@@ -564,3 +566,5 @@ struct eXtl_protocol eXtl_dtls =
     &dtls_tl_masquerade_contact,
     &dtls_tl_get_masquerade_contact
 };
+
+#endif

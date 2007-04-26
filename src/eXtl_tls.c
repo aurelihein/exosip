@@ -22,6 +22,8 @@
 #include <mpatrol.h>
 #endif
 
+#ifndef DISABLE_TLS
+
 #include "eXosip2.h"
 #include "eXtransport.h"
 
@@ -33,7 +35,6 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/rand.h>
-#include <pthread.h>
 
 #define SSLDEBUG 1
 
@@ -212,7 +213,7 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
 
   if (password != NULL)
     {
-      passwd = strdup (password);
+      passwd = osip_strdup (password);
       if (passwd == NULL)
 	return NULL;
     }
@@ -255,7 +256,7 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
 		       SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
 		       SSL_OP_CIPHER_SERVER_PREFERENCE);
 
-  free (passwd);
+  osip_free (passwd);
   passwd = 0;
 
   return ctx;
@@ -306,7 +307,7 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
 
   if (password != NULL)
     {
-      passwd = strdup (password);
+      passwd = osip_strdup (password);
       if (passwd == NULL)
 	return NULL;
     }
@@ -366,7 +367,7 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
   SSL_CTX_set_session_id_context (ctx, (void *) &s_server_session_id_context,
 				  sizeof s_server_session_id_context);
 
-  free (passwd);
+  osip_free (passwd);
   passwd = 0;
 
   return ctx;
@@ -1217,3 +1218,5 @@ struct eXtl_protocol eXtl_tls =
     &tls_tl_masquerade_contact,
     &tls_tl_get_masquerade_contact
 };
+
+#endif

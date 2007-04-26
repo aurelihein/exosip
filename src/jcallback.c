@@ -202,6 +202,7 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     {
       i = eXtl_tcp.tl_send_message (tr, sip, host, port, out_socket);
     }
+#ifndef DISABLE_TLS
   else if (osip_strcasecmp (via->protocol, "tls") == 0)
     {
       i = eXtl_tls.tl_send_message (tr, sip, host, port, out_socket);
@@ -210,6 +211,7 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     {
       i = eXtl_dtls.tl_send_message (tr, sip, host, port, out_socket);
     }
+#endif
   if (i != 0)
     {
       return -1;
