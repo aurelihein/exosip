@@ -214,7 +214,8 @@ udp_tl_learn_port_from_via(osip_message_t * sip)
 
         osip_message_get_via (sip, 0, &via);
         if (via != NULL && via->protocol != NULL
-            && osip_strcasecmp (via->protocol, "udp") == 0)
+            && (osip_strcasecmp (via->protocol, "udp") == 0
+		|| osip_strcasecmp (via->protocol, "dtls-udp") == 0))
         {
             osip_via_param_get_byname (via, "rport", &br);
             if (br != NULL && br->gvalue != NULL)
