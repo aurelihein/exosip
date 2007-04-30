@@ -48,10 +48,10 @@ static char dtls_firewall_port[10];
 static int
 dtls_tl_init(void)
 {
+  dtls_socket=0;
   memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
   memset(dtls_firewall_ip, 0, sizeof(dtls_firewall_ip));
   memset(dtls_firewall_port, 0, sizeof(dtls_firewall_port));
-  dtls_socket=0;
   return 0;
 }
 
@@ -186,7 +186,6 @@ dtls_tl_open(void)
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "eXosip: Binding on port %i!\n", eXtl_dtls.proto_port));
     }
-
   snprintf(dtls_firewall_port, sizeof(dtls_firewall_port), "%i", eXtl_dtls.proto_port);
   return 0;
 }
@@ -300,7 +299,6 @@ dtls_tl_read_message(fd_set *osip_fdset)
 		       "Message received from: %s:%i\n",
 		       src6host, recvport));
 	  
-	  
 	  _eXosip_handle_incoming_message(buf, i, dtls_socket, src6host, recvport);
       
 	}
@@ -318,6 +316,42 @@ dtls_tl_read_message(fd_set *osip_fdset)
 #endif
   
       osip_free (buf);
+    }
+
+  return 0;
+}
+
+static int
+eXtl_update_local_target(osip_message_t *req)
+{
+  int pos = 0;
+
+  if (dtls_firewall_ip!='\0')
+    {
+
+      while (!osip_list_eol (&req->contacts, pos))
+	{
+	  osip_contact_t *co;
+	  
+	  co = (osip_contact_t *) osip_list_get (&req->contacts, pos);
+	  pos++;
+	  if (co != NULL && co->url != NULL && co->url->host != NULL
+	      && 0 == osip_strcasecmp (co->url->host, dtls_firewall_ip))
+	    {
+	      if (co->url->port == NULL &&
+		  0 != osip_strcasecmp (dtls_firewall_port, "5061"))
+		{
+		  co->url->port = osip_strdup (dtls_firewall_port);
+		}
+	      else if (co->url->port != NULL &&
+		       0 != osip_strcasecmp (dtls_firewall_port,
+					     co->url->port))
+		{
+		  osip_free (co->url->port);
+		  co->url->port = osip_strdup (dtls_firewall_port);
+		}
+	    }
+	}
     }
 
   return 0;
@@ -351,8 +385,15 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
       else
         port = 5061;
     }
-  if (port==5060)
-    port=5061;
+
+  if (MSG_IS_REQUEST(sip))
+    {
+      if (MSG_IS_REGISTER(sip)
+	  ||MSG_IS_INVITE(sip)
+	  ||MSG_IS_SUBSCRIBE(sip)
+	  || MSG_IS_NOTIFY(sip))
+	eXtl_update_local_target(sip);
+    }
 
   i=-1;
 #ifndef MINISIZE
@@ -443,9 +484,10 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                           "Message sent: \n%s (to dest=%s:%i)\n",
                           message, ipbuf, port));
+
   if (0 >
       sendto (dtls_socket, (const void *) message, length, 0,
-	      (struct sockaddr *) &addr, len))
+                      (struct sockaddr *) &addr, len))
     {
 #ifdef WIN32
       if (WSAECONNREFUSED == WSAGetLastError ())
@@ -503,6 +545,21 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 static int
 dtls_tl_keepalive(void)
 {
+  char buf[4] = "jaK";
+  eXosip_reg_t *jr;
+  for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
+    {
+      if (jr->len > 0)
+        {
+          if (sendto (dtls_socket, (const void *) buf, 4, 0,
+                      (struct sockaddr *) &(jr->addr), jr->len) > 0)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "eXosip: Keep Alive sent on DTLS!\n"));
+            }
+        }
+    }
   return 0;
 }
 
@@ -548,7 +605,7 @@ struct eXtl_protocol eXtl_dtls =
   {
     1,
     5061,
-    "DTLS",
+    "UDP-DTLS",
     "0.0.0.0",
     IPPROTO_UDP,
     AF_INET,
