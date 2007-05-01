@@ -95,6 +95,8 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
   char firewall_port[10];
   int len;
 
+  if (eXosip.eXtl==NULL)
+    return -1;
   if (request==NULL)
     return -1;
 
@@ -219,10 +221,18 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport, const ch
   else if (request->call_id->host!=NULL)
     ip = request->call_id->host;
 
-  if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
+  firewall_ip[0] = '\0';
+  firewall_port[0] = '\0';
+  if (eXosip.eXtl!=NULL && eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 					     firewall_port, sizeof(&firewall_port));
+    }
+
+
+  if (firewall_port[0] == '\0')
+    {
+      snprintf(firewall_port, sizeof(firewall_port), "5060");
     }
 
   if (eXosip.eXtl->proto_family == AF_INET6)
@@ -268,6 +278,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   char *register_callid_number = NULL;
 
   *dest = NULL;
+
+  if (eXosip.eXtl==NULL)
+    return -1;
 
   /*guess the local ip since req uri is known */
   memset(locip, '\0', sizeof(locip));
@@ -473,6 +486,9 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
   char locip[65];
   char firewall_ip[65];
   char firewall_port[10];
+  if (eXosip.eXtl==NULL)
+    return -1;
+
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
@@ -698,13 +714,16 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   char locip[65];
   char firewall_ip[65];
   char firewall_port[10];
+
+  *dest=NULL;
+
+  if (eXosip.eXtl==NULL)
+    return -1;
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 					     firewall_port, sizeof(&firewall_port));
     }
-
-  *dest=NULL;
 
   i = osip_message_init (&request);
   if (i != 0)
