@@ -229,6 +229,14 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport, const ch
 					     firewall_port, sizeof(&firewall_port));
     }
 
+#ifdef MASQUERADE_VIA
+  /* this helps to work with a server that don't handle the
+     "received" parameter correctly. Some still exists. */
+  if (firewall_ip[0] != '\0')
+    {
+      ip = firewall_ip;
+    }
+#endif
 
   if (firewall_port[0] == '\0')
     {
