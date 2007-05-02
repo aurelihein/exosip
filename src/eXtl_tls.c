@@ -51,6 +51,14 @@
 #define strerror(X) "-1"
 #endif
 
+SSL_CTX *
+initialize_client_ctx (const char *keyfile, const char *certfile,
+		       const char *password, int transport);
+
+SSL_CTX *
+initialize_server_ctx (const char *keyfile, const char *certfile,
+		       const char *password, int transport);
+
 static int tls_socket;
 static struct sockaddr_storage ai_addr;
 
@@ -179,7 +187,7 @@ generate_eph_rsa_key (SSL_CTX * ctx)
     }
 }
 
-static SSL_CTX *
+SSL_CTX *
 initialize_client_ctx (const char *keyfile, const char *certfile,
 		       const char *password, int transport)
 {
@@ -262,9 +270,7 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
   return ctx;
 }
 
-
-
-static SSL_CTX *
+SSL_CTX *
 initialize_server_ctx (const char *keyfile, const char *certfile,
 		       const char *password, int transport)
 {
@@ -600,8 +606,26 @@ tls_tl_read_message(fd_set *osip_fdset)
 	  if (tls_socket_tab[pos].socket <= 0)
 	    break;
 	}
+      if (pos<0)
+	{
+	  /* delete an old one! */
+	  pos=0;
+	  if (tls_socket_tab[pos].socket > 0)
+	    {
+	      if (tls_socket_tab[pos].ssl_conn != NULL)
+		{
+		  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+		  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+		  SSL_free (tls_socket_tab[pos].ssl_conn);
+		  SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+		}
+	      close(tls_socket_tab[pos].socket);
+	    }
+	  memset(&tls_socket_tab[pos], 0, sizeof(struct socket_tab));
+	}
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
 			      "creating TLS socket at index: %i\n", pos));
+
       sock = accept (tls_socket,
 		     (struct sockaddr *) &sa, &slen);
       if (sock < 0)
@@ -715,6 +739,7 @@ tls_tl_read_message(fd_set *osip_fdset)
 			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 			   "Message received from: NULL:%i getnameinfo failure\n",
 			   recvport));
+	      snprintf(src6host, sizeof(src6host), "127.0.0.1");
 	    }
 	  else
 	    {

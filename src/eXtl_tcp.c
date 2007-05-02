@@ -315,6 +315,7 @@ tcp_tl_read_message(fd_set *osip_fdset)
 			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 			   "Message received from: NULL:%i getnameinfo failure\n",
 			   recvport));
+	      snprintf(src6host, sizeof(src6host), "127.0.0.1");
 	    }
 	  else
 	    {
