@@ -258,7 +258,15 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
 		(__FILE__, __LINE__, OSIP_ERROR, NULL,
 		 "eXosip: Couldn't read CA list\n"));
 
-  SSL_CTX_set_verify_depth (ctx, 3);
+  {
+    int verify_mode = SSL_VERIFY_NONE;
+#if 0
+    verify_mode = SSL_VERIFY_PEER;
+#endif
+    
+    SSL_CTX_set_verify(ctx, verify_mode, NULL);
+    SSL_CTX_set_verify_depth (ctx, 3);
+  }
 
   SSL_CTX_set_options (ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
 		       SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
