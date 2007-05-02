@@ -27,17 +27,45 @@
 #include "eXosip2.h"
 #include "eXtransport.h"
 
+#include <openssl/ssl.h>
+#define SPROTO_TLS 500
+#define SPROTO_DTLS 501
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/pem.h>
+#include <openssl/x509.h>
+#include <openssl/rand.h>
+
+#define SSLDEBUG 1
+
+#define PASSWORD "password"
+#define CLIENT_KEYFILE "ckey.pem"
+#define CLIENT_CERTFILE "c.pem"
+#define SERVER_KEYFILE "skey.pem"
+#define SERVER_CERTFILE "s.pem"
+#define CA_LIST "cacert.pem"
+#define RANDOM  "random.pem"
+#define DHFILE "dh1024.pem"
+
+#if defined(_WIN32_WCE)
+#define strerror(X) "-1"
+#endif
+
 #ifdef _WIN32_WCE
 #include "inet_ntop.h"
 #elif WIN32
 #include "inet_ntop.h"
 #endif
 
-extern eXosip_t eXosip;
+SSL_CTX *
+initialize_client_ctx (const char *keyfile, const char *certfile,
+		       const char *password, int transport);
 
-#if defined(_WIN32_WCE)
-#define strerror(X) "-1"
-#endif
+SSL_CTX *
+initialize_server_ctx (const char *keyfile, const char *certfile,
+		       const char *password, int transport);
+
+extern eXosip_t eXosip;
 
 static int dtls_socket;
 static struct sockaddr_storage ai_addr;
@@ -45,25 +73,239 @@ static struct sockaddr_storage ai_addr;
 static char dtls_firewall_ip[64];
 static char dtls_firewall_port[10];
 
+static SSL_CTX *server_ctx;
+static SSL_CTX *client_ctx;
+
+/* persistent connection */
+struct socket_tab
+{
+  char remote_ip[65];
+  int remote_port;
+  SSL *ssl_conn;
+  int ssl_state;
+  int ssl_type;
+};
+
+
+#ifndef EXOSIP_MAX_SOCKETS
+#define EXOSIP_MAX_SOCKETS
+#endif
+
+static struct socket_tab dtls_socket_tab[EXOSIP_MAX_SOCKETS];
+
 static int
 dtls_tl_init(void)
 {
   dtls_socket=0;
+  server_ctx=NULL;
+  client_ctx=NULL;
   memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
+  memset(&dtls_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
   memset(dtls_firewall_ip, 0, sizeof(dtls_firewall_ip));
   memset(dtls_firewall_port, 0, sizeof(dtls_firewall_port));
   return 0;
 }
 
+int
+static print_ssl_error (int err)
+{
+  switch (err)
+    {
+    case SSL_ERROR_NONE:
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "SSL ERROR NONE - OK\n"));
+      break;
+    case SSL_ERROR_ZERO_RETURN:
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "SSL ERROR ZERO RETURN - SHUTDOWN\n"));
+      break;
+    case SSL_ERROR_WANT_READ:
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL, "SSL want read\n"));
+      break;
+    case SSL_ERROR_WANT_WRITE:
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL, "SSL want write\n"));
+      break;
+    case SSL_ERROR_SSL:
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL, "SSL ERROR\n"));
+      break;
+    case SSL_ERROR_SYSCALL:
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "SSL ERROR SYSCALL\n"));
+      break;
+    default:
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL, "SSL problem\n"));
+    }
+  return 0;
+}
+
+static int
+shutdown_free_server_dtls (int pos)
+{
+  int i, err;
+
+  if (dtls_socket_tab[pos].ssl_type == 1)
+    {
+      if (dtls_socket_tab[pos].ssl_conn != NULL)
+	{
+#ifdef SSLDEBUG
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
+				  "DTLS server SSL_shutdown\n"));
+#endif
+
+	  i = SSL_shutdown (dtls_socket_tab[pos].ssl_conn);
+
+	  if (i <= 0)
+	    {
+	      err = SSL_get_error (dtls_socket_tab[pos].ssl_conn, i);
+	      print_ssl_error (err);
+#ifdef SSLDEBUG
+
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				      "DTLS server shutdown <= 0\n"));
+#endif
+	    }
+	  else
+	    {
+#ifdef SSLDEBUG
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
+				      "DTLS server shutdown > 0\n"));
+#endif
+
+	    }
+
+	  SSL_free (dtls_socket_tab[pos].ssl_conn);
+
+#if 0
+	  if (dtls_socket_tab[pos].ssl_ctx != NULL)
+	    SSL_CTX_free (dtls_socket_tab[pos].ssl_ctx);
+#endif
+
+	  memset (&(dtls_socket_tab[pos]), 0,
+		  sizeof (struct socket_tab));
+
+	  return 0;
+	}
+      else
+	{
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "DTLS server shutdown: invalid SSL object!\n"));
+	  return -1;
+	}
+    }
+  return -1;
+}
+
+static int
+shutdown_free_client_dtls (int pos)
+{
+  int i, err;
+  BIO *rbio;
+
+  struct addrinfo *addrinfo;
+  struct __eXosip_sockaddr addr;
+
+  if (dtls_socket_tab[pos].ssl_type == 2)
+    {
+      if (dtls_socket_tab[pos].ssl_conn != NULL)
+	{
+
+	  i = eXosip_get_addrinfo (&addrinfo,
+				   dtls_socket_tab[pos].remote_ip,
+				   dtls_socket_tab[pos].remote_port,
+				   IPPROTO_UDP);
+	  if (i != 0)
+	    {
+	      return -1;
+	    }
+
+	  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+	  eXosip_freeaddrinfo (addrinfo);
+
+	  rbio = BIO_new_dgram (dtls_socket,
+				BIO_NOCLOSE);
+
+	  BIO_dgram_set_peer (rbio, &addr);
+
+	  (dtls_socket_tab[pos].ssl_conn)->rbio = rbio;
+
+	  i = SSL_shutdown (dtls_socket_tab[pos].ssl_conn);
+
+	  if (i <= 0)
+	    {
+	      err = SSL_get_error (dtls_socket_tab[pos].ssl_conn, i);
+#ifdef SSLDEBUG
+
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				      "DTLS client shutdown error %d <= 0\n",
+				      i));
+#endif
+
+	      print_ssl_error (err);
+	    }
+	  else
+	    {
+#ifdef SSLDEBUG
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
+				      "DTLS client shutdown > 0\n"));
+#endif
+
+	    }
+
+	  SSL_free (dtls_socket_tab[pos].ssl_conn);
+
+#if 0
+	  if (dtls_socket_tab[pos].ssl_ctx != NULL)
+	    SSL_CTX_free (dtls_socket_tab[pos].ssl_ctx);
+#endif
+
+	  memset (&(dtls_socket_tab[pos]), 0,
+		  sizeof (struct socket_tab));
+
+	  return 0;
+	}
+      else
+	{
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "DTLS client shutdown: invalid SSL object!\n"));
+	  return -1;
+	}
+    }
+  return -1;
+}
+
 static int
 dtls_tl_free(void)
 {
+  int pos;
+  if (server_ctx != NULL)
+    SSL_CTX_free (server_ctx);
+
+  if (client_ctx != NULL)
+    SSL_CTX_free (client_ctx);
+
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+    {
+      if (dtls_socket_tab[pos].ssl_conn != NULL)
+	{
+	  shutdown_free_client_dtls (pos);
+	  shutdown_free_server_dtls (pos);
+	}
+    }
+  memset(&dtls_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
+
   memset(dtls_firewall_ip, 0, sizeof(dtls_firewall_ip));
   memset(dtls_firewall_port, 0, sizeof(dtls_firewall_port));
   memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
   if (dtls_socket>0)
     close(dtls_socket);
-
+  dtls_socket = 0;
   return 0;
 }
 
@@ -78,6 +320,10 @@ dtls_tl_open(void)
   if (eXtl_dtls.proto_port < 0)
     eXtl_dtls.proto_port = 5061;
 
+  server_ctx = initialize_server_ctx (SERVER_KEYFILE, SERVER_CERTFILE, PASSWORD,
+				   IPPROTO_TCP);
+  client_ctx = initialize_client_ctx (CLIENT_KEYFILE, CLIENT_CERTFILE, PASSWORD,
+				      IPPROTO_TCP);
 
   res = eXosip_get_addrinfo (&addrinfo,
 			     eXtl_dtls.proto_ifs,
@@ -145,7 +391,7 @@ dtls_tl_open(void)
           memcpy (&ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
         }
 
-      if (eXtl_dtls.proto_num != IPPROTO_UDP)
+      if (eXtl_dtls.proto_num == IPPROTO_TCP)
         {
           res = listen (sock, SOMAXCONN);
           if (res < 0)
@@ -186,10 +432,13 @@ dtls_tl_open(void)
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "eXosip: Binding on port %i!\n", eXtl_dtls.proto_port));
     }
+
   snprintf(dtls_firewall_port, sizeof(dtls_firewall_port), "%i", eXtl_dtls.proto_port);
   return 0;
 }
 
+#define EXOSIP_AS_A_SERVER 1
+#define EXOSIP_AS_A_CLIENT 2
 
 static int
 dtls_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
@@ -208,8 +457,10 @@ dtls_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
 static int
 dtls_tl_read_message(fd_set *osip_fdset)
 {
-  char *buf;
+  char *enc_buf;
+  char *dec_buf;
   int i;
+  int enc_buf_len;
 
   if (dtls_socket<=0)
     return -1;
@@ -228,23 +479,27 @@ dtls_tl_read_message(fd_set *osip_fdset)
       else
 	slen = sizeof (struct sockaddr_in6);
       
-      buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
-      if (buf==NULL)
+      enc_buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
+      if (enc_buf==NULL)
 	return -1;
 
-      i = recvfrom (dtls_socket, buf,
+      enc_buf_len = recvfrom (dtls_socket, enc_buf,
 		    SIP_MESSAGE_MAX_LENGTH, 0,
 		    (struct sockaddr *) &sa, &slen);
       
-      if (i > 5)
+      if (enc_buf_len > 5)
 	{
 	  char src6host[NI_MAXHOST];
 	  int recvport = 0;
 	  int err;
 	  
-	  osip_strncpy (buf + i, "\0", 1);
+	  BIO *rbio;
+	  struct socket_tab *socket_tab_used=NULL;
+	  int pos;
+
+	  osip_strncpy (enc_buf + enc_buf_len, "\0", 1);
 	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				  "Received message: \n%s\n", buf));
+				  "Received message: \n%s\n", enc_buf));
 
 	  memset (src6host, 0, sizeof (src6host));
 	  
@@ -284,6 +539,7 @@ dtls_tl_read_message(fd_set *osip_fdset)
 			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 			   "Message received from: NULL:%i getnameinfo failure\n",
 			   recvport));
+	      snprintf(src6host, sizeof(src6host), "127.0.0.1");
 	    }
 	  else
 	    {
@@ -298,24 +554,156 @@ dtls_tl_read_message(fd_set *osip_fdset)
 		      (__FILE__, __LINE__, OSIP_INFO1, NULL,
 		       "Message received from: %s:%i\n",
 		       src6host, recvport));
+
+	  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+	    {
+	      if (dtls_socket_tab[pos].ssl_conn != NULL)
+		{
+		  if (dtls_socket_tab[pos].remote_port == recvport &&
+		      (strcmp (dtls_socket_tab[pos].remote_ip, src6host) == 0))
+		    {
+		      socket_tab_used = &dtls_socket_tab[pos];
+		      break;
+		    }
+		}
+	    }
+
+	  if (socket_tab_used==NULL)
+	    {
+	      for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+		{
+		  if (dtls_socket_tab[pos].ssl_conn == NULL)
+		    {
+		      /* should accept this connection? */
+		      break;
+		    }
+		}
+
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
+				      "creating DTLS socket at index: %i\n", pos));
+	      if (pos<0)
+		{
+		  /* delete an old one! */
+		  pos=0;
+		  if (dtls_socket_tab[pos].ssl_conn != NULL)
+		    {
+		      shutdown_free_client_dtls (pos);
+		      shutdown_free_server_dtls (pos);
+		    }
+
+		  memset(&dtls_socket_tab[pos], 0, sizeof(struct socket_tab));
+		}
+	    }
+
+	  if (dtls_socket_tab[pos].ssl_conn==NULL)
+	    {
+	      BIO *wbio;
+	      if (!SSL_CTX_check_private_key (server_ctx))
+		{
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			       "SSL CTX private key check error\n"));
+		  osip_free(enc_buf);
+		  return -1;
+		}
+
+	      /* behave as a server: */
+	      dtls_socket_tab[pos].ssl_conn = SSL_new (server_ctx);
+	      if (dtls_socket_tab[pos].ssl_conn == NULL)
+		{
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			       "SSL_new error\n"));
+		  osip_free(enc_buf);
+		  return -1;
+		}
+
+	      /* No MTU query */
+	      SSL_set_options (dtls_socket_tab[pos].ssl_conn, SSL_OP_NO_QUERY_MTU);
+	      SSL_set_mtu (dtls_socket_tab[pos].ssl_conn, 2000);
+	      /* MTU query */
+	      /* BIO_ctrl(sbio, BIO_CTRL_DGRAM_MTU_DISCOVER, 0, NULL); */
+	      SSL_set_options (dtls_socket_tab[pos].ssl_conn, SSL_OP_COOKIE_EXCHANGE);
+	      wbio = BIO_new_dgram (dtls_socket,
+				    BIO_NOCLOSE);
+	      BIO_dgram_set_peer (wbio, &sa);
+	      SSL_set_bio (dtls_socket_tab[pos].ssl_conn, NULL, wbio);
+
+	      SSL_set_accept_state (dtls_socket_tab[pos].ssl_conn);
+
+	      dtls_socket_tab[pos].ssl_state = 0;
+	      dtls_socket_tab[pos].ssl_type = EXOSIP_AS_A_SERVER;
+
+	      osip_strncpy (dtls_socket_tab[pos].remote_ip, src6host,
+			    sizeof (dtls_socket_tab[pos].remote_ip));
+	      dtls_socket_tab[pos].remote_port = recvport;
+	      
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				      "New DTLS connection accepted\n"));
+
+	    }
+
+	  dec_buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
+	  if (dec_buf==NULL)
+	    {
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			       "Allocation error\n"));
+		  osip_free(enc_buf);
+		  return -1;
+	    }
+	  rbio = BIO_new_mem_buf (enc_buf, enc_buf_len);
+	  BIO_set_mem_eof_return (rbio, -1);
 	  
-	  _eXosip_handle_incoming_message(buf, i, dtls_socket, src6host, recvport);
-      
-	}
+	  dtls_socket_tab[pos].ssl_conn->rbio = rbio;
+	  
+	  i = SSL_read (dtls_socket_tab[pos].ssl_conn, dec_buf, SIP_MESSAGE_MAX_LENGTH);
+	  /* done with the rbio */
+	  BIO_free (dtls_socket_tab[pos].ssl_conn->rbio);
+	  dtls_socket_tab[pos].ssl_conn->rbio = BIO_new (BIO_s_mem ());
+
+	  if (i > 5)
+	    {
+	      osip_strncpy (dec_buf + i, "\0", 1);
+
+	      _eXosip_handle_incoming_message(dec_buf, i, dtls_socket, src6host, recvport);
+	      
+	    }
 #ifndef MINISIZE
-      else if (i < 0)
-	{
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				  "Could not read socket\n"));
-	}
-      else
-	{
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				  "Dummy SIP message received\n"));
-	}
+	  else if (i <= 0)
+	    {
+	      err = SSL_get_error (dtls_socket_tab[pos].ssl_conn, i);
+	      print_ssl_error (err);
+	      if (err==SSL_ERROR_SYSCALL)
+		{
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_WARNING,
+			       NULL, "DTLS SYSCALL on SSL_read\n"));
+		}
+	      else if (err==SSL_ERROR_SSL
+		       || err==SSL_ERROR_ZERO_RETURN)
+		{
+		  OSIP_TRACE (osip_trace
+			      (__FILE__, __LINE__, OSIP_WARNING,
+			       NULL, "DTLS closed\n"));
+		  
+		  shutdown_free_client_dtls (pos);
+		  shutdown_free_server_dtls (pos);
+		  
+		  memset (&(dtls_socket_tab[pos]), 0, sizeof (dtls_socket_tab[pos]));
+		}
+	    }
+	  else
+	    {
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				      "Dummy SIP message received\n"));
+	    }
 #endif
   
-      osip_free (buf);
+	  osip_free (dec_buf);
+	  osip_free (enc_buf);
+
+	}
     }
 
   return 0;
@@ -374,6 +762,10 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
   char ipbuf[INET6_ADDRSTRLEN];
   int i;
 
+  int pos;
+  struct socket_tab *socket_tab_used=NULL;
+  BIO *sbio=NULL;
+
   if (dtls_socket <= 0)
     return -1;
 
@@ -385,6 +777,9 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
       else
         port = 5061;
     }
+
+  if (port == 5060)
+    port = 5061;
 
   if (MSG_IS_REQUEST(sip))
     {
@@ -485,43 +880,145 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
                           "Message sent: \n%s (to dest=%s:%i)\n",
                           message, ipbuf, port));
 
-  if (0 >
-      sendto (dtls_socket, (const void *) message, length, 0,
-                      (struct sockaddr *) &addr, len))
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
-#ifdef WIN32
-      if (WSAECONNREFUSED == WSAGetLastError ())
-#else
-      if (ECONNREFUSED == errno)
-#endif
+      if (dtls_socket_tab[pos].ssl_conn != NULL
+	  && dtls_socket_tab[pos].ssl_type == EXOSIP_AS_A_SERVER)
 	{
-	  /* This can be considered as an error, but for the moment,
-             I prefer that the application continue to try sending
-             message again and again... so we are not in a error case.
-             Nevertheless, this error should be announced!
-             ALSO, UAS may not have any other options than retry always
-             on the same port.
-	  */
-	  osip_free (message);
-          return 1;
-	}
-      else
-	{
-	  
-#ifndef MINISIZE
-	  /* delete first SRV entry that is not reachable */
-	  if (tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
+	  if (dtls_socket_tab[pos].remote_port == port &&
+	      (strcmp (dtls_socket_tab[pos].remote_ip, ipbuf) == 0))
 	    {
-	      memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
-	      memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
-	      osip_free (message);
-	      return 0; /* retry for next retransmission! */
+	      BIO *rbio;
+	      socket_tab_used = &dtls_socket_tab[pos];
+	      rbio = BIO_new_dgram (dtls_socket, BIO_NOCLOSE);
+	      BIO_dgram_set_peer (rbio, &addr);
+	      dtls_socket_tab[pos].ssl_conn->rbio = rbio;
+	      break;
 	    }
-#endif
-	  /* SIP_NETWORK_ERROR; */
-	  osip_free (message);
-          return -1;
 	}
+    }
+  if (socket_tab_used==NULL)
+    {
+      for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+	{
+	  if (dtls_socket_tab[pos].ssl_conn != NULL
+	      && dtls_socket_tab[pos].ssl_type == EXOSIP_AS_A_CLIENT)
+	    {
+	      if (dtls_socket_tab[pos].remote_port == port &&
+		  (strcmp (dtls_socket_tab[pos].remote_ip, ipbuf) == 0))
+		{
+		  BIO *rbio;
+		  socket_tab_used = &dtls_socket_tab[pos];
+		  rbio = BIO_new_dgram (dtls_socket, BIO_NOCLOSE);
+		  BIO_dgram_set_peer (rbio, &addr);
+		  dtls_socket_tab[pos].ssl_conn->rbio = rbio;
+		  break;
+		}
+	    }
+	}
+    }
+
+  if (socket_tab_used==NULL)
+    {
+      /* delete an old one! */
+      pos=0;
+      if (dtls_socket_tab[pos].ssl_conn != NULL)
+	{
+	  shutdown_free_client_dtls (pos);
+	  shutdown_free_server_dtls (pos);
+	}
+      
+      memset(&dtls_socket_tab[pos], 0, sizeof(struct socket_tab));
+    }
+  
+  if (dtls_socket_tab[pos].ssl_conn == NULL)
+    {
+      /* create a new one */
+      SSL_CTX_set_read_ahead (client_ctx, 1);
+      dtls_socket_tab[pos].ssl_conn = SSL_new (client_ctx);
+
+      if (dtls_socket_tab[pos].ssl_conn == NULL)
+	{
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "DTLS SSL_new error\n"));
+
+	  if (dtls_socket_tab[pos].ssl_conn != NULL)
+	    {
+	      shutdown_free_client_dtls (pos);
+	      shutdown_free_server_dtls (pos);
+	    }
+	  
+	  memset(&dtls_socket_tab[pos], 0, sizeof(struct socket_tab));
+
+	  osip_free (message);
+	  return -1;
+	}
+
+      if (connect (dtls_socket, (struct sockaddr *) &addr, sizeof (addr)) == -1)
+	{
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "DTLS connect error\n"));
+	  if (dtls_socket_tab[pos].ssl_conn != NULL)
+	    {
+	      shutdown_free_client_dtls (pos);
+	      shutdown_free_server_dtls (pos);
+	    }
+	  
+	  memset(&dtls_socket_tab[pos], 0, sizeof(struct socket_tab));
+
+	  osip_free (message);
+	  return -1;
+	}
+      
+      SSL_set_options (dtls_socket_tab[pos].ssl_conn, SSL_OP_NO_QUERY_MTU);
+      SSL_set_mtu (dtls_socket_tab[pos].ssl_conn, 2000);
+      SSL_set_connect_state (dtls_socket_tab[pos].ssl_conn);
+      sbio = BIO_new_dgram (dtls_socket, BIO_NOCLOSE);
+      BIO_ctrl_set_connected (sbio, 1, (struct sockaddr *) &addr);
+      SSL_set_bio (dtls_socket_tab[pos].ssl_conn, sbio, sbio);
+
+      dtls_socket_tab[pos].ssl_type = 2;
+      dtls_socket_tab[pos].ssl_state = 2;
+      
+      osip_strncpy (dtls_socket_tab[pos].remote_ip, ipbuf,
+		    sizeof (dtls_socket_tab[pos].remote_ip));
+      dtls_socket_tab[pos].remote_port = port;
+    }
+
+  i = SSL_write (dtls_socket_tab[pos].ssl_conn, message, length);
+
+  if (i<0)
+    {
+      i = SSL_get_error (dtls_socket_tab[pos].ssl_conn, i);
+      print_ssl_error (i);
+      if (i==SSL_ERROR_SSL
+	  || i==SSL_ERROR_SYSCALL)
+	{
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "DTLS SSL_write error\n"));
+	  if (dtls_socket_tab[pos].ssl_conn != NULL)
+	      {
+		shutdown_free_client_dtls (pos);
+		shutdown_free_server_dtls (pos);
+	      }
+	  
+	  memset(&dtls_socket_tab[pos], 0, sizeof(struct socket_tab));
+	  
+	}
+
+#ifndef MINISIZE
+      /* delete first SRV entry that is not reachable */
+      if (tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
+	{
+	  memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
+	  memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
+	  osip_free (message);
+	  return 0; /* retry for next retransmission! */
+	}
+#endif
+      /* SIP_NETWORK_ERROR; */
+      osip_free (message);
+      return -1;
     }
 
   if (eXosip.keep_alive > 0)
