@@ -256,7 +256,7 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
   if (!(SSL_CTX_load_verify_locations (ctx, CA_LIST, 0)))
     OSIP_TRACE (osip_trace
 		(__FILE__, __LINE__, OSIP_ERROR, NULL,
-		 "eXosip: Couldn't Couldn't read CA list\n"));
+		 "eXosip: Couldn't read CA list\n"));
 
   SSL_CTX_set_verify_depth (ctx, 3);
 
@@ -339,6 +339,20 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
 		   "eXosip: Couldn't read certificate file!\n"));
     }
 
+
+  /* Load the CAs we trust */
+  if (!(SSL_CTX_load_verify_locations (ctx, CA_LIST, 0)))
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "eXosip: Couldn't read CA list\n"));
+    }
+  SSL_CTX_set_verify_depth (ctx, 5);
+
+  SSL_CTX_set_options (ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
+		       SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
+		       SSL_OP_CIPHER_SERVER_PREFERENCE);
+
   if (!(SSL_CTX_use_PrivateKey_file (ctx, keyfile, SSL_FILETYPE_PEM)))
     {
       OSIP_TRACE (osip_trace
@@ -347,18 +361,12 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
       return 0;
     }
 
-  /* Load the CAs we trust */
-  if (!(SSL_CTX_load_verify_locations (ctx, CA_LIST, 0)))
-    {
+  if (!SSL_CTX_check_private_key(ctx)) {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "eXosip: Couldn't Couldn't read CA list\n"));
-    }
-  SSL_CTX_set_verify_depth (ctx, 5);
-
-  SSL_CTX_set_options (ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
-		       SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
-		       SSL_OP_CIPHER_SERVER_PREFERENCE);
+		   "check_private_key: Key '%s' does not match the public key of the certificate\n", SSL_FILETYPE_PEM));
+    return NULL;
+  }
 
   /* Load randomness */
   if (!(RAND_load_file (RANDOM, 1024 * 1024)))
@@ -692,12 +700,13 @@ tls_tl_read_message(fd_set *osip_fdset)
 	      return -1;
 	    }
 	  
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+				  "New TLS connection accepted\n"));
+
 	  tls_socket_tab[pos].socket = sock;
 	  tls_socket_tab[pos].ssl_conn = ssl;
 	  tls_socket_tab[pos].ssl_state = 2;
 
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				  "New TLS connection accepted\n"));
 
 	  memset (src6host, 0, sizeof (src6host));
 	  
@@ -876,6 +885,135 @@ _tls_tl_find_socket (char *host, int port)
   return -1;
 }
 
+static void tls_dump_cert_info(char* s, X509* cert)
+{
+  char* subj;
+  char* issuer;
+
+  subj   = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
+  issuer = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
+
+  OSIP_TRACE (osip_trace
+	      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+	       "%s subject:%s\n", s ? s : "", subj));
+  OSIP_TRACE (osip_trace
+	      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+	       "%s issuer: %s\n", s ? s : "", issuer));
+  OPENSSL_free(subj);
+  OPENSSL_free(issuer);
+}
+
+static void tls_dump_verification_failure(long verification_result)
+{
+  char tmp[64];
+  
+  snprintf(tmp, sizeof(tmp), "unknown errror");
+  switch(verification_result) {
+  case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
+    snprintf(tmp, sizeof(tmp), "unable to get issuer certificate");
+    break;
+  case X509_V_ERR_UNABLE_TO_GET_CRL:
+    snprintf(tmp, sizeof(tmp), "unable to get certificate CRL");
+    break;
+  case X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE:
+    snprintf(tmp, sizeof(tmp), "unable to decrypt certificate's signature");
+    break;
+  case X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE:
+    snprintf(tmp, sizeof(tmp), "unable to decrypt CRL's signature");
+    break;
+  case X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY:
+    snprintf(tmp, sizeof(tmp), "unable to decode issuer public key");
+    break;
+  case X509_V_ERR_CERT_SIGNATURE_FAILURE:
+    snprintf(tmp, sizeof(tmp), "certificate signature failure");
+    break;
+  case X509_V_ERR_CRL_SIGNATURE_FAILURE:
+    snprintf(tmp, sizeof(tmp), "CRL signature failure");
+    break;
+  case X509_V_ERR_CERT_NOT_YET_VALID:
+    snprintf(tmp, sizeof(tmp), "certificate is not yet valid");
+    break;
+  case X509_V_ERR_CERT_HAS_EXPIRED:
+    snprintf(tmp, sizeof(tmp), "certificate has expired");
+    break;
+  case X509_V_ERR_CRL_NOT_YET_VALID:
+    snprintf(tmp, sizeof(tmp), "CRL is not yet valid");
+    break;
+  case X509_V_ERR_CRL_HAS_EXPIRED:
+    snprintf(tmp, sizeof(tmp), "CRL has expired");
+    break;
+  case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
+    snprintf(tmp, sizeof(tmp), "format error in certificate's notBefore field");
+    break;
+  case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
+    snprintf(tmp, sizeof(tmp), "format error in certificate's notAfter field");
+    break;
+  case X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD:
+    snprintf(tmp, sizeof(tmp), "format error in CRL's lastUpdate field");
+    break;
+  case X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD:
+    snprintf(tmp, sizeof(tmp), "format error in CRL's nextUpdate field");
+    break;
+  case X509_V_ERR_OUT_OF_MEM:
+    snprintf(tmp, sizeof(tmp), "out of memory");
+    break;
+  case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+    snprintf(tmp, sizeof(tmp), "self signed certificate");
+    break;
+  case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
+    snprintf(tmp, sizeof(tmp), "self signed certificate in certificate chain");
+    break;
+  case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+    snprintf(tmp, sizeof(tmp), "unable to get local issuer certificate");
+    break;
+  case X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+    snprintf(tmp, sizeof(tmp), "unable to verify the first certificate");
+    break;
+  case X509_V_ERR_CERT_CHAIN_TOO_LONG:
+    snprintf(tmp, sizeof(tmp), "certificate chain too long");
+    break;
+  case X509_V_ERR_CERT_REVOKED:
+    snprintf(tmp, sizeof(tmp), "certificate revoked");
+    break;
+  case X509_V_ERR_INVALID_CA:
+    snprintf(tmp, sizeof(tmp), "invalid CA certificate");
+    break;
+  case X509_V_ERR_PATH_LENGTH_EXCEEDED:
+    snprintf(tmp, sizeof(tmp), "path length constraint exceeded");
+    break;
+  case X509_V_ERR_INVALID_PURPOSE:
+    snprintf(tmp, sizeof(tmp), "unsupported certificate purpose");
+    break;
+  case X509_V_ERR_CERT_UNTRUSTED:
+    snprintf(tmp, sizeof(tmp), "certificate not trusted");
+    break;
+  case X509_V_ERR_CERT_REJECTED:
+    snprintf(tmp, sizeof(tmp), "certificate rejected");
+    break;
+  case X509_V_ERR_SUBJECT_ISSUER_MISMATCH:
+    snprintf(tmp, sizeof(tmp), "subject issuer mismatch");
+    break;
+  case X509_V_ERR_AKID_SKID_MISMATCH:
+    snprintf(tmp, sizeof(tmp), "authority and subject key identifier mismatch");
+    break;
+  case X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH:
+    snprintf(tmp, sizeof(tmp), "authority and issuer serial number mismatch");
+    break;
+  case X509_V_ERR_KEYUSAGE_NO_CERTSIGN:
+    snprintf(tmp, sizeof(tmp), "key usage does not include certificate signing");
+    break;
+  case X509_V_ERR_APPLICATION_VERIFICATION:
+    snprintf(tmp, sizeof(tmp), "application verification failure");
+    break;
+  }
+
+  OSIP_TRACE (osip_trace
+	      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+	       "verification failure: %s\n", tmp));
+}
+
+
+
 static int
 _tls_tl_connect_socket (char *host, int port)
 {
@@ -889,6 +1027,7 @@ _tls_tl_connect_socket (char *host, int port)
   BIO *sbio;
   SSL *ssl;
   SSL_CTX *ctx;
+  X509* cert;
 
   char src6host[NI_MAXHOST];
   memset (src6host, 0, sizeof (src6host));
@@ -1038,8 +1177,20 @@ _tls_tl_connect_socket (char *host, int port)
 	  SSL_free (ssl);
 	  if (ctx != NULL)
 	    SSL_CTX_free (ctx);
-	  
+	  return -1;
 	}
+       
+       cert = SSL_get_peer_certificate(ssl);
+       if (cert != 0) {
+	 tls_dump_cert_info("tls_connect: remote certificate: ", cert);
+
+	 if (SSL_get_verify_result(ssl) != X509_V_OK) {
+	   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "Failed to verify remote certificate\n"));
+	   tls_dump_verification_failure(SSL_get_verify_result(ssl));
+	 }
+	 X509_free(cert);
+       }
 
       tls_socket_tab[pos].socket = sock;
 
