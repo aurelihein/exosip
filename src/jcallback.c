@@ -576,21 +576,46 @@ cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
       eXosip_dialog_t *jd;
       eXosip_subscribe_t *js;
       eXosip_notify_t *jn;
+      eXosip_call_t *jc;
       jinfo_t *jinfo = (jinfo_t *) osip_transaction_get_your_instance (tr);
       
       if (jinfo == NULL)
-	return;
+	{
+	  eXosip_event_t *je;
+	  je = eXosip_event_init_for_message (EXOSIP_MESSAGE_REQUESTFAILURE, tr);
+	  report_event (je, NULL);
+	  return;
+	}
+
+      jc = jinfo->jc;
       jd = jinfo->jd;
       jn = jinfo->jn;
       js = jinfo->js;
       
       if (jn == NULL && js == NULL)
-	return;
+	{
+	  eXosip_event_t *je;
+	  if (jc!=NULL)
+	    {
+	      report_call_event (EXOSIP_CALL_MESSAGE_REQUESTFAILURE, jc, jd, tr);
+	      return;
+	    }
+
+	  je = eXosip_event_init_for_message (EXOSIP_MESSAGE_REQUESTFAILURE, tr);
+	  report_event (je, NULL);
+	  return;
+	}
       
       /* no answer to a NOTIFY request! */
       if (MSG_IS_NOTIFY (tr->orig_request) && tr->last_response == NULL)
 	{
 	  /* delete the dialog! */
+	  eXosip_event_t *je;
+	  
+	  je = eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+					     jn, jd, tr);
+	  report_event (je, NULL);
+
 	  REMOVE_ELEMENT (eXosip.j_notifies, jn);
 	  eXosip_notify_free (jn);
 	  return;
@@ -626,6 +651,12 @@ cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
       /* no answer to a SUBSCRIBE request! */
       if (MSG_IS_SUBSCRIBE (tr->orig_request) && tr->last_response == NULL)
 	{
+	  eXosip_event_t *je;
+	  
+	  je = eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_REQUESTFAILURE,
+						js, jd, tr);
+	  report_event (je, NULL);
+
 	  /* delete the dialog! */
 	  REMOVE_ELEMENT (eXosip.j_subscribes, js);
 	  eXosip_subscribe_free (js);
