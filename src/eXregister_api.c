@@ -122,17 +122,17 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
             reg->cseq->number = (char *) osip_malloc (length + 2);      /* +2 like for 9 to 10 */
             sprintf (reg->cseq->number, "%i", osip_cseq_num);
 
-			{
-              osip_header_t *exp;
-
+	    {
+	      osip_header_t *exp;
+	      
               osip_message_header_get_byname (reg, "expires", 0, &exp);
               if (exp!=NULL)
-			  {
-				  if (exp->hvalue!=NULL)
-					  osip_free (exp->hvalue);
-				  exp->hvalue = (char *) osip_malloc (10);
-				  snprintf (exp->hvalue, 9, "%i", jr->r_reg_period);
-			  }
+		{
+		  if (exp->hvalue!=NULL)
+		    osip_free (exp->hvalue);
+		  exp->hvalue = (char *) osip_malloc (10);
+		  snprintf (exp->hvalue, 9, "%i", jr->r_reg_period);
+		}
             }
 
             osip_message_force_update (reg);
