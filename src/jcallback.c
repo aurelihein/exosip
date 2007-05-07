@@ -1369,6 +1369,19 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       _eXosip_reg_find (&jreg, tr);
       if (jreg != NULL)
         {
+	  /* update registration interval */
+	  osip_header_t *exp;
+	  
+	  osip_message_header_get_byname (sip, "expires", 0, &exp);
+	  if (exp!=NULL && exp->hvalue!=NULL)
+	    {
+	      int val = atoi(exp->hvalue);
+	      if (val>0)
+		{
+		  jreg->r_reg_period=val;
+		}
+	    }
+
           je = eXosip_event_init_for_reg (EXOSIP_REGISTRATION_SUCCESS, jreg, tr);
           report_event (je, sip);
           jreg->r_retry = 0;    /* reset value */
