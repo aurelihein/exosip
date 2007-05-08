@@ -103,7 +103,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
-					     firewall_port, sizeof(&firewall_port));
+					     firewall_port, sizeof(firewall_port));
     }
 
   /* search for topmost Via which indicate the transport protocol */
@@ -226,7 +226,7 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport, const ch
   if (eXosip.eXtl!=NULL && eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
-					     firewall_port, sizeof(&firewall_port));
+					     firewall_port, sizeof(firewall_port));
     }
 
 #ifdef MASQUERADE_VIA
@@ -500,7 +500,7 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
-					     firewall_port, sizeof(&firewall_port));
+					     firewall_port, sizeof(firewall_port));
     }
 
   i =
@@ -730,7 +730,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
-					     firewall_port, sizeof(&firewall_port));
+					     firewall_port, sizeof(firewall_port));
     }
 
   i = osip_message_init (&request);

@@ -174,7 +174,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
-					     firewall_port, sizeof(&firewall_port));
+					     firewall_port, sizeof(firewall_port));
     }
 
   /* 12.1.1:
