@@ -579,11 +579,16 @@ cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
       eXosip_call_t *jc;
       jinfo_t *jinfo = (jinfo_t *) osip_transaction_get_your_instance (tr);
       
-      if (jinfo == NULL)
+      if (jinfo == NULL && tr->last_response == NULL)
 	{
 	  eXosip_event_t *je;
 	  je = eXosip_event_init_for_message (EXOSIP_MESSAGE_REQUESTFAILURE, tr);
 	  report_event (je, NULL);
+	  return;
+	}
+
+      if (jinfo == NULL)
+	{
 	  return;
 	}
 
