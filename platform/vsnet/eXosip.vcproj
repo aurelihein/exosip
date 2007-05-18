@@ -51,7 +51,7 @@
 				AdditionalIncludeDirectories="..\..\..\osip\include,..\..\include,..\..\..\win32-bin\include"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;EXOSIP_EXPORTS;_DEBUG;ENABLE_TRACE;WIN32;_WINDOWS;_USRDLL;OSIP_MT;_MT"
 				ExceptionHandling="0"
-				BasicRuntimeChecks="3"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				AssemblerListingLocation="Debug/"
