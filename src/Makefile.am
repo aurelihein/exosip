@@ -20,7 +20,7 @@ jcallback.c      jdialog.c        \
 udp.c            jcall.c          \
 jreg.c           eXutils.c        \
 jevents.c        misc.c           \
-jauth.c                           \
+jauth.c          eXtransport.h    \
 eXosip2.h
 
 libeXosip2_la_SOURCES+= \
