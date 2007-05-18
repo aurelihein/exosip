@@ -195,7 +195,7 @@ jpipe ()
       osip_free (my_pipe);
       return NULL;
     }
-#elif !defined(WIN32_WCE)
+#elif !defined(_WIN32_WCE)
   if (j != NO_ERROR)
     {
       /* failed for some reason... */

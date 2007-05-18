@@ -673,11 +673,11 @@ eXosip_init (void)
   /* open a TCP socket to wake up the application when needed. */
   eXosip.j_socketctl = jpipe ();
   if (eXosip.j_socketctl == NULL)
-    return -1;
+    return -2;
 
   eXosip.j_socketctl_event = jpipe ();
   if (eXosip.j_socketctl_event == NULL)
-    return -1;
+    return -3;
 #endif
 
   /* To be changed in osip! */
