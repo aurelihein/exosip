@@ -2038,24 +2038,24 @@ cb_snd123456xx (int type, osip_transaction_t * tr, osip_message_t * sip)
   jc = jinfo->jc;
   if (jd == NULL)
     return;
-  if (OSIP_IST_STATUS_1XX_SENT || OSIP_NIST_STATUS_1XX_SENT)
+  if (type == OSIP_IST_STATUS_1XX_SENT || type == OSIP_NIST_STATUS_1XX_SENT)
     {
       jd->d_STATE = JD_TRYING;
       return;
     }
-  if (OSIP_IST_STATUS_2XX_SENT || OSIP_NIST_STATUS_2XX_SENT)
+  if (type == OSIP_IST_STATUS_2XX_SENT || type == OSIP_NIST_STATUS_2XX_SENT)
     {
       jd->d_STATE = JD_ESTABLISHED;
       return;
     }
   
-  if (OSIP_IST_STATUS_3XX_SENT || OSIP_NIST_STATUS_3XX_SENT)
+  if (type == OSIP_IST_STATUS_3XX_SENT || type == OSIP_NIST_STATUS_3XX_SENT)
     jd->d_STATE = JD_REDIRECTED;
-  else if (OSIP_IST_STATUS_4XX_SENT || OSIP_NIST_STATUS_4XX_SENT)
+  else if (type == OSIP_IST_STATUS_4XX_SENT || type == OSIP_NIST_STATUS_4XX_SENT)
     jd->d_STATE = JD_CLIENTERROR;
-  else if (OSIP_IST_STATUS_5XX_SENT || OSIP_NIST_STATUS_5XX_SENT)
+  else if (type == OSIP_IST_STATUS_5XX_SENT || type == OSIP_NIST_STATUS_5XX_SENT)
     jd->d_STATE = JD_SERVERERROR;
-  else if (OSIP_IST_STATUS_6XX_SENT || OSIP_NIST_STATUS_6XX_SENT)
+  else if (type == OSIP_IST_STATUS_6XX_SENT || type == OSIP_NIST_STATUS_6XX_SENT)
     jd->d_STATE = JD_GLOBALFAILURE;
   
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE")
