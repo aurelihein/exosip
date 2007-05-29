@@ -466,6 +466,9 @@ eXosip_process_cancel (osip_transaction_t * transaction, osip_event_t * evt)
     evt_answer->transactionid = tr->transactionid;
     osip_transaction_add_event (tr, evt_answer);
     __eXosip_wakeup ();
+
+	osip_nist_execute (eXosip.j_osip);
+	report_call_event (EXOSIP_CALL_MESSAGE_NEW, jc, jd, transaction);
   }
 }
 
