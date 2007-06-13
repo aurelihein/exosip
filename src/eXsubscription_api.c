@@ -345,6 +345,17 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
       return -1;
     }
 
+  {
+    osip_generic_param_t *tag = NULL;
+    
+    osip_to_get_tag(msg->to, &tag);
+    if (NULL == tag && jd != NULL && jd->d_dialog != NULL
+	&& jd->d_dialog->remote_tag != NULL)
+      {
+	osip_to_set_tag(msg->to, osip_strdup(jd->d_dialog->remote_tag));
+      }
+  }
+
   via = (osip_via_t *) osip_list_get (&msg->vias, 0);
   if (via == NULL || msg->cseq == NULL || msg->cseq->number == NULL)
     {
