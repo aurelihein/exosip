@@ -543,14 +543,49 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
 static int _eXosip_default_gateway_ipv4 (char *address, int size);
 static int _eXosip_default_gateway_ipv6 (char *address, int size);
 
+#ifdef HAVE_GETIFADDRS
+
+#include <ifaddrs.h>
+
+static int _eXosip_default_gateway_ipv6_with_getifaddrs(char *address, int size){
+	struct ifaddrs *ifp;
+	struct ifaddrs *ifpstart;
+	int ret=-1;
+	
+	if (getifaddrs (&ifpstart) < 0){
+		return -1;
+	}
+	
+	for (ifp=ifpstart; ifp != NULL; ifp = ifp->ifa_next)
+	{
+		if (ifp->ifa_addr && ifp->ifa_addr->sa_family==AF_INET6
+			&& (ifp->ifa_flags & IFF_RUNNING) && !(ifp->ifa_flags & IFF_LOOPBACK) ) {
+			getnameinfo(ifp->ifa_addr,sizeof(struct sockaddr_in6),address,size,NULL,0,NI_NUMERICHOST);
+			if (strchr(address,'%')==NULL){ /*avoid link-local addresses */
+				OSIP_TRACE (osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,"_eXosip_default_gateway_ipv6_with_getifaddrs(): found %s\n",address));
+				ret=0;
+				break;
+			}
+		}
+	}
+	freeifaddrs (ifpstart);
+	return ret;
+}
+#endif
 
 int
 eXosip_guess_ip_for_via (int family, char *address, int size)
 {
   if (family == AF_INET6)
     {
-      return _eXosip_default_gateway_ipv6 (address, size);
-  } else
+      int err;
+      err=_eXosip_default_gateway_ipv6 (address, size);
+#ifdef HAVE_GETIFADDRS
+      if (err<0)
+        err=_eXosip_default_gateway_ipv6_with_getifaddrs(address,size);
+#endif
+      return err;
+  }else
     {
       return _eXosip_default_gateway_ipv4 (address, size);
     }
@@ -640,7 +675,8 @@ _eXosip_default_gateway_ipv6 (char *address, int size)
 
   memset (&iface_out, 0, sizeof (iface_out));
   sock_rt = socket (AF_INET6, SOCK_DGRAM, 0);
-
+  /*default to ipv6 local loopback in case something goes wrong:*/
+  strncpy(address,"::1",size);
   if (setsockopt (sock_rt, SOL_SOCKET, SO_BROADCAST, &on, sizeof (on)) == -1)
     {
       perror ("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
@@ -781,6 +817,20 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
                    gai_strerror (error)));
       return -1;
     }
+   else{
+	struct addrinfo *elem;
+	char tmp[INET6_ADDRSTRLEN];
+	char porttmp[10];
+	OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                   "getaddrinfo returned the following addresses:\n"));
+	for (elem=*addrinfo;elem!=NULL;elem=elem->ai_next){
+		getnameinfo(elem->ai_addr,elem->ai_addrlen,tmp,sizeof(tmp),porttmp,sizeof(porttmp),NI_NUMERICHOST|NI_NUMERICSERV);
+		OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                   "%s port %s\n",tmp,porttmp));
+	}
+   }
 
   return 0;
 }
