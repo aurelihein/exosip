@@ -46,6 +46,12 @@ eXosip_enable_ipv6 (int _ipv6_enable)
 
 #endif
 
+const char *
+eXosip_get_version(void)
+{
+  return EXOSIP_VERSION;
+}
+
 void
 eXosip_masquerade_contact (const char *public_address, int port)
 {
@@ -613,6 +619,7 @@ eXosip_init (void)
   memset (&eXosip, 0, sizeof (eXosip));
 
   snprintf(eXosip.ipv4_for_gateway, 256, "%s", "217.12.3.11");
+  snprintf(eXosip.ipv6_for_gateway, 256, "%s", "2001:638:500:101:2e0:81ff:fe24:37c6");
 #ifndef MINISIZE
   snprintf(eXosip.event_package, 256, "%s", "dialog");
 #endif
@@ -889,6 +896,17 @@ eXosip_set_option (eXosip_option opt, const void *value)
                      eXosip.ipv4_for_gateway));
         break;
 #ifndef MINISIZE
+      case EXOSIP_OPT_SET_IPV6_FOR_GATEWAY:
+        tmp = (char *) value;
+        memset (eXosip.ipv6_for_gateway, '\0',
+                sizeof (eXosip.ipv6_for_gateway));
+        if (tmp != NULL && tmp[0] != '\0')
+          strncpy (eXosip.ipv6_for_gateway, tmp, sizeof (eXosip.ipv6_for_gateway));
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                     "eXosip option set: ipv6_for_gateway:%s!\n",
+                     eXosip.ipv6_for_gateway));
+        break;
       case EXOSIP_OPT_EVENT_PACKAGE:
         tmp = (char *) value;
         memset (eXosip.event_package, '\0',

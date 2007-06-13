@@ -80,8 +80,9 @@ typedef enum {
     EXOSIP_OPT_DONT_SEND_101 = 6,
     EXOSIP_OPT_USE_RPORT = 7,
     EXOSIP_OPT_SET_IPV4_FOR_GATEWAY = 8,
-	EXOSIP_OPT_ADD_DNS_CACHE = 9,
-	EXOSIP_OPT_EVENT_PACKAGE = 10
+    EXOSIP_OPT_ADD_DNS_CACHE = 9,
+    EXOSIP_OPT_EVENT_PACKAGE = 10,
+    EXOSIP_OPT_SET_IPV6_FOR_GATEWAY = 11
 } eXosip_option;
 
 struct eXosip_dns_cache {
@@ -164,6 +165,12 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param user_agent the User-Agent header to insert in messages.
  */
   void eXosip_set_user_agent(const char *user_agent);
+
+ /**
+  * Get the eXosip version as a sring
+  *
+  */
+  const char * eXosip_get_version(void);
 
 /**
  * Use IPv6 instead of IPv4.

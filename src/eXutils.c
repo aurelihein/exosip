@@ -492,7 +492,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
     }
   else if(family == AF_INET6)
     {
-      getaddrinfo("2001:238:202::1",NULL,NULL,&addrf);
+      getaddrinfo(eXosip.ipv6_for_gateway,NULL,NULL,&addrf);
     }
   
   if (addrf==NULL)
@@ -635,7 +635,7 @@ _eXosip_default_gateway_ipv6 (char *address, int size)
   memset (&remote, 0, sizeof (struct sockaddr_in6));
 
   remote.sin6_family = AF_INET6;
-  inet_pton (AF_INET6, "2001:638:500:101:2e0:81ff:fe24:37c6", &remote.sin6_addr);
+  inet_pton (AF_INET6, eXosip.ipv6_for_gateway, &remote.sin6_addr);
   remote.sin6_port = htons (11111);
 
   memset (&iface_out, 0, sizeof (iface_out));

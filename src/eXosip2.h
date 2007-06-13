@@ -451,6 +451,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 #endif
     int use_rport;
     char ipv4_for_gateway[256];
+    char ipv6_for_gateway[256];
 #ifndef MINISIZE
     char event_package[256];
 #endif
