@@ -446,7 +446,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
     if (doing_register)
       register_callid_number = cidrand;
 
+#if 0
     osip_call_id_set_host (callid, osip_strdup (locip));
+#endif
     request->call_id = callid;
 
     i = osip_cseq_init (&cseq);
