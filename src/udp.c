@@ -1577,7 +1577,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
       FD_ZERO (&osip_fdset);
       eXtl_udp.tl_set_fdset(&osip_fdset, &max);
       eXtl_tcp.tl_set_fdset(&osip_fdset, &max);
-#ifndef DISABLE_TLS
+#ifdef HAVE_OPENSSL_SSL_H
       eXtl_dtls.tl_set_fdset(&osip_fdset, &max);
       eXtl_tls.tl_set_fdset(&osip_fdset, &max);
 #endif
@@ -1623,7 +1623,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 	{
 	  eXtl_udp.tl_read_message(&osip_fdset);
 	  eXtl_tcp.tl_read_message(&osip_fdset);
-#ifndef DISABLE_TLS
+#ifdef HAVE_OPENSSL_SSL_H
 	  eXtl_dtls.tl_read_message(&osip_fdset);
 	  eXtl_tls.tl_read_message(&osip_fdset);
 #endif

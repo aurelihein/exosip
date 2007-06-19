@@ -22,10 +22,10 @@
 #include <mpatrol.h>
 #endif
 
-#ifndef DISABLE_TLS
-
 #include "eXosip2.h"
 #include "eXtransport.h"
+
+#ifdef HAVE_OPENSSL_SSL_H
 
 #include <openssl/ssl.h>
 #define SPROTO_TLS 500

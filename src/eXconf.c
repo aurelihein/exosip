@@ -57,7 +57,7 @@ eXosip_masquerade_contact (const char *public_address, int port)
 {
   eXtl_udp.tl_masquerade_contact(public_address, port);
   eXtl_tcp.tl_masquerade_contact(public_address, port);
-#ifndef DISABLE_TLS
+#ifdef HAVE_OPENSSL_SSL_H
   eXtl_tls.tl_masquerade_contact(public_address, port);
   eXtl_dtls.tl_masquerade_contact(public_address, port);
 #endif
@@ -258,7 +258,7 @@ eXosip_quit (void)
 
   eXtl_udp.tl_free();
   eXtl_tcp.tl_free();
-#ifndef DISABLE_TLS
+#ifdef HAVE_OPENSSL_SSL_H
   eXtl_dtls.tl_free();
   eXtl_tls.tl_free();
 #endif
@@ -563,7 +563,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
     eXtl = &eXtl_udp;
   else if (transport==IPPROTO_TCP && secure==0)
     eXtl = &eXtl_tcp;
-#ifndef DISABLE_TLS
+#ifdef HAVE_OPENSSL_SSL_H
   else if (transport==IPPROTO_UDP)
     eXtl = &eXtl_dtls;
   else if (transport==IPPROTO_TCP)
@@ -697,7 +697,7 @@ eXosip_init (void)
 
   eXtl_udp.tl_init();
   eXtl_tcp.tl_init();
-#ifndef DISABLE_TLS
+#ifdef HAVE_OPENSSL_SSL_H
   eXtl_dtls.tl_init();
   eXtl_tls.tl_init();
 #endif

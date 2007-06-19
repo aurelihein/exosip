@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.54 $)dnl
+AC_REVISION($Revision: 1.55 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -354,6 +354,8 @@ AC_CHECK_HEADERS([resolv.h], [], [],
 
 dnl check if we have the getifaddrs() sytem call
 AC_CHECK_FUNCS(getifaddrs)
+
+AC_CHECK_HEADERS(openssl/ssl.h)
 
 AC_OUTPUT(
  Makefile
