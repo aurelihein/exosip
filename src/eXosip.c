@@ -1006,7 +1006,7 @@ eXosip_find_authentication_info (const char *username, const char *realm)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO3, NULL,
                    "INFO: authinfo: %s %s\n", realm, authinfo->realm));
-      if (authinfo->realm == NULL || authinfo->realm[0] == '\0')
+      if ((authinfo->realm == NULL || authinfo->realm[0] == '\0') && fallback==NULL)
         {
           fallback = authinfo;
       } else if (strcmp (realm, authinfo->realm) == 0
