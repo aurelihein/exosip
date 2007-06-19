@@ -32,7 +32,7 @@ typedef char HASH[HASHLEN];
 #define HASHHEXLEN 32
 typedef char HASHHEX[HASHHEXLEN + 1];
 
-void CvtHex (IN HASH Bin, OUT HASHHEX Hex);
+void CvtHex (HASH Bin, HASHHEX Hex);
 
 extern eXosip_t eXosip;
 
