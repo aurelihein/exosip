@@ -488,7 +488,7 @@ brood_error_1:
 }
 
 int
-generating_register (osip_message_t ** reg, char *transport, char *from,
+generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport, char *from,
                      char *proxy, char *contact, int expires)
 {
   osip_from_t *a_from;
@@ -538,6 +538,10 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
 	    {
 	      len = len + strlen(transport) + 12; /* strlen(";transport=") */
 	    }
+	  if (jreg->r_line[0]!='\0')
+	    {
+	      len = len + strlen(jreg->r_line) + 12; /* strlen(";line=") */
+	    }
 	  contact = (char *) osip_malloc (len);
           if (firewall_ip[0] != '\0')
             {
@@ -581,6 +585,14 @@ generating_register (osip_message_t ** reg, char *transport, char *from,
 	      contact[strlen(contact)-1]='\0';
 	      strcat(contact, ";transport=");
 	      strcat(contact, transport);
+	      strcat(contact, ">");
+	    }
+
+	  if (jreg->r_line[0]!='\0')
+	    {
+	      contact[strlen(contact)-1]='\0';
+	      strcat(contact, ";line=");
+	      strcat(contact, jreg->r_line);
 	      strcat(contact, ">");
 	    }
 

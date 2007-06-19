@@ -152,7 +152,7 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
     }
   if (reg == NULL)
     {
-      i = generating_register (&reg, eXosip.transport,
+      i = generating_register (jr, &reg, eXosip.transport,
                                jr->r_aor, jr->r_registrar, jr->r_contact,
                                jr->r_reg_period);
       if (i != 0)
@@ -216,6 +216,7 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
       *reg = NULL;
       return i;
     }
+
   return jr->r_id;
 }
 

@@ -45,7 +45,7 @@ typedef char HASHHEX[HASHHEXLEN + 1];
 extern eXosip_t eXosip;
 
 /* Private functions */
-static void CvtHex (IN HASH Bin, OUT HASHHEX Hex);
+void CvtHex (IN HASH Bin, OUT HASHHEX Hex);
 static void DigestCalcHA1 (IN const char *pszAlg, IN const char *pszUserName,
                            IN const char *pszRealm,
                            IN const char *pszPassword,
@@ -59,7 +59,7 @@ static void DigestCalcResponse (IN HASHHEX HA1, IN const char *pszNonce,
                                 IN const char *pszDigestUri,
                                 IN HASHHEX HEntity, OUT HASHHEX Response);
 
-static void
+void
 CvtHex (IN HASH Bin, OUT HASHHEX Hex)
 {
   unsigned short i;

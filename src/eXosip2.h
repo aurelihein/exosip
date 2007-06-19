@@ -236,6 +236,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     char *r_registrar;          /* registrar */
     char *r_contact;            /* list of contacts string */
 
+    char r_line[16];            /* line identifier */
+
     osip_transaction_t *r_last_tr;
     int r_retry;                /* avoid too many unsuccessfull retry */
 
@@ -535,7 +537,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int eXosip_reg_init (eXosip_reg_t ** jr, const char *from,
                        const char *proxy, const char *contact);
   void eXosip_reg_free (eXosip_reg_t * jreg);
-  int generating_register (osip_message_t ** reg, char *transport, char *from,
+  int generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport, char *from,
                            char *proxy, char *contact, int expires);
 
   int _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,

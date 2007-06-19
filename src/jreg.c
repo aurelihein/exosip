@@ -24,6 +24,16 @@
 
 #include "eXosip2.h"
 
+#include <osipparser2/osip_md5.h>
+
+/* TAKEN from rcf2617.txt */
+#define HASHLEN 16
+typedef char HASH[HASHLEN];
+#define HASHHEXLEN 32
+typedef char HASHHEX[HASHHEXLEN + 1];
+
+void CvtHex (IN HASH Bin, OUT HASHHEX Hex);
+
 extern eXosip_t eXosip;
 
 int
@@ -46,6 +56,22 @@ eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
   (*jr)->r_aor = osip_strdup (from);    /* sip identity */
   (*jr)->r_contact = osip_strdup (contact);     /* sip identity */
   (*jr)->r_registrar = osip_strdup (proxy);     /* registrar */
+
+  {
+	  MD5_CTX Md5Ctx;
+	  HASH hval;
+	  HASHHEX key_line;
+
+	  MD5Init (&Md5Ctx);
+	  MD5Update (&Md5Ctx, (unsigned char *) from, strlen (from));
+	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  MD5Update (&Md5Ctx, (unsigned char *) proxy, strlen (proxy));
+	  MD5Final ((unsigned char *) hval, &Md5Ctx);
+	  CvtHex (hval, key_line);
+
+	  osip_strncpy((*jr)->r_line, key_line,
+		  sizeof((*jr)->r_line));
+  }
 
   return 0;
 }
