@@ -86,6 +86,7 @@ _eXosip_transaction_init (osip_transaction_t ** transaction,
 		return i;
 	}
 #ifdef SRV_RECORD
+	memset(&record, 0, sizeof(osip_srv_record_t));
 	i = _eXosip_srv_lookup(*transaction, message, &record);
 	if (i<0)
 	{
