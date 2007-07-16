@@ -1,3 +1,13 @@
+libexosip2 (3.0.3-1) unstable; urgency=high
+  * Add TLS support.
+  * rewrite transport layer.
+  * add line= parameter in Contact headers for registrations.
+  * a few changes related to interop. issues.
+  * add missing *_REQUESTFAILURE events on no answer.
+  * Update registration interval when Expires header is in 200ok.
+
+ -- Aymeric MOIZARD <jack@atosc.org>  Tue, 17 Jul 2006 00:06:32 +0200
+
 libexosip2 (2.2.3-1) unstable; urgency=high
   * announce NOTIFY answers to application.
   * fix authentication bugs from previous patch.

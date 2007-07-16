@@ -80,7 +80,7 @@
 
 #endif
 
-#define EXOSIP_VERSION	"3.0.2"
+#define EXOSIP_VERSION	"3.0.3"
 
 #ifdef __cplusplus
 extern "C"
