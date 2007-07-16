@@ -1383,7 +1383,7 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 	      int val = atoi(exp->hvalue);
 	      if (val>0)
 		{
-		  jreg->r_reg_period=val;
+		  jreg->r_reg_period=val+60;
 		}
 	    }
 
