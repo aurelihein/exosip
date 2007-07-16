@@ -1,3 +1,11 @@
+eXosip2 (3.0.3)
+	* Add TLS support.
+	* rewrite transport layer.
+	* add line= parameter in Contact headers for registrations.
+	* a few changes related to interop. issues.
+	* add missing *_REQUESTFAILURE events on no answer.
+	* Update registration interval when Expires header is in 200ok.
+	
 eXosip2 (3.0.2)
 	* fix call transfer issue with "Replaces" header.
 	* allow build/run eXosip in non-threaded model (without -DOSIP_MT).
