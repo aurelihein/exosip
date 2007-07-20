@@ -600,14 +600,17 @@ cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
       if (jn == NULL && js == NULL)
 	{
 	  eXosip_event_t *je;
-	  if (jc!=NULL)
+	  if (jc!=NULL && tr->last_response == NULL)
 	    {
 	      report_call_event (EXOSIP_CALL_MESSAGE_REQUESTFAILURE, jc, jd, tr);
 	      return;
 	    }
 
-	  je = eXosip_event_init_for_message (EXOSIP_MESSAGE_REQUESTFAILURE, tr);
-	  report_event (je, NULL);
+	  if (jc==NULL && tr->last_response == NULL)
+	  {
+		  je = eXosip_event_init_for_message (EXOSIP_MESSAGE_REQUESTFAILURE, tr);
+		  report_event (je, NULL);
+	  }
 	  return;
 	}
       
@@ -1421,6 +1424,7 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
     {
       if (jd != NULL)
         jd->d_STATE = JD_TERMINATED;
+      report_call_event (EXOSIP_CALL_MESSAGE_ANSWERED, jc, jd, tr);
     }
 #ifndef MINISIZE
   else if (MSG_IS_RESPONSE_FOR (sip, "SUBSCRIBE"))
