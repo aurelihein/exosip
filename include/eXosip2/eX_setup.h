@@ -82,12 +82,19 @@ typedef enum {
     EXOSIP_OPT_SET_IPV4_FOR_GATEWAY = 8,
     EXOSIP_OPT_ADD_DNS_CACHE = 9,
     EXOSIP_OPT_EVENT_PACKAGE = 10,
-    EXOSIP_OPT_SET_IPV6_FOR_GATEWAY = 11
+    EXOSIP_OPT_SET_IPV6_FOR_GATEWAY = 11,
+	EXOSIP_OPT_ADD_ACCOUNT_INFO = 12
 } eXosip_option;
 
 struct eXosip_dns_cache {
     char host[1024];
     char ip[256];
+};
+
+struct eXosip_account_info {
+    char proxy[1024];
+    char nat_ip[256];
+    int nat_port;
 };
 
 struct eXosip_http_auth {

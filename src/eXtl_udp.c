@@ -220,10 +220,23 @@ udp_tl_learn_port_from_via(osip_message_t * sip)
             osip_via_param_get_byname (via, "rport", &br);
             if (br != NULL && br->gvalue != NULL)
             {
+				struct eXosip_account_info ainfo;
+				memset(&ainfo, 0, sizeof(struct eXosip_account_info));
                 snprintf (udp_firewall_port, 20, "%s", br->gvalue);
                 OSIP_TRACE (osip_trace
                             (__FILE__, __LINE__, OSIP_INFO1, NULL,
                             "SIP port modified from rport in SIP answer\r\n"));
+
+				osip_via_param_get_byname (via, "received", &br);
+				if (br != NULL && br->gvalue != NULL
+					&& sip->from!=NULL && sip->from->url!=NULL
+					&& sip->from->url->host!=NULL)
+				{
+					snprintf (ainfo.proxy, sizeof(ainfo.proxy), "%s", sip->from->url->host);
+					ainfo.nat_port = atoi(udp_firewall_port);
+					snprintf (ainfo.nat_ip, sizeof(ainfo.nat_ip), "%s", br->gvalue);
+					eXosip_set_option(EXOSIP_OPT_ADD_ACCOUNT_INFO, &ainfo);
+				}
             }
         }
     }
@@ -352,10 +365,48 @@ eXtl_update_local_target(osip_message_t *req)
 {
   int pos = 0;
 
-  if (udp_firewall_ip!='\0')
-    {
+  struct eXosip_account_info *ainfo=NULL;
+  char *proxy = NULL;
+  int i;
+  if (MSG_IS_REQUEST(req))
+  {
+	  if (req->from!=NULL
+		  && req->from->url!=NULL
+		  && req->from->url->host!=NULL)
+	  proxy = req->from->url->host;
+  }
+  else
+  {
+	  if (req->to!=NULL
+		  && req->to->url!=NULL
+		  && req->to->url->host!=NULL)
+	  proxy = req->to->url->host;
+  }
 
-      while (!osip_list_eol (&req->contacts, pos))
+  if (proxy!=NULL)
+  {
+	  for (i=0;i<MAX_EXOSIP_ACCOUNT_INFO;i++)
+	  {
+		  if (eXosip.account_entries[i].proxy[0]!='\0')
+		  {		
+			  if (strstr(eXosip.account_entries[i].proxy, proxy)!=NULL
+				  || strstr(proxy, eXosip.account_entries[i].proxy)!=NULL)
+			  {
+				  /* use ainfo */
+				  if (eXosip.account_entries[i].nat_ip[0]!='\0')
+				  {
+					  ainfo = &eXosip.account_entries[i];
+					  break;
+				  }
+			  }
+		  }
+	  }
+  }
+
+  if (udp_firewall_ip!='\0')
+  {
+
+	while (!osip_list_eol (&req->contacts, pos))
 	{
 	  osip_contact_t *co;
 	  
@@ -364,21 +415,39 @@ eXtl_update_local_target(osip_message_t *req)
 	  if (co != NULL && co->url != NULL && co->url->host != NULL
 	      && 0 == osip_strcasecmp (co->url->host, udp_firewall_ip))
 	    {
-	      if (co->url->port == NULL &&
-		  0 != osip_strcasecmp (udp_firewall_port, "5060"))
-		{
-		  co->url->port = osip_strdup (udp_firewall_port);
-		}
-	      else if (co->url->port != NULL &&
-		       0 != osip_strcasecmp (udp_firewall_port,
-					     co->url->port))
-		{
-		  osip_free (co->url->port);
-		  co->url->port = osip_strdup (udp_firewall_port);
-		}
+			if (ainfo==NULL)
+			{
+				if (co->url->port == NULL &&
+					0 != osip_strcasecmp (udp_firewall_port, "5060"))
+				{
+					co->url->port = osip_strdup (udp_firewall_port);
+				}
+				else if (co->url->port != NULL &&
+					0 != osip_strcasecmp (udp_firewall_port, co->url->port))
+				{
+					osip_free (co->url->port);
+					co->url->port = osip_strdup (udp_firewall_port);
+				}
+			}
+			else
+			{
+				if (co->url->port == NULL
+					&& ainfo->nat_port!= 5060)
+				{
+					co->url->port = osip_malloc(10);
+				    snprintf(co->url->port, 9, "%i", ainfo->nat_port);
+				}
+				else if (co->url->port != NULL &&
+					ainfo->nat_port != atoi(co->url->port))
+				{
+					osip_free (co->url->port);
+					co->url->port = osip_malloc(10);
+				    snprintf(co->url->port, 9, "%i", ainfo->nat_port);
+				}
+			}
 	    }
 	}
-    }
+  }
 
   return 0;
 }
@@ -412,14 +481,7 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
         port = 5060;
     }
 
-  if (MSG_IS_REQUEST(sip))
-    {
-      if (MSG_IS_REGISTER(sip)
-	  ||MSG_IS_INVITE(sip)
-	  ||MSG_IS_SUBSCRIBE(sip)
-	  || MSG_IS_NOTIFY(sip))
-	eXtl_update_local_target(sip);
-    }
+  eXtl_update_local_target(sip);
 
   i=-1;
 #ifndef MINISIZE

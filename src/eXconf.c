@@ -783,7 +783,64 @@ eXosip_set_option (eXosip_option opt, const void *value)
 
   switch (opt)
     {
-      case EXOSIP_OPT_ADD_DNS_CACHE:
+      case EXOSIP_OPT_ADD_ACCOUNT_INFO:
+		  {
+			  struct eXosip_account_info *ainfo;
+			  int i;
+			  ainfo = (struct eXosip_account_info*) value;
+			  if (ainfo==NULL || ainfo->proxy[0]=='\0')
+			  {
+				  return -1;
+			  }
+			  for (i=0;i<MAX_EXOSIP_ACCOUNT_INFO;i++)
+			  {
+				  if (eXosip.account_entries[i].proxy[0]!='\0'
+					  &&0==osip_strcasecmp(eXosip.account_entries[i].proxy, ainfo->proxy))
+				  {
+					  /* update ainfo */
+					  if (ainfo->nat_ip[0]!='\0')
+					  {
+						  snprintf(eXosip.account_entries[i].nat_ip, sizeof(eXosip.account_entries[i].nat_ip), "%s", ainfo->nat_ip);
+						  eXosip.account_entries[i].nat_port = ainfo->nat_port;
+						  OSIP_TRACE (osip_trace
+										(__FILE__, __LINE__, OSIP_INFO1, NULL,
+										"eXosip option set: account info updated:%s -> %s:%i\n",
+										ainfo->proxy, ainfo->nat_ip, ainfo->nat_port));
+					  }
+					  else
+					  {
+						  eXosip.account_entries[i].proxy[0]='\0';
+						  OSIP_TRACE (osip_trace
+										(__FILE__, __LINE__, OSIP_INFO2, NULL,
+										 "eXosip option set: account info deleted :%s\n", ainfo->proxy));
+					  }
+					  return 0;
+				  }
+			  }
+			  if (ainfo->nat_ip[0]=='\0')
+			  {
+				  return -1;
+			  }
+			  /* not found case: */
+			  for (i=0;i<MAX_EXOSIP_ACCOUNT_INFO;i++)
+			  {
+				  if (eXosip.account_entries[i].proxy[0]=='\0')
+				  {
+					  /* add ainfo */
+					  snprintf(eXosip.account_entries[i].proxy, sizeof(ainfo->proxy), "%s", ainfo->proxy);
+					  snprintf(eXosip.account_entries[i].nat_ip, sizeof(ainfo->nat_ip), "%s", ainfo->nat_ip);
+					  eXosip.account_entries[i].nat_port = ainfo->nat_port;
+						  OSIP_TRACE (osip_trace
+										(__FILE__, __LINE__, OSIP_INFO1, NULL,
+										"eXosip option set: account info added:%s -> %s:%i\n",
+										ainfo->proxy, ainfo->nat_ip, ainfo->nat_port));
+					  return 0;
+				  }
+			  }
+			  return -1;
+		  }
+        break;
+	  case EXOSIP_OPT_ADD_DNS_CACHE:
 		  {
 			  struct eXosip_dns_cache *entry;
 			  int i;

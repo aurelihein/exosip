@@ -399,6 +399,10 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 #define MAX_EXOSIP_DNS_ENTRY 10
 #endif
 
+#ifndef MAX_EXOSIP_ACCOUNT_INFO
+#define MAX_EXOSIP_ACCOUNT_INFO 10
+#endif
+
 #ifndef MAX_EXOSIP_HTTP_AUTH
 #define MAX_EXOSIP_HTTP_AUTH 10
 #endif
@@ -458,6 +462,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     char event_package[256];
 #endif
     struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
+	struct eXosip_account_info account_entries[MAX_EXOSIP_ACCOUNT_INFO];
     struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
   };
 
