@@ -742,7 +742,7 @@ tls_tl_read_message(fd_set *osip_fdset)
 			    (__FILE__, __LINE__, OSIP_INFO1, NULL,
 			     "Message received from: %s:%i\n", src6host, recvport));
 		osip_strncpy (tls_socket_tab[pos].remote_ip, src6host,
-			      sizeof (tls_socket_tab[pos].remote_ip));
+			      sizeof (tls_socket_tab[pos].remote_ip)-1);
 		tls_socket_tab[pos].remote_port = recvport;
 	      }
 	  }
@@ -764,7 +764,7 @@ tls_tl_read_message(fd_set *osip_fdset)
 			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
 			   "Message received from: %s:%i\n", src6host, recvport));
 	      osip_strncpy (tls_socket_tab[pos].remote_ip, src6host,
-			    sizeof (tls_socket_tab[pos].remote_ip));
+			    sizeof (tls_socket_tab[pos].remote_ip)-1);
 	      tls_socket_tab[pos].remote_port = recvport;
 	    }
 #endif

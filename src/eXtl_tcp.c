@@ -301,7 +301,7 @@ tcp_tl_read_message(fd_set *osip_fdset)
 			    (__FILE__, __LINE__, OSIP_INFO1, NULL,
 			     "Message received from: %s:%i\n", src6host, recvport));
 		osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
-			      sizeof (tcp_socket_tab[pos].remote_ip));
+			      sizeof (tcp_socket_tab[pos].remote_ip)-1);
 		tcp_socket_tab[pos].remote_port = recvport;
 	      }
 	  }
@@ -323,7 +323,7 @@ tcp_tl_read_message(fd_set *osip_fdset)
 			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
 			   "Message received from: %s:%i\n", src6host, recvport));
 	      osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
-			    sizeof (tcp_socket_tab[pos].remote_ip));
+			    sizeof (tcp_socket_tab[pos].remote_ip)-1);
 	      tcp_socket_tab[pos].remote_port = recvport;
 	    }
 #endif

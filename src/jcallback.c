@@ -1330,6 +1330,64 @@ cb_rcv2xx_4subscribe (osip_transaction_t * tr, osip_message_t * sip)
 
 #endif
 
+static
+int _eXosip_update_expires_according_to_contact(eXosip_reg_t *jreg, osip_transaction_t *tr, osip_message_t *sip)
+{
+	osip_contact_t *co_register;
+	int pos;
+	if (jreg==NULL)
+		return -1;
+
+	/* only update if only one Contact was in INVITE */
+	if (tr->orig_request==NULL
+		|| osip_list_size(&tr->orig_request->contacts)!=1)
+		return -1;
+
+
+	/* search for matching contact (line parameter must be equal) */
+	pos=0;
+	co_register = (osip_contact_t *) osip_list_get(&sip->contacts, pos);
+	while (co_register!=NULL)
+	{
+		osip_uri_param_t *line_param=NULL;
+		if (co_register->url!=NULL)
+			osip_uri_uparam_get_byname(co_register->url, "line", &line_param);
+
+		if (line_param!=NULL)
+		{
+			if (osip_strcasecmp(jreg->r_line, line_param->gvalue)==0)
+			{
+				/* found contact */
+				int val;
+				osip_generic_param_t *exp_param=NULL;
+				osip_contact_param_get_byname(co_register, "expires", &exp_param);
+				if (exp_param!=NULL && exp_param->gvalue!=NULL)
+				{
+					val = atoi(exp_param->gvalue);
+					/* update only if expires value has REALLY be
+					decreased (more than one minutes):
+					In many cases value is decreased because a few seconds has
+					elapsed when server send the 200ok. */
+					if (val < jreg->r_reg_period-60)
+					{
+						jreg->r_reg_period = val + 60;
+						return 0;
+					}
+				}
+				return 0;
+			}
+		}
+
+		pos++;
+		co_register = (osip_contact_t *) osip_list_get(&sip->contacts, pos);
+	}
+
+
+
+	return -1;
+}
+
+
 static void
 cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 {
@@ -1389,6 +1447,8 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 		  jreg->r_reg_period=val+60;
 		}
 	    }
+
+	  _eXosip_update_expires_according_to_contact(jreg, tr, sip);
 
           je = eXosip_event_init_for_reg (EXOSIP_REGISTRATION_SUCCESS, jreg, tr);
           report_event (je, sip);

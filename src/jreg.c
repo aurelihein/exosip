@@ -61,16 +61,37 @@ eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
 	  MD5_CTX Md5Ctx;
 	  HASH hval;
 	  HASHHEX key_line;
+      char localip[128];
+	  char firewall_ip[65];
+	  char firewall_port[10];
+
+	  memset(localip, '\0', sizeof(localip));
+	  memset(firewall_ip, '\0', sizeof(firewall_ip));
+	  memset(firewall_port, '\0', sizeof(firewall_port));
+
+	  eXosip_guess_localip (AF_INET, localip, 128);
+	  if (eXosip.eXtl!=NULL
+		  && eXosip.eXtl->tl_get_masquerade_contact!=NULL)
+	  {
+		  eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+							 firewall_port, sizeof(firewall_port));
+	  }
 
 	  MD5Init (&Md5Ctx);
 	  MD5Update (&Md5Ctx, (unsigned char *) from, strlen (from));
 	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
 	  MD5Update (&Md5Ctx, (unsigned char *) proxy, strlen (proxy));
+	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  MD5Update (&Md5Ctx, (unsigned char *) localip, strlen (localip));
+	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  MD5Update (&Md5Ctx, (unsigned char *) firewall_ip, strlen (firewall_ip));
+	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  MD5Update (&Md5Ctx, (unsigned char *) firewall_port, strlen (firewall_port));
 	  MD5Final ((unsigned char *) hval, &Md5Ctx);
 	  CvtHex (hval, key_line);
 
 	  osip_strncpy((*jr)->r_line, key_line,
-		  sizeof((*jr)->r_line));
+		  sizeof((*jr)->r_line)-1);
   }
 
   return 0;

@@ -635,7 +635,7 @@ dtls_tl_read_message(fd_set *osip_fdset)
 	      dtls_socket_tab[pos].ssl_type = EXOSIP_AS_A_SERVER;
 
 	      osip_strncpy (dtls_socket_tab[pos].remote_ip, src6host,
-			    sizeof (dtls_socket_tab[pos].remote_ip));
+			    sizeof (dtls_socket_tab[pos].remote_ip) -1);
 	      dtls_socket_tab[pos].remote_port = recvport;
 	      
 	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -981,7 +981,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
       dtls_socket_tab[pos].ssl_state = 2;
       
       osip_strncpy (dtls_socket_tab[pos].remote_ip, ipbuf,
-		    sizeof (dtls_socket_tab[pos].remote_ip));
+		    sizeof (dtls_socket_tab[pos].remote_ip)-1);
       dtls_socket_tab[pos].remote_port = port;
     }
 
