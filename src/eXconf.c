@@ -279,7 +279,7 @@ eXosip_set_socket (int transport, int socket, int port)
       eXosip.eXtl = &eXtl_udp;
       snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "UDP");
     }
-  else if (transport==IPPROTO_UDP)
+  else if (transport==IPPROTO_TCP)
     {
       eXtl_tcp.proto_port = port;
       eXtl_tcp.tl_set_socket(socket); 
