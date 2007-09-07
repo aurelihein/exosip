@@ -573,6 +573,16 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
                           "Message sent: \n%s (to dest=%s:%i)\n",
                           message, ipbuf, port));
 
+  if (tr!=NULL)
+    {
+      if (tr->ict_context != NULL)
+	osip_ict_set_destination (tr->ict_context,
+				  osip_strdup (ipbuf), port);
+      if (tr->nict_context != NULL)
+	osip_nict_set_destination (tr->nict_context,
+				   osip_strdup (ipbuf), port);
+    }
+
   if (0 >
       sendto (udp_socket, (const void *) message, length, 0,
                       (struct sockaddr *) &addr, len))
