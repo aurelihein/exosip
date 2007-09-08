@@ -570,8 +570,8 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
   
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                          "Message sent: \n%s (to dest=%s:%i)\n",
-                          message, ipbuf, port));
+                          "Message sent: (to dest=%s:%i)\n%s\n",
+                          ipbuf, port, message));
 
   if (tr!=NULL)
     {
