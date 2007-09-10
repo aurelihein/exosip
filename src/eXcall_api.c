@@ -1424,20 +1424,10 @@ eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
   if (i!=0)
     return -1;
 
-  if (jd->d_dialog->type == CALLER)
-    {
-      snprintf(atmp, sizeof(atmp), "%s;to-tag=%s;from-tag=%s",
-	       jd->d_dialog->call_id,
-	       jd->d_dialog->remote_tag,
-	       jd->d_dialog->local_tag);      
-    }
-  else
-    {
-      snprintf(atmp, sizeof(atmp), "%s;to-tag=%s;from-tag=%s",
-	       jd->d_dialog->call_id,
-	       jd->d_dialog->local_tag,
-	       jd->d_dialog->remote_tag);
-    }
+  snprintf(atmp, sizeof(atmp), "%s;to-tag=%s;from-tag=%s",
+	   jd->d_dialog->call_id,
+	   jd->d_dialog->remote_tag,
+	   jd->d_dialog->local_tag);      
 
   osip_uri_uheader_add(referto_uri, osip_strdup("Replaces"), osip_strdup(atmp));
   i = osip_uri_to_str(referto_uri, &referto_tmp);
