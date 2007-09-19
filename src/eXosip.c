@@ -482,15 +482,18 @@ eXosip_automatic_refresh (void)
               } else if (now - out_tr->birth_time > js->s_reg_period - 60)
                 {               /* will expires in 60 sec: send refresh! */
                   int i;
+				  osip_message_t *sub=NULL;
 
-                  i =
-                    _eXosip_subscribe_send_request_with_credential (js,
-                                                                    jd, out_tr);
-                  if (i != 0)
+				  i = eXosip_subscribe_build_refresh_request (jd->d_id, &sub);
+                  if (i == 0)
+				  {
+					  i = eXosip_subscribe_send_refresh_request (jd->d_id, sub);
+				  }
+				  if (i != 0)
                     {
                       OSIP_TRACE (osip_trace
                                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                   "eXosip: could not clone subscribe for refresh\n"));
+                                   "eXosip: could not send subscribe for refresh\n"));
                     }
                 }
             }
@@ -773,10 +776,13 @@ eXosip_automatic_action (void)
                       if (jd->d_retry < 3)
                         {
                           int i;
+						  osip_message_t *sub=NULL;
 
-                          i =
-                            _eXosip_subscribe_send_request_with_credential
-                            (js, jd, out_tr);
+						  i = eXosip_subscribe_build_refresh_request (jd->d_id, &sub);
+						  if (i == 0)
+						  {
+							  i = eXosip_subscribe_send_refresh_request (jd->d_id, sub);
+						  }
                           if (i != 0)
                             {
                               OSIP_TRACE (osip_trace
@@ -791,11 +797,13 @@ eXosip_automatic_action (void)
                   } else if (now - out_tr->birth_time > js->s_reg_period - 60)
                     {           /* will expires in 60 sec: send refresh! */
                       int i;
+					  osip_message_t *sub=NULL;
 
-                      i =
-                        _eXosip_subscribe_send_request_with_credential (js,
-                                                                        jd,
-                                                                        out_tr);
+					  i = eXosip_subscribe_build_refresh_request (jd->d_id, &sub);
+					  if (i == 0)
+					  {
+						  i = eXosip_subscribe_send_refresh_request (jd->d_id, sub);
+					  }
                       if (i != 0)
                         {
                           OSIP_TRACE (osip_trace

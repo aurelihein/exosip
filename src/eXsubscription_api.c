@@ -242,6 +242,15 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
   if (i != 0)
     return -2;
 
+
+  {
+	  char tmp[10];
+	  snprintf (tmp, 10, "%i", js->s_reg_period);
+	  osip_message_set_expires (*sub, tmp);
+  }
+
+  eXosip_add_authentication_information(*sub, NULL);
+
   return 0;
 }
 
