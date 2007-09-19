@@ -662,9 +662,9 @@ eXosip_insubscription_automatic(eXosip_event_t *evt)
 		return -1;
 	}
 
-    osip_message_header_get_byname (evt->request , "event",
+	osip_message_header_get_byname (evt->request , "event",
                                     0, &event_header);
-    if (event_header == NULL || event_header->hvalue == NULL)
+	if (event_header == NULL || event_header->hvalue == NULL)
 	{
 		eXosip_insubscription_send_answer (evt->tid, 400, NULL);
 		return 0;
@@ -702,7 +702,10 @@ eXosip_insubscription_automatic(eXosip_event_t *evt)
 	}
 	else
 	{
-		eXosip_insubscription_send_answer (evt->tid, 489, NULL);
+		if (evt->type == EXOSIP_IN_SUBSCRIPTION_NEW)
+		{
+		  eXosip_insubscription_send_answer (evt->tid, 489, NULL);
+		}
 	}
 
 	return 0;
