@@ -1,4 +1,5 @@
 eXosip2 (3.0.4)
+	* fix building SUBSCRIBE refresh.
 	* fix compliance issue with refer-to to-tag/from-tag parameters.
 	* fix bug for retransmissions or ACK with proxy that resolve
 	  to several IP.
