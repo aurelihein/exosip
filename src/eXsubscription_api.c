@@ -243,12 +243,6 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
     return -2;
 
 
-  {
-	  char tmp[10];
-	  snprintf (tmp, 10, "%i", js->s_reg_period);
-	  osip_message_set_expires (*sub, tmp);
-  }
-
   eXosip_add_authentication_information(*sub, NULL);
 
   return 0;
@@ -313,6 +307,68 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
   return 0;
+}
+
+int
+_eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
+									eXosip_dialog_t * jd,
+									osip_transaction_t *out_tr)
+{
+	osip_message_t *sub=NULL;
+	osip_header_t *expires;
+	int i;
+	if (js==NULL || jd==NULL || out_tr==NULL || out_tr->orig_request==NULL)
+		return -1;
+
+	i = eXosip_subscribe_build_refresh_request (jd->d_id, &sub);
+	if (i != 0)
+		return -1;
+
+	i = osip_message_get_expires (out_tr->orig_request, 0, &expires);
+	if (expires != NULL && expires->hvalue != NULL)
+	{
+		osip_message_set_expires (sub, expires->hvalue);
+	}
+
+	{
+		int pos=0;
+		osip_accept_t *_accept = NULL;
+
+		i = osip_message_get_accept (out_tr->orig_request, pos, &_accept);
+		while (i == 0 && _accept != NULL)
+		  {
+			osip_accept_t *_accept2;
+
+			i = osip_accept_clone (_accept, &_accept2);
+			if (i != 0)
+			  {
+				OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+										"Error in Accept header\n"));
+				break;
+			  }
+			osip_list_add (&sub->accepts, _accept2, -1);
+			_accept = NULL;
+			pos++;
+			i = osip_message_get_accept (out_tr->orig_request, pos, &_accept);
+		  }
+	}
+
+	{
+		osip_header_t *hdr=NULL;
+		i = osip_message_header_get_byname (out_tr->orig_request, "Event", 0, &hdr);
+		if (hdr==NULL || i<0)
+		{
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+										"Missing Event header\n"));
+			osip_message_free(sub);
+			return -1;
+		}
+
+		osip_message_set_header (sub, "Event", hdr->hvalue);
+	}
+
+	i = eXosip_subscribe_send_refresh_request (jd->d_id, sub);
+	return i;
 }
 
 int

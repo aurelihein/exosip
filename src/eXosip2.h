@@ -643,6 +643,9 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
                                                       eXosip_dialog_t * jd,
                                                       osip_transaction_t * out_tr);
+  int _eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
+										  eXosip_dialog_t * jd,
+										  osip_transaction_t *out_tr);
   int eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe);
   void eXosip_notify_free (eXosip_notify_t * jn);
   int _eXosip_notify_set_contact_info (eXosip_notify_t * jn, char *uri);
