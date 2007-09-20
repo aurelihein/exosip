@@ -656,8 +656,10 @@ cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
 	    }
 	}
       
-      /* no answer to a SUBSCRIBE request! */
-      if (MSG_IS_SUBSCRIBE (tr->orig_request) && tr->last_response == NULL)
+	  /* no answer to a SUBSCRIBE request! */
+      if (MSG_IS_SUBSCRIBE (tr->orig_request)
+		  && (tr->last_response == NULL
+		      || tr->last_response->status_code <= 199))
 	{
 	  eXosip_event_t *je;
 	  
