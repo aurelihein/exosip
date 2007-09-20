@@ -674,7 +674,6 @@ cb_xixt_kill_transaction (int type, osip_transaction_t * tr)
 	}
       
       /* detect SUBSCRIBE request that close the dialogs! */
-      /* expires=0 with MSN */
       if (MSG_IS_SUBSCRIBE (tr->orig_request))
 	{
 	  osip_header_t *expires;
