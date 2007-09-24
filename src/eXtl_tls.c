@@ -1199,6 +1199,11 @@ _tls_tl_connect_socket (char *host, int port)
 	 }
 	 X509_free(cert);
        }
+       else
+	 {
+	   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "No certificate received\n"));
+	 }
 
       tls_socket_tab[pos].socket = sock;
 
