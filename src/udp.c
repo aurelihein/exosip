@@ -774,6 +774,16 @@ eXosip_process_notify_within_dialog (eXosip_subscribe_t * js,
         je =
           eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_NOTIFY, js, jd,
                                            transaction);
+		if (je->request == NULL && evt->sip != NULL)
+		{
+		  i = osip_message_clone (evt->sip, &je->request);
+		  if (i != 0)
+			{
+			  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+									  "failed to clone request for event\n"));
+			}
+		}
+
         eXosip_event_add (je);
       }
 
