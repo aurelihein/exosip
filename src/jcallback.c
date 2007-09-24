@@ -1498,7 +1498,7 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       osip_header_t *sub_state;
 
       je =
-        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_ANSWERED,
                                          jn, jd, tr);
       report_event (je, sip);
 
