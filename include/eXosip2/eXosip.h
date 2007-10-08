@@ -382,6 +382,14 @@ eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms);
  */
 eXosip_event_t *eXosip_event_get(void);
 
+/**
+ * This socket receive some data yhen an event happens internally.
+ * NOTE: you must call eXosip_event_wait until there is no more events
+ * in the fifo.
+ * 
+ */
+int eXosip_event_geteventsocket(void);
+
 /** @} */
 
 #ifdef __cplusplus

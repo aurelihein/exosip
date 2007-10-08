@@ -521,6 +521,12 @@ eXosip_event_wait (int tv_s, int tv_ms)
   return je;
 }
 
+int
+eXosip_event_geteventsocket(void)
+{
+  return jpipe_get_read_descr (eXosip.j_socketctl_event);
+}
+
 eXosip_event_t *
 eXosip_event_get ()
 {
