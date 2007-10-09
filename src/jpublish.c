@@ -65,7 +65,8 @@ _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor)
   eXosip_pub_t *jpub;
   eXosip_pub_t *ptr;
   time_t now;
-
+  int diff;
+  
   *pub = NULL;
 
   /* delete expired publications */
@@ -74,7 +75,8 @@ _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor)
   for (jpub = ptr; jpub != NULL; jpub = ptr)
     {
       ptr = jpub->next;
-      if (now - jpub->p_expires > 60)
+      diff = now - jpub->p_expires;
+      if (diff > 60)
         {
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_WARNING, NULL,
