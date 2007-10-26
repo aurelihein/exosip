@@ -502,7 +502,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   return 0;
 }
 
-int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa)
+int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int answer_code)
 {
 	struct eXosip_http_auth *http_auth;
 	int pos;
@@ -538,6 +538,7 @@ int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa)
 				"0a4f113b");
 			http_auth->iNonceCount = 1;
 			osip_proxy_authenticate_clone(wa, &(http_auth->wa));
+			http_auth->answer_code = answer_code;
 			if (http_auth->wa==NULL)
 				memset(http_auth, 0, sizeof(struct eXosip_http_auth));
 			return 0;

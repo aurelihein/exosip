@@ -102,6 +102,7 @@ struct eXosip_http_auth {
 	osip_proxy_authenticate_t *wa;
 	char pszCNonce[64];
 	int  iNonceCount;
+	int  answer_code;
 };
 
 /**

@@ -1120,23 +1120,24 @@ eXosip_add_authentication_information (osip_message_t * req,
 				return -1;
 
 			http_auth->iNonceCount++;
-			if (osip_strcasecmp(req->sip_method, "REGISTER")==0)
-				i = __eXosip_create_authorization_header (http_auth->wa, uri,
-													authinfo->userid,
-													authinfo->passwd,
-													authinfo->ha1, &aut,
-													req->sip_method,
-													http_auth->pszCNonce,
-													http_auth->iNonceCount);
+			if (http_auth->answer_code==401)
+			  /*osip_strcasecmp(req->sip_method, "REGISTER")==0) */
+			  i = __eXosip_create_authorization_header (http_auth->wa, uri,
+								    authinfo->userid,
+								    authinfo->passwd,
+								    authinfo->ha1, &aut,
+								    req->sip_method,
+								    http_auth->pszCNonce,
+								    http_auth->iNonceCount);
 			else
-				i = __eXosip_create_proxy_authorization_header (http_auth->wa, uri,
-													authinfo->userid,
-													authinfo->passwd,
-													authinfo->ha1, &aut,
-													req->sip_method,
-													http_auth->pszCNonce,
-													http_auth->iNonceCount);
-
+			  i = __eXosip_create_proxy_authorization_header (http_auth->wa, uri,
+									  authinfo->userid,
+									  authinfo->passwd,
+									  authinfo->ha1, &aut,
+									  req->sip_method,
+									  http_auth->pszCNonce,
+									  http_auth->iNonceCount);
+			
 			osip_free (uri);
 			if (i != 0)
 				return -1;
@@ -1206,7 +1207,7 @@ eXosip_add_authentication_information (osip_message_t * req,
 		  if (osip_strcasecmp(req->sip_method, "REGISTER")==0
 			  || osip_strcasecmp(req->sip_method, "INVITE")==0
   			  || osip_strcasecmp(req->sip_method, "SUBSCRIBE")==0)
-		  	  _eXosip_store_nonce(req->call_id->number, wwwauth);
+		  	  _eXosip_store_nonce(req->call_id->number, wwwauth, 401);
 		  else
 		  {
 			  osip_generic_param_t *to_tag=NULL;
@@ -1214,7 +1215,7 @@ eXosip_add_authentication_information (osip_message_t * req,
 			  if (to_tag!=NULL)
 			  {
 				  /* if message is part of a dialog */
-			  	  _eXosip_store_nonce(req->call_id->number, wwwauth);
+			  	  _eXosip_store_nonce(req->call_id->number, wwwauth, 401);
 			  }
 		  }
 	  }
@@ -1267,7 +1268,7 @@ eXosip_add_authentication_information (osip_message_t * req,
 		  if (osip_strcasecmp(req->sip_method, "REGISTER")==0
 			  || osip_strcasecmp(req->sip_method, "INVITE")==0
   			  || osip_strcasecmp(req->sip_method, "SUBSCRIBE")==0)
-		  	  _eXosip_store_nonce(req->call_id->number, proxyauth);
+		  	  _eXosip_store_nonce(req->call_id->number, proxyauth, 407);
 		  else
 		  {
 			  osip_generic_param_t *to_tag=NULL;
@@ -1275,7 +1276,7 @@ eXosip_add_authentication_information (osip_message_t * req,
 			  if (to_tag!=NULL)
 			  {
 				  /* if message is part of a dialog */
-			  	  _eXosip_store_nonce(req->call_id->number, proxyauth);
+			  	  _eXosip_store_nonce(req->call_id->number, proxyauth, 407);
 			  }
 		  }
 	  }

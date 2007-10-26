@@ -308,7 +308,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
                                                   ** auth, const char *method,
 												  const char *pszCNonce,
 												  int iNonceCount);
-  int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa);
+  int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int answer_code);
   int _eXosip_delete_nonce(const char *call_id);
 
   eXosip_event_t *eXosip_event_init_for_call (int type, eXosip_call_t * jc,
