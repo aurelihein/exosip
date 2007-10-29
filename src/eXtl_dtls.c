@@ -28,6 +28,9 @@
 #ifdef HAVE_OPENSSL_SSL_H
 
 #include <openssl/ssl.h>
+
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
+
 #define SPROTO_TLS 500
 #define SPROTO_DTLS 501
 #include <openssl/ssl.h>
@@ -1120,5 +1123,7 @@ struct eXtl_protocol eXtl_dtls =
     &dtls_tl_masquerade_contact,
     &dtls_tl_get_masquerade_contact
 };
+
+#endif
 
 #endif

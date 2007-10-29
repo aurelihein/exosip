@@ -59,7 +59,9 @@ eXosip_masquerade_contact (const char *public_address, int port)
   eXtl_tcp.tl_masquerade_contact(public_address, port);
 #ifdef HAVE_OPENSSL_SSL_H
   eXtl_tls.tl_masquerade_contact(public_address, port);
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
   eXtl_dtls.tl_masquerade_contact(public_address, port);
+#endif
 #endif
   return;
 }
@@ -259,7 +261,9 @@ eXosip_quit (void)
   eXtl_udp.tl_free();
   eXtl_tcp.tl_free();
 #ifdef HAVE_OPENSSL_SSL_H
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
   eXtl_dtls.tl_free();
+#endif
   eXtl_tls.tl_free();
 #endif
 
@@ -564,8 +568,10 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
   else if (transport==IPPROTO_TCP && secure==0)
     eXtl = &eXtl_tcp;
 #ifdef HAVE_OPENSSL_SSL_H
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
   else if (transport==IPPROTO_UDP)
     eXtl = &eXtl_dtls;
+#endif
   else if (transport==IPPROTO_TCP)
     eXtl = &eXtl_tls;
 #endif
@@ -698,7 +704,9 @@ eXosip_init (void)
   eXtl_udp.tl_init();
   eXtl_tcp.tl_init();
 #ifdef HAVE_OPENSSL_SSL_H
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
   eXtl_dtls.tl_init();
+#endif
   eXtl_tls.tl_init();
 #endif
   return 0;

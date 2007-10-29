@@ -51,6 +51,10 @@
 #include <eXosip2/eXosip.h>
 #include "eXosip2.h"
 
+#ifdef HAVE_OPENSSL_SSL_H
+#include <openssl/ssl.h>
+#endif
+
 extern eXosip_t eXosip;
 
 
@@ -209,7 +213,10 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
   else if (osip_strcasecmp (via->protocol, "dtls-udp") == 0)
     {
+      i=-1;
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
       i = eXtl_dtls.tl_send_message (tr, sip, host, port, out_socket);
+#endif
     }
 #endif
   if (i != 0)

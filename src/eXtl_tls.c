@@ -191,13 +191,15 @@ SSL_CTX *
 initialize_client_ctx (const char *keyfile, const char *certfile,
 		       const char *password, int transport)
 {
-  SSL_METHOD *meth;
+  SSL_METHOD *meth=NULL;
   SSL_CTX *ctx;
   char *passwd;
 
   if (transport == IPPROTO_UDP)
     {
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
       meth = DTLSv1_client_method ();
+#endif
     }
   else if (transport == IPPROTO_TCP)
     {
@@ -282,7 +284,7 @@ SSL_CTX *
 initialize_server_ctx (const char *keyfile, const char *certfile,
 		       const char *password, int transport)
 {
-  SSL_METHOD *meth;
+  SSL_METHOD *meth=NULL;
   SSL_CTX *ctx;
   char *passwd;
 
@@ -296,7 +298,9 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
 			      "DTLSv1 server method\n"));
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
       meth = DTLSv1_server_method ();
+#endif
     }
   else if (transport == IPPROTO_TCP)
     {
