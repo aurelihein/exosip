@@ -26,6 +26,11 @@
 
 #include "eXosip2.h"
 
+#ifdef HAVE_OPENSSL_SSL_H
+/* to access version number of ssl from any file */
+#include <openssl/ssl.h>
+#endif
+
 struct eXtl_protocol {
   int  enabled;
 
