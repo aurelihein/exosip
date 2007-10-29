@@ -28,7 +28,7 @@
 
 #ifdef HAVE_OPENSSL_SSL_H
 /* to access version number of ssl from any file */
-#include <openssl/ssl.h>
+#include <openssl/opensslv.h>
 #endif
 
 struct eXtl_protocol {
