@@ -5,3 +5,5 @@ ht1-callcontrol.dox \
 ht2-registration.dox
 
 
+all: doxygen.dox
+
