@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.56 $)dnl
+AC_REVISION($Revision: 1.57 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -64,10 +64,6 @@ AC_PROG_LIBTOOL
 #AC_ENABLE_SHARED(yes)
 
 dnl declare --enable-* args and collect ac_help strings
-
-AC_ARG_ENABLE(josua,
-[  --enable-josua          DEPRECATED TEST APPLICATION (no).],
-enable_josua=$enableval,enable_josua="no")
 
 AC_ARG_ENABLE(tools,
 [  --disable-tools         compile tools programs (yes).],

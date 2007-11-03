@@ -62,21 +62,6 @@ on any unix and windows systems.
    $> make
    $> su -c 'make install'
 
-YOU NEED ORTP or the UCL Common RTP library to compile
-the test program (josua).
-
-DISABLE JOSUA:
-   $> ./configure --disable-josua
-   $> make
-
-ENABLE JOSUA with ucl:
-   $> ./configure --enable-ucl
-   $> make
-
-ENABLE JOSUA with ortp:
-   $> ./configure --enable-ortp
-   $> make
-
 Contact information:
 --------------------
 
