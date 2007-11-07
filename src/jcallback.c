@@ -1452,7 +1452,14 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 	      int val = atoi(exp->hvalue);
 	      if (val>0)
 		{
-		  jreg->r_reg_period=val+60;
+		  /* update only if expires value has REALLY be
+		     decreased (more than one minutes):
+		     In many cases value is decreased because a few seconds has
+		     elapsed when server send the 200ok. */
+		  if (val < jreg->r_reg_period-60)
+		    {
+		      jreg->r_reg_period=val+60;
+		    }
 		}
 	    }
 
