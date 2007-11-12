@@ -1650,7 +1650,7 @@ cb_rcv3xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       eXosip_event_t *je;
 
       je =
-        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REDIRECTED,
                                          jn, jd, tr);
       report_event (je, sip);
     }
@@ -1855,7 +1855,7 @@ cb_rcv5xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       eXosip_event_t *je;
 
       je =
-        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_SERVERFAILURE,
                                          jn, jd, tr);
       report_event (je, sip);
     }
@@ -1950,7 +1950,7 @@ cb_rcv6xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       eXosip_event_t *je;
 
       je =
-        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_REQUESTFAILURE,
+        eXosip_event_init_for_notify (EXOSIP_NOTIFICATION_GLOBALFAILURE,
                                          jn, jd, tr);
       report_event (je, sip);
     }
