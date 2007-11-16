@@ -1437,7 +1437,7 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 #ifndef MINISIZE
   if (MSG_IS_RESPONSE_FOR (sip, "PUBLISH"))
     {
-      eXosip_pub_t *pub;
+      eXosip_pub_t *pub=NULL;
       eXosip_event_t *je;
       int i;
       
@@ -1449,6 +1449,29 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
                        "cb_rcv2xx (id=%i) No publication to update\r\n",
                        tr->transactionid));
         }
+      if (pub != NULL)
+        {
+	  /* update registration interval */
+	  osip_header_t *exp;
+	  
+	  osip_message_header_get_byname (sip, "expires", 0, &exp);
+	  if (exp!=NULL && exp->hvalue!=NULL)
+	    {
+	      int val = atoi(exp->hvalue);
+	      if (val>0)
+		{
+		  /* update only if expires value has REALLY be
+		     decreased (more than one minutes):
+		     In many cases value is decreased because a few seconds has
+		     elapsed when server send the 200ok. */
+			if (val < pub->p_period-60)
+		    {
+		      pub->p_period=val+60;
+		    }
+		}
+	    }
+	  }
+
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_ANSWERED, tr);
       report_event (je, sip);
       return;
