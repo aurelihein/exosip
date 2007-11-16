@@ -70,8 +70,10 @@ eXosip_build_publish (osip_message_t ** message,
     {
       osip_message_set_content_type (*message, ctype);
       osip_message_set_body (*message, body, strlen (body));
-      osip_message_set_header (*message, "Content-Disposition",
+      /*
+	  osip_message_set_header (*message, "Content-Disposition",
                                "render;handling=required");
+		*/
     }
   if (expires != NULL && expires[0] != '\0')
     osip_message_set_expires (*message, expires);

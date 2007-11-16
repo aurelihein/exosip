@@ -257,7 +257,6 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   {
     int p_id;
 
-    time_t p_expires;           /* expiration date (started+period) */
     int p_period;               /* delay between registration */
     char p_aor[256];            /* sip identity */
     char p_sip_etag[64];        /* sip_etag from 200ok */

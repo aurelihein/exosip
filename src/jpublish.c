@@ -62,29 +62,8 @@ _eXosip_pub_update (eXosip_pub_t ** pub, osip_transaction_t * tr,
 int
 _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor)
 {
-  eXosip_pub_t *jpub;
-  eXosip_pub_t *ptr;
-  time_t now;
-  int diff;
-  
+  eXosip_pub_t *jpub;  
   *pub = NULL;
-
-  /* delete expired publications */
-  now = time (NULL);
-  ptr = eXosip.j_pub;
-  for (jpub = ptr; jpub != NULL; jpub = ptr)
-    {
-      ptr = jpub->next;
-      diff = now - jpub->p_expires;
-      if (diff > 60)
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_WARNING, NULL,
-                       "eXosip: removing expired publication!"));
-          REMOVE_ELEMENT (eXosip.j_pub, jpub);
-          _eXosip_pub_free (jpub);
-        }
-    }
 
   for (jpub = eXosip.j_pub; jpub != NULL; jpub = jpub->next)
     {
@@ -129,7 +108,6 @@ _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp)
   memset (jpub, 0, sizeof (eXosip_pub_t));
   snprintf (jpub->p_aor, 256, "%s", aor);
 
-  jpub->p_expires = atoi (exp) + time (NULL);
   jpub->p_period = atoi (exp);
 
   *pub = jpub;
