@@ -1106,6 +1106,27 @@ cb_rcv1xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 		  /* Update only if it is the same dialog */
 		  osip_dialog_update_route_set_as_uac (jd->d_dialog, sip);
 		}
+#if 1 /* to be tested */
+	      else
+		{
+		  /* the best thing is to replace the current dialog
+		     information... Much easier than creating a useless dialog! */
+		  osip_dialog_free (jd->d_dialog);
+		  i = osip_dialog_init_as_uac (&(jd->d_dialog), sip);
+		  if (i != 0)
+		    {
+		      OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "Cannot replace the dialog.\r\n"));
+		    }
+		  else
+		    {
+		      OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_WARNING, NULL,
+				   "The dialog has been replaced with the new one from 1xx.\r\n"));
+		    }
+		}
+#endif
 	    }
         }
 
