@@ -156,6 +156,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     osip_list_t *d_inc_trs;
     osip_list_t *d_out_trs;
     int d_retry;                /* avoid too many unsuccessfull retry */
+    int d_mincseq; /* remember cseq after PRACK and UPDATE during setup */
 
     eXosip_dialog_t *next;
     eXosip_dialog_t *parent;

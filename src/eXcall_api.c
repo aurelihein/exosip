@@ -1134,6 +1134,8 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
       return -2;
     }
 
+  jd->d_mincseq++;
+
   osip_list_add (jd->d_out_trs, tr, 0);
 
   sipevent = osip_new_outgoing_sipmessage (prack);

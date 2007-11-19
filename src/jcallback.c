@@ -1255,11 +1255,14 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "Cannot replace the dialog.\r\n"));
-          } else
+	    }
+	  else
             {
+	      jd->d_dialog->local_cseq = jd->d_dialog->local_cseq + jd->d_mincseq;
+	      jd->d_mincseq=0;
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_WARNING, NULL,
-                           "The dialog has been replaced with the new one fro 200ok.\r\n"));
+                           "The dialog has been replaced with the new one from 200ok.\r\n"));
             }
         }
     }
