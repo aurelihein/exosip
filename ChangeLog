@@ -4,6 +4,8 @@ eXosip2 (3.0.4)
 	* fix bug for retransmissions or ACK with proxy that resolve
 	  to several IP.
 	* handle the "expires" parameter to update registration interval.
+	* handle the "expires" parameter to update publication interval.
+	* handle automatically publish refresh, and some error codes (423).
 	
 eXosip2 (3.0.3)
 	* Add TLS support.
