@@ -2296,3 +2296,37 @@ eXosip_release_terminated_registrations (void)
 
   return;
 }
+
+void
+eXosip_release_terminated_publications (void)
+{
+  eXosip_pub_t *jpub;
+  eXosip_pub_t *jpubnext;
+  time_t now = time (NULL);
+
+  for (jpub = eXosip.j_pub; jpub != NULL;)
+    {
+      jpubnext = jpub->next;
+      if (jpub->p_period == 0 && jpub->p_last_tr != NULL)
+        {
+          if (now - jpub->p_last_tr->birth_time > 60)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                      "Release a terminated publication\n"));
+              REMOVE_ELEMENT (eXosip.j_pub, jpub);
+              _eXosip_pub_free (jpub);
+          } else if (jpub->p_last_tr->last_response != NULL
+                     && jpub->p_last_tr->last_response->status_code >= 200
+                     && jpub->p_last_tr->last_response->status_code <= 299)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                      "Release a terminated publication with 2xx\n"));
+              REMOVE_ELEMENT (eXosip.j_pub, jpub);
+              _eXosip_pub_free (jpub);
+            }
+        }
+
+      jpub = jpubnext;
+    }
+
+}

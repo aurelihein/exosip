@@ -262,6 +262,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     char p_sip_etag[64];        /* sip_etag from 200ok */
 
     osip_transaction_t *p_last_tr;
+    int p_retry;
     eXosip_pub_t *next;
     eXosip_pub_t *parent;
   };
@@ -631,6 +632,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   void eXosip_release_terminated_calls (void);
   void eXosip_release_terminated_registrations (void);
   void eXosip_release_unused_transactions(void);
+  void eXosip_release_terminated_publications (void);
 
 #ifndef MINISIZE
   int eXosip_subscribe_init (eXosip_subscribe_t ** js);

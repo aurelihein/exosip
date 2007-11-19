@@ -237,6 +237,164 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
 }
 
 static int
+_eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
+                         int *retry)
+{
+  osip_transaction_t *out_tr = NULL;
+  osip_transaction_t *tr = NULL;
+  osip_message_t *msg = NULL;
+  osip_event_t *sipevent;
+  jinfo_t *ji = NULL;
+
+  int cseq;
+  osip_via_t *via;
+  int i;
+
+  if (!ptr)
+    return -1;
+
+  if (jd != NULL)
+    {
+      if (jd->d_out_trs == NULL)
+        return -1;
+    }
+
+  out_tr = *ptr;
+
+  if (out_tr == NULL
+      || out_tr->orig_request == NULL || out_tr->last_response == NULL)
+    return -1;
+
+  if (retry && (*retry >= 3))
+    return -1;
+
+  osip_message_clone (out_tr->orig_request, &msg);
+  if (msg == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: could not clone msg for authentication\n"));
+      return -1;
+    }
+
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
+  if (via == NULL || msg->cseq == NULL || msg->cseq->number == NULL)
+    {
+      osip_message_free (msg);
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: missing via or cseq header\n"));
+      return -1;
+    }
+
+  /* increment cseq */
+  cseq = atoi (msg->cseq->number);
+  osip_free (msg->cseq->number);
+  msg->cseq->number = strdup_printf ("%i", cseq + 1);
+  if (jd != NULL && jd->d_dialog != NULL)
+    {
+      jd->d_dialog->local_cseq++;
+    }
+
+  i = eXosip_update_top_via(msg);
+  if (i!=0)
+    {
+      osip_message_free (msg);
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: unsupported protocol\n"));
+      return -1;
+    }
+
+  if (out_tr!=NULL && out_tr->last_response!=NULL && MSG_IS_STATUS_4XX (out_tr->last_response))
+    {
+      eXosip_add_authentication_information (msg, out_tr->last_response);
+    }
+  else
+    eXosip_add_authentication_information (msg, NULL);
+
+  if (out_tr!=NULL && out_tr->last_response!=NULL && out_tr->last_response->status_code == 412)
+    {
+      /* remove SIP-If-Match header */
+      int pos=0;
+      while (!osip_list_eol (&msg->headers, pos))
+	{
+	  osip_header_t *head = osip_list_get (&msg->headers, pos);
+	  if (head!=NULL && 0==osip_strcasecmp(head->hname, "sip-if-match"))
+	    {
+	      i = osip_list_remove(&msg->headers, pos);
+	      osip_header_free(head);
+	      break;
+	    }
+	  pos++;
+	}
+    }
+
+  if (out_tr!=NULL && out_tr->last_response!=NULL && out_tr->last_response->status_code == 423)
+    {
+      /* increase expires value to "min-expires" value */
+      osip_header_t *exp;
+      osip_header_t *min_exp;
+      
+      osip_message_header_get_byname (msg, "expires", 0, &exp);
+      osip_message_header_get_byname (out_tr->last_response, "min-expires", 0, &exp);
+      if (exp!=NULL && exp->hvalue!=NULL
+	  && min_exp!=NULL && min_exp->hvalue!=NULL)
+	{
+	  osip_free(exp->hvalue);
+	  exp->hvalue = osip_strdup(min_exp->hvalue);
+	}
+      else
+	{
+	  osip_message_free (msg);
+	  OSIP_TRACE (osip_trace
+		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		       "eXosip: missing Min-Expires or Expires in PUBLISH\n"));
+	  return -1;
+	}
+    }
+
+  osip_message_force_update (msg);
+
+  if (MSG_IS_INVITE (msg))
+    i = _eXosip_transaction_init (&tr, ICT, eXosip.j_osip, msg);
+  else
+    i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);
+
+  if (i != 0)
+    {
+      osip_message_free (msg);
+      return -1;
+    }
+
+  /* replace with the new tr */
+  if (MSG_IS_PUBLISH(msg))
+    {
+      /* old transaction is put in the garbage list */
+      osip_list_add (eXosip.j_transactions, out_tr, 0);
+      /* new transaction is put in the publish context */
+      *ptr = tr;
+    }
+  else
+    osip_list_add (eXosip.j_transactions, tr, 0);
+
+  sipevent = osip_new_outgoing_sipmessage (msg);
+
+  ji = osip_transaction_get_your_instance (out_tr);
+
+  osip_transaction_set_your_instance (out_tr, NULL);
+  osip_transaction_set_your_instance (tr, ji);
+  osip_transaction_add_event (tr, sipevent);
+
+  if (retry)
+    (*retry)++;
+
+  eXosip_update ();             /* fixed? */
+  __eXosip_wakeup ();
+  return 0;
+}
+
+static int
 _eXosip_retry_register_with_auth (eXosip_event_t * je)
 {
   eXosip_reg_t *jr = NULL;
@@ -577,6 +735,9 @@ eXosip_automatic_action (void)
 #endif
 
   eXosip_reg_t *jr;
+#ifndef MINISIZE
+  eXosip_pub_t *jpub;
+#endif
   time_t now;
 
   now = time (NULL);
@@ -885,6 +1046,53 @@ eXosip_automatic_action (void)
             }
         }
     }
+
+#ifndef MINISIZE
+  for (jpub = eXosip.j_pub; jpub != NULL; jpub = jpub->next)
+    {
+      if (jpub->p_id >= 1 && jpub->p_last_tr != NULL)
+        {
+          if (jpub->p_period != 0 && now - jpub->p_last_tr->birth_time > 900)
+            {
+              /* automatic refresh */
+              _eXosip_publish_refresh (NULL, &jpub->p_last_tr, NULL);
+          } else if (jpub->p_period != 0
+                     && now - jpub->p_last_tr->birth_time > jpub->p_period - 60)
+            {
+              /* automatic refresh */
+              _eXosip_publish_refresh (NULL, &jpub->p_last_tr, NULL);
+          } else if (jpub->p_period != 0
+                     && now - jpub->p_last_tr->birth_time > 120
+                     && (jpub->p_last_tr->last_response == NULL
+                         || (!MSG_IS_STATUS_2XX (jpub->p_last_tr->last_response))))
+            {
+              /* automatic refresh */
+              _eXosip_publish_refresh (NULL, &jpub->p_last_tr, NULL);
+          } else if (now - jpub->p_last_tr->birth_time < 120 &&
+                     jpub->p_last_tr->orig_request != NULL &&
+                     (jpub->p_last_tr->last_response != NULL
+                      && (jpub->p_last_tr->last_response->status_code == 401
+                          || jpub->p_last_tr->last_response->status_code == 407)))
+            {
+              if (jpub->p_retry < 3)
+                {
+                  /* TODO: improve support for several retries when
+                     several credentials are needed */
+		  _eXosip_retry_with_auth (NULL, &jpub->p_last_tr, NULL);
+                  jpub->p_retry++;
+                }
+          } else if (now - jpub->p_last_tr->birth_time < 120 &&
+                     jpub->p_last_tr->orig_request != NULL &&
+                     (jpub->p_last_tr->last_response != NULL
+                      && (jpub->p_last_tr->last_response->status_code == 412
+                          || jpub->p_last_tr->last_response->status_code == 423)))
+            {
+              _eXosip_publish_refresh (NULL, &jpub->p_last_tr, NULL);
+            }
+        }
+    }
+#endif
+  
 }
 
 void

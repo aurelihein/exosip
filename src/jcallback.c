@@ -1470,7 +1470,8 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 		    }
 		}
 	    }
-	  }
+          pub->p_retry = 0;    /* reset value */
+	}
 
       je = eXosip_event_init_for_message (EXOSIP_MESSAGE_ANSWERED, tr);
       report_event (je, sip);

@@ -137,6 +137,21 @@ eXosip_publish (osip_message_t * message, const char *to)
           osip_message_set_header (message, "SIP-If-Match", pub->p_sip_etag);
         }
 
+      {
+	osip_header_t *expires;
+	
+	osip_message_get_expires (message, 0, &expires);
+	if (expires == NULL || expires->hvalue == NULL)
+	  {
+	    OSIP_TRACE (osip_trace
+			(__FILE__, __LINE__, OSIP_ERROR, NULL,
+			 "eXosip: missing expires header in PUBLISH!"));
+	    osip_message_free (message);
+	    return -1;
+	  }
+	pub->p_period = atoi (expires->hvalue);
+      }
+
       if (pub->p_last_tr != NULL && pub->p_last_tr->cseq != NULL
           && pub->p_last_tr->cseq->number != NULL)
         {

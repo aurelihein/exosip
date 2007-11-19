@@ -98,7 +98,11 @@ _eXosip_pub_find_by_tid (eXosip_pub_t ** pjp, int tid)
 int
 _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp)
 {
+  static int p_id;
   eXosip_pub_t *jpub;
+
+  if (p_id > 1000000)           /* keep it non-negative */
+    p_id = 0;
 
   *pub = NULL;
 
@@ -109,6 +113,7 @@ _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp)
   snprintf (jpub->p_aor, 256, "%s", aor);
 
   jpub->p_period = atoi (exp);
+  jpub->p_id = ++p_id;
 
   *pub = jpub;
   return 0;
@@ -118,7 +123,14 @@ void
 _eXosip_pub_free (eXosip_pub_t * pub)
 {
   if (pub->p_last_tr != NULL)
-    osip_list_add (eXosip.j_transactions, pub->p_last_tr, 0);
+    {
+      if (pub->p_last_tr!=NULL && pub->p_last_tr->orig_request!=NULL
+	  && pub->p_last_tr->orig_request->call_id!=NULL
+	  && pub->p_last_tr->orig_request->call_id->number!=NULL)
+	_eXosip_delete_nonce(pub->p_last_tr->orig_request->call_id->number);
+
+      osip_list_add (eXosip.j_transactions, pub->p_last_tr, 0);
+    }
   osip_free (pub);
 }
 

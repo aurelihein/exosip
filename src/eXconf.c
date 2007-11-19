@@ -768,6 +768,7 @@ eXosip_execute (void)
   /* free all Calls that are in the TERMINATED STATE? */
   eXosip_release_terminated_calls ();
   eXosip_release_terminated_registrations ();
+  eXosip_release_terminated_publications ();
 #ifndef MINISIZE
   eXosip_release_unused_transactions();
 #endif
