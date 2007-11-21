@@ -1049,6 +1049,9 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
             }
         }
 
+      if (transaction!=NULL) /* NOT for ACK */
+	osip_dialog_update_osip_cseq_as_uas (jd->d_dialog, evt->sip);
+
       if (MSG_IS_INVITE (evt->sip))
         {
           /* the previous transaction MUST be freed */
@@ -1074,7 +1077,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
               return;
             }
 
-          osip_dialog_update_osip_cseq_as_uas (jd->d_dialog, evt->sip);
+          /* osip_dialog_update_osip_cseq_as_uas (jd->d_dialog, evt->sip); */
           osip_dialog_update_route_set_as_uas (jd->d_dialog, evt->sip);
 
           eXosip_process_reinvite (jc, jd, transaction, evt);
