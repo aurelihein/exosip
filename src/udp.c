@@ -203,38 +203,38 @@ eXosip_process_ack (eXosip_call_t * jc, eXosip_dialog_t * jd, osip_event_t * evt
   je = eXosip_event_init_for_call (EXOSIP_CALL_ACK, jc, jd, NULL);
   if (je != NULL)
     {
-	  osip_transaction_t *tr;
-	  tr= eXosip_find_last_inc_invite(jc, jd);
-	  if (tr!=NULL)
-	  {
-		  je->tid = tr->transactionid;
-	  }
+      osip_transaction_t *tr;
+      tr= eXosip_find_last_inc_invite(jc, jd);
+      if (tr!=NULL)
+	{
+	  je->tid = tr->transactionid;
 	  /* fill request and answer */
 	  if (tr->orig_request != NULL)
+	    {
+	      i = osip_message_clone (tr->orig_request, &je->request);
+	      if (i != 0)
 		{
-		  i = osip_message_clone (tr->orig_request, &je->request);
-		  if (i != 0)
-			{
-			  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-									  "failed to clone request for event\n"));
-			}
+		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					  "failed to clone request for event\n"));
 		}
+	    }
 	  if (tr->last_response != NULL)
+	    {
+	      i = osip_message_clone (tr->last_response, &je->response);
+	      if (i != 0)
 		{
-		  i = osip_message_clone (tr->last_response, &je->response);
-		  if (i != 0)
-			{
-			  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-									  "failed to clone response for event\n"));
-			}
+		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					  "failed to clone response for event\n"));
 		}
-
+	    }
+	}
+      
       i = osip_message_clone (evt->sip, &je->ack);
       if (i != 0)
-        {
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                  "failed to clone ACK for event\n"));
-      }
+	{
+	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "failed to clone ACK for event\n"));
+	}
     }
 
   /* stop ACK retransmission, in case there is any */
