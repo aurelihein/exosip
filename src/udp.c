@@ -1497,7 +1497,11 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 	      cb_snd_message (NULL, ack, NULL,0, -1);
 	      osip_message_free(ack);
 #endif
-	      
+	      /* in some case, PRACK and UPDATE may have been sent
+		 so we have to send a cseq which is above the previous
+		 one. */
+	      dlg->local_cseq=dlg->local_cseq+4;
+
 	      /* ready to send a BYE */
 	      if (transport == NULL)
 		i = generating_bye (&bye, dlg, "UDP");
