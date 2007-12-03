@@ -1083,6 +1083,21 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
           eXosip_process_reinvite (jc, jd, transaction, evt);
       } else if (MSG_IS_BYE (evt->sip))
         {
+	  osip_generic_param_t *tag_to=NULL;
+	  if (evt->sip->to!=NULL)
+	  osip_from_param_get_byname (evt->sip->to, "tag", &tag_to);
+	  if (tag_to == NULL || tag_to->gvalue == NULL)
+	    {
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				      "Uncompliant user agent: missing a tag in To of incoming BYE\n"));
+              osip_list_add (eXosip.j_transactions, transaction, 0);
+              eXosip_send_default_answer (jd, transaction, evt, 481,
+                                          "Missing tags in BYE",
+                                          "Missing tags in BYE",
+                                          __LINE__);
+	      return;
+	    }
+
           old_trn = eXosip_find_last_inc_transaction (jc, jd, "BYE");
 
           if (old_trn != NULL)  /* && old_trn->state!=NIST_TERMINATED) */
