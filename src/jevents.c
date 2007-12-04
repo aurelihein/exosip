@@ -425,59 +425,6 @@ eXosip_event_wait (int tv_s, int tv_ms)
   eXosip_retransmit_lost200ok();
   eXosip_unlock();
 
-  {
-    fd_set fdset;
-    struct timeval tv;
-    int max, i;
-    
-    FD_ZERO (&fdset);
-#if defined (WIN32) || defined (_WIN32_WCE)
-    FD_SET ((unsigned int) jpipe_get_read_descr (eXosip.j_socketctl_event),
-            &fdset);
-#else
-    FD_SET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset);
-#endif
-    max = jpipe_get_read_descr (eXosip.j_socketctl_event);
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-    i = select (max + 1, &fdset, NULL, NULL, &tv);
-    if (FD_ISSET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset))
-      {
-	char buf[500];
-	jpipe_read (eXosip.j_socketctl_event, buf, 499);
-      }
-
-
-    FD_ZERO (&fdset);
-#if defined (WIN32) || defined (_WIN32_WCE)
-    FD_SET ((unsigned int) jpipe_get_read_descr (eXosip.j_socketctl_event),
-	    &fdset);
-#else
-    FD_SET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset);
-#endif
-    tv.tv_sec = tv_s;
-    tv.tv_usec = tv_ms * 1000;
-    
-    if (tv_s == 0 && tv_ms == 0)
-      return NULL;
-
-    i = select (max + 1, &fdset, NULL, NULL, &tv);
-    if (i <= 0)
-      return 0;
-
-    if (FD_ISSET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset))
-      {
-        char buf[500];
-
-        jpipe_read (eXosip.j_socketctl_event, buf, 499);
-      }
-
-    je = (eXosip_event_t *) osip_fifo_tryget (eXosip.j_events);
-    if (je != NULL)
-      return je;
-  }
-
   return NULL;
 }
 
