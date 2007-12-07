@@ -190,6 +190,9 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       return -1;
     }
 
+  osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
+  osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
+
   if (eXosip_add_authentication_information (msg, out_tr->last_response) < 0)
     {
       osip_message_free (msg);
@@ -306,6 +309,9 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       return -1;
     }
 
+  osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
+  osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
+
   if (out_tr!=NULL && out_tr->last_response!=NULL && MSG_IS_STATUS_4XX (out_tr->last_response))
     {
       eXosip_add_authentication_information (msg, out_tr->last_response);
@@ -337,7 +343,7 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       osip_header_t *min_exp;
       
       osip_message_header_get_byname (msg, "expires", 0, &exp);
-      osip_message_header_get_byname (out_tr->last_response, "min-expires", 0, &exp);
+      osip_message_header_get_byname (out_tr->last_response, "min-expires", 0, &min_exp);
       if (exp!=NULL && exp->hvalue!=NULL
 	  && min_exp!=NULL && min_exp->hvalue!=NULL)
 	{
