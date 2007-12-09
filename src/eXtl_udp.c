@@ -608,7 +608,7 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  
 #ifndef MINISIZE
 	  /* delete first SRV entry that is not reachable */
-	  if (tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
+	  if (tr!=NULL && tr->record.name[0]!='\0' && tr->record.srventry[0].srv[0]!='\0')
 	    {
 	      memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
 	      memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
