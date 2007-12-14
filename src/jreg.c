@@ -58,7 +58,7 @@ eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
   (*jr)->r_registrar = osip_strdup (proxy);     /* registrar */
 
   {
-	  MD5_CTX Md5Ctx;
+	  osip_MD5_CTX Md5Ctx;
 	  HASH hval;
 	  HASHHEX key_line;
       char localip[128];
@@ -77,17 +77,17 @@ eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
 							 firewall_port, sizeof(firewall_port));
 	  }
 
-	  MD5Init (&Md5Ctx);
-	  MD5Update (&Md5Ctx, (unsigned char *) from, strlen (from));
-	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  MD5Update (&Md5Ctx, (unsigned char *) proxy, strlen (proxy));
-	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  MD5Update (&Md5Ctx, (unsigned char *) localip, strlen (localip));
-	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  MD5Update (&Md5Ctx, (unsigned char *) firewall_ip, strlen (firewall_ip));
-	  MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  MD5Update (&Md5Ctx, (unsigned char *) firewall_port, strlen (firewall_port));
-	  MD5Final ((unsigned char *) hval, &Md5Ctx);
+	  osip_MD5Init (&Md5Ctx);
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) from, strlen (from));
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) proxy, strlen (proxy));
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) localip, strlen (localip));
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) firewall_ip, strlen (firewall_ip));
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+	  osip_MD5Update (&Md5Ctx, (unsigned char *) firewall_port, strlen (firewall_port));
+	  osip_MD5Final ((unsigned char *) hval, &Md5Ctx);
 	  CvtHex (hval, key_line);
 
 	  osip_strncpy((*jr)->r_line, key_line,
