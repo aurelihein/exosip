@@ -91,7 +91,7 @@ int eXosip_subscribe_remove (int did)
     {
       eXosip_subscribe_dialog_find (did, &js, &jd);
     }
-  if (jd == NULL)
+  if (js == NULL)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
