@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.59 $)dnl
+AC_REVISION($Revision: 1.60 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -202,11 +202,6 @@ case $OS in
      AC_CHECK_LIB(resolv,__res_query,[EXOSIP_LIB="$EXOSIP_LIB -lresolv"])
      ;;
 esac
-
-if test x$prefix != xNONE;  then
-     PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$prefix/lib/pkgconfig"
-     export PKG_CONFIG_PATH
-fi
 
 PKG_CHECK_MODULES(OSIP, libosip2 >= 3.1, [], [
 AC_MSG_WARN([assuming osip can be found in -I$includedir and -L$libdir])
