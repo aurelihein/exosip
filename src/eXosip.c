@@ -193,11 +193,23 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
   osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
 
-  if (eXosip_add_authentication_information (msg, out_tr->last_response) < 0)
+  if (out_tr!=NULL && out_tr->last_response!=NULL && (out_tr->last_response->status_code==401 || out_tr->last_response->status_code==407))
     {
-      osip_message_free (msg);
-      return -1;
+      if (eXosip_add_authentication_information (msg, out_tr->last_response) < 0)
+	{
+	  osip_message_free (msg);
+	  return -1;
+	}
     }
+  else
+    {
+      if (eXosip_add_authentication_information (msg, NULL) < 0)
+	{
+	  osip_message_free (msg);
+	  return -1;
+	}
+    }
+  
 
   osip_message_force_update (msg);
 
@@ -312,7 +324,7 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
   osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
 
-  if (out_tr!=NULL && out_tr->last_response!=NULL && MSG_IS_STATUS_4XX (out_tr->last_response))
+  if (out_tr!=NULL && out_tr->last_response!=NULL && (out_tr->last_response->status_code==401 || out_tr->last_response->status_code==407))
     {
       eXosip_add_authentication_information (msg, out_tr->last_response);
     }

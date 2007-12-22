@@ -140,12 +140,12 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 
           if (last_response != NULL)
             {
-              if (MSG_IS_STATUS_4XX (last_response))
+	      if (last_response->status_code==401 || last_response->status_code==407)
                 {
                   eXosip_add_authentication_information (reg, last_response);
                 }
-			  else
-                  eXosip_add_authentication_information (reg, NULL);
+	      else
+		eXosip_add_authentication_information (reg, NULL);
               osip_message_free (last_response);
             }
         }

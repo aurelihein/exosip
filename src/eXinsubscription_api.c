@@ -525,7 +525,11 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
       return -1;
     }
 
-  eXosip_add_authentication_information (msg, out_tr->last_response);
+  if (out_tr->last_response->status_code==401 || out_tr->last_response->status_code==407)
+    eXosip_add_authentication_information (msg, out_tr->last_response);
+  else
+    eXosip_add_authentication_information (msg, NULL);
+
   osip_message_force_update (msg);
 
   i = _eXosip_transaction_init (&tr, NICT, eXosip.j_osip, msg);

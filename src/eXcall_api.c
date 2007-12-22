@@ -523,7 +523,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
   if (jc->response_auth != NULL)
     eXosip_add_authentication_information (*request, jc->response_auth);
   else
-	eXosip_add_authentication_information(*request, NULL);
+    eXosip_add_authentication_information(*request, NULL);
 
   return 0;
 }
