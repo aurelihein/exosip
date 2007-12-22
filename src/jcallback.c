@@ -1823,16 +1823,6 @@ cb_rcv4xx (int type, osip_transaction_t * tr, osip_message_t * sip)
       return;
     }
 
-  if (jc != NULL)
-    {
-      if (MSG_TEST_CODE (sip, 401) || MSG_TEST_CODE (sip, 407))
-        {
-          if (jc->response_auth != NULL)
-            osip_message_free (jc->response_auth);
-
-          osip_message_clone (sip, &jc->response_auth);
-        }
-    }
   if (jd == NULL)
     return;
   if (MSG_IS_RESPONSE_FOR (sip, "INVITE")
@@ -2085,17 +2075,6 @@ cb_rcv3456xx (int type, osip_transaction_t * tr, osip_message_t * sip,
       je = eXosip_event_init_for_message (outcall_event, tr);
       report_event (je, sip);
       return;
-    }
-
-  if (jc != NULL)
-    {
-      if (MSG_TEST_CODE (sip, 401) || MSG_TEST_CODE (sip, 407))
-        {
-          if (jc->response_auth != NULL)
-            osip_message_free (jc->response_auth);
-
-          osip_message_clone (sip, &jc->response_auth);
-        }
     }
 
   if (jd == NULL)

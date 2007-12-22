@@ -520,10 +520,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
   if (i != 0)
     return -2;
 
-  if (jc->response_auth != NULL)
-    eXosip_add_authentication_information (*request, jc->response_auth);
-  else
-    eXosip_add_authentication_information(*request, NULL);
+  eXosip_add_authentication_information(*request, NULL);
 
   return 0;
 }
@@ -943,10 +940,7 @@ eXosip_call_terminate (int cid, int did)
               return -2;
             }
 
-          if (jc->response_auth != NULL)
-            eXosip_add_authentication_information (request, jc->response_auth);
-		  else
-            eXosip_add_authentication_information (request, NULL);
+	  eXosip_add_authentication_information (request, NULL);
 
           i = eXosip_create_transaction (jc, jd, request);
           if (i != 0)
@@ -995,10 +989,8 @@ eXosip_call_terminate (int cid, int did)
                    "eXosip: cannot terminate this call!\n"));
       return -2;
     }
-  if (jc->response_auth != NULL)
-    eXosip_add_authentication_information (request, jc->response_auth);
-  else
-    eXosip_add_authentication_information (request, NULL);
+
+  eXosip_add_authentication_information (request, NULL);
 
   i = eXosip_create_transaction (jc, jd, request);
   if (i != 0)

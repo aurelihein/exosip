@@ -217,9 +217,6 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     int c_retry;                /* avoid too many unsuccessfull retry */
     void *external_reference;
 
-    /* cache old credentials for reuse in next request */
-    osip_message_t *response_auth;
-
     eXosip_call_t *next;
     eXosip_call_t *parent;
   };
