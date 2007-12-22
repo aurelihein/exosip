@@ -1428,8 +1428,10 @@ eXosip_add_authentication_information (osip_message_t * req,
           osip_message_force_update (req);
         }
 
+#if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
 	  if (wwwauth->qop_options!=NULL)
 	  {
+#endif
 		  if (osip_strcasecmp(req->sip_method, "REGISTER")==0
 			  || osip_strcasecmp(req->sip_method, "INVITE")==0
   			  || osip_strcasecmp(req->sip_method, "SUBSCRIBE")==0)
@@ -1444,7 +1446,9 @@ eXosip_add_authentication_information (osip_message_t * req,
 			  	  _eXosip_store_nonce(req->call_id->number, wwwauth, 401);
 			  }
 		  }
+#if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
 	  }
+#endif
 
       pos++;
       osip_message_get_www_authenticate (last_response, pos, &wwwauth);
@@ -1489,8 +1493,10 @@ eXosip_add_authentication_information (osip_message_t * req,
           osip_message_force_update (req);
         }
 
+#if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
 	  if (proxyauth->qop_options!=NULL)
 	  {
+#endif
 		  if (osip_strcasecmp(req->sip_method, "REGISTER")==0
 			  || osip_strcasecmp(req->sip_method, "INVITE")==0
   			  || osip_strcasecmp(req->sip_method, "SUBSCRIBE")==0)
@@ -1505,7 +1511,9 @@ eXosip_add_authentication_information (osip_message_t * req,
 			  	  _eXosip_store_nonce(req->call_id->number, proxyauth, 407);
 			  }
 		  }
+#if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
 	  }
+#endif
 
       pos++;
       osip_message_get_proxy_authenticate (last_response, pos, &proxyauth);

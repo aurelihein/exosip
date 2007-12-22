@@ -91,9 +91,6 @@ eXosip_call_free (eXosip_call_t * jc)
 
   eXosip_dialog_t *jd;
 
-  if (jc->response_auth != NULL)
-    osip_message_free (jc->response_auth);
-
   if (jc->c_inc_tr!=NULL && jc->c_inc_tr->orig_request!=NULL
 	  && jc->c_inc_tr->orig_request->call_id!=NULL
 	  && jc->c_inc_tr->orig_request->call_id->number!=NULL)
