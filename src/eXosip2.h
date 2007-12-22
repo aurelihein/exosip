@@ -405,7 +405,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 #endif
 
 #ifndef MAX_EXOSIP_HTTP_AUTH
-#define MAX_EXOSIP_HTTP_AUTH 10
+#define MAX_EXOSIP_HTTP_AUTH 100
 #endif
 
   typedef struct eXosip_t eXosip_t;
