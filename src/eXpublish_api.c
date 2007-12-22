@@ -82,7 +82,6 @@ eXosip_build_publish (osip_message_t ** message,
 
   osip_message_set_header (*message, "Event", event);
 
-  eXosip_add_authentication_information(*message, NULL);
   return 0;
 }
 
