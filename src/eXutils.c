@@ -546,8 +546,7 @@ static int _eXosip_default_gateway_ipv6 (char *address, int size);
 #ifdef HAVE_GETIFADDRS
 
 #include <ifaddrs.h>
-
-static int _eXosip_default_gateway_ipv6_with_getifaddrs(char *address, int size){
+static int _eXosip_default_gateway_with_getifaddrs(int type, char *address, int size){
 	struct ifaddrs *ifp;
 	struct ifaddrs *ifpstart;
 	int ret=-1;
@@ -558,11 +557,14 @@ static int _eXosip_default_gateway_ipv6_with_getifaddrs(char *address, int size)
 	
 	for (ifp=ifpstart; ifp != NULL; ifp = ifp->ifa_next)
 	{
-		if (ifp->ifa_addr && ifp->ifa_addr->sa_family==AF_INET6
+		if (ifp->ifa_addr && ifp->ifa_addr->sa_family==type
 			&& (ifp->ifa_flags & IFF_RUNNING) && !(ifp->ifa_flags & IFF_LOOPBACK) ) {
-			getnameinfo(ifp->ifa_addr,sizeof(struct sockaddr_in6),address,size,NULL,0,NI_NUMERICHOST);
-			if (strchr(address,'%')==NULL){ /*avoid link-local addresses */
-				OSIP_TRACE (osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,"_eXosip_default_gateway_ipv6_with_getifaddrs(): found %s\n",address));
+			getnameinfo(ifp->ifa_addr,
+			(type==AF_INET6) ? 
+			sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in),
+			address,size,NULL,0,NI_NUMERICHOST);
+			if (strchr(address,'%')==NULL){ /*avoid ipv6 link-local addresses */
+				OSIP_TRACE (osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,"_eXosip_default_gateway_with_getifaddrs(): found %s\n",address));
 				ret=0;
 				break;
 			}
@@ -576,19 +578,18 @@ static int _eXosip_default_gateway_ipv6_with_getifaddrs(char *address, int size)
 int
 eXosip_guess_ip_for_via (int family, char *address, int size)
 {
+  int err;
   if (family == AF_INET6)
     {
-      int err;
       err=_eXosip_default_gateway_ipv6 (address, size);
-#ifdef HAVE_GETIFADDRS
-      if (err<0)
-        err=_eXosip_default_gateway_ipv6_with_getifaddrs(address,size);
-#endif
-      return err;
-  }else
-    {
-      return _eXosip_default_gateway_ipv4 (address, size);
+    }else{
+       err=_eXosip_default_gateway_ipv4 (address, size);
     }
+#ifdef HAVE_GETIFADDRS
+  if (err<0)
+        err=_eXosip_default_gateway_with_getifaddrs(family,address,size);
+#endif
+  return err;
 }
 
 /* This is a portable way to find the default gateway.
