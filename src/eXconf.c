@@ -258,6 +258,21 @@ eXosip_quit (void)
       osip_free (jauthinfo);
     }
 
+  {
+	struct eXosip_http_auth *http_auth;
+	int pos;
+
+	/* update entries with same call_id */
+	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
+	{
+		http_auth = &eXosip.http_auths[pos];
+		if (http_auth->pszCallId[0]=='\0')
+			continue;
+		osip_proxy_authenticate_free(http_auth->wa);
+		memset(http_auth, 0, sizeof(struct eXosip_http_auth));
+	}
+  }
+
   eXtl_udp.tl_free();
   eXtl_tcp.tl_free();
 #ifdef HAVE_OPENSSL_SSL_H
