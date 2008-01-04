@@ -928,35 +928,6 @@ eXosip_call_terminate (int cid, int did)
 
   if (jd == NULL || jd->d_dialog == NULL)
     {
-      /* Check if some dialog exists */
-      if (jd != NULL && jd->d_dialog != NULL)
-        {
-	  i = generating_bye (&request, jd->d_dialog, eXosip.transport);
-          if (i != 0)
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: cannot terminate this call!\n"));
-              return -2;
-            }
-
-	  eXosip_add_authentication_information (request, NULL);
-
-          i = eXosip_create_transaction (jc, jd, request);
-          if (i != 0)
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "eXosip: cannot initiate SIP transaction!\n"));
-              return -2;
-            }
-
-          osip_dialog_free (jd->d_dialog);
-          jd->d_dialog = NULL;
-          eXosip_update ();     /* AMD 30/09/05 */
-          return 0;
-        }
-
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No established dialog!\n"));
@@ -970,14 +941,22 @@ eXosip_call_terminate (int cid, int did)
       if (tr != NULL && tr->last_response != NULL &&
           MSG_IS_STATUS_1XX (tr->last_response))
         {                       /* answer with 603 */
-		  osip_generic_param_t *to_tag;
-		  osip_from_param_get_byname (tr->orig_request->to, "tag", &to_tag);
+	  osip_generic_param_t *to_tag;
+	  osip_from_param_get_byname (tr->orig_request->to, "tag", &to_tag);
 
           i = eXosip_call_send_answer (tr->transactionid, 603, NULL);
 
-		  if (to_tag==NULL)
-			  return i;
+	  if (to_tag==NULL)
+	    return i;
         }
+    }
+
+  if (jd->d_dialog==NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: cannot terminate this call!\n"));
+      return -2;
     }
 
   i = generating_bye (&request, jd->d_dialog, eXosip.transport);
