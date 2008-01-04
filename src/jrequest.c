@@ -739,6 +739,9 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
   *dest=NULL;
 
+  if (dialog==NULL)
+    return -1;
+
   if (eXosip.eXtl==NULL)
     return -1;
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
