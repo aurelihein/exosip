@@ -1770,7 +1770,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
     }
 
   tr = eXosip_find_last_inc_transaction (jc, jd, "REFER");
-  if (tr != NULL && tr->state != IST_TERMINATED)
+  if (tr != NULL && tr->state != NIST_TERMINATED)
     {                           /* Don't want to wait forever on broken transaction!! */
       if (tr->birth_time + 180 < now)   /* Wait a max of 2 minutes */
         {
@@ -1907,7 +1907,7 @@ eXosip_release_finished_transactions (eXosip_call_t *jc, eXosip_dialog_t *jd)
 		{
 		  /* remove the transaction from oSIP */
 		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					  "eXosip: releaase non-INVITE server transaction (did=%i)\n",
+					  "eXosip: release non-INVITE server transaction (did=%i)\n",
 					  jd->d_id));
 		  osip_remove_transaction (eXosip.j_osip, inc_tr);
 		  osip_list_remove (jd->d_inc_trs, pos);
