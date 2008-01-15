@@ -715,7 +715,7 @@ eXosip_retransmit_lost200ok()
 			{
 				if (jd->d_id >=1 && jd->d_dialog != NULL && jd->d_200Ok!=NULL)
 				{
-					if (jd->d_count==5)
+					if (jd->d_count==7)
 					{
 						OSIP_TRACE (osip_trace
 									(__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -729,8 +729,13 @@ eXosip_retransmit_lost200ok()
 					else if (jd->d_timer<now)
 					{
 						/* a dialog exist: retransmit lost 200ok */
-						jd->d_timer = time (NULL) + 4;
 						jd->d_count++;
+						if (jd->d_count==1)
+						  jd->d_timer = time (NULL) + 1;
+						if (jd->d_count==2)
+						  jd->d_timer = time (NULL) + 2;
+						if (jd->d_count>=3)
+						  jd->d_timer = time (NULL) + 4;
 						jd = jc->c_dialogs;
 						/* TU retransmission */
 						cb_snd_message (NULL, jd->d_200Ok, NULL,0, -1);
