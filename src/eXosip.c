@@ -715,7 +715,7 @@ eXosip_retransmit_lost200ok()
 			{
 				if (jd->d_id >=1 && jd->d_dialog != NULL && jd->d_200Ok!=NULL)
 				{
-					if (jd->d_count==7)
+					if (jd->d_count==10)
 					{
 						OSIP_TRACE (osip_trace
 									(__FILE__, __LINE__, OSIP_ERROR, NULL,
