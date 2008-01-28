@@ -30,6 +30,12 @@ eXtl_tcp.c \
 eXtl_dtls.c \
 eXtl_tls.c
 
+libeXosip2_la_SOURCES+= \
+milenage.c \
+rijndael.c \
+milenage.h \
+rijndael.h
+
 if BUILD_MAXSIZE
 libeXosip2_la_SOURCES+= \
 eXsubscription_api.c    eXoptions_api.c    \
