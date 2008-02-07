@@ -303,7 +303,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\milenage.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\misc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\rijndael.c"
 				>
 			</File>
 			<File
@@ -369,6 +377,14 @@
 			</File>
 			<File
 				RelativePath="..\..\src\jpipe.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\milenage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\rijndael.h"
 				>
 			</File>
 		</Filter>
