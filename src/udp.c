@@ -1118,7 +1118,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
       } else if (MSG_IS_PRACK (evt->sip))
         {
           eXosip_process_prack (jc, jd, transaction, evt);
-      } else if (MSG_IS_SUBSCRIBE (evt->sip))
+      } else
         {
           eXosip_process_message_within_dialog (jc, jd, transaction, evt);
         }
