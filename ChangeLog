@@ -1,3 +1,7 @@
+eXosip2 (3.1.0)
+	* AKA authentication.
+	* improve compliance & flexibility.
+
 eXosip2 (3.0.4)
 	* fix building SUBSCRIBE refresh.
 	* fix compliance issue with refer-to to-tag/from-tag parameters.
