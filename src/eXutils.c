@@ -27,7 +27,8 @@
 
 #if defined(_WIN32_WCE)
 #elif defined(WIN32)
-#include <WinDNS.h>
+#include <windns.h>
+#include <malloc.h>
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -395,8 +396,8 @@ int eXosip_get_addrinfo(struct addrinfo **addrinfo,
 #if defined(WIN32) || defined(_WIN32_WCE)
 
 /* You need the Platform SDK to compile this. */
-#include <Windows.h>
-#include <Iphlpapi.h>
+#include <windows.h>
+#include <iphlpapi.h>
 
 int
 eXosip_dns_get_local_fqdn (char **servername, char **serverip,
@@ -814,8 +815,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                   "getaddrinfo failure. %s:%s (%s)\n", hostname, portbuf,
-                   gai_strerror (error)));
+                   "getaddrinfo failure. %s:%s (%d)\n", hostname, portbuf, error));
       return -1;
     }
    else{

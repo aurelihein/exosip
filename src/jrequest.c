@@ -33,7 +33,7 @@
 #endif
 #else
 #include <windows.h>
-#include <Iphlpapi.h>
+#include <iphlpapi.h>
 #endif
 
 extern eXosip_t eXosip;

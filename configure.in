@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_REVISION($Revision: 1.60 $)dnl
+AC_REVISION($Revision: 1.61 $)dnl
 AC_PREREQ(2.50)
 AC_INIT(include/eXosip2/eXosip.h)
 
@@ -357,7 +357,14 @@ AC_CHECK_HEADERS([resolv.h], [], [],
 dnl check if we have the getifaddrs() sytem call
 AC_CHECK_FUNCS(getifaddrs)
 
-AC_CHECK_HEADERS(openssl/ssl.h)
+dnl support for sysV semaphore in sys/sem.h (BSD/linux...)
+AC_ARG_ENABLE(openssl,
+	[  --enable-openssl      enable support for openssl],
+	enable_openssl=$enableval,enable_openssl="no")
+
+if test "$enable_openssl" = "yes" ; then
+	AC_CHECK_HEADERS(openssl/ssl.h)
+fi
 
 AC_OUTPUT(
  Makefile

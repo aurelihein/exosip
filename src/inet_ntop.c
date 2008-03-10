@@ -43,8 +43,8 @@
 
 #include <windowsx.h>
 #include <winsock2.h>
-#include <Ws2tcpip.h>
-#include <Iphlpapi.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
 
 #include "inet_ntop.h"
 

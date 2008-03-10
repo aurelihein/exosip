@@ -622,11 +622,15 @@ dtls_tl_read_message(fd_set *osip_fdset)
 		}
 
 	      /* No MTU query */
+#ifdef	SSL_OP_NO_QUERY_MTU
 	      SSL_set_options (dtls_socket_tab[pos].ssl_conn, SSL_OP_NO_QUERY_MTU);
 	      SSL_set_mtu (dtls_socket_tab[pos].ssl_conn, 2000);
+#endif
 	      /* MTU query */
 	      /* BIO_ctrl(sbio, BIO_CTRL_DGRAM_MTU_DISCOVER, 0, NULL); */
+#ifdef	SSL_OP_COOKIE_EXCHANGE
 	      SSL_set_options (dtls_socket_tab[pos].ssl_conn, SSL_OP_COOKIE_EXCHANGE);
+#endif
 	      wbio = BIO_new_dgram (dtls_socket,
 				    BIO_NOCLOSE);
 	      BIO_dgram_set_peer (wbio, &sa);

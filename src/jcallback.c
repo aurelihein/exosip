@@ -30,7 +30,7 @@
 #elif WIN32
 #include <windowsx.h>
 #include <winsock2.h>
-#include <Ws2tcpip.h>
+#include <ws2tcpip.h>
 #include "inet_ntop.h"
 
 #else
