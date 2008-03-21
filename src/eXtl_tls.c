@@ -81,7 +81,7 @@ struct socket_tab
 };
 
 #ifndef EXOSIP_MAX_SOCKETS
-#define EXOSIP_MAX_SOCKETS
+#define EXOSIP_MAX_SOCKETS 100
 #endif
 
 static struct socket_tab tls_socket_tab[EXOSIP_MAX_SOCKETS];
