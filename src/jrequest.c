@@ -491,7 +491,6 @@ int
 generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport, char *from,
                      char *proxy, char *contact, int expires)
 {
-  osip_from_t *a_from;
   int i;
   char locip[65];
   char firewall_ip[65];
@@ -526,23 +525,24 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
 
   if (contact == NULL)
     {
-      i = osip_from_init (&a_from);
-      if (i == 0)
-        i = osip_from_parse (a_from, from);
+      osip_contact_t *new_contact=NULL;
+      osip_uri_t *new_contact_url=NULL;
 
-      if (i == 0 && a_from != NULL
-          && a_from->url != NULL && a_from->url->username != NULL)
+      i = osip_contact_init (&new_contact);
+      if (i == 0)
+	i = osip_uri_init (&new_contact_url);
+
+      new_contact->url=new_contact_url;
+
+      if (i == 0 && (*reg)->from != NULL
+          && (*reg)->from->url != NULL && (*reg)->from->url->username != NULL)
         {
-	  int len = 50 + strlen (a_from->url->username);
-	  if (transport!=NULL && osip_strcasecmp(transport, "UDP")!=0)
-	    {
-	      len = len + strlen(transport) + 12; /* strlen(";transport=") */
-	    }
-	  if (jreg->r_line[0]!='\0')
-	    {
-	      len = len + strlen(jreg->r_line) + 12; /* strlen(";line=") */
-	    }
-	  contact = (char *) osip_malloc (len);
+	  new_contact_url->username = osip_strdup((*reg)->from->url->username);
+	}
+
+      if (i == 0 && (*reg)->from != NULL && (*reg)->from->url != NULL)
+        {
+	  /* serach for correct ip */
           if (firewall_ip[0] != '\0')
             {
               char *c_address = (*reg)->req_uri->host;
@@ -566,41 +566,35 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
 
               if (eXosip_is_public_address (c_address))
                 {
-                  sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                           firewall_ip,
-                           firewall_port);
-              } else
+		  new_contact_url->host = osip_strdup(firewall_ip);
+		  new_contact_url->port = osip_strdup(firewall_port);
+		}
+	      else
                 {
-                  sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                           locip, firewall_port);
+		  new_contact_url->host = osip_strdup(locip);
+		  new_contact_url->port = osip_strdup(firewall_port);
                 }
-          } else
+	    }
+	  else
             {
-              sprintf (contact, "<sip:%s@%s:%s>", a_from->url->username,
-                       locip, firewall_port);
+		  new_contact_url->host = osip_strdup(locip);
+		  new_contact_url->port = osip_strdup(firewall_port);
             }
-	  
+
 	  if (transport!=NULL && osip_strcasecmp(transport, "UDP")!=0)
 	    {
-	      contact[strlen(contact)-1]='\0';
-	      strcat(contact, ";transport=");
-	      strcat(contact, transport);
-	      strcat(contact, ">");
+	      osip_uri_uparam_add (new_contact_url, osip_strdup("transport"), osip_strdup(transport));
 	    }
 
 	  if (jreg->r_line[0]!='\0')
 	    {
-	      contact[strlen(contact)-1]='\0';
-	      strcat(contact, ";line=");
-	      strcat(contact, jreg->r_line);
-	      strcat(contact, ">");
+	      osip_uri_uparam_add (new_contact_url, osip_strdup("line"), osip_strdup(jreg->r_line));
 	    }
 
-          osip_message_set_contact (*reg, contact);
-          osip_free (contact);
+          osip_list_add (&(*reg)->contacts, new_contact, -1);
         }
-      osip_from_free (a_from);
-  } else
+    }
+  else
     {
       osip_message_set_contact (*reg, contact);
     }
