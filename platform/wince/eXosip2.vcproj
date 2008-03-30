@@ -881,6 +881,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\rijndael.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\milenage.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\jcall.c"
 				>
 			</File>
@@ -992,6 +1000,14 @@
 			</File>
 			<File
 				RelativePath="..\..\src\jpipe.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\rijndael.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\milenage.h"
 				>
 			</File>
 		</Filter>
