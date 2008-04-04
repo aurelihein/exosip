@@ -599,6 +599,11 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
   if (addr!=NULL)
     snprintf(eXtl->proto_ifs, sizeof(eXtl->proto_ifs), "%s", addr);
 
+#ifdef	AF_INET6
+  if(family == AF_INET6 && !addr)
+    snprintf(eXtl->proto_ifs, sizeof(eXtl->proto_ifs), "::0");
+#endif
+
   i = eXtl->tl_open();
   
   if (i!=0)
