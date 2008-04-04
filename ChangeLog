@@ -1,3 +1,6 @@
+eXosip2 (3.1.1)
+	* remove automatic answers to PRACK. (must be done in application now)
+
 eXosip2 (3.1.0)
 	* AKA authentication.
 	* improve compliance & flexibility.
