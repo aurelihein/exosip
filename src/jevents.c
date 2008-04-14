@@ -188,7 +188,7 @@ eXosip_event_init (eXosip_event_t ** je, int type)
 {
   *je = (eXosip_event_t *) osip_malloc (sizeof (eXosip_event_t));
   if (*je == NULL)
-    return -1;
+    return OSIP_NOMEM;
 
   memset (*je, 0, sizeof (eXosip_event_t));
   (*je)->type = type;

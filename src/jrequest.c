@@ -52,6 +52,8 @@ osip_call_id_new_random ()
 {
   char *tmp = (char *) osip_malloc (33);
   unsigned int number = osip_build_random_number ();
+  if (tmp==NULL)
+	  return NULL;
 
   sprintf (tmp, "%u", number);
   return tmp;
@@ -133,6 +135,8 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
     len = 2 + 4 + 100 + 6 + 10 + strlen(eXosip.transport);
 
   contact = (char *) osip_malloc (len+1);
+  if (contact==NULL)
+	  return OSIP_NOMEM;
   if (firewall_ip[0] != '\0')
     {
       char *c_address = request->req_uri->host;
@@ -781,7 +785,10 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
       /* The UAC must put the remote target URI (to field) in the req_uri */
       i = osip_uri_clone (dialog->remote_contact_uri->url, &(request->req_uri));
       if (i != 0)
-        goto grwd_error_1;
+	  {
+		  osip_message_free (request);
+		  return i;
+	  }
   } else
     {
       /* fill the request-uri, and the route headers. */
@@ -791,10 +798,16 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   /* To and From already contains the proper tag! */
   i = osip_to_clone (dialog->remote_uri, &(request->to));
   if (i != 0)
-    goto grwd_error_1;
+  {
+	  osip_message_free (request);
+	  return i;
+  }
   i = osip_from_clone (dialog->local_uri, &(request->from));
   if (i != 0)
-    goto grwd_error_1;
+  {
+	  osip_message_free (request);
+	  return i;
+  }
 
   /* set the cseq and call_id header */
   osip_message_set_call_id (request, dialog->call_id);
@@ -806,8 +819,16 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
       i = osip_cseq_init (&cseq);
       if (i != 0)
-        goto grwd_error_1;
+	  {
+		  osip_message_free (request);
+		  return i;
+	  }
       tmp = osip_malloc (20);
+	  if (tmp==NULL)
+	  {
+		  osip_message_free (request);
+		  return OSIP_NOMEM;
+	  }
       sprintf (tmp, "%i", dialog->local_cseq);
       osip_cseq_set_number (cseq, tmp);
       osip_cseq_set_method (cseq, osip_strdup (method));
@@ -819,9 +840,17 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
       i = osip_cseq_init (&cseq);
       if (i != 0)
-        goto grwd_error_1;
+	  {
+		  osip_message_free (request);
+		  return i;
+	  }
       dialog->local_cseq++;     /* we should we do that?? */
       tmp = osip_malloc (20);
+	  if (tmp==NULL)
+	  {
+		  osip_message_free (request);
+		  return OSIP_NOMEM;
+	  }
       sprintf (tmp, "%i", dialog->local_cseq);
       osip_cseq_set_number (cseq, tmp);
       osip_cseq_set_method (cseq, osip_strdup (method));
@@ -834,7 +863,10 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
   i = _eXosip_request_add_via(request, transport, locip);
   if (i != 0)
-    goto grwd_error_1;
+  {
+	  osip_message_free (request);
+	  return i;
+  }
 
   /* add specific headers for each kind of request... */
 
@@ -900,13 +932,6 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   /*  else if ... */
   *dest = request;
   return OSIP_SUCCESS;
-
-  /* grwd_error_2: */
-  dialog->local_cseq--;
-grwd_error_1:
-  osip_message_free (request);
-  *dest = NULL;
-  return -1;
 }
 
 /* this request is only build within a dialog!! */

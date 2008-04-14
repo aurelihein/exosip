@@ -48,6 +48,11 @@ _eXosip_build_response_default (osip_message_t ** dest,
   /* yet done... */
 
   response->sip_version = (char *) osip_malloc (8 * sizeof (char));
+  if (response->sip_version==NULL)
+  {
+	  osip_message_free (response);
+	  return OSIP_NOMEM;
+  }
   sprintf (response->sip_version, "SIP/2.0");
   osip_message_set_status_code (response, status);
 
@@ -87,7 +92,10 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
   i = osip_to_clone (request->to, &(response->to));
   if (i != 0)
-    goto grd_error_1;
+  {
+	  osip_message_free (response);
+	  return -1;
+  }
 
   i = osip_to_get_tag (response->to, &tag);
   if (i != 0)
@@ -105,7 +113,10 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
   i = osip_from_clone (request->from, &(response->from));
   if (i != 0)
-    goto grd_error_1;
+  {
+	  osip_message_free (response);
+	  return -1;
+  }
 
   pos = 0;
   while (!osip_list_eol (&request->vias, pos))
@@ -115,18 +126,27 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
       via = (osip_via_t *) osip_list_get (&request->vias, pos);
       i = osip_via_clone (via, &via2);
-      if (i != -0)
-        goto grd_error_1;
+      if (i != 0)
+	  {
+		  osip_message_free (response);
+		  return i;
+	  }
       osip_list_add (&response->vias, via2, -1);
       pos++;
     }
 
   i = osip_call_id_clone (request->call_id, &(response->call_id));
   if (i != 0)
-    goto grd_error_1;
+  {
+	  osip_message_free (response);
+	  return -1;
+  }
   i = osip_cseq_clone (request->cseq, &(response->cseq));
   if (i != 0)
-    goto grd_error_1;
+  {
+	  osip_message_free (response);
+	  return -1;
+  }
 
 #ifndef MINISIZE
   if (MSG_IS_SUBSCRIBE (request))
@@ -155,10 +175,6 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
   *dest = response;
   return OSIP_SUCCESS;
-
-grd_error_1:
-  osip_message_free (response);
-  return -1;
 }
 
 int

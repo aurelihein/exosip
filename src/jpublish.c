@@ -108,7 +108,7 @@ _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp)
 
   jpub = (eXosip_pub_t *) osip_malloc (sizeof (eXosip_pub_t));
   if (jpub == 0)
-    return -1;
+    return OSIP_NOMEM;
   memset (jpub, 0, sizeof (eXosip_pub_t));
   snprintf (jpub->p_aor, 256, "%s", aor);
 
@@ -129,7 +129,7 @@ _eXosip_pub_free (eXosip_pub_t * pub)
 	  && pub->p_last_tr->orig_request->call_id->number!=NULL)
 	_eXosip_delete_nonce(pub->p_last_tr->orig_request->call_id->number);
 
-      osip_list_add (eXosip.j_transactions, pub->p_last_tr, 0);
+      osip_list_add (&eXosip.j_transactions, pub->p_last_tr, 0);
     }
   osip_free (pub);
 }

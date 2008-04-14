@@ -116,6 +116,8 @@ eXosip_dialog_init_as_uac (eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 
   *_jd = NULL;
   jd = (eXosip_dialog_t *) osip_malloc (sizeof (eXosip_dialog_t));
+  if (jd==NULL)
+	  return OSIP_NOMEM;
   memset (jd, 0, sizeof (eXosip_dialog_t));
 
   jd->d_id = -1;                /* not yet available to user */
@@ -142,8 +144,21 @@ eXosip_dialog_init_as_uac (eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
   jd->next = NULL;
   jd->parent = NULL;
   jd->d_out_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
+  if (jd->d_out_trs==NULL)
+  {
+	  osip_dialog_free (jd->d_dialog);
+      osip_free (jd);
+	  return OSIP_NOMEM;
+  }
   osip_list_init (jd->d_out_trs);
   jd->d_inc_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
+  if (jd->d_inc_trs==NULL)
+  {
+	  osip_dialog_free (jd->d_dialog);
+	  osip_free(jd->d_out_trs);
+      osip_free (jd);
+	  return OSIP_NOMEM;
+  }
   osip_list_init (jd->d_inc_trs);
 
   /* jd->d_bh = sdp_handler_new(); */
@@ -160,6 +175,8 @@ eXosip_dialog_init_as_uas (eXosip_dialog_t ** _jd, osip_message_t * _invite,
 
   *_jd = NULL;
   jd = (eXosip_dialog_t *) osip_malloc (sizeof (eXosip_dialog_t));
+  if (jd==NULL)
+	  return OSIP_NOMEM;
   memset (jd, 0, sizeof (eXosip_dialog_t));
   jd->d_id = -1;                /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
@@ -177,8 +194,21 @@ eXosip_dialog_init_as_uas (eXosip_dialog_t ** _jd, osip_message_t * _invite,
   jd->next = NULL;
   jd->parent = NULL;
   jd->d_out_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
+  if (jd->d_out_trs==NULL)
+  {
+	  osip_dialog_free (jd->d_dialog);
+      osip_free (jd);
+	  return OSIP_NOMEM;
+  }
   osip_list_init (jd->d_out_trs);
   jd->d_inc_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
+  if (jd->d_inc_trs==NULL)
+  {
+	  osip_dialog_free (jd->d_dialog);
+	  osip_free(jd->d_out_trs);
+      osip_free (jd);
+	  return OSIP_NOMEM;
+  }
   osip_list_init (jd->d_inc_trs);
 
 #ifdef SUPPORT_MSN
@@ -201,7 +231,7 @@ eXosip_dialog_free (eXosip_dialog_t * jd)
       tr = (osip_transaction_t *) osip_list_get (jd->d_inc_trs, 0);
       osip_list_remove (jd->d_inc_trs, 0);
       __eXosip_delete_jinfo (tr);
-      osip_list_add (eXosip.j_transactions, tr, 0);
+      osip_list_add (&eXosip.j_transactions, tr, 0);
     }
 
   while (!osip_list_eol (jd->d_out_trs, 0))
@@ -211,7 +241,7 @@ eXosip_dialog_free (eXosip_dialog_t * jd)
       tr = (osip_transaction_t *) osip_list_get (jd->d_out_trs, 0);
       osip_list_remove (jd->d_out_trs, 0);
       __eXosip_delete_jinfo (tr);
-      osip_list_add (eXosip.j_transactions, tr, 0);
+      osip_list_add (&eXosip.j_transactions, tr, 0);
     }
 
   osip_message_free (jd->d_200Ok);

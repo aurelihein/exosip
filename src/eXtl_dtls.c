@@ -484,7 +484,7 @@ dtls_tl_read_message(fd_set *osip_fdset)
       
       enc_buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
       if (enc_buf==NULL)
-	return -1;
+	return OSIP_NOMEM;
 
       enc_buf_len = recvfrom (dtls_socket, enc_buf,
 		    SIP_MESSAGE_MAX_LENGTH, 0,
@@ -657,7 +657,7 @@ dtls_tl_read_message(fd_set *osip_fdset)
 			      (__FILE__, __LINE__, OSIP_ERROR, NULL,
 			       "Allocation error\n"));
 		  osip_free(enc_buf);
-		  return -1;
+		  return OSIP_NOMEM;
 	    }
 	  rbio = BIO_new_mem_buf (enc_buf, enc_buf_len);
 	  BIO_set_mem_eof_return (rbio, -1);

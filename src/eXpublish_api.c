@@ -162,6 +162,11 @@ eXosip_publish (osip_message_t * message, const char *to)
           osip_cseq_num++;
           osip_free (message->cseq->number);
           message->cseq->number = (char *) osip_malloc (length + 2);    /* +2 like for 9 to 10 */
+		  if (message->cseq->number==NULL)
+		  {
+		      osip_message_free (message);
+			  return OSIP_NOMEM;
+		  }
           sprintf (message->cseq->number, "%i", osip_cseq_num);
         }
     }
@@ -174,7 +179,7 @@ eXosip_publish (osip_message_t * message, const char *to)
     }
 
   if (pub->p_last_tr != NULL)
-    osip_list_add (eXosip.j_transactions, pub->p_last_tr, 0);
+    osip_list_add (&eXosip.j_transactions, pub->p_last_tr, 0);
   pub->p_last_tr = transaction;
 
   sipevent = osip_new_outgoing_sipmessage (message);

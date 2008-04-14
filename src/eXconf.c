@@ -213,27 +213,25 @@ eXosip_quit (void)
     }
 #endif
 
-  while (!osip_list_eol (eXosip.j_transactions, 0))
+  while (!osip_list_eol (&eXosip.j_transactions, 0))
     {
       osip_transaction_t *tr =
-        (osip_transaction_t *) osip_list_get (eXosip.j_transactions, 0);
+        (osip_transaction_t *) osip_list_get (&eXosip.j_transactions, 0);
       if (tr->state == IST_TERMINATED || tr->state == ICT_TERMINATED
           || tr->state == NICT_TERMINATED || tr->state == NIST_TERMINATED)
         {
           OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                                   "Release a terminated transaction\n"));
-          osip_list_remove (eXosip.j_transactions, 0);
+          osip_list_remove (&eXosip.j_transactions, 0);
           __eXosip_delete_jinfo (tr);
           osip_transaction_free (tr);
       } else
         {
-          osip_list_remove (eXosip.j_transactions, 0);
+          osip_list_remove (&eXosip.j_transactions, 0);
           __eXosip_delete_jinfo (tr);
           osip_transaction_free (tr);
         }
     }
-
-  osip_free (eXosip.j_transactions);
 
   eXosip_kill_transaction (&eXosip.j_osip->osip_ict_transactions);
   eXosip_kill_transaction (&eXosip.j_osip->osip_nict_transactions);
@@ -641,6 +639,7 @@ int
 eXosip_init (void)
 {
   osip_t *osip;
+  int i;
 
   memset (&eXosip, 0, sizeof (eXosip));
 
@@ -655,7 +654,6 @@ eXosip_init (void)
   {
     WORD wVersionRequested;
     WSADATA wsaData;
-    int i;
 
     wVersionRequested = MAKEWORD (1, 1);
     i = WSAStartup (wVersionRequested, &wsaData);
@@ -670,30 +668,48 @@ eXosip_init (void)
 #endif
 
   eXosip.user_agent = osip_strdup ("eXosip/" EXOSIP_VERSION);
+  if (eXosip.user_agent==NULL)
+	return OSIP_NOMEM;
 
   eXosip.j_calls = NULL;
   eXosip.j_stop_ua = 0;
 #ifdef OSIP_MT
   eXosip.j_thread = NULL;
 #endif
-  eXosip.j_transactions = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
-  osip_list_init (eXosip.j_transactions);
+  i = osip_list_init (&eXosip.j_transactions);
   eXosip.j_reg = NULL;
 
 #ifdef OSIP_MT
 #if !defined (_WIN32_WCE)
   eXosip.j_cond = (struct osip_cond *) osip_cond_init ();
+  if (eXosip.j_cond==NULL)
+  {
+	  osip_free(eXosip.user_agent);
+	  eXosip.user_agent=NULL;
+	  return OSIP_NOMEM;
+  }
 #endif
 
   eXosip.j_mutexlock = (struct osip_mutex *) osip_mutex_init ();
+  if (eXosip.j_mutexlock==NULL)
+  {
+	  osip_free(eXosip.user_agent);
+	  eXosip.user_agent=NULL;
+#if !defined (_WIN32_WCE)
+	  osip_cond_destroy ((struct osip_cond *) eXosip.j_cond);
+	  eXosip.j_cond=NULL;
+#endif
+	  return OSIP_NOMEM;
+  }
 #endif
 
-  if (-1 == osip_init (&osip))
+  i = osip_init (&osip);
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: Cannot initialize osip!\n"));
-      return -1;
+      return i;
     }
 
   osip_set_application_context (osip, &eXosip);
@@ -715,6 +731,8 @@ eXosip_init (void)
 
   /* To be changed in osip! */
   eXosip.j_events = (osip_fifo_t *) osip_malloc (sizeof (osip_fifo_t));
+  if (eXosip.j_events==NULL)
+	  return OSIP_NOMEM;
   osip_fifo_init (eXosip.j_events);
 
   eXosip.use_rport = 1;

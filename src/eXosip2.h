@@ -421,7 +421,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     eXosip_subscribe_t *j_subscribes;   /* my friends      */
     eXosip_notify_t *j_notifies;        /* my susbscribers */
 #endif
-    osip_list_t *j_transactions;
+    osip_list_t j_transactions;
 
     eXosip_reg_t *j_reg;        /* my registrations */
 #ifndef MINISIZE

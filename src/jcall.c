@@ -46,7 +46,7 @@ eXosip_call_init (eXosip_call_t ** jc)
 {
   *jc = (eXosip_call_t *) osip_malloc (sizeof (eXosip_call_t));
   if (*jc == NULL)
-    return -1;
+    return OSIP_NOMEM;
   memset (*jc, 0, sizeof (eXosip_call_t));
 
   (*jc)->c_id = -1;             /* make sure the eXosip_update will assign a valid id to the call */
@@ -109,9 +109,9 @@ eXosip_call_free (eXosip_call_t * jc)
   __eXosip_delete_jinfo (jc->c_inc_tr);
   __eXosip_delete_jinfo (jc->c_out_tr);
   if (jc->c_inc_tr != NULL)
-    osip_list_add (eXosip.j_transactions, jc->c_inc_tr, 0);
+    osip_list_add (&eXosip.j_transactions, jc->c_inc_tr, 0);
   if (jc->c_out_tr != NULL)
-    osip_list_add (eXosip.j_transactions, jc->c_out_tr, 0);
+    osip_list_add (&eXosip.j_transactions, jc->c_out_tr, 0);
 
   osip_free (jc);
 

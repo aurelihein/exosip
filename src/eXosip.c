@@ -103,11 +103,11 @@ eXosip_transaction_find (int tid, osip_transaction_t ** transaction)
   int pos = 0;
 
   *transaction = NULL;
-  while (!osip_list_eol (eXosip.j_transactions, pos))
+  while (!osip_list_eol (&eXosip.j_transactions, pos))
     {
       osip_transaction_t *tr;
 
-      tr = (osip_transaction_t *) osip_list_get (eXosip.j_transactions, pos);
+      tr = (osip_transaction_t *) osip_list_get (&eXosip.j_transactions, pos);
       if (tr->transactionid == tid)
         {
           *transaction = tr;
@@ -228,12 +228,12 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   if (MSG_IS_PUBLISH(msg))
     {
       /* old transaction is put in the garbage list */
-      osip_list_add (eXosip.j_transactions, out_tr, 0);
+      osip_list_add (&eXosip.j_transactions, out_tr, 0);
       /* new transaction is put in the publish context */
       *ptr = tr;
     }
   else
-    osip_list_add (eXosip.j_transactions, tr, 0);
+    osip_list_add (&eXosip.j_transactions, tr, 0);
 
   sipevent = osip_new_outgoing_sipmessage (msg);
 
@@ -389,12 +389,12 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   if (MSG_IS_PUBLISH(msg))
     {
       /* old transaction is put in the garbage list */
-      osip_list_add (eXosip.j_transactions, out_tr, 0);
+      osip_list_add (&eXosip.j_transactions, out_tr, 0);
       /* new transaction is put in the publish context */
       *ptr = tr;
     }
   else
-    osip_list_add (eXosip.j_transactions, tr, 0);
+    osip_list_add (&eXosip.j_transactions, tr, 0);
 
   sipevent = osip_new_outgoing_sipmessage (msg);
 
@@ -1281,7 +1281,7 @@ eXosip_add_authentication_info (const char *username, const char *userid,
 
   authinfos = (jauthinfo_t *) osip_malloc (sizeof (jauthinfo_t));
   if (authinfos == NULL)
-    return -1;
+    return OSIP_NOMEM;
   memset (authinfos, 0, sizeof (jauthinfo_t));
 
   snprintf (authinfos->username, 50, "%s", username);

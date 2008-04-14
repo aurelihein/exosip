@@ -84,7 +84,7 @@ eXosip_subscribe_init (eXosip_subscribe_t ** js)
 {
   *js = (eXosip_subscribe_t *) osip_malloc (sizeof (eXosip_subscribe_t));
   if (*js == NULL)
-    return -1;
+    return OSIP_NOMEM;
   memset (*js, 0, sizeof (eXosip_subscribe_t));
   return OSIP_SUCCESS;
 }
@@ -114,9 +114,9 @@ eXosip_subscribe_free (eXosip_subscribe_t * js)
   __eXosip_delete_jinfo (js->s_inc_tr);
   __eXosip_delete_jinfo (js->s_out_tr);
   if (js->s_inc_tr != NULL)
-    osip_list_add (eXosip.j_transactions, js->s_inc_tr, 0);
+    osip_list_add (&eXosip.j_transactions, js->s_inc_tr, 0);
   if (js->s_out_tr != NULL)
-    osip_list_add (eXosip.j_transactions, js->s_out_tr, 0);
+    osip_list_add (&eXosip.j_transactions, js->s_out_tr, 0);
 
   osip_free (js);
 }

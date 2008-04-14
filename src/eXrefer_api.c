@@ -63,7 +63,7 @@ eXosip_refer_send_request (osip_message_t * refer)
       return -1;
     }
 
-  osip_list_add (eXosip.j_transactions, transaction, 0);
+  osip_list_add (&eXosip.j_transactions, transaction, 0);
 
   sipevent = osip_new_outgoing_sipmessage (refer);
   sipevent->transactionid = transaction->transactionid;

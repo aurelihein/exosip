@@ -268,7 +268,7 @@ udp_tl_read_message(fd_set *osip_fdset)
       
       buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
       if (buf==NULL)
-	return -1;
+	return OSIP_NOMEM;
 
       i = recvfrom (udp_socket, buf,
 		    SIP_MESSAGE_MAX_LENGTH, 0,
@@ -435,6 +435,8 @@ eXtl_update_local_target(osip_message_t *req)
 					&& ainfo->nat_port!= 5060)
 				{
 					co->url->port = osip_malloc(10);
+					if (co->url->port==NULL)
+						return OSIP_NOMEM;
 				    snprintf(co->url->port, 9, "%i", ainfo->nat_port);
 				}
 				else if (co->url->port != NULL &&
@@ -442,6 +444,8 @@ eXtl_update_local_target(osip_message_t *req)
 				{
 					osip_free (co->url->port);
 					co->url->port = osip_malloc(10);
+					if (co->url->port==NULL)
+						return OSIP_NOMEM;
 				    snprintf(co->url->port, 9, "%i", ainfo->nat_port);
 				}
 			}

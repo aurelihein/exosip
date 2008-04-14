@@ -97,7 +97,7 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
           __eXosip_delete_jinfo (jr->r_last_tr);
           tr = jr->r_last_tr;
           jr->r_last_tr = NULL;
-          osip_list_add (eXosip.j_transactions, tr, 0);
+          osip_list_add (&eXosip.j_transactions, tr, 0);
 
           /* modify the REGISTER request */
           {
@@ -120,6 +120,13 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
             osip_cseq_num++;
             osip_free (reg->cseq->number);
             reg->cseq->number = (char *) osip_malloc (length + 2);      /* +2 like for 9 to 10 */
+			if (reg->cseq->number==NULL)
+			{
+                osip_message_free (reg);
+                if (last_response != NULL)
+                  osip_message_free (last_response);
+				return OSIP_NOMEM;
+			}
             sprintf (reg->cseq->number, "%i", osip_cseq_num);
 
 	    {
@@ -131,6 +138,13 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 		  if (exp->hvalue!=NULL)
 		    osip_free (exp->hvalue);
 		  exp->hvalue = (char *) osip_malloc (10);
+		  if (exp->hvalue==NULL)
+		  {
+			  osip_message_free (reg);
+			  if (last_response != NULL)
+				  osip_message_free (last_response);
+			  return OSIP_NOMEM;
+		  }
 		  snprintf (exp->hvalue, 9, "%i", jr->r_reg_period);
 		}
             }

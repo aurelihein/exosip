@@ -86,7 +86,7 @@ eXosip_create_cancel_transaction (eXosip_call_t * jc,
       return -2;
     }
 
-  osip_list_add (eXosip.j_transactions, tr, 0);
+  osip_list_add (&eXosip.j_transactions, tr, 0);
 
   sipevent = osip_new_outgoing_sipmessage (request);
   sipevent->transactionid = tr->transactionid;
@@ -1331,7 +1331,7 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
   if (out_tr == jc->c_out_tr)
     {
       /* replace with the new tr */
-      osip_list_add (eXosip.j_transactions, jc->c_out_tr, 0);
+      osip_list_add (&eXosip.j_transactions, jc->c_out_tr, 0);
       jc->c_out_tr = tr;
 
       /* fix dialog issue */

@@ -790,7 +790,7 @@ tls_tl_read_message(fd_set *osip_fdset)
 	  if (buf==NULL)
 	    buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
 	  if (buf==NULL)
-	    return -1;
+	    return OSIP_NOMEM;
 
 	  /* do TLS handshake? */
 	  if (tls_socket_tab[pos].ssl_state == 2)

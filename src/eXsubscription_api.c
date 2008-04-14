@@ -464,7 +464,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
   if (out_tr == js->s_out_tr)
     {
       /* replace with the new tr */
-      osip_list_add (eXosip.j_transactions, js->s_out_tr, 0);
+      osip_list_add (&eXosip.j_transactions, js->s_out_tr, 0);
       js->s_out_tr = tr;
   } else
     {

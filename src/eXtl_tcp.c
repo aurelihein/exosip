@@ -344,7 +344,7 @@ tcp_tl_read_message(fd_set *osip_fdset)
 	  if (buf==NULL)
 	    buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
 	  if (buf==NULL)
-	    return -1;
+	    return OSIP_NOMEM;
 
 	  i = recv (tcp_socket_tab[pos].socket, buf, SIP_MESSAGE_MAX_LENGTH, 0);
 	  if (i > 5)

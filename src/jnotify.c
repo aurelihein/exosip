@@ -91,7 +91,7 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
 
   *jn = (eXosip_notify_t *) osip_malloc (sizeof (eXosip_notify_t));
   if (*jn == NULL)
-    return -1;
+    return OSIP_NOMEM;
   memset (*jn, 0, sizeof (eXosip_notify_t));
 
   return OSIP_SUCCESS;
@@ -122,9 +122,9 @@ eXosip_notify_free (eXosip_notify_t * jn)
   __eXosip_delete_jinfo (jn->n_inc_tr);
   __eXosip_delete_jinfo (jn->n_out_tr);
   if (jn->n_inc_tr != NULL)
-    osip_list_add (eXosip.j_transactions, jn->n_inc_tr, 0);
+    osip_list_add (&eXosip.j_transactions, jn->n_inc_tr, 0);
   if (jn->n_out_tr != NULL)
-    osip_list_add (eXosip.j_transactions, jn->n_out_tr, 0);
+    osip_list_add (&eXosip.j_transactions, jn->n_out_tr, 0);
   osip_free (jn);
 }
 
