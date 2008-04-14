@@ -41,7 +41,7 @@ eXosip_remove_transaction_from_call (osip_transaction_t * tr, eXosip_call_t * jc
   if (jc->c_inc_tr == tr)
     {
       jc->c_inc_tr = NULL;      /* can be NULL */
-      return 0;
+      return OSIP_SUCCESS;
     }
 
   for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
@@ -53,7 +53,7 @@ eXosip_remove_transaction_from_call (osip_transaction_t * tr, eXosip_call_t * jc
           if (inc_tr == tr)
             {
               osip_list_remove (jd->d_inc_trs, pos);
-              return 0;
+              return OSIP_SUCCESS;
             }
           pos++;
         }
@@ -62,7 +62,7 @@ eXosip_remove_transaction_from_call (osip_transaction_t * tr, eXosip_call_t * jc
   if (jc->c_out_tr == tr)
     {
       jc->c_out_tr = NULL;      /* can be NULL */
-      return 0;
+      return OSIP_SUCCESS;
     }
 
   for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
@@ -74,7 +74,7 @@ eXosip_remove_transaction_from_call (osip_transaction_t * tr, eXosip_call_t * jc
           if (out_tr == tr)
             {
               osip_list_remove (jd->d_out_trs, pos);
-              return 0;
+              return OSIP_SUCCESS;
             }
           pos++;
         }

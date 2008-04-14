@@ -173,7 +173,7 @@ eXosip_inet_pton (int family, const char *src, void *dst)
       struct in_addr *tmp = dst;
       tmp->s_addr = inet_addr (src);    /* already in N. byte order */
       if (tmp->s_addr == INADDR_NONE)
-        return 0;
+        return OSIP_SUCCESS;
 
       return 1;                 /* (inet_pton(AF_INET, src, dst)); */
   } else                        /* Impossibly a valid ip address */
@@ -218,7 +218,7 @@ int eXosip_get_addrinfo(struct addrinfo **addrinfo,
     /* This is a dotted IP address 123.123.123.123-style */
   {
 	  *addrinfo = osip_ip2addr(in, hostname, port, protocol);
-	  return 0;
+	  return OSIP_SUCCESS;
   }
 
 #if defined(HAVE_GETHOSTBYNAME_R)
@@ -388,7 +388,7 @@ int eXosip_get_addrinfo(struct addrinfo **addrinfo,
       free(buf);
   }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif
@@ -473,7 +473,7 @@ eXosip_dns_get_local_fqdn (char **servername, char **serverip,
       return -1;
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -522,7 +522,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
       return -1;
     }
   
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #else /* sun, *BSD, linux, and other? */
@@ -650,7 +650,7 @@ _eXosip_default_gateway_ipv4 (char *address, int size)
       return -1;
     }
   osip_strncpy (address, inet_ntoa (iface_out.sin_addr), size - 1);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 
@@ -708,7 +708,7 @@ _eXosip_default_gateway_ipv6 (char *address, int size)
       return -1;
     }
   inet_ntop (AF_INET6, (const void *) &iface_out.sin6_addr, address, size - 1);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif
@@ -833,7 +833,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 	}
    }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 #endif
 
@@ -931,7 +931,7 @@ _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_sr
 		int i;
 		i = _eXosip_get_srv_record(record, host, via->protocol);
 	}
-	return 0;
+	return OSIP_SUCCESS;
 }
 
 #if defined(WIN32) && !defined(_WIN32_WCE)
@@ -995,7 +995,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 		return -1;
 
 	snprintf(record->name, sizeof(record->name), "%s", domain);
-	return 0;
+	return OSIP_SUCCESS;
 }
 
 #elif defined(__linux)
@@ -1203,7 +1203,7 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 		return -1;
 
 	snprintf(record->name, sizeof(record->name), "%s", domain);
-	return 0;
+	return OSIP_SUCCESS;
 }
 
 #else

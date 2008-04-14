@@ -245,7 +245,7 @@ static int base64_val(char x)\
 {
 	switch(x){
 		case '=': return -1;
-		case 'A': return 0;
+		case 'A': return OSIP_SUCCESS;
 		case 'B': return 1;
 		case 'C': return 2;
 		case 'D': return 3;
@@ -310,7 +310,7 @@ static int base64_val(char x)\
 		case '+': return 62;
 		case '/': return 63;
 	}
-	return 0;
+	return OSIP_SUCCESS;
 }
 
 
@@ -472,7 +472,7 @@ void DigestCalcResponseAka(IN const char *pszPassword,
 	  /*
 	    createAuthHeaderAKAv1MD5 : MAC != eXpectedMAC
 	    -> Server might not know the secret (man-in-the-middle attack?)
-	    return 0;
+	    return OSIP_SUCCESS;
 	  */
 	}
 
@@ -710,7 +710,7 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
   }
 
   *auth = aut;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -915,7 +915,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   }
 
   *auth = aut;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int answer_code)
@@ -938,7 +938,7 @@ int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int 
 			http_auth->iNonceCount = 1;
 			if (http_auth->wa==NULL)
 				memset(http_auth, 0, sizeof(struct eXosip_http_auth));
-			return 0;
+			return OSIP_SUCCESS;
 		}
 	}
 
@@ -957,7 +957,7 @@ int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int 
 			http_auth->answer_code = answer_code;
 			if (http_auth->wa==NULL)
 				memset(http_auth, 0, sizeof(struct eXosip_http_auth));
-			return 0;
+			return OSIP_SUCCESS;
 		}
 	}
 
@@ -982,7 +982,7 @@ int _eXosip_delete_nonce(const char *call_id)
 		{
 			osip_proxy_authenticate_free(http_auth->wa);
 			memset(http_auth, 0, sizeof(struct eXosip_http_auth));
-			return 0;
+			return OSIP_SUCCESS;
 		}
 	}
 	return -1;

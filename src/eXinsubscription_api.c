@@ -39,13 +39,13 @@ _eXosip_insubscription_transaction_find (int tid, eXosip_notify_t ** jn,
         {
           *tr = (*jn)->n_inc_tr;
           *jd = (*jn)->n_dialogs;
-          return 0;
+          return OSIP_SUCCESS;
         }
       if ((*jn)->n_out_tr != NULL && (*jn)->n_out_tr->transactionid == tid)
         {
           *tr = (*jn)->n_out_tr;
           *jd = (*jn)->n_dialogs;
-          return 0;
+          return OSIP_SUCCESS;
         }
       for (*jd = (*jn)->n_dialogs; *jd != NULL; *jd = (*jd)->next)
         {
@@ -59,7 +59,7 @@ _eXosip_insubscription_transaction_find (int tid, eXosip_notify_t ** jn,
               if (transaction != NULL && transaction->transactionid == tid)
                 {
                   *tr = transaction;
-                  return 0;
+                  return OSIP_SUCCESS;
                 }
               pos++;
             }
@@ -72,7 +72,7 @@ _eXosip_insubscription_transaction_find (int tid, eXosip_notify_t ** jn,
               if (transaction != NULL && transaction->transactionid == tid)
                 {
                   *tr = transaction;
-                  return 0;
+                  return OSIP_SUCCESS;
                 }
               pos++;
             }
@@ -101,7 +101,7 @@ int eXosip_insubscription_remove (int did)
     }
     REMOVE_ELEMENT (eXosip.j_notifies, jn);
     eXosip_notify_free (jn);
-    return 0;
+    return OSIP_SUCCESS;
 }
 
 int
@@ -155,7 +155,7 @@ eXosip_insubscription_build_answer (int tid, int status, osip_message_t ** answe
   if (status < 300)
     i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -232,7 +232,7 @@ eXosip_insubscription_send_answer (int tid, int status, osip_message_t * answer)
                        "eXosip: a response must be given!\n"));
           return -1;
         }
-      return 0;
+      return OSIP_SUCCESS;
   } else
     {
       i = 0;
@@ -270,7 +270,7 @@ eXosip_insubscription_send_answer (int tid, int status, osip_message_t * answer)
   osip_transaction_add_event (tr, evt_answer);
   eXosip_update ();
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -335,7 +335,7 @@ eXosip_insubscription_build_notify (int did, int subscription_status,
   osip_message_set_header (*request, "Subscription-State", subscription_state);
 #endif
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -394,7 +394,7 @@ eXosip_insubscription_build_request (int did, const char *method,
   if (i != 0)
     return -2;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -454,7 +454,7 @@ eXosip_insubscription_send_request (int did, osip_message_t * request)
                                       __eXosip_new_jinfo (NULL, jd, NULL, jn));
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -550,7 +550,7 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
 
   eXosip_update ();             /* fixed? */
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -671,7 +671,7 @@ eXosip_insubscription_automatic(eXosip_event_t *evt)
 	if (event_header == NULL || event_header->hvalue == NULL)
 	{
 		eXosip_insubscription_send_answer (evt->tid, 400, NULL);
-		return 0;
+		return OSIP_SUCCESS;
 	}
 
 	/* this event should be handled internally */
@@ -692,7 +692,7 @@ eXosip_insubscription_automatic(eXosip_event_t *evt)
 			if (i != 0)
 			{
 				i = eXosip_insubscription_send_answer (evt->tid, 400, NULL);
-				return 0;
+				return OSIP_SUCCESS;
 			}
 
 			/* send initial notify */
@@ -700,7 +700,7 @@ eXosip_insubscription_automatic(eXosip_event_t *evt)
 			if (i != 0)
 			{
 				/* delete subscription... */
-				return 0;
+				return OSIP_SUCCESS;
 			}
 		}
 	}
@@ -712,7 +712,7 @@ eXosip_insubscription_automatic(eXosip_event_t *evt)
 		}
 	}
 
-	return 0;
+	return OSIP_SUCCESS;
 }
 
 #endif

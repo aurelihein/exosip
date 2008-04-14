@@ -96,7 +96,7 @@ tls_tl_init(void)
   memset(&tls_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
   memset(tls_firewall_ip, 0, sizeof(tls_firewall_ip));
   memset(tls_firewall_port, 0, sizeof(tls_firewall_port));
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -131,7 +131,7 @@ tls_tl_free(void)
   if (tls_socket>0)
     close(tls_socket);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -139,7 +139,7 @@ password_cb (char *buf, int num, int rwflag, void *userdata)
 {
   if (userdata == NULL)
     {
-      return 0;
+      return OSIP_SUCCESS;
     }
   strncpy (buf, (char *) userdata, num);
   buf[num - 1] = '\0';
@@ -370,7 +370,7 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		   "eXosip: Couldn't read key file: %s\n", keyfile));
-      return 0;
+      return OSIP_SUCCESS;
     }
 
   if (!SSL_CTX_check_private_key(ctx)) {
@@ -524,7 +524,7 @@ tls_tl_open(void)
     }
 
   snprintf(tls_firewall_port, sizeof(tls_firewall_port), "%i", eXtl_tls.proto_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -549,7 +549,7 @@ tls_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
 	}
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -588,7 +588,7 @@ static print_ssl_error (int err)
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL, "SSL problem\n"));
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -876,7 +876,7 @@ tls_tl_read_message(fd_set *osip_fdset)
   if (buf!=NULL)
     osip_free (buf);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 
@@ -1342,13 +1342,13 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
 
   osip_free (message);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
 tls_tl_keepalive(void)
 {
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1356,7 +1356,7 @@ tls_tl_set_socket(int socket)
 {
   tls_socket = socket;
   
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1365,14 +1365,14 @@ tls_tl_masquerade_contact(const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (tls_firewall_ip, '\0', sizeof (tls_firewall_ip));
-      return 0;
+      return OSIP_SUCCESS;
     }
   snprintf (tls_firewall_ip, sizeof (tls_firewall_ip), "%s", public_address);
   if (port > 0)
     {
       snprintf (tls_firewall_port, sizeof(tls_firewall_port), "%i", port);
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1386,7 +1386,7 @@ tls_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
   
   if (tls_firewall_port!='\0')
     snprintf(port, port_size, "%s", tls_firewall_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 struct eXtl_protocol eXtl_tls = 

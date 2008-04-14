@@ -58,7 +58,7 @@ int eXosip_register_remove (int rid)
   REMOVE_ELEMENT (eXosip.j_reg, jr);
   eXosip_reg_free (jr);
   jr=NULL;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -162,7 +162,7 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
     }
 
   *_reg = reg;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -261,7 +261,7 @@ eXosip_register_build_register (int rid, int expires, osip_message_t ** reg)
       *reg = NULL;
       return i;
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -319,5 +319,5 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
 
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }

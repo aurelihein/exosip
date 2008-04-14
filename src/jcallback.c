@@ -120,10 +120,10 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 #ifndef MINISIZE
   if(eXosip.dontsend_101 != 0 && sip->status_code == 101)
-        return 0;
+        return OSIP_SUCCESS;
 #else
   if(sip->status_code == 101)
-        return 0;
+        return OSIP_SUCCESS;
 #endif
 
   via = (osip_via_t *) osip_list_get (&sip->vias, 0);
@@ -224,7 +224,7 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       return -1;
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 
 }
 
@@ -269,7 +269,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
           osip_free (message);
           return -1;
         }
-      return 0;
+      return OSIP_SUCCESS;
     }
 #endif
 
@@ -415,7 +415,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 			memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
 			memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
 			osip_free (message);
-			return 0; /* retry for next retransmission! */
+			return OSIP_SUCCESS; /* retry for next retransmission! */
 		  }
 #endif
           /* SIP_NETWORK_ERROR; */
@@ -440,7 +440,7 @@ cb_udp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
 
   osip_free (message);
-  return 0;
+  return OSIP_SUCCESS;
 
 }
 
@@ -548,7 +548,7 @@ cb_tcp_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
 
   osip_free (message);
-  return 0;
+  return OSIP_SUCCESS;
 
 }
 #endif
@@ -1403,10 +1403,10 @@ int _eXosip_update_expires_according_to_contact(eXosip_reg_t *jreg, osip_transac
 					if (val < jreg->r_reg_period-60)
 					{
 						jreg->r_reg_period = val + 60;
-						return 0;
+						return OSIP_SUCCESS;
 					}
 				}
-				return 0;
+				return OSIP_SUCCESS;
 			}
 		}
 
@@ -2386,5 +2386,5 @@ eXosip_set_callbacks (osip_t * osip)
   osip_set_message_callback (osip, OSIP_NIST_UNKNOWN_REQUEST_RECEIVED,
                              &cb_rcvrequest);
 
-  return 0;
+  return OSIP_SUCCESS;
 }

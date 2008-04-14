@@ -86,7 +86,7 @@ eXosip_subscribe_init (eXosip_subscribe_t ** js)
   if (*js == NULL)
     return -1;
   memset (*js, 0, sizeof (eXosip_subscribe_t));
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void
@@ -140,7 +140,7 @@ _eXosip_subscribe_set_refresh_interval (eXosip_subscribe_t * js,
         js->s_reg_period = 3600;
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -155,7 +155,7 @@ eXosip_subscribe_need_refresh (eXosip_subscribe_t * js, eXosip_dialog_t * jd,
     out_tr = js->s_out_tr;
 
   if (now - out_tr->birth_time > js->s_reg_period - 60)
-    return 0;
+    return OSIP_SUCCESS;
   return -1;
 }
 

@@ -43,7 +43,7 @@ eXosip_refer_build_request (osip_message_t ** refer, const char *refer_to,
     }
 
   osip_message_set_header (*refer, "Refer-to", refer_to);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -72,7 +72,7 @@ eXosip_refer_send_request (osip_message_t * refer)
                                       __eXosip_new_jinfo (NULL, NULL, NULL, NULL));
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif

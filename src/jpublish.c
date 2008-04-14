@@ -53,7 +53,7 @@ _eXosip_pub_update (eXosip_pub_t ** pub, osip_transaction_t * tr,
                 snprintf (jpub->p_sip_etag, 64, "%s", sip_etag->hvalue);
             }
           *pub = jpub;
-          return 0;
+          return OSIP_SUCCESS;
         }
     }
   return -1;
@@ -70,7 +70,7 @@ _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor)
       if (osip_strcasecmp (aor, jpub->p_aor) == 0)
         {
           *pub = jpub;
-          return 0;
+          return OSIP_SUCCESS;
         }
     }
   return -1;
@@ -86,7 +86,7 @@ _eXosip_pub_find_by_tid (eXosip_pub_t ** pjp, int tid)
       if (pub->p_last_tr && pub->p_last_tr->transactionid == tid)
         {
           *pjp = pub;
-          return 0;
+          return OSIP_SUCCESS;
         }
 
       pub = pub->next;
@@ -116,7 +116,7 @@ _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp)
   jpub->p_id = ++p_id;
 
   *pub = jpub;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void

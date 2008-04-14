@@ -66,7 +66,7 @@ eXosip_create_transaction (eXosip_call_t * jc,
 #endif
   osip_transaction_add_event (tr, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -93,7 +93,7 @@ eXosip_create_cancel_transaction (eXosip_call_t * jc,
 
   osip_transaction_add_event (tr, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *msg)
@@ -119,7 +119,7 @@ static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *ms
     if (i>=0 && co_msg!=NULL)
     {
         osip_list_add(&msg->contacts, co_msg, 0);
-        return 0;
+        return OSIP_SUCCESS;
     }
     return -1;
 }
@@ -134,13 +134,13 @@ _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
         {
           *tr = (*jc)->c_inc_tr;
           *jd = (*jc)->c_dialogs;
-          return 0;
+          return OSIP_SUCCESS;
         }
       if ((*jc)->c_out_tr != NULL && (*jc)->c_out_tr->transactionid == tid)
         {
           *tr = (*jc)->c_out_tr;
           *jd = (*jc)->c_dialogs;
-          return 0;
+          return OSIP_SUCCESS;
         }
       for (*jd = (*jc)->c_dialogs; *jd != NULL; *jd = (*jd)->next)
         {
@@ -154,7 +154,7 @@ _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
               if (transaction != NULL && transaction->transactionid == tid)
                 {
                   *tr = transaction;
-                  return 0;
+                  return OSIP_SUCCESS;
                 }
               pos++;
             }
@@ -167,7 +167,7 @@ _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
               if (transaction != NULL && transaction->transactionid == tid)
                 {
                   *tr = transaction;
-                  return 0;
+                  return OSIP_SUCCESS;
                 }
               pos++;
             }
@@ -200,7 +200,7 @@ eXosip_call_set_reference (int id, void *reference)
       return -1;
     }
   jc->external_reference = reference;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 /* this method can't be called unless the previous
@@ -246,7 +246,7 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
 
   /* after this delay, we should send a CANCEL */
   osip_message_set_expires (*invite, "120");
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -382,7 +382,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
   }
 
   *_ack = ack;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -459,7 +459,7 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
   if (jd->d_ack != NULL)
     osip_message_free (jd->d_ack);
   jd->d_ack = ack;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -522,7 +522,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
 
   eXosip_add_authentication_information(*request, NULL);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -621,7 +621,7 @@ eXosip_call_send_request (int jid, osip_message_t * request)
 #endif
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifndef MINISIZE
@@ -637,10 +637,10 @@ eXosip_call_build_refer (int did, const char *refer_to, osip_message_t ** reques
     return -1;
 
   if (refer_to == NULL || refer_to[0] == '\0')
-    return 0;
+    return OSIP_SUCCESS;
 
   osip_message_set_header (*request, "Refer-to", refer_to);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -653,7 +653,7 @@ eXosip_call_build_options (int did, osip_message_t ** request)
   if (i != 0)
     return -1;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -666,7 +666,7 @@ eXosip_call_build_info (int did, osip_message_t ** request)
   if (i != 0)
     return -1;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -679,7 +679,7 @@ eXosip_call_build_update (int did, osip_message_t ** request)
   if (i != 0)
     return -1;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -721,7 +721,7 @@ eXosip_call_build_notify (int did, int subscription_status,
     sprintf (tmp, "%i", 180);
   osip_message_set_header (*request, "Subscription-State", subscription_state);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif
@@ -784,7 +784,7 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
                               tr->orig_request->sip_method));
       return -1;
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -865,7 +865,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
   osip_transaction_add_event (tr, evt_answer);
   eXosip_update ();
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -923,7 +923,7 @@ eXosip_call_terminate (int cid, int did)
           jd->d_dialog = NULL;
           eXosip_update ();     /* AMD 30/09/05 */
         }
-      return 0;
+      return OSIP_SUCCESS;
     }
 
   if (jd == NULL || jd->d_dialog == NULL)
@@ -983,7 +983,7 @@ eXosip_call_terminate (int cid, int did)
   osip_dialog_free (jd->d_dialog);
   jd->d_dialog = NULL;
   eXosip_update ();             /* AMD 30/09/05 */
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifndef MINISIZE
@@ -1052,7 +1052,7 @@ eXosip_call_build_prack (int tid, osip_message_t ** prack)
       osip_message_set_header (*prack, "RAck", tmp);
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -1119,7 +1119,7 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
 #endif
   osip_transaction_add_event (tr, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif
@@ -1358,7 +1358,7 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 
   eXosip_update ();             /* fixed? */
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifndef MINISIZE
@@ -1413,7 +1413,7 @@ eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
   snprintf(refer_to, refer_to_len, "%s", referto_tmp);
   osip_uri_free(referto_uri);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int 

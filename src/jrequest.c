@@ -63,7 +63,7 @@ eXosip_generate_random (char *buf, int buf_size)
   unsigned int number = osip_build_random_number ();
 
   snprintf (buf, buf_size, "%u", number);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 char *
@@ -196,7 +196,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
   osip_message_set_contact (request, contact);
   osip_free (contact);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -261,7 +261,7 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport, const ch
   
   osip_message_set_via (request, tmp);
   
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 /* prepare a minimal request (outside of a dialog) with required headers */
@@ -479,7 +479,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   osip_message_set_user_agent (request, eXosip.user_agent);
   /*  else if ... */
   *dest = request;
-  return 0;
+  return OSIP_SUCCESS;
 
 brood_error_1:
   osip_message_free (request);
@@ -608,7 +608,7 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
 
   osip_message_set_content_length (*reg, "0");
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifndef MINISIZE
@@ -632,7 +632,7 @@ generating_publish (osip_message_t ** message, const char *to,
 
   /* osip_message_set_organization(*message, "Jack's Org"); */
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif
@@ -674,7 +674,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
           osip_list_add (&request->routes, route2, -1);
           pos++;
         }
-      return 0;
+      return OSIP_SUCCESS;
     }
 
   /* if the first URI of route set does not contain "lr", the req_uri
@@ -717,7 +717,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
     }
 
   /* route header and req_uri set */
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -899,7 +899,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   osip_message_set_user_agent (request, eXosip.user_agent);
   /*  else if ... */
   *dest = request;
-  return 0;
+  return OSIP_SUCCESS;
 
   /* grwd_error_2: */
   dialog->local_cseq--;
@@ -919,7 +919,7 @@ generating_bye (osip_message_t ** bye, osip_dialog_t * dialog, char *transport)
   if (i != 0)
     return -1;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 /* It is RECOMMENDED to only cancel INVITE request */
@@ -995,7 +995,7 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
   osip_message_set_user_agent (request, eXosip.user_agent);
 
   *dest = request;
-  return 0;
+  return OSIP_SUCCESS;
 
 gc_error_1:
   osip_message_free (request);

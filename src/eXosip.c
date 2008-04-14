@@ -90,11 +90,11 @@ _eXosip_transaction_init (osip_transaction_t ** transaction,
 	i = _eXosip_srv_lookup(*transaction, message, &record);
 	if (i<0)
 	{
-		return 0;
+		return OSIP_SUCCESS;
 	}
 	osip_transaction_set_srv_record(*transaction, &record);
 #endif
-	return 0;
+	return OSIP_SUCCESS;
 }
 
 int
@@ -111,7 +111,7 @@ eXosip_transaction_find (int tid, osip_transaction_t ** transaction)
       if (tr->transactionid == tid)
         {
           *transaction = tr;
-          return 0;
+          return OSIP_SUCCESS;
         }
       pos++;
     }
@@ -248,7 +248,7 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
 
   eXosip_update ();             /* fixed? */
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -409,7 +409,7 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
 
   eXosip_update ();             /* fixed? */
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1257,7 +1257,7 @@ eXosip_clear_authentication_info ()
       REMOVE_ELEMENT (eXosip.authinfos, jauthinfo);
       osip_free (jauthinfo);
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -1294,7 +1294,7 @@ eXosip_add_authentication_info (const char *username, const char *userid,
     snprintf (authinfos->realm, 50, "%s", realm);
 
   ADD_ELEMENT (eXosip.authinfos, authinfos);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -1383,7 +1383,7 @@ eXosip_add_authentication_information (osip_message_t * req,
 			}
 		}
 	}
-	return 0;
+	return OSIP_SUCCESS;
   }
 
   pos = 0;
@@ -1524,7 +1524,7 @@ eXosip_add_authentication_information (osip_message_t * req,
       osip_message_get_proxy_authenticate (last_response, pos, &proxyauth);
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -1558,5 +1558,5 @@ eXosip_update_top_via (osip_message_t * sip)
 
   sprintf (tmp, "z9hG4bK%u", number);
   br->gvalue = osip_strdup(tmp);
-  return 0;
+  return OSIP_SUCCESS;
 }

@@ -82,7 +82,7 @@ eXosip_build_publish (osip_message_t ** message,
 
   osip_message_set_header (*message, "Event", event);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -184,7 +184,7 @@ eXosip_publish (osip_message_t * message, const char *to)
                                       __eXosip_new_jinfo (NULL, NULL, NULL, NULL));
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif

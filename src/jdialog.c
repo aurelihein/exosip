@@ -41,7 +41,7 @@ eXosip_call_dialog_find (int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
       for (*jd = (*jc)->c_dialogs; *jd != NULL; *jd = (*jd)->next)
         {
           if ((*jd)->d_id == jid)
-            return 0;
+            return OSIP_SUCCESS;
         }
     }
   *jd = NULL;
@@ -59,7 +59,7 @@ eXosip_notify_dialog_find (int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd
       for (*jd = (*jn)->n_dialogs; *jd != NULL; *jd = (*jd)->next)
         {
           if ((*jd)->d_id == nid)
-            return 0;
+            return OSIP_SUCCESS;
         }
     }
   *jd = NULL;
@@ -75,11 +75,11 @@ eXosip_subscribe_dialog_find (int sid, eXosip_subscribe_t ** js,
     {
       *jd = NULL;
       if ((*js)->s_id == sid)
-        return 0;
+        return OSIP_SUCCESS;
       for (*jd = (*js)->s_dialogs; *jd != NULL; *jd = (*jd)->next)
         {
           if ((*jd)->d_id == sid)
-            return 0;
+            return OSIP_SUCCESS;
         }
     }
   *jd = NULL;
@@ -105,7 +105,7 @@ eXosip_dialog_set_200ok (eXosip_dialog_t * jd, osip_message_t * _200Ok)
     {
       return -1;
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -148,7 +148,7 @@ eXosip_dialog_init_as_uac (eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 
   /* jd->d_bh = sdp_handler_new(); */
   *_jd = jd;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -188,7 +188,7 @@ eXosip_dialog_init_as_uas (eXosip_dialog_t ** _jd, osip_message_t * _invite,
 
   /* jd->d_bh = sdp_handler_new(); */
   *_jd = jd;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void

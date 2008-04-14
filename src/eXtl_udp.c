@@ -50,7 +50,7 @@ udp_tl_init(void)
   memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
   memset(udp_firewall_ip, 0, sizeof(udp_firewall_ip));
   memset(udp_firewall_port, 0, sizeof(udp_firewall_port));
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -62,7 +62,7 @@ udp_tl_free(void)
   if (udp_socket>0)
     close(udp_socket);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -185,7 +185,7 @@ udp_tl_open(void)
                    "eXosip: Binding on port %i!\n", eXtl_udp.proto_port));
     }
   snprintf(udp_firewall_port, sizeof(udp_firewall_port), "%i", eXtl_udp.proto_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 
@@ -200,7 +200,7 @@ udp_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
   if (udp_socket > *fd_max)
     *fd_max = udp_socket;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void
@@ -357,7 +357,7 @@ udp_tl_read_message(fd_set *osip_fdset)
       osip_free (buf);
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -449,7 +449,7 @@ eXtl_update_local_target(osip_message_t *req)
 	}
   }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifndef INET6_ADDRSTRLEN
@@ -613,7 +613,7 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	      memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
 	      memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
 	      osip_free (message);
-	      return 0; /* retry for next retransmission! */
+	      return OSIP_SUCCESS; /* retry for next retransmission! */
 	    }
 #endif
 	  /* SIP_NETWORK_ERROR; */
@@ -637,7 +637,7 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
   
   osip_free (message);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -658,7 +658,7 @@ udp_tl_keepalive(void)
             }
         }
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -666,7 +666,7 @@ udp_tl_set_socket(int socket)
 {
   udp_socket = socket;
   
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -675,14 +675,14 @@ udp_tl_masquerade_contact(const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (udp_firewall_ip, '\0', sizeof (udp_firewall_ip));
-      return 0;
+      return OSIP_SUCCESS;
     }
   snprintf (udp_firewall_ip, sizeof (udp_firewall_ip), "%s", public_address);
   if (port > 0)
     {
       snprintf (udp_firewall_port, sizeof(udp_firewall_port), "%i", port);
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -696,7 +696,7 @@ udp_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
   
   if (udp_firewall_port!='\0')
     snprintf(port, port_size, "%s", udp_firewall_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 struct eXtl_protocol eXtl_udp = 

@@ -51,7 +51,7 @@ eXosip_options_build_request (osip_message_t ** options, const char *to,
   osip_message_set_expires (*options, "120");
 
   /* osip_message_set_organization(*invite, "Jack's Org"); */
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -78,7 +78,7 @@ eXosip_options_send_request (osip_message_t * options)
   osip_transaction_add_event (transaction, sipevent);
 
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -124,7 +124,7 @@ eXosip_options_build_answer (int tid, int status, osip_message_t ** answer)
     }
   if (i != 0)
     return -1;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -197,7 +197,7 @@ eXosip_options_send_answer (int tid, int status, osip_message_t * answer)
 
   osip_transaction_add_event (tr, evt_answer);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif

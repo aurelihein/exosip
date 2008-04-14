@@ -63,7 +63,7 @@ jpipe_close (jpipe_t * apipe)
   close (apipe->pipes[0]);
   close (apipe->pipes[1]);
   osip_free (apipe);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 
@@ -245,7 +245,7 @@ jpipe_close (jpipe_t * apipe)
   closesocket (apipe->pipes[1]);
 #endif
   osip_free (apipe);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 

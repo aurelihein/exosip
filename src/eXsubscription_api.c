@@ -38,13 +38,13 @@ _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
         {
           *tr = (*js)->s_inc_tr;
           *jd = (*js)->s_dialogs;
-          return 0;
+          return OSIP_SUCCESS;
         }
       if ((*js)->s_out_tr != NULL && (*js)->s_out_tr->transactionid == tid)
         {
           *tr = (*js)->s_out_tr;
           *jd = (*js)->s_dialogs;
-          return 0;
+          return OSIP_SUCCESS;
         }
       for (*jd = (*js)->s_dialogs; *jd != NULL; *jd = (*jd)->next)
         {
@@ -58,7 +58,7 @@ _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
               if (transaction != NULL && transaction->transactionid == tid)
                 {
                   *tr = transaction;
-                  return 0;
+                  return OSIP_SUCCESS;
                 }
               pos++;
             }
@@ -71,7 +71,7 @@ _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
               if (transaction != NULL && transaction->transactionid == tid)
                 {
                   *tr = transaction;
-                  return 0;
+                  return OSIP_SUCCESS;
                 }
               pos++;
             }
@@ -100,7 +100,7 @@ int eXosip_subscribe_remove (int did)
     }
     REMOVE_ELEMENT (eXosip.j_subscribes, js);
     eXosip_subscribe_free (js);
-    return 0;
+    return OSIP_SUCCESS;
 }
 
 int
@@ -145,7 +145,7 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
 
   osip_message_set_header (*sub, "Event", event);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -245,7 +245,7 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
 
   eXosip_add_authentication_information(*sub, NULL);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -306,7 +306,7 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
                                       __eXosip_new_jinfo (NULL, jd, js, NULL));
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -479,7 +479,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
 
   eXosip_update ();             /* fixed? */
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif

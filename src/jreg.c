@@ -94,7 +94,7 @@ eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
 		  sizeof((*jr)->r_line)-1);
   }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void
@@ -149,7 +149,7 @@ _eXosip_reg_find (eXosip_reg_t ** reg, osip_transaction_t * tr)
       if (jreg->r_last_tr == tr)
         {
           *reg = jreg;
-          return 0;
+          return OSIP_SUCCESS;
         }
     }
   return -1;
@@ -170,7 +170,7 @@ eXosip_reg_find_id (eXosip_reg_t ** reg, int rid)
       if (jreg->r_id == rid)
         {
           *reg = jreg;
-          return 0;
+          return OSIP_SUCCESS;
         }
     }
   return -1;

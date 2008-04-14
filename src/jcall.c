@@ -34,7 +34,7 @@ eXosip_call_find (int cid, eXosip_call_t ** jc)
     {
       if ((*jc)->c_id == cid)
         {
-          return 0;
+          return OSIP_SUCCESS;
         }
     }
   *jc = NULL;
@@ -50,7 +50,7 @@ eXosip_call_init (eXosip_call_t ** jc)
   memset (*jc, 0, sizeof (eXosip_call_t));
 
   (*jc)->c_id = -1;             /* make sure the eXosip_update will assign a valid id to the call */
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void

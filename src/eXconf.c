@@ -318,7 +318,7 @@ eXosip_set_socket (int transport, int socket, int port)
       return -1;
     }
 #endif
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifdef IPV6_V6ONLY
@@ -634,7 +634,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
     }
 #endif
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -729,7 +729,7 @@ eXosip_init (void)
 #endif
   eXtl_tls.tl_init();
 #endif
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 
@@ -801,7 +801,7 @@ eXosip_execute (void)
       _eXosip_keep_alive ();
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -843,7 +843,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 										(__FILE__, __LINE__, OSIP_INFO2, NULL,
 										 "eXosip option set: account info deleted :%s\n", ainfo->proxy));
 					  }
-					  return 0;
+					  return OSIP_SUCCESS;
 				  }
 			  }
 			  if (ainfo->nat_ip[0]=='\0')
@@ -863,7 +863,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 										(__FILE__, __LINE__, OSIP_INFO1, NULL,
 										"eXosip option set: account info added:%s -> %s:%i\n",
 										ainfo->proxy, ainfo->nat_ip, ainfo->nat_port));
-					  return 0;
+					  return OSIP_SUCCESS;
 				  }
 			  }
 			  return -1;
@@ -898,7 +898,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 										(__FILE__, __LINE__, OSIP_INFO2, NULL,
 										 "eXosip option set: dns cache deleted :%s\n", entry->host));
 					  }
-					  return 0;
+					  return OSIP_SUCCESS;
 				  }
 			  }
 			  if (entry->ip[0]=='\0')
@@ -916,7 +916,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 					  OSIP_TRACE (osip_trace
 									(__FILE__, __LINE__, OSIP_INFO2, NULL,
 									 "eXosip option set: dns cache added:%s -> %s\n", entry->host, entry->ip));
-					  return 0;
+					  return OSIP_SUCCESS;
 				  }
 			  }
 			  return -1;
@@ -1009,7 +1009,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
     default:
       return -1;
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static void

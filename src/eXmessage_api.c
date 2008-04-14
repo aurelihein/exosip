@@ -47,7 +47,7 @@ eXosip_message_build_request (osip_message_t ** message, const char *method,
   if (i != 0)
     return -1;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -79,7 +79,7 @@ eXosip_message_send_request (osip_message_t * message)
   osip_transaction_add_event (transaction, sipevent);
 
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -124,7 +124,7 @@ eXosip_message_build_answer (int tid, int status, osip_message_t ** answer)
     }
   if (i != 0)
     return -1;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -197,5 +197,5 @@ eXosip_message_send_answer (int tid, int status, osip_message_t * answer)
 
   osip_transaction_add_event (tr, evt_answer);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }

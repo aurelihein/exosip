@@ -63,7 +63,7 @@ _eXosip_event_fill_messages (eXosip_event_t * je, osip_transaction_t * tr)
                                   "failed to clone ACK for event\n"));
         }
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 eXosip_event_t *
@@ -325,7 +325,7 @@ eXosip_event_init (eXosip_event_t ** je, int type)
       (*je)->textinfo[0] = '\0';
     }
 #endif
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void
@@ -496,7 +496,7 @@ eXosip_event_wait (int tv_s, int tv_ms)
     if (FD_ISSET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset))
       {
 	char buf[500];
-	jpipe_read (eXosip.j_socketctl_event, buf, 499);
+	int c = jpipe_read (eXosip.j_socketctl_event, buf, 499);
       }
     
     eXosip_lock();
@@ -518,7 +518,7 @@ eXosip_event_wait (int tv_s, int tv_ms)
 
     i = select (max + 1, &fdset, NULL, NULL, &tv);
     if (i <= 0)
-      return 0;
+      return OSIP_SUCCESS;
 
     if (eXosip.j_stop_ua)
       return NULL;
@@ -526,8 +526,7 @@ eXosip_event_wait (int tv_s, int tv_ms)
     if (FD_ISSET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset))
       {
         char buf[500];
-
-        jpipe_read (eXosip.j_socketctl_event, buf, 499);
+		int c = jpipe_read (eXosip.j_socketctl_event, buf, 499);
       }
 
     je = (eXosip_event_t *) osip_fifo_tryget (eXosip.j_events);

@@ -300,7 +300,7 @@ cancel_match_invite (osip_transaction_t * invite, osip_message_t * cancel)
     {
       if (br->gvalue != NULL && br2->gvalue != NULL &&
           0 == strcmp (br->gvalue, br2->gvalue))
-        return 0;
+        return OSIP_SUCCESS;
       return -1;
     }
   /* old backward compatibility mechanism */
@@ -312,7 +312,7 @@ cancel_match_invite (osip_transaction_t * invite, osip_message_t * cancel)
     return -1;
   if (0 != osip_via_match (invite->topvia, via))
     return -1;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static void
@@ -888,7 +888,7 @@ eXosip_match_notify_for_subscribe (eXosip_subscribe_t * js,
       return -1;
   }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif
@@ -1591,9 +1591,9 @@ _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
   } else
     {
       /* handled by oSIP ! */
-      return 0;
+      return OSIP_SUCCESS;
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #if defined (WIN32) || defined (_WIN32_WCE)
@@ -1682,7 +1682,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 
       max_message_nb--;
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifndef MINISIZE
@@ -1742,7 +1742,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           eXosip_remove_transaction_from_call (tr, jc);
           osip_list_add (eXosip.j_transactions, tr, 0);
       } else
-        return 0;
+        return OSIP_SUCCESS;
     }
 
   tr = eXosip_find_last_out_transaction (jc, jd, "BYE");
@@ -1755,7 +1755,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           eXosip_remove_transaction_from_call (tr, jc);
           osip_list_add (eXosip.j_transactions, tr, 0);
       } else
-        return 0;
+        return OSIP_SUCCESS;
     }
 
   tr = eXosip_find_last_inc_invite (jc, jd);
@@ -1768,7 +1768,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
              eXosip_remove_transaction_from_call(tr, jc);
              osip_transaction_free(tr); */
       } else
-        return 0;
+        return OSIP_SUCCESS;
     }
 
   tr = eXosip_find_last_out_invite (jc, jd);
@@ -1781,7 +1781,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
              eXosip_remove_transaction_from_call(tr, jc);
              osip_transaction_free(tr); */
       } else
-        return 0;
+        return OSIP_SUCCESS;
     }
 
   tr = eXosip_find_last_inc_transaction (jc, jd, "REFER");
@@ -1794,7 +1794,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           eXosip_remove_transaction_from_call (tr, jc);
           osip_list_add (eXosip.j_transactions, tr, 0);
       } else
-        return 0;
+        return OSIP_SUCCESS;
     }
 
   tr = eXosip_find_last_out_transaction (jc, jd, "REFER");
@@ -1807,7 +1807,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
           eXosip_remove_transaction_from_call (tr, jc);
           osip_list_add (eXosip.j_transactions, tr, 0);
       } else
-        return 0;
+        return OSIP_SUCCESS;
     }
 
   return -1;
@@ -2026,7 +2026,7 @@ eXosip_release_finished_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
       __eXosip_call_remove_dialog_reference_in_call (jc, jd);
       REMOVE_ELEMENT (jc->c_dialogs, jd);
       eXosip_dialog_free (jd);
-      return 0;
+      return OSIP_SUCCESS;
     }
   return -1;
 }
@@ -2069,7 +2069,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
           __eXosip_call_remove_dialog_reference_in_call (jc, jd);
           REMOVE_ELEMENT (jc->c_dialogs, jd);
           eXosip_dialog_free (jd);
-          return 0;
+          return OSIP_SUCCESS;
         }
       return -1;
     }
@@ -2085,7 +2085,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
           report_call_event (EXOSIP_CALL_NOANSWER, jc, jd, NULL);
           eXosip_dialog_free (jd);
           __eXosip_wakeup ();
-          return 0;
+          return OSIP_SUCCESS;
         }
     }
 
@@ -2104,25 +2104,25 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a 3xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           } else if (MSG_IS_STATUS_4XX (jc->c_inc_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a 4xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           } else if (MSG_IS_STATUS_5XX (jc->c_inc_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a 5xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           } else if (MSG_IS_STATUS_6XX (jc->c_inc_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a 6xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
             }
 #else
 	  else if (jc->c_inc_tr->last_response->status_code >= 300)
@@ -2130,7 +2130,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a answer above 3xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           }
 #endif
 	}
@@ -2141,7 +2141,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed with no answer\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
 	    } 
 #ifndef MINISIZE
 	  else if (MSG_IS_STATUS_3XX (jc->c_out_tr->last_response))
@@ -2149,25 +2149,25 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           } else if (MSG_IS_STATUS_4XX (jc->c_out_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 4xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           } else if (MSG_IS_STATUS_5XX (jc->c_out_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 5xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           } else if (MSG_IS_STATUS_6XX (jc->c_out_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 6xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
             }
 #else
 	  else if (jc->c_out_tr->last_response->status_code >= 300)
@@ -2175,7 +2175,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
               __eXosip_release_call (jc, jd);
-              return 0;
+              return OSIP_SUCCESS;
           }
 #endif
         }

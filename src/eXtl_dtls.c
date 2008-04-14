@@ -106,7 +106,7 @@ dtls_tl_init(void)
   memset(&dtls_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
   memset(dtls_firewall_ip, 0, sizeof(dtls_firewall_ip));
   memset(dtls_firewall_port, 0, sizeof(dtls_firewall_port));
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -145,7 +145,7 @@ static print_ssl_error (int err)
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL, "SSL problem\n"));
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -193,7 +193,7 @@ shutdown_free_server_dtls (int pos)
 	  memset (&(dtls_socket_tab[pos]), 0,
 		  sizeof (struct socket_tab));
 
-	  return 0;
+	  return OSIP_SUCCESS;
 	}
       else
 	{
@@ -271,7 +271,7 @@ shutdown_free_client_dtls (int pos)
 	  memset (&(dtls_socket_tab[pos]), 0,
 		  sizeof (struct socket_tab));
 
-	  return 0;
+	  return OSIP_SUCCESS;
 	}
       else
 	{
@@ -309,7 +309,7 @@ dtls_tl_free(void)
   if (dtls_socket>0)
     close(dtls_socket);
   dtls_socket = 0;
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -437,7 +437,7 @@ dtls_tl_open(void)
     }
 
   snprintf(dtls_firewall_port, sizeof(dtls_firewall_port), "%i", eXtl_dtls.proto_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #define EXOSIP_AS_A_SERVER 1
@@ -454,7 +454,7 @@ dtls_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
   if (dtls_socket > *fd_max)
     *fd_max = dtls_socket;
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -713,7 +713,7 @@ dtls_tl_read_message(fd_set *osip_fdset)
 	}
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -749,7 +749,7 @@ eXtl_update_local_target(osip_message_t *req)
 	}
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #ifndef INET6_ADDRSTRLEN
@@ -1020,7 +1020,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  memmove(&tr->record.srventry[0], &tr->record.srventry[1], 9*sizeof(osip_srv_entry_t));
 	  memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
 	  osip_free (message);
-	  return 0; /* retry for next retransmission! */
+	  return OSIP_SUCCESS; /* retry for next retransmission! */
 	}
 #endif
       /* SIP_NETWORK_ERROR; */
@@ -1043,7 +1043,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
   
   osip_free (message);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1064,7 +1064,7 @@ dtls_tl_keepalive(void)
             }
         }
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1072,7 +1072,7 @@ dtls_tl_set_socket(int socket)
 {
   dtls_socket = socket;
   
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1081,14 +1081,14 @@ dtls_tl_masquerade_contact(const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (dtls_firewall_ip, '\0', sizeof (dtls_firewall_ip));
-      return 0;
+      return OSIP_SUCCESS;
     }
   snprintf (dtls_firewall_ip, sizeof (dtls_firewall_ip), "%s", public_address);
   if (port > 0)
     {
       snprintf (dtls_firewall_port, sizeof(dtls_firewall_port), "%i", port);
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -1102,7 +1102,7 @@ dtls_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
   
   if (dtls_firewall_port!='\0')
     snprintf(port, port_size, "%s", dtls_firewall_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 struct eXtl_protocol eXtl_dtls = 

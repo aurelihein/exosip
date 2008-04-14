@@ -64,11 +64,11 @@ eXosip_transport_set (osip_message_t * msg, const char *transport)
     return -1;
 
   if (0 == osip_strcasecmp (via->protocol, transport))
-    return 0;
+    return OSIP_SUCCESS;
 
   osip_free (via->protocol);
   via->protocol = osip_strdup (transport);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #if 0
@@ -99,7 +99,7 @@ _eXosip_recvfrom (int s, char *buf, int len, unsigned int flags,
   if (message_size == 0)
     {
       buf[0] = '\0';
-      return 0;
+      return OSIP_SUCCESS;
     }
   if (message_size > len - 1)
     message_size = len - 1;

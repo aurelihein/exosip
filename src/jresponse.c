@@ -154,7 +154,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
   osip_message_set_user_agent (response, eXosip.user_agent);
 
   *dest = response;
-  return 0;
+  return OSIP_SUCCESS;
 
 grd_error_1:
   osip_message_free (response);
@@ -259,7 +259,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
 
   osip_message_set_contact (response, contact);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -341,7 +341,7 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
       *answer=NULL;
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 
 g2atii_error_1:
   osip_message_free (*answer);
@@ -408,7 +408,7 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
 
   osip_transaction_add_event (tr, evt_answer);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -453,7 +453,7 @@ _eXosip_insubscription_answer_3456xx (eXosip_notify_t * jn,
 
   osip_transaction_add_event (tr, evt_answer);
   __eXosip_wakeup ();
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 #endif

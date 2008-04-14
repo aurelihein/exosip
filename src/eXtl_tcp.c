@@ -57,7 +57,7 @@ tcp_tl_init(void)
   memset(&tcp_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
   memset(tcp_firewall_ip, 0, sizeof(tcp_firewall_ip));
   memset(tcp_firewall_port, 0, sizeof(tcp_firewall_port));
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -78,7 +78,7 @@ tcp_tl_free(void)
 	}
     }
   memset(&tcp_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -202,7 +202,7 @@ tcp_tl_open(void)
     }
 
   snprintf(tcp_firewall_port, sizeof(tcp_firewall_port), "%i", eXtl_tcp.proto_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -227,7 +227,7 @@ tcp_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
 	}
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -391,7 +391,7 @@ tcp_tl_read_message(fd_set *osip_fdset)
   if (buf!=NULL)
     osip_free (buf);
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -644,13 +644,13 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
     }
 
   osip_free (message);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
 tcp_tl_keepalive(void)
 {
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -658,7 +658,7 @@ tcp_tl_set_socket(int socket)
 {
   tcp_socket = socket;
   
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -667,14 +667,14 @@ tcp_tl_masquerade_contact(const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (tcp_firewall_ip, '\0', sizeof (tcp_firewall_ip));
-      return 0;
+      return OSIP_SUCCESS;
     }
   snprintf (tcp_firewall_ip, sizeof (tcp_firewall_ip), "%s", public_address);
   if (port > 0)
     {
       snprintf (tcp_firewall_port, sizeof(tcp_firewall_port), "%i", port);
     }
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -688,7 +688,7 @@ tcp_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
   
   if (tcp_firewall_port!='\0')
     snprintf(port, port_size, "%s", tcp_firewall_port);
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 struct eXtl_protocol eXtl_tcp = 

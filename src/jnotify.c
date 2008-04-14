@@ -94,7 +94,7 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
     return -1;
   memset (*jn, 0, sizeof (eXosip_notify_t));
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void
@@ -151,7 +151,7 @@ _eXosip_notify_set_refresh_interval (eXosip_notify_t * jn,
         jn->n_ss_expires = now + 600;
     }
 
-  return 0;
+  return OSIP_SUCCESS;
 }
 
 void
