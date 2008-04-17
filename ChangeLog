@@ -1,5 +1,7 @@
-eXosip2 (3.1.1)
+eXosip2 (3.2.0)
+	* return new error code for all API.
 	* remove automatic answers to PRACK. (must be done in application now)
+	* remove automatically outgoing non established susbscriptions.
 
 eXosip2 (3.1.0)
 	* AKA authentication.
