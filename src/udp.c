@@ -2379,6 +2379,7 @@ eXosip_release_finished_transactions_for_subscription (eXosip_dialog_t *jd)
 void
 eXosip_release_terminated_subscriptions()
 {
+  time_t now = time (NULL);
   eXosip_dialog_t *jd;
   eXosip_dialog_t *jdnext;
   eXosip_subscribe_t *js;
@@ -2388,12 +2389,39 @@ eXosip_release_terminated_subscriptions()
     {
       jsnext = js->next;
 
-      for (jd = js->s_dialogs; jd != NULL;)
-        {
-          jdnext = jd->next;
-	  eXosip_release_finished_transactions_for_subscription (jd);
-	  jd = jdnext;
-	}
+	  if (js->s_dialogs==NULL)
+	  {
+	      if (js->s_out_tr!=NULL && js->s_out_tr->birth_time + 64 < now)   /* Wait a max of 2 minutes */
+		  {
+			  /* destroy non established contexts after max of 64 sec */
+			  REMOVE_ELEMENT (eXosip.j_subscribes, js);
+			  eXosip_subscribe_free (js);
+			  __eXosip_wakeup ();
+			  return;
+		  }
+	  }
+	  else
+	  {
+		  for (jd = js->s_dialogs; jd != NULL;)
+			{
+			  jdnext = jd->next;
+			  eXosip_release_finished_transactions_for_subscription (jd);
+
+			  if (jd->d_dialog==NULL || jd->d_dialog->state==DIALOG_EARLY)
+			  {
+				  if (js->s_out_tr!=NULL && js->s_out_tr->birth_time + 64 < now)   /* Wait a max of 2 minutes */
+				  {
+					  /* destroy non established contexts after max of 64 sec */
+					  REMOVE_ELEMENT (eXosip.j_subscribes, js);
+					  eXosip_subscribe_free (js);
+					  __eXosip_wakeup ();
+					  return;
+				  }
+			  }
+
+			  jd = jdnext;
+			}
+	  }
       js = jsnext;
     }
 
@@ -2414,9 +2442,9 @@ eXosip_release_terminated_in_subscriptions(void)
       for (jd = jn->n_dialogs; jd != NULL;)
         {
           jdnext = jd->next;
-	  eXosip_release_finished_transactions_for_subscription (jd);
-	  jd = jdnext;
-	}
+		  eXosip_release_finished_transactions_for_subscription (jd);
+		  jd = jdnext;
+		}
       jn = jnnext;
     }
 }
