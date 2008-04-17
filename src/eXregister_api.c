@@ -48,12 +48,13 @@ eXosip_reg_find (int rid)
 int eXosip_register_remove (int rid)
 {
   eXosip_reg_t *jr;
+
+  if (rid<=0)
+	  return OSIP_BADPARAMETER;
+
   jr = eXosip_reg_find (rid);
   if (jr == NULL)
-    {
-      /* fprintf(stderr, "eXosip: no registration info saved!\n"); */
-      return -1;
-    }
+      return OSIP_NOTFOUND;
   jr->r_reg_period = 0;
   REMOVE_ELEMENT (eXosip.j_reg, jr);
   eXosip_reg_free (jr);
@@ -67,30 +68,31 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
   osip_message_t *reg = NULL;
   int i;
 
-  reg = NULL;
   *_reg = NULL;
+
+  if (jr==NULL)
+	  return OSIP_BADPARAMETER;
 
   if (jr->r_last_tr != NULL)
     {
       if (jr->r_last_tr->state != NICT_TERMINATED
           && jr->r_last_tr->state != NICT_COMPLETED)
-        return -1;
+        return OSIP_WRONG_STATE;
       else
         {
           osip_message_t *last_response = NULL;
           osip_transaction_t *tr;
 
-          osip_message_clone (jr->r_last_tr->orig_request, &reg);
-          if (reg == NULL)
-            return -1;
-          /* reg = jr->r_last_tr->orig_request; */
+          i = osip_message_clone (jr->r_last_tr->orig_request, &reg);
+          if (i!=0)
+            return i;
           if (jr->r_last_tr->last_response != NULL)
             {
-              osip_message_clone (jr->r_last_tr->last_response, &last_response);
-              if (last_response == NULL)
+              i = osip_message_clone (jr->r_last_tr->last_response, &last_response);
+              if (i!=0)
                 {
                   osip_message_free (reg);
-                  return -1;
+                  return i;
                 }
             }
 
@@ -109,12 +111,13 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 	    osip_list_special_free(&reg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
 
 
-            if (-1 == eXosip_update_top_via (reg))
+			i = eXosip_update_top_via (reg);
+            if (i != 0)
               {
                 osip_message_free (reg);
                 if (last_response != NULL)
                   osip_message_free (last_response);
-                return -1;
+                return i;
               }
 
             osip_cseq_num++;
@@ -170,9 +173,7 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
                                jr->r_aor, jr->r_registrar, jr->r_contact,
                                jr->r_reg_period);
       if (i != 0)
-        {
-          return -2;
-        }
+          return i;
     }
 
   *_reg = reg;
@@ -188,6 +189,9 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
   int i;
 
   *reg = NULL;
+
+  if (from==NULL || proxy==NULL)
+	  return OSIP_BADPARAMETER;
 
   /* Avoid adding the same registration info twice to prevent mem leaks */
   for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
@@ -241,12 +245,13 @@ eXosip_register_build_register (int rid, int expires, osip_message_t ** reg)
   int i;
 
   *reg = NULL;
+
+  if (rid<=0)
+	  return OSIP_BADPARAMETER;
+
   jr = eXosip_reg_find (rid);
   if (jr == NULL)
-    {
-      /* fprintf(stderr, "eXosip: no registration info saved!\n"); */
-      return -1;
-    }
+      return OSIP_NOTFOUND;
   jr->r_reg_period = expires;
   if (jr->r_reg_period == 0)
     {
@@ -261,8 +266,7 @@ eXosip_register_build_register (int rid, int expires, osip_message_t ** reg)
       if (jr->r_last_tr->state != NICT_TERMINATED
           && jr->r_last_tr->state != NICT_COMPLETED)
         {
-          /* fprintf(stderr, "eXosip: a registration is already pending!\n"); */
-          return -1;
+          return OSIP_WRONG_STATE;
         }
     }
 
@@ -286,11 +290,14 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
   eXosip_reg_t *jr;
   int i;
 
+  if (rid<=0)
+	  return OSIP_BADPARAMETER;
+
   jr = eXosip_reg_find (rid);
   if (jr == NULL)
     {
       osip_message_free (reg);
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (jr->r_last_tr != NULL)
@@ -299,7 +306,7 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
           && jr->r_last_tr->state != NICT_COMPLETED)
         {
           osip_message_free (reg);
-          return -1;
+          return OSIP_WRONG_STATE;
         }
     }
 
@@ -318,10 +325,8 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
   i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, reg);
   if (i != 0)
     {
-      /* TODO: release the j_call.. */
-
       osip_message_free (reg);
-      return -2;
+      return i;
     }
 
   jr->r_last_tr = transaction;

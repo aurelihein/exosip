@@ -624,7 +624,7 @@ generating_publish (osip_message_t ** message, const char *to,
   int i;
 
   if (to != NULL && *to == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (route != NULL && *route == '\0')
     route = NULL;
@@ -632,7 +632,7 @@ generating_publish (osip_message_t ** message, const char *to,
   i = generating_request_out_of_dialog (message, "PUBLISH", to, "UDP", from,
                                         route);
   if (i != 0)
-    return -1;
+    return i;
 
   /* osip_message_set_organization(*message, "Jack's Org"); */
 
@@ -662,7 +662,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
     {
       i = osip_uri_clone (dialog->remote_contact_uri->url, &(request->req_uri));
       if (i != 0)
-        return -1;
+        return i;
       /* "[request] MUST includes a Route header field containing
          the route set values in order." */
       /* AMD bug: fixed 17/06/2002 */
@@ -674,7 +674,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
           route = osip_list_get (&dialog->route_set, pos);
           i = osip_route_clone (route, &route2);
           if (i != 0)
-            return -1;
+            return i;
           osip_list_add (&request->routes, route2, -1);
           pos++;
         }
@@ -687,7 +687,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
 
   i = osip_uri_clone (route->url, &(request->req_uri));
   if (i != 0)
-    return -1;
+    return i;
   /* add the route set */
   /* "The UAC MUST add a route header field containing
      the remainder of the route set values in order. */
@@ -700,7 +700,7 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
       route = osip_list_get (&dialog->route_set, pos);
       i = osip_route_clone (route, &route2);
       if (i != 0)
-        return -1;
+        return i;
       if (!osip_list_eol (&dialog->route_set, pos + 1))
         osip_list_add (&request->routes, route2, -1);
       else
@@ -712,12 +712,12 @@ dialog_fill_route_set (osip_dialog_t * dialog, osip_message_t * request)
      the route header field as the last value */
   i = osip_uri_to_str (dialog->remote_contact_uri->url, &last_route);
   if (i != 0)
-    return -1;
+    return i;
   i = osip_message_set_route (request, last_route);
   osip_free (last_route);
   if (i != 0)
     {
-      return -1;
+      return i;
     }
 
   /* route header and req_uri set */
@@ -738,10 +738,11 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   *dest=NULL;
 
   if (dialog==NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (eXosip.eXtl==NULL)
-    return -1;
+    return OSIP_API_NOT_INITIALIZED;
+
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
@@ -750,7 +751,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
   i = osip_message_init (&request);
   if (i != 0)
-    return -1;
+    return i;
 
   if (dialog->remote_contact_uri == NULL)
     {
@@ -758,7 +759,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
          is not compliant with the latest RFC
        */
       osip_message_free (request);
-      return -1;
+      return OSIP_SYNTAXERROR;
     }
 
 
@@ -770,12 +771,22 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: no default interface defined\n"));
       osip_message_free(request);
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   /* prepare the request-line */
   request->sip_method = osip_strdup (method);
+  if (request->sip_method==NULL)
+  {
+      osip_message_free(request);
+      return OSIP_NOMEM;
+  }
   request->sip_version = osip_strdup ("SIP/2.0");
+  if (request->sip_version==NULL)
+  {
+      osip_message_free(request);
+      return OSIP_NOMEM;
+  }
   request->status_code = 0;
   request->reason_phrase = NULL;
 
@@ -792,7 +803,12 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   } else
     {
       /* fill the request-uri, and the route headers. */
-      dialog_fill_route_set (dialog, request);
+      i = dialog_fill_route_set (dialog, request);
+      if (i != 0)
+	  {
+		  osip_message_free (request);
+		  return i;
+	  }
     }
 
   /* To and From already contains the proper tag! */
@@ -942,7 +958,7 @@ generating_bye (osip_message_t ** bye, osip_dialog_t * dialog, char *transport)
 
   i = _eXosip_build_request_within_dialog (bye, "BYE", dialog, transport);
   if (i != 0)
-    return -1;
+    return i;
 
   return OSIP_SUCCESS;
 }
@@ -956,7 +972,7 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
 
   i = osip_message_init (&request);
   if (i != 0)
-    return -1;
+    return i;
 
   /* prepare the request-line */
   osip_message_set_method (request, osip_strdup ("CANCEL"));
@@ -966,24 +982,50 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
 
   i = osip_uri_clone (request_cancelled->req_uri, &(request->req_uri));
   if (i != 0)
-    goto gc_error_1;
+  {
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return i;
+  }
 
   i = osip_to_clone (request_cancelled->to, &(request->to));
   if (i != 0)
-    goto gc_error_1;
+  {
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return i;
+  }
   i = osip_from_clone (request_cancelled->from, &(request->from));
   if (i != 0)
-    goto gc_error_1;
+  {
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return i;
+  }
 
   /* set the cseq and call_id header */
   i = osip_call_id_clone (request_cancelled->call_id, &(request->call_id));
   if (i != 0)
-    goto gc_error_1;
+  {
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return i;
+  }
   i = osip_cseq_clone (request_cancelled->cseq, &(request->cseq));
   if (i != 0)
-    goto gc_error_1;
+  {
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return i;
+  }
   osip_free (request->cseq->method);
   request->cseq->method = osip_strdup ("CANCEL");
+  if (request->cseq->method==NULL)
+  {
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return OSIP_NOMEM;
+  }
 
   /* copy ONLY the top most Via Field (this method is also used by proxy) */
   {
@@ -991,11 +1033,19 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
     osip_via_t *via2;
 
     i = osip_message_get_via (request_cancelled, 0, &via);
-    if (i != 0)
-      goto gc_error_1;
+    if (i < 0)
+	{
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return i;
+	}
     i = osip_via_clone (via, &via2);
     if (i != 0)
-      goto gc_error_1;
+	{
+	  osip_message_free (request);
+	  *dest = NULL;
+	  return i;
+	}
     osip_list_add (&request->vias, via2, -1);
   }
 
@@ -1010,7 +1060,11 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
         route = (osip_route_t *) osip_list_get (&request_cancelled->routes, pos);
         i = osip_route_clone (route, &route2);
         if (i != 0)
-          goto gc_error_1;
+		{
+		  osip_message_free (request);
+		  *dest = NULL;
+		  return i;
+		}
         osip_list_add (&request->routes, route2, -1);
         pos++;
       }
@@ -1021,9 +1075,4 @@ generating_cancel (osip_message_t ** dest, osip_message_t * request_cancelled)
 
   *dest = request;
   return OSIP_SUCCESS;
-
-gc_error_1:
-  osip_message_free (request);
-  *dest = NULL;
-  return -1;
 }

@@ -531,24 +531,28 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
   char *qop=NULL;
   char *Alg="MD5";
   int version = 0;
+  int i;
 
   /* make some test */
   if (passwd == NULL)
-    return -1;
-  if (wa == NULL || wa->auth_type == NULL
+    return OSIP_BADPARAMETER;
+  if (wa == NULL)
+	  return OSIP_BADPARAMETER;
+
+  if (wa->auth_type == NULL
       || (wa->realm == NULL) || (wa->nonce == NULL))
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "www_authenticate header is not acceptable.\n"));
-      return -1;
+      return OSIP_SYNTAXERROR;
     }
   if (0 != osip_strcasecmp ("Digest", wa->auth_type))
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "Authentication method not supported. (Digest only).\n"));
-      return -1;
+      return OSIP_UNDEFINED_ERROR;
     }
   /* "MD5" is invalid, but some servers use it. */
   if (wa->algorithm != NULL)
@@ -572,16 +576,17 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
 	  OSIP_TRACE (osip_trace
 		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		       "Authentication method not supported. (MD5, AKAv1-MD5, AKAv2-MD5)\n"));
-	  return -1;
+	  return OSIP_UNDEFINED_ERROR;
 	}
     }
 
-  if (0 != osip_authorization_init (&aut))
+  i = osip_authorization_init (&aut);
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "allocation with authorization_init failed.\n"));
-      return -1;
+      return i;
     }
 
   /* just copy some feilds from response to new request */
@@ -789,24 +794,28 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   char *qop=NULL;
   char *Alg="MD5";
   int version = 0;
+  int i;
 
   /* make some test */
   if (passwd == NULL)
-    return -1;
-  if (wa == NULL || wa->auth_type == NULL
+    return OSIP_BADPARAMETER;
+  if (wa == NULL)
+	  return OSIP_BADPARAMETER;
+
+  if (wa->auth_type == NULL
       || (wa->realm == NULL) || (wa->nonce == NULL))
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "www_authenticate header is not acceptable.\n"));
-      return -1;
+      return OSIP_SYNTAXERROR;
     }
   if (0 != osip_strcasecmp ("Digest", wa->auth_type))
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "Authentication method not supported. (Digest only).\n"));
-      return -1;
+      return OSIP_UNDEFINED_ERROR;
     }
 
   /* "MD5" is invalid, but some servers use it. */
@@ -831,16 +840,17 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
 	  OSIP_TRACE (osip_trace
 		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		       "Authentication method not supported. (MD5, AKAv1-MD5, AKAv2-MD5)\n"));
-	  return -1;
+	  return OSIP_UNDEFINED_ERROR;
 	}
     }
 
-  if (0 != osip_proxy_authorization_init (&aut))
+  i = osip_proxy_authorization_init (&aut);
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "allocation with authorization_init failed.\n"));
-      return -1;
+      return i;
     }
 
   /* just copy some feilds from response to new request */
@@ -903,7 +913,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
     pszPass = passwd;
 
     if (osip_www_authenticate_get_nonce (wa) == NULL)
-      return -1;
+      return OSIP_SYNTAXERROR;
     pszNonce = osip_strdup_without_quote (osip_www_authenticate_get_nonce (wa));
 
     if (qop!=NULL)
@@ -1076,7 +1086,7 @@ int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int 
 	OSIP_TRACE (osip_trace
                 (__FILE__, __LINE__, OSIP_ERROR, NULL,
                  "Compile with higher MAX_EXOSIP_HTTP_AUTH value (current=%i)\n", MAX_EXOSIP_HTTP_AUTH));
-	return -1;
+	return OSIP_UNDEFINED_ERROR;
 }
 
 int _eXosip_delete_nonce(const char *call_id)
@@ -1097,5 +1107,5 @@ int _eXosip_delete_nonce(const char *call_id)
 			return OSIP_SUCCESS;
 		}
 	}
-	return -1;
+	return OSIP_NOTFOUND;
 }

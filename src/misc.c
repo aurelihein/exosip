@@ -82,7 +82,7 @@ eXosip_remove_transaction_from_call (osip_transaction_t * tr, eXosip_call_t * jc
 
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                           "eXosip: No information.\n"));
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 osip_transaction_t *

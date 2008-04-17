@@ -59,7 +59,7 @@ int
 jpipe_close (jpipe_t * apipe)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   close (apipe->pipes[0]);
   close (apipe->pipes[1]);
   osip_free (apipe);
@@ -74,7 +74,7 @@ int
 jpipe_write (jpipe_t * apipe, const void *buf, int count)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   return write (apipe->pipes[1], buf, count);
 }
 
@@ -85,7 +85,7 @@ int
 jpipe_read (jpipe_t * apipe, void *buf, int count)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   return read (apipe->pipes[0], buf, count);
 }
 
@@ -96,7 +96,7 @@ int
 jpipe_get_read_descr (jpipe_t * apipe)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   return apipe->pipes[0];
 }
 
@@ -236,7 +236,7 @@ int
 jpipe_close (jpipe_t * apipe)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 #if defined(__arc__)
   close (apipe->pipes[0]);
   close (apipe->pipes[1]);
@@ -256,7 +256,7 @@ int
 jpipe_write (jpipe_t * apipe, const void *buf, int count)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   return send (apipe->pipes[1], buf, count, 0);
 }
 
@@ -267,7 +267,7 @@ int
 jpipe_read (jpipe_t * apipe, void *buf, int count)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   return recv (apipe->pipes[0], buf, count, 0 /* MSG_DONTWAIT */ );     /* BUG?? */
 }
 
@@ -278,7 +278,7 @@ int
 jpipe_get_read_descr (jpipe_t * apipe)
 {
   if (apipe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   return apipe->pipes[0];
 }
 

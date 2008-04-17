@@ -36,6 +36,9 @@ eXosip_dialog_set_state (eXosip_dialog_t * jd, int state)
 int
 eXosip_call_dialog_find (int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
 {
+  if (jid<=0)
+	  return OSIP_BADPARAMETER;
+
   for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next)
     {
       for (*jd = (*jc)->c_dialogs; *jd != NULL; *jd = (*jd)->next)
@@ -46,7 +49,7 @@ eXosip_call_dialog_find (int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
     }
   *jd = NULL;
   *jc = NULL;
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 #ifndef MINISIZE
@@ -54,6 +57,8 @@ eXosip_call_dialog_find (int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
 int
 eXosip_notify_dialog_find (int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
 {
+  if (nid<=0)
+	  return OSIP_BADPARAMETER;
   for (*jn = eXosip.j_notifies; *jn != NULL; *jn = (*jn)->next)
     {
       for (*jd = (*jn)->n_dialogs; *jd != NULL; *jd = (*jd)->next)
@@ -64,13 +69,15 @@ eXosip_notify_dialog_find (int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd
     }
   *jd = NULL;
   *jn = NULL;
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 int
 eXosip_subscribe_dialog_find (int sid, eXosip_subscribe_t ** js,
                               eXosip_dialog_t ** jd)
 {
+  if (sid<=0)
+	  return OSIP_BADPARAMETER;
   for (*js = eXosip.j_subscribes; *js != NULL; *js = (*js)->next)
     {
       *jd = NULL;
@@ -84,7 +91,7 @@ eXosip_subscribe_dialog_find (int sid, eXosip_subscribe_t ** js,
     }
   *jd = NULL;
   *js = NULL;
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 #endif
@@ -95,16 +102,14 @@ eXosip_dialog_set_200ok (eXosip_dialog_t * jd, osip_message_t * _200Ok)
   int i;
 
   if (jd == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   if (jd->d_200Ok!=NULL)
     osip_message_free(jd->d_200Ok);
   jd->d_timer = time (NULL) + 1;
   jd->d_count = 0;
   i = osip_message_clone (_200Ok, &(jd->d_200Ok));
   if (i != 0)
-    {
-      return -1;
-    }
+      return i;
   return OSIP_SUCCESS;
 }
 
@@ -134,7 +139,7 @@ eXosip_dialog_init_as_uac (eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
   if (i != 0)
     {
       osip_free (jd);
-      return -1;
+      return i;
     }
 
   jd->d_count = 0;
@@ -161,7 +166,6 @@ eXosip_dialog_init_as_uac (eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
   }
   osip_list_init (jd->d_inc_trs);
 
-  /* jd->d_bh = sdp_handler_new(); */
   *_jd = jd;
   return OSIP_SUCCESS;
 }
@@ -184,7 +188,7 @@ eXosip_dialog_init_as_uas (eXosip_dialog_t ** _jd, osip_message_t * _invite,
   if (i != 0)
     {
       osip_free (jd);
-      return -1;
+      return i;
     }
 
   jd->d_count = 0;
@@ -211,12 +215,8 @@ eXosip_dialog_init_as_uas (eXosip_dialog_t ** _jd, osip_message_t * _invite,
   }
   osip_list_init (jd->d_inc_trs);
 
-#ifdef SUPPORT_MSN
-  /* bugguy MSN */
   jd->d_dialog->local_cseq = 1;
-#endif
 
-  /* jd->d_bh = sdp_handler_new(); */
   *_jd = jd;
   return OSIP_SUCCESS;
 }

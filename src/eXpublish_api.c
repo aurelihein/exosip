@@ -42,19 +42,19 @@ eXosip_build_publish (osip_message_t ** message,
   *message = NULL;
 
   if (to == NULL || to[0] == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (from == NULL || from[0] == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (event == NULL || event[0] == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (ctype == NULL || ctype[0] == '\0')
     {
       if (body != NULL && body[0] != '\0')
-        return -1;
+        return OSIP_BADPARAMETER;
   } else
     {
       if (body == NULL || body[0] == '\0')
-        return -1;
+        return OSIP_BADPARAMETER;
     }
 
   i = generating_publish (message, to, from, route);
@@ -63,7 +63,7 @@ eXosip_build_publish (osip_message_t ** message,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot send message (cannot build PUBLISH)! "));
-      return -1;
+      return i;
     }
 
   if (body != NULL && body[0] != '\0' && ctype != NULL && ctype[0] != '\0')
@@ -94,16 +94,16 @@ eXosip_publish (osip_message_t * message, const char *to)
   eXosip_pub_t *pub = NULL;
 
   if (message == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   if (message->cseq == NULL || message->cseq->number == NULL)
     {
       osip_message_free (message);
-      return -1;
+      return OSIP_SYNTAXERROR;
     }
   if (to == NULL)
     {
       osip_message_free (message);
-      return -1;
+      return OSIP_BADPARAMETER;
     }
 
   i = _eXosip_pub_find_by_aor (&pub, to);
@@ -118,15 +118,15 @@ eXosip_publish (osip_message_t * message, const char *to)
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: missing expires header in PUBLISH!"));
           osip_message_free (message);
-          return -1;
+          return OSIP_SYNTAXERROR;
       } else
         {
           /* start a new publication context */
-          _eXosip_pub_init (&pub, to, expires->hvalue);
-          if (pub == NULL)
+          i = _eXosip_pub_init (&pub, to, expires->hvalue);
+          if (i!=0)
             {
               osip_message_free (message);
-              return -1;
+              return i;
             }
           ADD_ELEMENT (eXosip.j_pub, pub);
         }
@@ -148,7 +148,7 @@ eXosip_publish (osip_message_t * message, const char *to)
 			(__FILE__, __LINE__, OSIP_ERROR, NULL,
 			 "eXosip: missing expires header in PUBLISH!"));
 	    osip_message_free (message);
-	    return -1;
+	    return OSIP_SYNTAXERROR;
 	  }
 	pub->p_period = atoi (expires->hvalue);
       }
@@ -175,7 +175,7 @@ eXosip_publish (osip_message_t * message, const char *to)
   if (i != 0)
     {
       osip_message_free (message);
-      return -1;
+      return i;
     }
 
   if (pub->p_last_tr != NULL)

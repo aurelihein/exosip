@@ -167,13 +167,13 @@ static int
 eXosip_inet_pton (int family, const char *src, void *dst)
 {
   if (strchr (src, ':'))        /* possible IPv6 address */
-    return -1;                  /* (inet_pton(AF_INET6, src, dst)); */
+    return OSIP_UNDEFINED_ERROR;                  /* (inet_pton(AF_INET6, src, dst)); */
   else if (strchr (src, '.'))   /* possible IPv4 address */
     {
       struct in_addr *tmp = dst;
       tmp->s_addr = inet_addr (src);    /* already in N. byte order */
       if (tmp->s_addr == INADDR_NONE)
-        return OSIP_SUCCESS;
+        return 0;
 
       return 1;                 /* (inet_pton(AF_INET, src, dst)); */
   } else                        /* Impossibly a valid ip address */
@@ -209,10 +209,9 @@ int eXosip_get_addrinfo(struct addrinfo **addrinfo,
   *addrinfo = NULL; /* default return */
 
   if (port < 0)            /* -1 for SRV record */
-	  return -1;
+	  return OSIP_BADPARAMETER;
 
-  if (port != -1)            /* -1 for SRV record */
-    snprintf (portbuf, sizeof (portbuf), "%i", port);
+  snprintf (portbuf, sizeof (portbuf), "%i", port);
 
   if(1 == eXosip_inet_pton(AF_INET, hostname, &in))
     /* This is a dotted IP address 123.123.123.123-style */
@@ -424,7 +423,7 @@ eXosip_dns_get_local_fqdn (char **servername, char **serverip,
             /* not very usefull to continue */
             OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL,
                                     "ERROR alloca failed\r\n"));
-            return -1;
+            return OSIP_NOMEM;
           }
 
         if (!GetIpAddrTable (ipt, &size_of_iptable, TRUE))
@@ -470,7 +469,7 @@ eXosip_dns_get_local_fqdn (char **servername, char **serverip,
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_WARNING, NULL,
                               "ERROR No network interface found\r\n"));
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   return OSIP_SUCCESS;
@@ -500,7 +499,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
   {
       closesocket(sock);
       snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
-      return -1;
+      return OSIP_NO_NETWORK;
   }
 
   if(WSAIoctl(sock,SIO_ROUTING_INTERFACE_QUERY, addrf->ai_addr, addrf->ai_addrlen,
@@ -509,7 +508,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
       closesocket(sock);
       freeaddrinfo (addrf);
       snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
-      return -1;
+      return OSIP_NO_NETWORK;
     }
   
   closesocket(sock);
@@ -519,7 +518,7 @@ eXosip_guess_ip_for_via (int family, char *address, int size)
 		 local_addr_len,address, size, NULL, 0, NI_NUMERICHOST))
     {
       snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1" );
-      return -1;
+      return OSIP_NO_NETWORK;
     }
   
   return OSIP_SUCCESS;
@@ -553,7 +552,7 @@ static int _eXosip_default_gateway_with_getifaddrs(int type, char *address, int 
 	int ret=-1;
 	
 	if (getifaddrs (&ifpstart) < 0){
-		return -1;
+		return OSIP_NO_NETWORK;
 	}
 	
 	for (ifp=ifpstart; ifp != NULL; ifp = ifp->ifa_next)
@@ -622,7 +621,7 @@ _eXosip_default_gateway_ipv4 (char *address, int size)
       perror ("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
       close (sock_rt);
       snprintf(address, size, "127.0.0.1");
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   if (connect
@@ -631,7 +630,7 @@ _eXosip_default_gateway_ipv4 (char *address, int size)
       perror ("DEBUG: [get_output_if] connect");
       close (sock_rt);
       snprintf(address, size, "127.0.0.1");
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   len = sizeof (iface_out);
@@ -640,14 +639,14 @@ _eXosip_default_gateway_ipv4 (char *address, int size)
       perror ("DEBUG: [get_output_if] getsockname");
       close (sock_rt);
       snprintf(address, size, "127.0.0.1");
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   close (sock_rt);
   if (iface_out.sin_addr.s_addr == 0)
     {                           /* what is this case?? */
       snprintf(address, size, "127.0.0.1");
-      return -1;
+      return OSIP_NO_NETWORK;
     }
   osip_strncpy (address, inet_ntoa (iface_out.sin_addr), size - 1);
   return OSIP_SUCCESS;
@@ -683,7 +682,7 @@ _eXosip_default_gateway_ipv6 (char *address, int size)
     {
       perror ("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
       close (sock_rt);
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   if (connect
@@ -691,7 +690,7 @@ _eXosip_default_gateway_ipv6 (char *address, int size)
     {
       perror ("DEBUG: [get_output_if] connect");
       close (sock_rt);
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   len = sizeof (iface_out);
@@ -699,13 +698,13 @@ _eXosip_default_gateway_ipv6 (char *address, int size)
     {
       perror ("DEBUG: [get_output_if] getsockname");
       close (sock_rt);
-      return -1;
+      return OSIP_NO_NETWORK;
     }
   close (sock_rt);
 
   if (iface_out.sin6_addr.s6_addr == 0)
     {                           /* what is this case?? */
-      return -1;
+      return OSIP_NO_NETWORK;
     }
   inet_ntop (AF_INET6, (const void *) &iface_out.sin6_addr, address, size - 1);
   return OSIP_SUCCESS;
@@ -757,7 +756,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
   char portbuf[10];
 
   if (hostname == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (service != -1)            /* -1 for SRV record */
   {
@@ -816,7 +815,7 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
                    "getaddrinfo failure. %s:%s (%d)\n", hostname, portbuf, error));
-      return -1;
+      return OSIP_UNKNOWN_HOST;
     }
    else{
 	struct addrinfo *elem;
@@ -849,7 +848,7 @@ _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_sr
 
 	via = (osip_via_t *) osip_list_get (&sip->vias, 0);
 	if (via == NULL || via->protocol == NULL)
-		return -1;
+		return OSIP_BADPARAMETER;
 
 	if (MSG_IS_REQUEST(sip))
 	{
@@ -930,6 +929,7 @@ _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_sr
 	{
 		int i;
 		i = _eXosip_get_srv_record(record, host, via->protocol);
+		return i;
 	}
 	return OSIP_SUCCESS;
 }
@@ -944,12 +944,15 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	int n;
 	char tr[100];
 
+	if (domain==NULL || protocol==NULL)
+		return OSIP_BADPARAMETER;
+
 	memset(record, 0, sizeof(struct osip_srv_record));
 	if (strlen(domain)+strlen(protocol)>1000)
-		return -1;
+		return OSIP_BADPARAMETER;
 
 	if (strlen(protocol)>=100)
-	  return -1;
+	  return OSIP_BADPARAMETER;
 	snprintf(tr, 100, protocol);
 	osip_tolower(tr);
 
@@ -961,7 +964,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 
 	if (DnsQuery (zone, DNS_TYPE_SRV, DNS_QUERY_STANDARD, NULL, &answer, NULL) != 0)
 	{
-		return -1;
+		return OSIP_UNKNOWN_HOST;
     }
 
 	n = 0;
@@ -992,7 +995,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	}
 
 	if (n==0)
-		return -1;
+		return OSIP_UNKNOWN_HOST;
 
 	snprintf(record->name, sizeof(record->name), "%s", domain);
 	return OSIP_SUCCESS;
@@ -1034,12 +1037,15 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 	int answerno;
 	char tr[100];
 
+	if (domain==NULL || protocol==NULL)
+		return OSIP_BADPARAMETER;
+
 	memset(record, 0, sizeof(struct osip_srv_record));
 	if (strlen(domain)+strlen(protocol)>1000)
-		return -1;
+		return OSIP_BADPARAMETER;
 
 	if (strlen(protocol)>=100)
-	  return -1;
+	  return OSIP_BADPARAMETER;
 	snprintf(tr, 100, protocol);
 	osip_tolower(tr);
 
@@ -1053,7 +1059,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 
 	if (n < (int) sizeof (HEADER))
 	{
-		return -1;
+		return OSIP_UNKNOWN_HOST;
 	}
 
 	/* browse message and search for DNS answers part */
@@ -1073,7 +1079,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 			OSIP_TRACE (osip_trace
 						(__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"Invalid SRV record answer for '%s': bad format\n", zone));
-			return -1;
+			return OSIP_UNDEFINED_ERROR;
 		}
 		cp += n + QFIXEDSZ;
 	}
@@ -1093,7 +1099,7 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 			OSIP_TRACE (osip_trace
 						(__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"Invalid SRV record answer for '%s': bad format\n", zone));
-			return -1;
+			return OSIP_UNDEFINED_ERROR;
 		}
 
 		cp += n;
@@ -1200,7 +1206,7 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 	}
 
 	if (answerno == 0)
-		return -1;
+		return OSIP_UNKNOWN_HOST;
 
 	snprintf(record->name, sizeof(record->name), "%s", domain);
 	return OSIP_SUCCESS;
@@ -1211,7 +1217,7 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 int
 _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol)
 {
-	return -1;
+	return OSIP_UNDEFINED_ERROR;
 }
 
 #endif

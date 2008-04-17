@@ -79,13 +79,16 @@ _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
     }
   *jd = NULL;
   *js = NULL;
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 int eXosip_subscribe_remove (int did)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_subscribe_t *js = NULL;
+
+  if (did<=0)
+	  return OSIP_BADPARAMETER;
 
   if (did > 0)
     {
@@ -96,7 +99,7 @@ int eXosip_subscribe_remove (int did)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No outgoing subscription here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
     REMOVE_ELEMENT (eXosip.j_subscribes, js);
     eXosip_subscribe_free (js);
@@ -114,30 +117,30 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
 
   *sub = NULL;
   if (to == NULL || *to == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (from == NULL || *from == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (event == NULL || *event == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (route == NULL || *route == '\0')
     route = NULL;
 
   i = osip_to_init (&_to);
   if (i != 0)
-    return -1;
+    return i;
 
   i = osip_to_parse (_to, to);
   if (i != 0)
     {
       osip_to_free (_to);
-      return -1;
+      return i;
     }
 
   i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, eXosip.transport, from,
                                             route);
   osip_to_free (_to);
   if (i != 0)
-    return -1;
+    return i;
   _eXosip_dialog_add_contact(*sub, NULL);
 
   snprintf (tmp, 10, "%i", expires);
@@ -163,7 +166,7 @@ eXosip_subscribe_send_initial_request (osip_message_t * subscribe)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot subscribe."));
       osip_message_free (subscribe);
-      return -1;
+      return i;
     }
 
   i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, subscribe);
@@ -171,7 +174,7 @@ eXosip_subscribe_send_initial_request (osip_message_t * subscribe)
     {
       eXosip_subscribe_free (js);
       osip_message_free (subscribe);
-      return -1;
+      return i;
     }
 
   _eXosip_subscribe_set_refresh_interval (js, subscribe);
@@ -201,6 +204,10 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
   int i;
 
   *sub = NULL;
+
+  if (did<=0)
+	  return OSIP_BADPARAMETER;
+
   if (did > 0)
     {
       eXosip_subscribe_dialog_find (did, &js, &jd);
@@ -210,7 +217,7 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No subscribe here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   transaction = NULL;
@@ -222,7 +229,7 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
           transaction->state != NIST_TERMINATED &&
           transaction->state != NICT_COMPLETED &&
           transaction->state != NIST_COMPLETED)
-        return -1;
+        return OSIP_WRONG_STATE;
     }
 
   transport = NULL;
@@ -240,7 +247,7 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
                                            transport);
 
   if (i != 0)
-    return -2;
+    return i;
 
 
   eXosip_add_authentication_information(*sub, NULL);
@@ -258,6 +265,9 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
   osip_event_t *sipevent;
   int i;
 
+  if (did<=0)
+	  return OSIP_BADPARAMETER;
+
   if (did > 0)
     {
       eXosip_subscribe_dialog_find (did, &js, &jd);
@@ -268,7 +278,7 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No subscribe here?\n"));
       osip_message_free (sub);
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   transaction = NULL;
@@ -282,7 +292,7 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
           transaction->state != NIST_COMPLETED)
         {
           osip_message_free (sub);
-          return -1;
+          return OSIP_WRONG_STATE;
         }
       transaction = NULL;
     }
@@ -293,7 +303,7 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
   if (i != 0)
     {
       osip_message_free (sub);
-      return -2;
+      return i;
     }
 
   _eXosip_subscribe_set_refresh_interval (js, sub);
@@ -318,11 +328,11 @@ _eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
 	osip_header_t *expires;
 	int i;
 	if (js==NULL || jd==NULL || out_tr==NULL || out_tr->orig_request==NULL)
-		return -1;
+		return OSIP_BADPARAMETER;
 
 	i = eXosip_subscribe_build_refresh_request (jd->d_id, &sub);
 	if (i != 0)
-		return -1;
+		return i;
 
 	i = osip_message_get_expires (out_tr->orig_request, 0, &expires);
 	if (expires != NULL && expires->hvalue != NULL)
@@ -335,7 +345,7 @@ _eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
 		osip_accept_t *_accept = NULL;
 
 		i = osip_message_get_accept (out_tr->orig_request, pos, &_accept);
-		while (i == 0 && _accept != NULL)
+		while (i >= 0 && _accept != NULL)
 		  {
 			osip_accept_t *_accept2;
 
@@ -354,17 +364,26 @@ _eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
 	}
 
 	{
-		osip_header_t *hdr=NULL;
-		i = osip_message_header_get_byname (out_tr->orig_request, "Event", 0, &hdr);
-		if (hdr==NULL || i<0)
-		{
-			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-										"Missing Event header\n"));
-			osip_message_free(sub);
-			return -1;
-		}
+		int pos=0;
+		osip_header_t *_event = NULL;
 
-		osip_message_set_header (sub, "Event", hdr->hvalue);
+		pos = osip_message_header_get_byname (out_tr->orig_request, "Event", 0, &_event);
+		while (pos >= 0 && _event != NULL)
+		  {
+			osip_header_t *_event2;
+
+			i = osip_header_clone (_event, &_event2);
+			if (i != 0)
+			  {
+				OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+										"Error in Event header\n"));
+				break;
+			  }
+			osip_list_add (&sub->headers, _event2, -1);
+			_event = NULL;
+			pos++;
+			pos = osip_message_header_get_byname (out_tr->orig_request, "Event", pos, &_event);
+		  }
 	}
 
 	i = eXosip_subscribe_send_refresh_request (jd->d_id, sub);
@@ -385,11 +404,11 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
   int i;
 
   if (js == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   if (jd != NULL)
     {
       if (jd->d_out_trs == NULL)
-        return -1;
+        return OSIP_BADPARAMETER;
     }
 
   if (out_tr == NULL)
@@ -399,15 +418,15 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
 
   if (out_tr == NULL
       || out_tr->orig_request == NULL || out_tr->last_response == NULL)
-    return -1;
+    return OSIP_NOTFOUND;
 
-  osip_message_clone (out_tr->orig_request, &msg);
-  if (msg == NULL)
+  i = osip_message_clone (out_tr->orig_request, &msg);
+  if (i!=0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: could not clone msg for authentication\n"));
-      return -1;
+      return i;
     }
 
   {
@@ -428,13 +447,19 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: missing via or cseq header\n"));
-      return -1;
+      return OSIP_SYNTAXERROR;
     }
 
   /* increment cseq */
   cseq = atoi (msg->cseq->number);
   osip_free (msg->cseq->number);
   msg->cseq->number = strdup_printf ("%i", cseq + 1);
+  if (msg->cseq->number==NULL)
+  {
+      osip_message_free (msg);
+      return OSIP_NOMEM;
+  }
+
   if (jd != NULL && jd->d_dialog != NULL)
     {
       jd->d_dialog->local_cseq++;
@@ -444,10 +469,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
   if (i!=0)
     {
       osip_message_free (msg);
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol\n"));
-      return -1;
+      return i;
     }
 
   eXosip_add_authentication_information (msg, out_tr->last_response);
@@ -458,7 +480,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
   if (i != 0)
     {
       osip_message_free (msg);
-      return -1;
+      return i;
     }
 
   if (out_tr == js->s_out_tr)

@@ -156,7 +156,7 @@ _eXosip_reg_find (eXosip_reg_t ** reg, osip_transaction_t * tr)
 
   *reg = NULL;
   if (tr == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   for (jreg = eXosip.j_reg; jreg != NULL; jreg = jreg->next)
     {
@@ -166,7 +166,7 @@ _eXosip_reg_find (eXosip_reg_t ** reg, osip_transaction_t * tr)
           return OSIP_SUCCESS;
         }
     }
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 
@@ -177,7 +177,7 @@ eXosip_reg_find_id (eXosip_reg_t ** reg, int rid)
 
   *reg = NULL;
   if (rid <= 0)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   for (jreg = eXosip.j_reg; jreg != NULL; jreg = jreg->next)
     {
@@ -187,5 +187,5 @@ eXosip_reg_find_id (eXosip_reg_t ** reg, int rid)
           return OSIP_SUCCESS;
         }
     }
-  return -1;
+  return OSIP_NOTFOUND;
 }

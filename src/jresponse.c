@@ -39,11 +39,11 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
   *dest = NULL;
   if (request == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   i = osip_message_init (&response);
   if (i != 0)
-    return -1;
+    return i;
   /* initialise osip_message_t structure */
   /* yet done... */
 
@@ -90,11 +90,17 @@ _eXosip_build_response_default (osip_message_t ** dest,
   response->sip_method = NULL;
 #endif
 
+  if (response->reason_phrase==NULL)
+  {
+	  osip_message_free (response);
+	  return OSIP_NOMEM;
+  }
+
   i = osip_to_clone (request->to, &(response->to));
   if (i != 0)
   {
 	  osip_message_free (response);
-	  return -1;
+	  return i;
   }
 
   i = osip_to_get_tag (response->to, &tag);
@@ -115,7 +121,7 @@ _eXosip_build_response_default (osip_message_t ** dest,
   if (i != 0)
   {
 	  osip_message_free (response);
-	  return -1;
+	  return i;
   }
 
   pos = 0;
@@ -139,13 +145,13 @@ _eXosip_build_response_default (osip_message_t ** dest,
   if (i != 0)
   {
 	  osip_message_free (response);
-	  return -1;
+	  return i;
   }
   i = osip_cseq_clone (request->cseq, &(response->cseq));
   if (i != 0)
   {
 	  osip_message_free (response);
-	  return -1;
+	  return i;
   }
 
 #ifndef MINISIZE
@@ -183,7 +189,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
 {
   int i;
   int pos = 0;
-  char contact[1000];
+  char contact[1024];
   char locip[65];
   char firewall_ip[65];
   char firewall_port[10];
@@ -205,7 +211,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
       rr = osip_list_get (&request->record_routes, pos);
       i = osip_record_route_clone (rr, &rr2);
       if (i != 0)
-        return -1;
+        return i;
       osip_list_add (&response->record_routes, rr2, -1);
       pos++;
     }
@@ -262,8 +268,8 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
       
       via = (osip_via_t *) osip_list_get (&response->vias, 0);
       if (via == NULL || via->protocol == NULL)
-	return -1;
-      if (strlen(contact)+strlen(via->protocol)<1000
+	return OSIP_SYNTAXERROR;
+      if (strlen(contact)+strlen(via->protocol)<1024
 	  && 0 != osip_strcasecmp (via->protocol, "UDP"))
 	{
 	  contact[strlen(contact)-1]='\0';
@@ -293,7 +299,7 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot find transaction to answer\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (code>=200 && code<300 && jd != NULL && jd->d_dialog == NULL)
@@ -301,7 +307,7 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot answer this closed transaction\n"));
-      return -1;
+      return OSIP_WRONG_STATE;
     }
 
   /* is the transaction already answered? */
@@ -311,7 +317,7 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: transaction already answered\n"));
-      return -1;
+      return OSIP_WRONG_STATE;
     }
 
   if (jd == NULL)
@@ -326,7 +332,8 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "ERROR: Could not create response for invite\n"));
-      return -1;
+	  *answer=NULL;
+      return i;
     }
 
   /* request that estabish a dialog: */
@@ -335,7 +342,11 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
   {
     i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
     if (i != 0)
-      goto g2atii_error_1;;     /* ?? */
+	{
+	  osip_message_free (*answer);
+	  *answer=NULL;
+	  return i;
+	}
   }
 
 
@@ -358,11 +369,6 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
     }
 
   return OSIP_SUCCESS;
-
-g2atii_error_1:
-  osip_message_free (*answer);
-  *answer=NULL;
-  return -1;
 }
 
 #ifndef MINISIZE
@@ -382,7 +388,7 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot find transaction to answer"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (jd == NULL)
@@ -397,7 +403,7 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "ERROR: Could not create response for subscribe\n"));
-      return -1;
+      return i;
     }
 
   if (code > 100)
@@ -405,6 +411,9 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
       /* request that estabish a dialog: */
       /* 12.1.1 UAS Behavior */
       i = complete_answer_that_establish_a_dialog (response, tr->orig_request);
+	  if (i != 0)
+	  {
+	  }
 
       if (jd == NULL)
         {
@@ -415,7 +424,8 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: cannot create dialog!\n"));
             }
-          ADD_ELEMENT (jn->n_dialogs, jd);
+		  else
+	          ADD_ELEMENT (jn->n_dialogs, jd);
         }
     }
 
@@ -424,7 +434,7 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
 
   osip_transaction_add_event (tr, evt_answer);
   __eXosip_wakeup ();
-  return OSIP_SUCCESS;
+  return i;
 }
 
 int
@@ -442,7 +452,7 @@ _eXosip_insubscription_answer_3456xx (eXosip_notify_t * jn,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot find transaction to answer"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
   if (jd == NULL)
     i = _eXosip_build_response_default (&response, NULL, code, tr->orig_request);
@@ -455,7 +465,7 @@ _eXosip_insubscription_answer_3456xx (eXosip_notify_t * jn,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "ERROR: Could not create response for subscribe\n"));
-      return -1;
+      return i;
     }
 
   if ((300 <= code) && (code <= 399))

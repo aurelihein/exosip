@@ -128,7 +128,7 @@ _eXosip_subscribe_set_refresh_interval (eXosip_subscribe_t * js,
   osip_header_t *exp;
 
   if (js == NULL || out_subscribe == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   osip_message_get_expires (out_subscribe, 0, &exp);
   if (exp == NULL || exp->hvalue == NULL)
@@ -156,7 +156,7 @@ eXosip_subscribe_need_refresh (eXosip_subscribe_t * js, eXosip_dialog_t * jd,
 
   if (now - out_tr->birth_time > js->s_reg_period - 60)
     return OSIP_SUCCESS;
-  return -1;
+  return OSIP_UNDEFINED_ERROR;
 }
 
 #endif

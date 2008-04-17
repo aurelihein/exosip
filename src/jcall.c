@@ -30,6 +30,9 @@ extern eXosip_t eXosip;
 int
 eXosip_call_find (int cid, eXosip_call_t ** jc)
 {
+  if (cid<=0)
+	  return OSIP_BADPARAMETER;
+
   for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next)
     {
       if ((*jc)->c_id == cid)
@@ -38,7 +41,7 @@ eXosip_call_find (int cid, eXosip_call_t ** jc)
         }
     }
   *jc = NULL;
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 int

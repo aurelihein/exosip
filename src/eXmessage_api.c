@@ -35,17 +35,17 @@ eXosip_message_build_request (osip_message_t ** message, const char *method,
 
   *message = NULL;
   if (method != NULL && *method == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (to != NULL && *to == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (from != NULL && *from == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (route != NULL && *route == '\0')
     route = NULL;
 
   i = generating_request_out_of_dialog (message, method, to, "UDP", from, route);
   if (i != 0)
-    return -1;
+    return i;
 
   return OSIP_SUCCESS;
 }
@@ -61,7 +61,7 @@ eXosip_message_send_request (osip_message_t * message)
   if (i != 0)
     {
       osip_message_free (message);
-      return -1;
+      return i;
     }
 
   osip_list_add (&eXosip.j_transactions, transaction, 0);
@@ -86,7 +86,14 @@ int
 eXosip_message_build_answer (int tid, int status, osip_message_t ** answer)
 {
   osip_transaction_t *tr = NULL;
-  int i = -1;
+  int i;
+
+  *answer=NULL;
+
+  if (tid <= 0)
+	  return OSIP_BADPARAMETER;
+  if (status < 200 || status > 699)
+      return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -97,33 +104,17 @@ eXosip_message_build_answer (int tid, int status, osip_message_t ** answer)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
-  if (status > 100 && status < 200)
-    {
-#if 0
-      /* TODO: not implemented */
-      i = _eXosip_build_response_default (response, NULL, code, tr->orig_request);
-#endif
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: status code 1xx for message not implemented (use 200<status<699)\n"));
-      return -1;
-  } else if (status > 199 && status < 300)
-    {
+
+  i = -1;
+  if (status < 300) /* 2xx answer */
       i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
-  } else if (status > 300 && status <= 699)
-    {
+  else if (status > 300) /* 3456xx answer */
       i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
-  } else
-    {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: wrong status code (200<status<=699)\n"));
-      return -1;
-    }
+
   if (i != 0)
-    return -1;
+    return i;
   return OSIP_SUCCESS;
 }
 
@@ -133,6 +124,13 @@ eXosip_message_send_answer (int tid, int status, osip_message_t * answer)
   osip_transaction_t *tr = NULL;
   osip_event_t *evt_answer;
   int i = -1;
+
+  if (tid <= 0)
+	  return OSIP_BADPARAMETER;
+  if (status <= 100 || status > 699)
+      return OSIP_BADPARAMETER;
+  if (answer == NULL && status > 100 && status < 200)
+      return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -144,7 +142,7 @@ eXosip_message_send_answer (int tid, int status, osip_message_t * answer)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No MESSAGE transaction found\n"));
       osip_message_free (answer);
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   /* is the transaction already answered? */
@@ -154,42 +152,20 @@ eXosip_message_send_answer (int tid, int status, osip_message_t * answer)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: transaction already answered\n"));
       osip_message_free (answer);
-      return -1;
+      return OSIP_WRONG_STATE;
     }
 
   if (answer == NULL)
     {
-      if (status > 100 && status < 200)
-        {
-#if 0
-          /* TODO: not implemented */
-          i =
-            _eXosip_build_response_default (response, NULL, code,
+	  i=-1;
+      if (status > 199 && status < 300)
+          i = _eXosip_build_response_default (&answer, NULL, status,
                                             tr->orig_request);
-#endif
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: status code 1xx for message not implemented (use 200<status<699)\n"));
-          return -1;
-      } else if (status > 199 && status < 300)
-        {
-          i =
-            _eXosip_build_response_default (&answer, NULL, status,
+      else if (status > 300 && status <= 699)
+          i = _eXosip_build_response_default (&answer, NULL, status,
                                             tr->orig_request);
-      } else if (status > 300 && status <= 699)
-        {
-          i =
-            _eXosip_build_response_default (&answer, NULL, status,
-                                            tr->orig_request);
-      } else
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: wrong status code (200<status<=699)\n"));
-          return -1;
-        }
       if (i != 0)
-        return -1;
+        return i;
     }
 
   evt_answer = osip_new_outgoing_sipmessage (answer);

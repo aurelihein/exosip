@@ -290,28 +290,28 @@ cancel_match_invite (osip_transaction_t * invite, osip_message_t * cancel)
   osip_via_param_get_byname (invite->topvia, "branch", &br);
   via = osip_list_get (&cancel->vias, 0);
   if (via == NULL)
-    return -1;                  /* request without via??? */
+    return OSIP_SYNTAXERROR;                  /* request without via??? */
   osip_via_param_get_byname (via, "branch", &br2);
   if (br != NULL && br2 == NULL)
-    return -1;
+    return OSIP_UNDEFINED_ERROR;
   if (br2 != NULL && br == NULL)
-    return -1;
+    return OSIP_UNDEFINED_ERROR;
   if (br2 != NULL && br != NULL)        /* compliant UA  :) */
     {
       if (br->gvalue != NULL && br2->gvalue != NULL &&
           0 == strcmp (br->gvalue, br2->gvalue))
         return OSIP_SUCCESS;
-      return -1;
+      return OSIP_UNDEFINED_ERROR;
     }
   /* old backward compatibility mechanism */
   if (0 != osip_call_id_match (invite->callid, cancel->call_id))
-    return -1;
+    return OSIP_UNDEFINED_ERROR;
   if (0 != osip_to_tag_match (invite->to, cancel->to))
-    return -1;
+    return OSIP_UNDEFINED_ERROR;
   if (0 != osip_from_tag_match (invite->from, cancel->from))
-    return -1;
+    return OSIP_UNDEFINED_ERROR;
   if (0 != osip_via_match (invite->topvia, via))
-    return -1;
+    return OSIP_UNDEFINED_ERROR;
   return OSIP_SUCCESS;
 }
 
@@ -844,23 +844,26 @@ eXosip_match_notify_for_subscribe (eXosip_subscribe_t * js,
   osip_transaction_t *out_sub;
 
   if (js == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                           "Trying to match notify with subscribe\n"));
 
   out_sub = eXosip_find_last_out_subscribe (js, NULL);
   if (out_sub == NULL || out_sub->orig_request == NULL)
-    return -1;
+    return OSIP_NOTFOUND;
   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                           "subscribe transaction found\n"));
 
   /* some checks to avoid crashing on bad requests */
-  if (notify == NULL || notify->cseq == NULL
+  if (notify == NULL)
+	  return OSIP_BADPARAMETER;
+
+  if (notify->cseq == NULL
       || notify->cseq->method == NULL || notify->to == NULL)
-    return -1;
+    return OSIP_SYNTAXERROR;
 
   if (0 != osip_call_id_match (out_sub->callid, notify->call_id))
-    return -1;
+    return OSIP_UNDEFINED_ERROR;
 
   {
     /* The From tag of outgoing request must match
@@ -875,17 +878,17 @@ eXosip_match_notify_for_subscribe (eXosip_subscribe_t * js,
       {
         OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                                 "Uncompliant user agent: no tag in from of outgoing request\n"));
-        return -1;
+        return OSIP_SYNTAXERROR;
       }
     if (tag_from == NULL || tag_to->gvalue == NULL)
       {
         OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                                 "Uncompliant user agent: no tag in to of incoming request\n"));
-        return -1;
+        return OSIP_SYNTAXERROR;
       }
 
     if (0 != strcmp (tag_from->gvalue, tag_to->gvalue))
-      return -1;
+      return OSIP_UNDEFINED_ERROR;
   }
 
   return OSIP_SUCCESS;
@@ -1507,7 +1510,7 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 		  osip_proxy_authorization_t *pa = NULL;
 		  
 		  i = osip_message_get_proxy_authorization (last_tr->orig_request, pos, &pa);
-		  while (i == 0 && pa != NULL)
+		  while (i >= 0 && pa != NULL)
 		    {
 		      osip_proxy_authorization_t *pa2;
 		      
@@ -1551,31 +1554,79 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
 }
 
 int
-_eXosip_handle_incoming_message (char *buf, size_t len, int socket,
+_eXosip_handle_incoming_message (char *buf, size_t length, int socket,
                                  char *host, int port)
 {
-  osip_event_t *sipevent;
   int i;
+  osip_event_t *se;
 
-  sipevent = osip_parse (buf, len);
-  if (sipevent != NULL && sipevent->sip != NULL)
+  se = (osip_event_t *) osip_malloc (sizeof (osip_event_t));
+  if (se == NULL)
+    return OSIP_NOMEM;
+  se->type = UNKNOWN_EVT;
+  se->sip = NULL;
+  se->transactionid = 0;
+
+  /* parse message and set up an event */
+  i = osip_message_init (&(se->sip));
+  if (i != 0)
     {
-  } else
+      osip_free (se);
+      return i;
+    }
+  i = osip_message_parse (se->sip, buf, length);
+  if (i!=0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "Could not parse SIP message\n"));
-      osip_event_free (sipevent);
-      return -1;
+                   "could not parse message\n"));
+      osip_message_free (se->sip);
+      osip_free (se);
+      return i;
+  }
+
+  if (se->sip->call_id != NULL && se->sip->call_id->number != NULL)
+  {
+	  OSIP_TRACE (osip_trace
+				  (__FILE__, __LINE__, OSIP_INFO3, NULL,
+				   "MESSAGE REC. CALLID:%s\n", se->sip->call_id->number));
+  }
+
+  if (MSG_IS_REQUEST (se->sip))
+    {
+      if (se->sip->sip_method == NULL || se->sip->req_uri == NULL)
+        {
+          osip_message_free (se->sip);
+          osip_free (se);
+          return OSIP_SYNTAXERROR;
+        }
+    }
+
+  if (MSG_IS_REQUEST (se->sip))
+    {
+      if (MSG_IS_INVITE (se->sip))
+        se->type = RCV_REQINVITE;
+      else if (MSG_IS_ACK (se->sip))
+        se->type = RCV_REQACK;
+	  else
+		se->type = RCV_REQUEST;
+  } else
+    {
+      if (MSG_IS_STATUS_1XX (se->sip))
+        se->type = RCV_STATUS_1XX;
+      else if (MSG_IS_STATUS_2XX (se->sip))
+        se->type = RCV_STATUS_2XX;
+	  else
+        se->type = RCV_STATUS_3456XX;
     }
 
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO1, NULL,
                "Message received from: %s:%i\n", host, port));
 
-  osip_message_fix_last_via_header (sipevent->sip, host, port);
+  osip_message_fix_last_via_header (se->sip, host, port);
 
-  i = osip_find_transaction_and_add_event (eXosip.j_osip, sipevent);
+  i = osip_find_transaction_and_add_event (eXosip.j_osip, se);
   if (i != 0)
     {
       /* this event has no transaction, */
@@ -1583,10 +1634,10 @@ _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "This is a request\n", buf));
       eXosip_lock ();
-      if (MSG_IS_REQUEST (sipevent->sip))
-        eXosip_process_newrequest (sipevent, socket);
-      else if (MSG_IS_RESPONSE (sipevent->sip))
-        eXosip_process_response_out_of_transaction (sipevent);
+      if (MSG_IS_REQUEST (se->sip))
+        eXosip_process_newrequest (se, socket);
+      else if (MSG_IS_RESPONSE (se->sip))
+        eXosip_process_response_out_of_transaction (se);
       eXosip_unlock ();
   } else
     {
@@ -1665,7 +1716,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
       else if (-1 == i)
         {
 #if !defined (_WIN32_WCE)       /* TODO: fix me for wince */
-          return -2;            /* error */
+          return -2000;            /* error */
 #endif
 	}
       else 
@@ -1810,7 +1861,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
         return OSIP_SUCCESS;
     }
 
-  return -1;
+  return OSIP_UNDEFINED_ERROR;
 }
 
 #ifndef MINISIZE
@@ -2028,7 +2079,7 @@ eXosip_release_finished_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
       eXosip_dialog_free (jd);
       return OSIP_SUCCESS;
     }
-  return -1;
+  return OSIP_UNDEFINED_ERROR;
 }
 
 
@@ -2071,7 +2122,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
           eXosip_dialog_free (jd);
           return OSIP_SUCCESS;
         }
-      return -1;
+      return OSIP_UNDEFINED_ERROR;
     }
 
   if (tr != NULL && tr->state != IST_TERMINATED && tr->state != ICT_TERMINATED && tr->birth_time + 180 < now)   /* Wait a max of 2 minutes */
@@ -2181,7 +2232,7 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
         }
     }
 
-  return -1;
+  return OSIP_UNDEFINED_ERROR;
 }
 
 

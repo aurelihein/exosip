@@ -39,7 +39,7 @@ eXosip_refer_build_request (osip_message_t ** refer, const char *refer_to,
   i = generating_request_out_of_dialog (refer, "REFER", to, "UDP", from, proxy);
   if (i != 0)
     {
-      return -1;
+      return i;
     }
 
   osip_message_set_header (*refer, "Refer-to", refer_to);
@@ -54,13 +54,13 @@ eXosip_refer_send_request (osip_message_t * refer)
   int i;
 
   if (refer == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   i = _eXosip_transaction_init (&transaction, NICT, eXosip.j_osip, refer);
   if (i != 0)
     {
       osip_message_free (refer);
-      return -1;
+      return i;
     }
 
   osip_list_add (&eXosip.j_transactions, transaction, 0);

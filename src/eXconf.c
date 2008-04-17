@@ -304,7 +304,7 @@ eXosip_set_socket (int transport, int socket, int port)
       snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "TCP");
    }
   else
-    return -1;
+    return OSIP_BADPARAMETER;
 
 #ifdef OSIP_MT
   eXosip.j_thread = (void *) osip_thread_create (20000, _eXosip_thread, NULL);
@@ -313,7 +313,7 @@ eXosip_set_socket (int transport, int socket, int port)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: Cannot start thread!\n"));
-      return -1;
+      return OSIP_UNDEFINED_ERROR;
     }
 #endif
   return OSIP_SUCCESS;
@@ -344,13 +344,13 @@ int eXosip_find_free_port(int free_port, int transport)
   for (count=0;count<8;count++)
   {
 	  res1 = eXosip_get_addrinfo (&addrinfo_rtp, "0.0.0.0", free_port + count*2, transport);
-	  if (res1)
-		return -1;
+	  if (res1!=0)
+		return res1;
 	  res2 = eXosip_get_addrinfo (&addrinfo_rtcp, "0.0.0.0", free_port + count*2+ 1, transport);
-	  if (res2)
+	  if (res2!=0)
 	  {
 		  eXosip_freeaddrinfo (addrinfo_rtp);
-		  return -1;
+		  return res2;
 	  }
 
 	  sock=-1;
@@ -476,7 +476,7 @@ int eXosip_find_free_port(int free_port, int transport)
   /* just get a free port */
   res1 = eXosip_get_addrinfo (&addrinfo_rtp, "0.0.0.0", 0, transport);
   if (res1)
-	return -1;
+	return res1;
 
   sock=-1;
   for (curinfo_rtp = addrinfo_rtp; curinfo_rtp; curinfo_rtp = curinfo_rtp->ai_next)
@@ -556,7 +556,7 @@ int eXosip_find_free_port(int free_port, int transport)
 	  sock=-1;
   }
 
-  return -1;
+  return OSIP_UNDEFINED_ERROR;
 }
 #endif
 
@@ -573,7 +573,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: already listening somewhere\n"));
-      return -1;
+      return OSIP_WRONG_STATE;
     }
 
   if (transport==IPPROTO_UDP && secure==0)
@@ -590,7 +590,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 #endif
 
   if (eXtl==NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   eXtl->proto_family=family;
   eXtl->proto_port=port;
@@ -605,7 +605,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
   i = eXtl->tl_open();
   
   if (i!=0)
-    return -1;
+    return i;
   
   eXosip.eXtl = eXtl;
 
@@ -627,7 +627,7 @@ eXosip_listen_addr (int transport, const char *addr, int port, int family,
 	  OSIP_TRACE (osip_trace
 		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: Cannot start thread!\n"));
-	  return -1;
+	  return OSIP_UNDEFINED_ERROR;
 	}
     }
 #endif
@@ -722,11 +722,11 @@ eXosip_init (void)
   /* open a TCP socket to wake up the application when needed. */
   eXosip.j_socketctl = jpipe ();
   if (eXosip.j_socketctl == NULL)
-    return -2;
+    return OSIP_UNDEFINED_ERROR;
 
   eXosip.j_socketctl_event = jpipe ();
   if (eXosip.j_socketctl_event == NULL)
-    return -3;
+    return OSIP_UNDEFINED_ERROR;
 #endif
 
   /* To be changed in osip! */
@@ -787,9 +787,9 @@ eXosip_execute (void)
 #endif
   i = eXosip_read_message (1, lower_tv.tv_sec, lower_tv.tv_usec);
 
-  if (i == -2)
+  if (i == -2000)
     {
-      return -2;
+      return -2000;
     }
 
   eXosip_lock ();
@@ -837,7 +837,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 			  ainfo = (struct eXosip_account_info*) value;
 			  if (ainfo==NULL || ainfo->proxy[0]=='\0')
 			  {
-				  return -1;
+				  return OSIP_BADPARAMETER;
 			  }
 			  for (i=0;i<MAX_EXOSIP_ACCOUNT_INFO;i++)
 			  {
@@ -866,7 +866,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 			  }
 			  if (ainfo->nat_ip[0]=='\0')
 			  {
-				  return -1;
+				  return OSIP_BADPARAMETER;
 			  }
 			  /* not found case: */
 			  for (i=0;i<MAX_EXOSIP_ACCOUNT_INFO;i++)
@@ -884,7 +884,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 					  return OSIP_SUCCESS;
 				  }
 			  }
-			  return -1;
+			  return OSIP_UNDEFINED_ERROR;
 		  }
         break;
 	  case EXOSIP_OPT_ADD_DNS_CACHE:
@@ -894,7 +894,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 			  entry = (struct eXosip_dns_cache*) value;
 			  if (entry==NULL || entry->host[0]=='\0')
 			  {
-				  return -1;
+				  return OSIP_BADPARAMETER;
 			  }
 			  for (i=0;i<MAX_EXOSIP_DNS_ENTRY;i++)
 			  {
@@ -921,7 +921,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 			  }
 			  if (entry->ip[0]=='\0')
 			  {
-				  return -1;
+				  return OSIP_BADPARAMETER;
 			  }
 			  /* not found case: */
 			  for (i=0;i<MAX_EXOSIP_DNS_ENTRY;i++)
@@ -937,7 +937,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 					  return OSIP_SUCCESS;
 				  }
 			  }
-			  return -1;
+			  return OSIP_UNDEFINED_ERROR;
 		  }
         break;
       case EXOSIP_OPT_UDP_KEEP_ALIVE:
@@ -1025,7 +1025,7 @@ eXosip_set_option (eXosip_option opt, const void *value)
 #endif
 
     default:
-      return -1;
+      return OSIP_BADPARAMETER;
     }
   return OSIP_SUCCESS;
 }
@@ -1067,7 +1067,7 @@ _eXosip_thread (void *arg)
   while (eXosip.j_stop_ua == 0)
     {
       i = eXosip_execute ();
-      if (i == -2)
+      if (i == -2000)
         osip_thread_exit ();
     }
   osip_thread_exit ();

@@ -50,7 +50,7 @@ eXosip_create_transaction (eXosip_call_t * jc,
       /* TODO: release the j_call.. */
 
       osip_message_free (request);
-      return -1;
+      return i;
     }
 
   if (jd != NULL)
@@ -83,7 +83,7 @@ eXosip_create_cancel_transaction (eXosip_call_t * jc,
       /* TODO: release the j_call.. */
 
       osip_message_free (request);
-      return -2;
+      return i;
     }
 
   osip_list_add (&eXosip.j_transactions, tr, 0);
@@ -104,7 +104,7 @@ static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *ms
     i = osip_message_get_contact(invite, 0, &co_invite);
     if (i<0 || co_invite==NULL || co_invite->url==NULL)
     {
-        return -1;
+        return i;
     }
 
     i = osip_message_get_contact(msg, 0, &co_msg);
@@ -121,7 +121,7 @@ static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *ms
         osip_list_add(&msg->contacts, co_msg, 0);
         return OSIP_SUCCESS;
     }
-    return -1;
+    return i;
 }
 
 int
@@ -175,7 +175,7 @@ _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
     }
   *jd = NULL;
   *jc = NULL;
-  return -1;
+  return OSIP_NOTFOUND;
 }
 
 int
@@ -197,7 +197,7 @@ eXosip_call_set_reference (int id, void *reference)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
   jc->external_reference = reference;
   return OSIP_SUCCESS;
@@ -217,7 +217,7 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
   *invite = NULL;
 
   if (to != NULL && *to == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
   if (route != NULL && *route == '\0')
     route = NULL;
   if (subject != NULL && *subject == '\0')
@@ -225,20 +225,20 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
 
   i = osip_to_init (&_to);
   if (i != 0)
-    return -1;
+    return i;
 
   i = osip_to_parse (_to, to);
   if (i != 0)
     {
       osip_to_free (_to);
-      return -1;
+      return i;
     }
 
   i = generating_request_out_of_dialog (invite, "INVITE", to,
                                           eXosip.transport, from, route);
   osip_to_free (_to);
   if (i != 0)
-    return -1;
+    return i;
   _eXosip_dialog_add_contact(*invite, NULL);
 
   if (subject != NULL)
@@ -257,14 +257,22 @@ eXosip_call_send_initial_invite (osip_message_t * invite)
   osip_event_t *sipevent;
   int i;
 
-  eXosip_call_init (&jc);
+  if (invite==NULL)
+	  return OSIP_BADPARAMETER;
+
+  i = eXosip_call_init (&jc);
+  if (i != 0)
+    {
+      osip_message_free (invite);
+      return i;
+    }
 
   i = _eXosip_transaction_init (&transaction, ICT, eXosip.j_osip, invite);
   if (i != 0)
     {
       eXosip_call_free (jc);
       osip_message_free (invite);
-      return -1;
+      return i;
     }
 
   jc->c_out_tr = transaction;
@@ -302,6 +310,8 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
 
   *_ack = NULL;
 
+  if (did <= 0)
+	  return OSIP_BADPARAMETER;
   if (did > 0)
     {
       eXosip_call_dialog_find (did, &jc, &jd);
@@ -311,7 +321,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   tr = eXosip_find_last_invite (jc, jd);
@@ -321,7 +331,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No transaction for call?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (0 != osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
@@ -329,7 +339,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: ACK are only sent for invite transactions\n"));
-      return -1;
+      return OSIP_BADPARAMETER;
     }
 
   transport = NULL;
@@ -341,7 +351,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
 
   if (i != 0)
     {
-      return -1;
+      return i;
     }
 
   _eXosip_call_reuse_contact(tr->orig_request, ack);
@@ -359,11 +369,10 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
   /* copy all credentials from INVITE! */
   {
     int pos = 0;
-    int i;
     osip_proxy_authorization_t *pa = NULL;
 
     i = osip_message_get_proxy_authorization (tr->orig_request, pos, &pa);
-    while (i == 0 && pa != NULL)
+    while (i >= 0 && pa != NULL)
       {
         osip_proxy_authorization_t *pa2;
 
@@ -390,11 +399,14 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
+  int i;
 
   osip_route_t *route;
   char *host;
   int port;
 
+  if (did <= 0)
+	  return OSIP_BADPARAMETER;
   if (did > 0)
     {
       eXosip_call_dialog_find (did, &jc, &jd);
@@ -407,17 +419,15 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
                    "eXosip: No call here?\n"));
       if (ack != NULL)
         osip_message_free (ack);
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (ack == NULL)
     {
-      int i;
-
       i = eXosip_call_build_ack (did, &ack);
       if (i != 0)
         {
-          return -1;
+          return i;
         }
     }
 
@@ -454,11 +464,15 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
 	host = ack->req_uri->host;
     }
 
-  cb_snd_message (NULL, ack, host, port, -1);
+  i = cb_snd_message (NULL, ack, host, port, -1);
 
   if (jd->d_ack != NULL)
     osip_message_free (jd->d_ack);
   jd->d_ack = ack;
+  if (i<0)
+	  return i;
+
+  /* TODO: could be 1 for icmp... */
   return OSIP_SUCCESS;
 }
 
@@ -472,8 +486,10 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
   int i;
 
   *request = NULL;
+  if (jid <= 0)
+	  return OSIP_BADPARAMETER;
   if (method == NULL || method[0] == '\0')
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (jid > 0)
     {
@@ -484,7 +500,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   transaction = NULL;
@@ -504,21 +520,21 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
               transaction->state != NIST_TERMINATED &&
               transaction->state != NICT_COMPLETED &&
               transaction->state != NIST_COMPLETED)
-            return -1;
+            return OSIP_WRONG_STATE;
       } else
         {
           if (transaction->state != ICT_TERMINATED &&
               transaction->state != IST_TERMINATED &&
               transaction->state != IST_CONFIRMED &&
               transaction->state != ICT_COMPLETED)
-            return -1;
+            return OSIP_WRONG_STATE;
         }
     }
 
   i = _eXosip_build_request_within_dialog (request, method, jd->d_dialog,
                                            eXosip.transport);
   if (i != 0)
-    return -2;
+    return i;
 
   eXosip_add_authentication_information(*request, NULL);
 
@@ -536,13 +552,15 @@ eXosip_call_send_request (int jid, osip_message_t * request)
 
   int i;
 
+  if (jid <= 0)
+	  return OSIP_BADPARAMETER;
   if (request == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (request->sip_method == NULL)
     {
       osip_message_free (request);
-      return -1;
+      return OSIP_BADPARAMETER;
     }
 
   if (jid > 0)
@@ -555,7 +573,7 @@ eXosip_call_send_request (int jid, osip_message_t * request)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here?\n"));
       osip_message_free (request);
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   transaction = NULL;
@@ -577,7 +595,7 @@ eXosip_call_send_request (int jid, osip_message_t * request)
               transaction->state != NIST_COMPLETED)
             {
               osip_message_free (request);
-              return -1;
+              return OSIP_WRONG_STATE;
             }
       } else
         {
@@ -587,7 +605,7 @@ eXosip_call_send_request (int jid, osip_message_t * request)
               transaction->state != ICT_COMPLETED)
             {
               osip_message_free (request);
-              return -1;
+              return OSIP_WRONG_STATE;
             }
         }
     }
@@ -604,7 +622,7 @@ eXosip_call_send_request (int jid, osip_message_t * request)
   if (i != 0)
     {
       osip_message_free (request);
-      return -2;
+      return i;
     }
 
   osip_list_add (jd->d_out_trs, transaction, 0);
@@ -634,7 +652,7 @@ eXosip_call_build_refer (int did, const char *refer_to, osip_message_t ** reques
   *request = NULL;
   i = eXosip_call_build_request (did, "REFER", request);
   if (i != 0)
-    return -1;
+    return i;
 
   if (refer_to == NULL || refer_to[0] == '\0')
     return OSIP_SUCCESS;
@@ -651,7 +669,7 @@ eXosip_call_build_options (int did, osip_message_t ** request)
   *request = NULL;
   i = eXosip_call_build_request (did, "OPTIONS", request);
   if (i != 0)
-    return -1;
+    return i;
 
   return OSIP_SUCCESS;
 }
@@ -664,7 +682,7 @@ eXosip_call_build_info (int did, osip_message_t ** request)
   *request = NULL;
   i = eXosip_call_build_request (did, "INFO", request);
   if (i != 0)
-    return -1;
+    return i;
 
   return OSIP_SUCCESS;
 }
@@ -677,7 +695,7 @@ eXosip_call_build_update (int did, osip_message_t ** request)
   *request = NULL;
   i = eXosip_call_build_request (did, "UPDATE", request);
   if (i != 0)
-    return -1;
+    return i;
 
   return OSIP_SUCCESS;
 }
@@ -693,7 +711,7 @@ eXosip_call_build_notify (int did, int subscription_status,
   *request = NULL;
   i = eXosip_call_build_request (did, "NOTIFY", request);
   if (i != 0)
-    return -1;
+    return i;
 
   if (subscription_status == EXOSIP_SUBCRSTATE_PENDING)
     osip_strncpy (subscription_state, "pending;expires=", 16);
@@ -736,6 +754,13 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
 
   *answer = NULL;
 
+  if (tid < 0)
+	  return OSIP_BADPARAMETER;
+  if (status <= 100)
+	  return OSIP_BADPARAMETER;
+  if (status > 699)
+	  return OSIP_BADPARAMETER;
+
   if (tid > 0)
     {
       _eXosip_call_transaction_find (tid, &jc, &jd, &tr);
@@ -745,34 +770,28 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
-    {
-      if (status > 100 && status <= 699)
-        {
-          i = _eXosip_answer_invite_123456xx (jc, jd, status, answer, 0);
-      } else
-        {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                       "eXosip: wrong status code (101<status<=699)\n"));
-          return -1;
-        }
-  } else
-    {
+  {
+      i = _eXosip_answer_invite_123456xx (jc, jd, status, answer, 0);
+  }
+  else
+  {
       if (jd != NULL)
-        {
-          i =
-            _eXosip_build_response_default (answer, jd->d_dialog, status,
+          i = _eXosip_build_response_default (answer, jd->d_dialog, status,
                                             tr->orig_request);
-      } else
-        {
-          i =
-            _eXosip_build_response_default (answer, NULL, status,
+      else
+          i = _eXosip_build_response_default (answer, NULL, status,
                                             tr->orig_request);
-        }
+	  if (i != 0)
+		{
+		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+								  "ERROR: Could not create response for %s\n",
+								  tr->orig_request->sip_method));
+		  return i;
+		}
       if (status > 100 && status < 300)
         i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
     }
@@ -782,7 +801,7 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                               "ERROR: Could not create response for %s\n",
                               tr->orig_request->sip_method));
-      return -1;
+      return i;
     }
   return OSIP_SUCCESS;
 }
@@ -795,6 +814,13 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
   osip_transaction_t *tr = NULL;
   osip_event_t *evt_answer;
 
+  if (tid < 0)
+	  return OSIP_BADPARAMETER;
+  if (status <= 100)
+	  return OSIP_BADPARAMETER;
+  if (status > 699)
+	  return OSIP_BADPARAMETER;
+
   if (tid > 0)
     {
       _eXosip_call_transaction_find (tid, &jc, &jd, &tr);
@@ -806,7 +832,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here or no transaction for call\n"));
       osip_message_free (answer);
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (answer == NULL)
@@ -818,7 +844,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Wrong parameter?\n"));
-              return -1;
+              return OSIP_BADPARAMETER;
             }
         }
     }
@@ -833,7 +859,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: transaction already answered\n"));
       osip_message_free (answer);
-      return -1;
+      return OSIP_WRONG_STATE;
     }
 
   if (answer == NULL)
@@ -843,7 +869,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
 	  osip_message_t *response;
           return _eXosip_answer_invite_123456xx (jc, jd, status, &response, 1);
 	}
-      return -1;
+      return OSIP_BADPARAMETER;
   }
   
   if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
@@ -877,6 +903,8 @@ eXosip_call_terminate (int cid, int did)
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
 
+  if (did <= 0 && cid <= 0)
+	  return OSIP_BADPARAMETER;
   if (did > 0)
     {
       eXosip_call_dialog_find (did, &jc, &jd);
@@ -885,7 +913,7 @@ eXosip_call_terminate (int cid, int did)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: No call here?\n"));
-          return -1;
+          return OSIP_NOTFOUND;
         }
   } else
     {
@@ -894,11 +922,15 @@ eXosip_call_terminate (int cid, int did)
 
   if (jc == NULL)
     {
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   tr = eXosip_find_last_out_invite (jc, jd);
-  if (tr != NULL && tr->last_response != NULL
+  if (jd != NULL && jd->d_dialog!=NULL && jd->d_dialog->state == DIALOG_CONFIRMED)
+  {
+	  /* don't send CANCEL on re-INVITE: send BYE instead */
+  }
+  else if (tr != NULL && tr->last_response != NULL
       && MSG_IS_STATUS_1XX (tr->last_response))
     {
       i = generating_cancel (&request, tr->orig_request);
@@ -907,7 +939,7 @@ eXosip_call_terminate (int cid, int did)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "eXosip: cannot terminate this call!\n"));
-          return -2;
+          return i;
         }
       i = eXosip_create_cancel_transaction (jc, jd, request);
       if (i != 0)
@@ -931,7 +963,7 @@ eXosip_call_terminate (int cid, int did)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No established dialog!\n"));
-      return -1;
+      return OSIP_WRONG_STATE;
     }
 
   if (tr == NULL)
@@ -956,7 +988,7 @@ eXosip_call_terminate (int cid, int did)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot terminate this call!\n"));
-      return -2;
+      return OSIP_WRONG_STATE;
     }
 
   i = generating_bye (&request, jd->d_dialog, eXosip.transport);
@@ -966,7 +998,7 @@ eXosip_call_terminate (int cid, int did)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot terminate this call!\n"));
-      return -2;
+      return i;
     }
 
   eXosip_add_authentication_information (request, NULL);
@@ -977,7 +1009,7 @@ eXosip_call_terminate (int cid, int did)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: cannot initiate SIP transaction!\n"));
-      return -2;
+      return i;
     }
 
   osip_dialog_free (jd->d_dialog);
@@ -1001,6 +1033,9 @@ eXosip_call_build_prack (int tid, osip_message_t ** prack)
 
   *prack = NULL;
 
+  if (tid < 0)
+	  return OSIP_BADPARAMETER;
+
   if (tid > 0)
     {
       _eXosip_call_transaction_find (tid, &jc, &jd, &tr);
@@ -1012,20 +1047,20 @@ eXosip_call_build_prack (int tid, osip_message_t ** prack)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here or no transaction for call\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (0 != osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
-    return -1;
+    return OSIP_BADPARAMETER;
 
   /* PRACK are only send in the PROCEEDING state */
   if (tr->state != ICT_PROCEEDING)
-    return -1;
+    return OSIP_WRONG_STATE;
 
   if (tr->orig_request->cseq == NULL
       || tr->orig_request->cseq->number == NULL
       || tr->orig_request->cseq->method == NULL)
-    return -1;
+    return OSIP_SYNTAXERROR;
 
   transport = NULL;
   if (tr != NULL && tr->orig_request != NULL)
@@ -1039,7 +1074,7 @@ eXosip_call_build_prack (int tid, osip_message_t ** prack)
                                            transport);
 
   if (i != 0)
-    return -2;
+    return i;
 
   osip_message_header_get_byname (tr->last_response, "RSeq", 0, &rseq);
   if (rseq != NULL && rseq->hvalue != NULL)
@@ -1065,8 +1100,10 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
   osip_event_t *sipevent;
   int i;
 
+  if (tid < 0)
+    return OSIP_BADPARAMETER;
   if (prack == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -1080,20 +1117,20 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No call here or no transaction for call\n"));
       osip_message_free (prack);
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   if (0 != osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
     {
       osip_message_free (prack);
-      return -1;
+      return OSIP_BADPARAMETER;
     }
 
   /* PRACK are only send in the PROCEEDING state */
   if (tr->state != ICT_PROCEEDING)
     {
       osip_message_free (prack);
-      return -1;
+      return OSIP_WRONG_STATE;
     }
 
   tr = NULL;
@@ -1102,7 +1139,7 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
   if (i != 0)
     {
       osip_message_free (prack);
-      return -2;
+      return i;
     }
 
   jd->d_mincseq++;
@@ -1140,23 +1177,23 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
   int protocol = IPPROTO_UDP;
 
   if (jc == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
   if (jd != NULL)
     {
       if (jd->d_out_trs == NULL)
-        return -1;
+        return OSIP_BADPARAMETER;
     }
   if (out_tr == NULL
       || out_tr->orig_request == NULL || out_tr->last_response == NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
-  osip_message_clone (out_tr->orig_request, &msg);
-  if (msg == NULL)
+  i = osip_message_clone (out_tr->orig_request, &msg);
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: could not clone msg for authentication\n"));
-      return -1;
+      return i;
     }
 
   via = (osip_via_t *) osip_list_get (&msg->vias, 0);
@@ -1166,7 +1203,7 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: missing via or cseq header\n"));
-      return -1;
+      return OSIP_SYNTAXERROR;
     }
 
   if (MSG_IS_STATUS_3XX(out_tr->last_response))
@@ -1226,7 +1263,7 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 	  OSIP_TRACE (osip_trace
 		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		       "eXosip: contact header\n"));
-	  return -1;
+	  return OSIP_SYNTAXERROR;
 	}
       
       /* TODO:
@@ -1301,10 +1338,7 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
   if (i!=0)
     {
       osip_message_free (msg);
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                   "eXosip: unsupported protocol\n"));
-      return -1;
+      return i;
     }
 
   if (out_tr->last_response->status_code==401
@@ -1325,7 +1359,7 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
   if (i != 0)
     {
       osip_message_free (msg);
-      return -1;
+      return i;
     }
 
   if (out_tr == jc->c_out_tr)
@@ -1374,13 +1408,16 @@ eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
   char *referto_tmp=NULL;
   int i;
 
+  if (did <= 0)
+	  return OSIP_BADPARAMETER;
+
   eXosip_call_dialog_find (did, &jc, &jd);
   if (jc == NULL || jd == NULL || jd->d_dialog == NULL)
     {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		   "eXosip: No call here?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   tr = eXosip_find_last_invite (jc, jd);
@@ -1390,12 +1427,12 @@ eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: No transaction for call?\n"));
-      return -1;
+      return OSIP_NOTFOUND;
     }
 
   i = osip_uri_clone(jd->d_dialog->remote_uri->url, &referto_uri);
   if (i!=0)
-    return -1;
+    return i;
 
   snprintf(atmp, sizeof(atmp), "%s;to-tag=%s;from-tag=%s",
 	   jd->d_dialog->call_id,
@@ -1407,7 +1444,7 @@ eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
   if (i!=0)
     {
       osip_uri_free(referto_uri);      
-      return -1;
+      return i;
     }
 
   snprintf(refer_to, refer_to_len, "%s", referto_tmp);
@@ -1435,7 +1472,7 @@ eXosip_call_find_by_replaces (char* ReplacesStr)
   
   if ((to_tag == NULL) ||
       (from_tag == NULL))
-    return -1;
+    return OSIP_SYNTAXERROR;
   to_tag += strlen ("to-tag=");
   from_tag += strlen ("from-tag=");
   
@@ -1464,14 +1501,14 @@ eXosip_call_find_by_replaces (char* ReplacesStr)
 			{
 			  /* This dialog match! */
 				if (jd->d_dialog->state == DIALOG_CONFIRMED && early_flag!=NULL)
-					return -3; /* confirmed dialog but already answered with 486 */
+					return OSIP_WRONG_STATE; /* confirmed dialog but already answered: use 486 */
 				if (jd->d_dialog->state == DIALOG_EARLY && jd->d_dialog->type == CALLEE)
-					return -2; /* confirmed dialog but already answered with 481 */
+					return OSIP_BADPARAMETER; /* use 481 */
 				return jc->c_id; /* match anyway */
 			}
 		}
 	}
-  return -1;   /* answer with 481 */
+  return OSIP_NOTFOUND;   /* answer with 481 */
 }
 
 #endif
