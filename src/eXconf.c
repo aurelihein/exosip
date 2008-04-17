@@ -808,7 +808,8 @@ eXosip_execute (void)
   eXosip_release_terminated_registrations ();
   eXosip_release_terminated_publications ();
 #ifndef MINISIZE
-  eXosip_release_unused_transactions();
+  eXosip_release_terminated_subscriptions();
+  eXosip_release_terminated_in_subscriptions();
 #endif
 
   eXosip_unlock ();

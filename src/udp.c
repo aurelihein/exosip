@@ -1736,47 +1736,6 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
   return OSIP_SUCCESS;
 }
 
-#ifndef MINISIZE
-
-void
-eXosip_release_unused_transactions(void)
-{
-  eXosip_dialog_t *jd;
-  eXosip_dialog_t *jdnext;
-  eXosip_subscribe_t *js;
-  eXosip_subscribe_t *jsnext;
-  eXosip_notify_t *jn;
-  eXosip_notify_t *jnnext;
-
-  for (js = eXosip.j_subscribes; js != NULL;)
-    {
-      jsnext = js->next;
-
-      for (jd = js->s_dialogs; jd != NULL;)
-        {
-          jdnext = jd->next;
-	  eXosip_release_finished_transactions_for_subscription (jd);
-	  jd = jdnext;
-	}
-      js = jsnext;
-    }
-
-  for (jn = eXosip.j_notifies; jn != NULL;)
-    {
-      jnnext = jn->next;
-
-      for (jd = jn->n_dialogs; jd != NULL;)
-        {
-          jdnext = jd->next;
-	  eXosip_release_finished_transactions_for_subscription (jd);
-	  jd = jdnext;
-	}
-      jn = jnnext;
-    }
-}
-
-#endif
-
 static int
 eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
@@ -1863,86 +1822,6 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
 
   return OSIP_UNDEFINED_ERROR;
 }
-
-#ifndef MINISIZE
-
-static int
-eXosip_release_finished_transactions_for_subscription (eXosip_dialog_t *jd)
-{
-  time_t now = time (NULL);
-  osip_transaction_t *inc_tr;
-  osip_transaction_t *out_tr;
-  int skip_first=0;
-  int pos;
-  int ret;
-  
-  ret = -1;
-  
-  if (jd != NULL)
-    {
-      /* go through all incoming transactions of this dialog */
-      pos = 0;
-      while (!osip_list_eol (jd->d_inc_trs, pos))
-	{
-	  inc_tr = osip_list_get (jd->d_inc_trs, pos);
-	  /* remove, if transaction too old, independent of the state */
-	  if ((skip_first==1)
-	      && (inc_tr->state == NIST_TERMINATED)
-	      && (inc_tr->birth_time + 30 < now)) /* keep it for 30 seconds */
-	    {
-	      /* remove the transaction from oSIP */
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				      "eXosip: releaase non-INVITE server transaction (did=%i)\n",
-				      jd->d_id));
-	      osip_remove_transaction (eXosip.j_osip, inc_tr);
-	      osip_list_remove (jd->d_inc_trs, pos);
-	      osip_list_add (&eXosip.j_transactions, inc_tr, 0);
-	      
-	      ret = 0;
-	      break;
-	    }
-	  if (0 == osip_strcasecmp (inc_tr->cseq->method, "SUBSCRIBE"))
-	    skip_first=1;
-	  if (0 == osip_strcasecmp (inc_tr->cseq->method, "NOTIFY"))
-	    skip_first=1;
-	  pos++;
-	}
-      
-      skip_first=0;
-
-      /* go through all outgoing transactions of this dialog */
-      pos = 0;
-      while (!osip_list_eol (jd->d_out_trs, pos))
-	{
-	  out_tr = osip_list_get (jd->d_out_trs, pos);
-	  /* remove, if transaction too old, independent of the state */
-	  if ((skip_first==1)
-	      && (out_tr->state == NICT_TERMINATED)
-	      && (out_tr->birth_time + 30 < now)) /* Wait a max of 30 seconds */
-	    {
-	      /* remove the transaction from oSIP */
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				      "eXosip: release non INVITE client transaction (did=%i)\n",
-				      jd->d_id));
-	      osip_remove_transaction (eXosip.j_osip, out_tr);
-	      osip_list_remove (jd->d_out_trs, pos);
-	      osip_list_add (&eXosip.j_transactions, out_tr, 0);
-	      
-	      ret = 0;
-	      break;
-	    }
-	  if (0 == osip_strcasecmp (out_tr->cseq->method, "SUBSCRIBE"))
-	    skip_first=1;
-	  if (0 == osip_strcasecmp (out_tr->cseq->method, "NOTIFY"))
-	    skip_first=1;
-	  pos++;
-	}
-    } 
-  
-  return ret;
-}
-
-#endif
 
 static int
 eXosip_release_finished_transactions (eXosip_call_t *jc, eXosip_dialog_t *jd)
@@ -2418,3 +2297,129 @@ eXosip_release_terminated_publications (void)
     }
 
 }
+
+#ifndef MINISIZE
+
+static int
+eXosip_release_finished_transactions_for_subscription (eXosip_dialog_t *jd)
+{
+  time_t now = time (NULL);
+  osip_transaction_t *inc_tr;
+  osip_transaction_t *out_tr;
+  int skip_first=0;
+  int pos;
+  int ret;
+  
+  ret = OSIP_UNDEFINED_ERROR;
+  
+  if (jd != NULL)
+    {
+      /* go through all incoming transactions of this dialog */
+      pos = 0;
+      while (!osip_list_eol (jd->d_inc_trs, pos))
+	{
+	  inc_tr = osip_list_get (jd->d_inc_trs, pos);
+	  /* remove, if transaction too old, independent of the state */
+	  if ((skip_first==1)
+	      && (inc_tr->state == NIST_TERMINATED)
+	      && (inc_tr->birth_time + 30 < now)) /* keep it for 30 seconds */
+	    {
+	      /* remove the transaction from oSIP */
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				      "eXosip: releaase non-INVITE server transaction (did=%i)\n",
+				      jd->d_id));
+	      osip_remove_transaction (eXosip.j_osip, inc_tr);
+	      osip_list_remove (jd->d_inc_trs, pos);
+	      osip_list_add (&eXosip.j_transactions, inc_tr, 0);
+	      
+	      ret = OSIP_SUCCESS; /* return "released" */
+	      break;
+	    }
+	  if (0 == osip_strcasecmp (inc_tr->cseq->method, "SUBSCRIBE"))
+	    skip_first=1;
+	  if (0 == osip_strcasecmp (inc_tr->cseq->method, "NOTIFY"))
+	    skip_first=1;
+	  pos++;
+	}
+      
+      skip_first=0;
+
+      /* go through all outgoing transactions of this dialog */
+      pos = 0;
+      while (!osip_list_eol (jd->d_out_trs, pos))
+	{
+	  out_tr = osip_list_get (jd->d_out_trs, pos);
+	  /* remove, if transaction too old, independent of the state */
+	  if ((skip_first==1)
+	      && (out_tr->state == NICT_TERMINATED)
+	      && (out_tr->birth_time + 30 < now)) /* Wait a max of 30 seconds */
+	    {
+	      /* remove the transaction from oSIP */
+	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				      "eXosip: release non INVITE client transaction (did=%i)\n",
+				      jd->d_id));
+	      osip_remove_transaction (eXosip.j_osip, out_tr);
+	      osip_list_remove (jd->d_out_trs, pos);
+	      osip_list_add (&eXosip.j_transactions, out_tr, 0);
+	      
+	      ret = OSIP_SUCCESS; /* return "released" */
+	      break;
+	    }
+	  if (0 == osip_strcasecmp (out_tr->cseq->method, "SUBSCRIBE"))
+	    skip_first=1;
+	  if (0 == osip_strcasecmp (out_tr->cseq->method, "NOTIFY"))
+	    skip_first=1;
+	  pos++;
+	}
+    } 
+  
+  return ret;
+}
+
+void
+eXosip_release_terminated_subscriptions()
+{
+  eXosip_dialog_t *jd;
+  eXosip_dialog_t *jdnext;
+  eXosip_subscribe_t *js;
+  eXosip_subscribe_t *jsnext;
+
+  for (js = eXosip.j_subscribes; js != NULL;)
+    {
+      jsnext = js->next;
+
+      for (jd = js->s_dialogs; jd != NULL;)
+        {
+          jdnext = jd->next;
+	  eXosip_release_finished_transactions_for_subscription (jd);
+	  jd = jdnext;
+	}
+      js = jsnext;
+    }
+
+}
+
+void
+eXosip_release_terminated_in_subscriptions(void)
+{
+  eXosip_dialog_t *jd;
+  eXosip_dialog_t *jdnext;
+  eXosip_notify_t *jn;
+  eXosip_notify_t *jnnext;
+
+  for (jn = eXosip.j_notifies; jn != NULL;)
+    {
+      jnnext = jn->next;
+
+      for (jd = jn->n_dialogs; jd != NULL;)
+        {
+          jdnext = jd->next;
+	  eXosip_release_finished_transactions_for_subscription (jd);
+	  jd = jdnext;
+	}
+      jn = jnnext;
+    }
+}
+
+#endif
+
