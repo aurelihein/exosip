@@ -2391,7 +2391,7 @@ eXosip_release_terminated_subscriptions()
 
 	  if (js->s_dialogs==NULL)
 	  {
-	      if (js->s_out_tr!=NULL && js->s_out_tr->birth_time + 64 < now)   /* Wait a max of 2 minutes */
+	      if (js->s_out_tr!=NULL && js->s_out_tr->birth_time + 64 < now)   /* Wait a max of 64 sec */
 		  {
 			  /* destroy non established contexts after max of 64 sec */
 			  REMOVE_ELEMENT (eXosip.j_subscribes, js);

@@ -815,11 +815,20 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
   osip_event_t *evt_answer;
 
   if (tid < 0)
+  {
+	  osip_message_free (answer);
 	  return OSIP_BADPARAMETER;
+  }
   if (status <= 100)
+  {
+	  osip_message_free (answer);
 	  return OSIP_BADPARAMETER;
+  }
   if (status > 699)
+  {
+	  osip_message_free (answer);
 	  return OSIP_BADPARAMETER;
+  }
 
   if (tid > 0)
     {
@@ -844,6 +853,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Wrong parameter?\n"));
+		      osip_message_free (answer);
               return OSIP_BADPARAMETER;
             }
         }
@@ -866,9 +876,10 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
     {
       if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
         {
-	  osip_message_t *response;
+		  osip_message_t *response;
           return _eXosip_answer_invite_123456xx (jc, jd, status, &response, 1);
-	}
+		}
+      osip_message_free (answer);
       return OSIP_BADPARAMETER;
   }
   
