@@ -258,7 +258,10 @@ eXosip_call_send_initial_invite (osip_message_t * invite)
   int i;
 
   if (invite==NULL)
+  {
+      osip_message_free (invite);
 	  return OSIP_BADPARAMETER;
+  }
 
   i = eXosip_call_init (&jc);
   if (i != 0)
