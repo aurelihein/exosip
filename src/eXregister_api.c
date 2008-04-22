@@ -291,7 +291,10 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
   int i;
 
   if (rid<=0)
+  {
+	  osip_message_free (reg);
 	  return OSIP_BADPARAMETER;
+  }
 
   jr = eXosip_reg_find (rid);
   if (jr == NULL)
