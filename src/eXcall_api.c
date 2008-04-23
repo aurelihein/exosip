@@ -555,10 +555,13 @@ eXosip_call_send_request (int jid, osip_message_t * request)
 
   int i;
 
-  if (jid <= 0)
-	  return OSIP_BADPARAMETER;
   if (request == NULL)
     return OSIP_BADPARAMETER;
+  if (jid <= 0)
+  {
+      osip_message_free (request);
+	  return OSIP_BADPARAMETER;
+  }
 
   if (request->sip_method == NULL)
     {
