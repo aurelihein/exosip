@@ -737,7 +737,7 @@ eXosip_init (void)
 
   eXosip.use_rport = 1;
 
-  eXosip.keep_alive = 32000;
+  eXosip.keep_alive = 17000;
 
   eXtl_udp.tl_init();
   eXtl_tcp.tl_init();
@@ -759,12 +759,12 @@ eXosip_execute (void)
 
 #ifdef OSIP_MT
   osip_timers_gettimeout (eXosip.j_osip, &lower_tv);
-  if (lower_tv.tv_sec > 15)
+  if (lower_tv.tv_sec > 10)
     {
-      lower_tv.tv_sec = 15;
+      lower_tv.tv_sec = 10;
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                   "eXosip: Reseting timer to 15s before waking up!\n"));
+                   "eXosip: Reseting timer to 10s before waking up!\n"));
   } else
     {
       /*  add a small amount of time on windows to avoid
@@ -1052,6 +1052,11 @@ _eXosip_keep_alive (void)
       return;                   /* not yet time */
     }
 
+  OSIP_TRACE (osip_trace
+              (__FILE__, __LINE__, OSIP_WARNING, NULL,
+              "keep alive: %i\n",
+               now.tv_sec-mtimer.tv_sec));
+  
   /* reset timer */
   osip_gettimeofday (&mtimer, NULL);
   add_gettimeofday (&mtimer, eXosip.keep_alive);
