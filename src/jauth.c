@@ -188,11 +188,11 @@ DigestCalcResponse (IN HASHHEX HA1,     /* H(A1) */
     {
       goto auth_withoutqop;
     }
-  else if (0 == strcmp (pszQop, "auth-int"))
+  else if (0 == osip_strcasecmp (pszQop, "auth-int"))
     {
       goto auth_withauth_int;
     }
-  else if (0 == strcmp (pszQop, "auth"))
+  else if (0 == osip_strcasecmp (pszQop, "auth"))
     {
       goto auth_withauth;
     }
@@ -704,7 +704,7 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
     pszPass = passwd;
 
     /* Depending on which algorithm the response will be calculated, MD5 or AKAv1-MD5 */
-    if(0 == strcmp(Alg,"MD5"))
+    if(0 == osip_strcasecmp(Alg,"MD5"))
       {
       if (ha1 && ha1[0])
       {
@@ -724,7 +724,7 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
       }
     else
       {
-	if(0==strcmp(Alg,"AKAv1-MD5"))
+	if(0==osip_strcasecmp(Alg,"AKAv1-MD5"))
 	  version = 1;
 	else
 	  version = 2;
@@ -970,7 +970,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
 		}
       }
 
-    if(0 == strcmp(Alg,"MD5"))
+    if(0 == osip_strcasecmp(Alg,"MD5"))
       {
 	if (ha1 && ha1[0])
 	  {
@@ -988,7 +988,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
       }
     else
       {
-	if(0==strcmp(Alg,"AKAv1-MD5"))
+	if(0==osip_strcasecmp(Alg,"AKAv1-MD5"))
 	  version = 1;
 	else
 	  version = 2;
