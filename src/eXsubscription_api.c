@@ -177,6 +177,7 @@ eXosip_subscribe_send_initial_request (osip_message_t * subscribe)
       return i;
     }
 
+  js->s_reg_period = 3600;
   _eXosip_subscribe_set_refresh_interval (js, subscribe);
   js->s_out_tr = transaction;
 
@@ -306,6 +307,7 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
       return i;
     }
 
+  js->s_reg_period = 3600;
   _eXosip_subscribe_set_refresh_interval (js, sub);
   osip_list_add (jd->d_out_trs, transaction, 0);
 
