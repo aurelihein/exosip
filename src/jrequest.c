@@ -98,9 +98,9 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
   int len;
 
   if (eXosip.eXtl==NULL)
-    return -1;
+    return OSIP_NO_NETWORK;
   if (request==NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
@@ -115,7 +115,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: missing via header\n"));
-      return -1;
+      return OSIP_SYNTAXERROR;
     }
 
   if (answer==NULL)
@@ -124,7 +124,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
     a_from = answer->to;
 
   if (a_from == NULL || a_from->url == NULL)
-    return -1;
+    return OSIP_SYNTAXERROR;
 
   /*guess the local ip since req uri is known */
   memset(locip, '\0', sizeof(locip));
@@ -147,19 +147,19 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 
       i = eXosip_get_addrinfo (&addrinfo, request->req_uri->host, 5060, IPPROTO_TCP);
       if (i == 0)
-        {
-	  memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-	  eXosip_freeaddrinfo (addrinfo);
-	  c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				  "eXosip: here is the resolved destination host=%s\n",
-				  c_address));
-        }
+      {
+        memcpy (&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+        eXosip_freeaddrinfo (addrinfo);
+        c_address = inet_ntoa (((struct sockaddr_in *) &addr)->sin_addr);
+        OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+          "eXosip: here is the resolved destination host=%s\n",
+          c_address));
+      }
 
       if (eXosip_is_public_address (c_address))
-        {
-	  memcpy(locip, firewall_ip, sizeof(locip));
-	}
+      {
+    	  memcpy(locip, firewall_ip, sizeof(locip));
+      }
     }
 
   if (locip[0] == '\0')
@@ -170,7 +170,7 @@ _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer)
 	  OSIP_TRACE (osip_trace
 		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
 		       "eXosip: no default interface defined\n"));
-	  return -1;
+	  return OSIP_NO_NETWORK;
 	}
     }
 
@@ -212,13 +212,13 @@ _eXosip_request_add_via(osip_message_t *request, const char *transport, const ch
   char firewall_port[10];
 
   if (request==NULL)
-    return -1;
+    return OSIP_BADPARAMETER;
 
   if (request->call_id==NULL)
-    return -1;
+    return OSIP_SYNTAXERROR;
 
   if (locip==NULL && request->call_id->host==NULL)
-    return -1;
+    return OSIP_SYNTAXERROR;
 
   if (locip!=NULL)
     ip = locip;
@@ -292,7 +292,7 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   *dest = NULL;
 
   if (eXosip.eXtl==NULL)
-    return -1;
+    return OSIP_NO_NETWORK;
 
   /*guess the local ip since req uri is known */
   memset(locip, '\0', sizeof(locip));
@@ -302,12 +302,12 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "eXosip: no default interface defined\n"));
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   i = osip_message_init (&request);
   if (i != 0)
-    return -1;
+    return i;
 
   /* prepare the request-line */
   osip_message_set_method (request, osip_strdup (method));
@@ -323,7 +323,8 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
       i = osip_uri_parse (request->req_uri, proxy);
       if (i != 0)
         {
-          goto brood_error_1;
+          osip_message_free (request);
+          return i;
         }
       osip_message_set_to (request, from);
   } else
@@ -336,7 +337,8 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "ERROR: callee address does not seems to be a sipurl: %s\n",
                        to));
-          goto brood_error_1;
+          osip_message_free (request);
+          return i;
         }
 
 	  /* REMOVE ALL URL PARAMETERS from to->url headers and add them as headers */
@@ -389,7 +391,8 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
           if (i != 0)
             {
               osip_route_free (o_proxy);
-              goto brood_error_1;
+              osip_message_free (request);
+              return i;
             }
 
           osip_uri_uparam_get_byname (o_proxy->url, "lr", &lr_param);
@@ -414,22 +417,26 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                */
               osip_message_set_route (request, to);
             }
-      } else                    /* No route set (outbound proxy) is used */
+      }
+      else                    /* No route set (outbound proxy) is used */
         {
           /* The UAC must put the remote target URI (to field) in the req_uri */
           i = osip_uri_clone (request->to->url, &(request->req_uri));
           if (i != 0)
-            goto brood_error_1;
+          {
+            osip_message_free (request);
+            return i;
+          }
         }
     }
 
-  if (locip[0]=='\0')
-    goto brood_error_1;
-
   /* set To and From */
-  osip_message_set_from (request, from);
-  if (request->from==NULL)
-    goto brood_error_1;
+  i = osip_message_set_from (request, from);
+  if (i!=0)
+  {
+    osip_message_free (request);
+    return i;
+  }
 
   /* add a tag */
   osip_from_set_tag (request->from, osip_from_tag_new_random ());
@@ -444,29 +451,41 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
     /* call-id is always the same for REGISTRATIONS */
     i = osip_call_id_init (&callid);
     if (i != 0)
-      goto brood_error_1;
+    {
+      osip_message_free (request);
+      return i;
+    }
     cidrand = osip_call_id_new_random ();
     osip_call_id_set_number (callid, cidrand);
     if (doing_register)
       register_callid_number = cidrand;
 
-#if 0
-    osip_call_id_set_host (callid, osip_strdup (locip));
-#endif
     request->call_id = callid;
 
     i = osip_cseq_init (&cseq);
     if (i != 0)
-      goto brood_error_1;
+    {
+      osip_message_free (request);
+      return i;
+    }
     num = osip_strdup (doing_register ? "1" : "20");
     osip_cseq_set_number (cseq, num);
     osip_cseq_set_method (cseq, osip_strdup (method));
     request->cseq = cseq;
+
+    if (cseq->method == NULL || cseq->number==NULL)
+    {
+      osip_message_free (request);
+      return OSIP_NOMEM;
+    }
   }
 
   i = _eXosip_request_add_via(request, transport, locip);
   if (i != 0)
-    goto brood_error_1;
+  {
+    osip_message_free (request);
+    return i;
+  }
 
   /* always add the Max-Forward header */
   osip_message_set_max_forwards (request, "70"); /* a UA should start a request with 70 */
@@ -484,11 +503,6 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
   /*  else if ... */
   *dest = request;
   return OSIP_SUCCESS;
-
-brood_error_1:
-  osip_message_free (request);
-  *dest = NULL;
-  return -1;
 }
 
 int
@@ -500,7 +514,7 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
   char firewall_ip[65];
   char firewall_port[10];
   if (eXosip.eXtl==NULL)
-    return -1;
+    return OSIP_NO_NETWORK;
 
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
@@ -512,7 +526,7 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
     generating_request_out_of_dialog (reg, "REGISTER", NULL, transport, from,
                                       proxy);
   if (i != 0)
-    return -1;
+    return i;
 
   memset(locip, '\0', sizeof(locip));
   eXosip_guess_ip_for_via (eXosip.eXtl->proto_family, locip, 49);
@@ -524,7 +538,7 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
                    "eXosip: no default interface defined\n"));
       osip_message_free(*reg);
       *reg=NULL;
-      return -1;
+      return OSIP_NO_NETWORK;
     }
 
   if (contact == NULL)
@@ -741,7 +755,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
     return OSIP_BADPARAMETER;
 
   if (eXosip.eXtl==NULL)
-    return OSIP_API_NOT_INITIALIZED;
+    return OSIP_NO_NETWORK;
 
   if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
     {
