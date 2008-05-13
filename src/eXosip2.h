@@ -409,9 +409,6 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 
   struct eXosip_t
   {
-#if 0
-    struct eXosip_net net_interfaces[3];
-#endif
     struct eXtl_protocol *eXtl;
     char transport[10];
     char *user_agent;
