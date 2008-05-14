@@ -52,6 +52,13 @@ eXosip_get_version(void)
   return EXOSIP_VERSION;
 }
 
+int
+eXosip_set_cbsip_message(CbSipCallback cbsipCallback)
+{
+  eXosip.cbsipCallback = cbsipCallback;
+  return 0;
+}
+
 void
 eXosip_masquerade_contact (const char *public_address, int port)
 {

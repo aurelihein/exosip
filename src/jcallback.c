@@ -197,6 +197,11 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 	  }
     }
 
+  if (eXosip.cbsipCallback!=NULL)
+  {
+    eXosip.cbsipCallback(sip);
+  }
+
   i = -1;
   if (osip_strcasecmp (via->protocol, "udp") == 0)
     {

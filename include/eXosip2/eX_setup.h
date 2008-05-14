@@ -180,6 +180,15 @@ int eXosip_set_option(eXosip_option opt, const void *value);
   */
   const char * eXosip_get_version(void);
 
+  typedef void (*CbSipCallback) (osip_message_t *msg);
+
+/**
+ * Set a callback to get sent and received SIP messages.
+ *
+ * @param cbsipCallback the callback to retreive messages.
+ */
+  int eXosip_set_cbsip_message(CbSipCallback cbsipCallback);
+
 /**
  * Use IPv6 instead of IPv4.
  * 

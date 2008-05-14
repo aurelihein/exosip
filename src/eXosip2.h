@@ -459,6 +459,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
 	struct eXosip_account_info account_entries[MAX_EXOSIP_ACCOUNT_INFO];
     struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
+
+    CbSipCallback cbsipCallback;
   };
 
   typedef struct jinfo_t jinfo_t;

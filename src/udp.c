@@ -1592,6 +1592,11 @@ _eXosip_handle_incoming_message (char *buf, size_t length, int socket,
 				   "MESSAGE REC. CALLID:%s\n", se->sip->call_id->number));
   }
 
+  if (eXosip.cbsipCallback!=NULL)
+  {
+    eXosip.cbsipCallback(se->sip);  
+  }
+
   if (MSG_IS_REQUEST (se->sip))
     {
       if (se->sip->sip_method == NULL || se->sip->req_uri == NULL)
