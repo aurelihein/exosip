@@ -180,7 +180,7 @@ int eXosip_set_option(eXosip_option opt, const void *value);
   */
   const char * eXosip_get_version(void);
 
-  typedef void (*CbSipCallback) (osip_message_t *msg);
+  typedef void (*CbSipCallback) (osip_message_t *msg, int received);
 
 /**
  * Set a callback to get sent and received SIP messages.

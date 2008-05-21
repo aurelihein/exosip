@@ -199,7 +199,7 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   if (eXosip.cbsipCallback!=NULL)
   {
-    eXosip.cbsipCallback(sip);
+    eXosip.cbsipCallback(sip, 0);
   }
 
   i = -1;

@@ -1594,7 +1594,7 @@ _eXosip_handle_incoming_message (char *buf, size_t length, int socket,
 
   if (eXosip.cbsipCallback!=NULL)
   {
-    eXosip.cbsipCallback(se->sip);  
+    eXosip.cbsipCallback(se->sip, 1);  
   }
 
   if (MSG_IS_REQUEST (se->sip))
