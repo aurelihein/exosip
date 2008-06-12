@@ -934,6 +934,136 @@ _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_sr
 	return OSIP_SUCCESS;
 }
 
+#if 0
+
+int
+_eXosip_get_naptr(struct osip_srv_record *record, char *domain, char *protocol)
+{
+	char zone[1024];
+	PDNS_RECORD answer, tmp;      /* answer buffer from nameserver */
+	int n;
+	char tr[100];
+
+	if (domain==NULL || protocol==NULL)
+		return OSIP_BADPARAMETER;
+
+	memset(record, 0, sizeof(struct osip_srv_record));
+	if (strlen(domain)+strlen(protocol)>1000)
+		return OSIP_BADPARAMETER;
+
+	if (strlen(protocol)>=100)
+	  return OSIP_BADPARAMETER;
+	snprintf(tr, 100, protocol);
+	osip_tolower(tr);
+
+	snprintf(zone, 1024, "%s", domain);
+
+	OSIP_TRACE (osip_trace
+				(__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"About to ask for '%s NAPTR'\n", zone));
+
+	if (DnsQuery (zone, DNS_TYPE_NAPTR, DNS_QUERY_STANDARD, NULL, &answer, NULL) != 0)
+	{
+		return OSIP_UNKNOWN_HOST;
+  }
+
+	n = 0;
+	for (tmp = answer; tmp != NULL; tmp = tmp->pNext)
+	{
+    char *buf=(char *)&tmp->Data;
+    int len;
+    typedef struct {
+      unsigned short order;
+      unsigned short pref;
+      char flag[256];
+      char service[1024];
+      char regexp[1024];
+      char replacement[1024];
+    } osip_naptr_t;
+    osip_naptr_t anaptr;
+
+		if (tmp->wType != DNS_TYPE_NAPTR)
+			continue;
+
+    memset(&anaptr, 0, sizeof(osip_naptr_t));
+
+    memcpy((void*)&anaptr.order, buf, 2);
+    anaptr.order = ntohs(anaptr.order); //((unsigned short)buf[0] << 8) | ((unsigned short)buf[1]);
+    buf += sizeof(unsigned short);
+    memcpy((void*)&anaptr.pref, buf, 2);
+    anaptr.pref = ntohs(anaptr.pref); //((unsigned short)buf[0] << 8) | ((unsigned short)buf[1]);
+    buf += sizeof(unsigned short);
+
+    len = *buf;
+    buf++;
+    strncpy(anaptr.flag, buf, len);
+	  anaptr.flag[len] = '\0';
+	  buf += len;
+
+    len = *buf;
+    buf++;
+    strncpy(anaptr.service, buf, len);
+	  anaptr.service[len] = '\0';
+	  buf += len;
+
+    len = *buf;
+    buf++;
+    strncpy(anaptr.regexp, buf, len);
+	  anaptr.regexp[len] = '\0';
+	  buf += len;
+
+    dn_expand(tmp->Data, ((char *)(&tmp->Data))+tmp->wDataLength,
+      buf, anaptr.replacement, 1024-1);
+/*
+    len = *buf;
+    buf++;
+    strncpy(anaptr.replacement, buf, len);
+	  anaptr.replacement[len] = '\0';
+  */
+    /*
+                              1  1  1  1  1  1
+            0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          |                     ORDER                     |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          |                   PREFERENCE                  |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          /                     FLAGS                     /
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          /                   SERVICES                    /
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          /                    REGEXP                     /
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          /                  REPLACEMENT                  /
+          /                                               /
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          */
+
+
+		OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_INFO2, NULL,
+					"NAPTR %s ->%i/%i/%s/%s/%s/%s\n",
+					zone, anaptr.order, anaptr.pref, anaptr.flag,
+					anaptr.service, anaptr.regexp, anaptr.replacement));
+		//OSIP_TRACE (osip_trace
+		//			(__FILE__, __LINE__, OSIP_INFO2, NULL,
+		//			"NAPTR %s ->%i/%i/%s/%s/%s/%s\n",
+		//			zone, anaptr->order, anaptr->pref, anaptr->flag,
+		//			anaptr->service, anaptr->regexp, anaptr->replacement));
+		n++;
+	}
+
+  DnsRecordListFree(answer, DnsFreeRecordList);
+
+	if (n==0)
+		return OSIP_UNKNOWN_HOST;
+
+	snprintf(record->name, sizeof(record->name), "%s", domain);
+	return OSIP_SUCCESS;
+}
+
+#endif
+
 #if defined(WIN32) && !defined(_WIN32_WCE)
 
 int
@@ -993,6 +1123,8 @@ _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *prot
 					srventry->weight, srventry->rweight));
 		n++;
 	}
+
+  DnsRecordListFree(answer, DnsFreeRecordList);
 
 	if (n==0)
 		return OSIP_UNKNOWN_HOST;
