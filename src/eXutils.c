@@ -996,14 +996,11 @@ _eXosip_srv_lookup (osip_transaction_t * tr, osip_message_t * sip,
 #if 0
 
 int
-eXosip_get_naptr (struct osip_srv_record *record, char *domain, char *protocol)
+eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length)
 {
   char zone[1024];
-
   PDNS_RECORD answer, tmp;      /* answer buffer from nameserver */
-
   int n;
-
   char tr[100];
 
   if (domain == NULL || protocol == NULL)
@@ -1034,9 +1031,7 @@ eXosip_get_naptr (struct osip_srv_record *record, char *domain, char *protocol)
   for (tmp = answer; tmp != NULL; tmp = tmp->pNext)
     {
       char *buf = (char *) &tmp->Data;
-
       int len;
-
       typedef struct
       {
         unsigned short order;
@@ -1105,7 +1100,8 @@ eXosip_get_naptr (struct osip_srv_record *record, char *domain, char *protocol)
 
 
 int
-eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length)
+eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
+                       char *protocol)
 {
   char zone[1024];
   PDNS_RECORD answer, tmp;      /* answer buffer from nameserver */
