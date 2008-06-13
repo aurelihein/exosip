@@ -993,7 +993,6 @@ _eXosip_srv_lookup (osip_transaction_t * tr, osip_message_t * sip,
 }
 
 #if defined(WIN32) && !defined(_WIN32_WCE)
-#if 0
 
 int
 eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length)
@@ -1003,10 +1002,13 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
   int n;
   char tr[100];
 
+  /* Not yet implemented 100% (replacement string is not expanded) */
+  return OSIP_UNDEFINED_ERROR;
+
   if (domain == NULL || protocol == NULL)
     return OSIP_BADPARAMETER;
 
-  memset (record, 0, sizeof (struct osip_srv_record));
+  memset (srv_record, 0, max_length);
   if (strlen (domain) + strlen (protocol) > 1000)
     return OSIP_BADPARAMETER;
 
@@ -1084,6 +1086,38 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
                    "NAPTR %s ->%i/%i/%s/%s/%s/%s\n",
                    zone, anaptr.order, anaptr.pref, anaptr.flag,
                    anaptr.service, anaptr.regexp, anaptr.replacement));
+
+      if (osip_strncasecmp (tr, "udp", 4) == 0
+          && osip_strncasecmp (anaptr.service, "SIP+D2U", 8) == 0)
+        {
+          snprintf (srv_record, max_length, "%s", anaptr.replacement);
+          return OSIP_SUCCESS;
+      } else if (osip_strncasecmp (tr, "tcp", 4) == 0
+                 && osip_strncasecmp (anaptr.service, "SIP+D2T", 8) == 0)
+        {
+          snprintf (srv_record, max_length, "%s", anaptr.replacement);
+          DnsRecordListFree (answer, DnsFreeRecordList);
+          return OSIP_SUCCESS;
+      } else if (osip_strncasecmp (tr, "udp-tls", 8) == 0
+                 && osip_strncasecmp (anaptr.service, "SIPS+D2U", 9) == 0)
+        {
+          snprintf (srv_record, max_length, "%s", anaptr.replacement);
+          DnsRecordListFree (answer, DnsFreeRecordList);
+          return OSIP_SUCCESS;
+      } else if (osip_strncasecmp (tr, "tls", 4) == 0
+                 && osip_strncasecmp (anaptr.service, "SIPS+D2T", 9) == 0)
+        {
+          snprintf (srv_record, max_length, "%s", anaptr.replacement);
+          DnsRecordListFree (answer, DnsFreeRecordList);
+          return OSIP_SUCCESS;
+      } else if (osip_strncasecmp (tr, "sctp", 5) == 0
+                 && osip_strncasecmp (anaptr.service, "SIP+D2S", 8) == 0)
+        {
+          snprintf (srv_record, max_length, "%s", anaptr.replacement);
+          DnsRecordListFree (answer, DnsFreeRecordList);
+          return OSIP_SUCCESS;
+        }
+
       n++;
     }
 
@@ -1092,11 +1126,8 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
   if (n == 0)
     return OSIP_UNKNOWN_HOST;
 
-  snprintf (record->name, sizeof (record->name), "%s", domain);
-  return OSIP_SUCCESS;
+  return OSIP_UNDEFINED_ERROR;
 }
-
-#endif
 
 
 int
@@ -1120,7 +1151,14 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   snprintf (tr, 100, protocol);
   osip_tolower (tr);
 
-  snprintf (zone, 1024, "_sip._%s.%s", tr, domain);
+  n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
+  if (n != OSIP_SUCCESS)
+    {
+      snprintf (zone, sizeof (zone) - 1, "_sip._%s.%s", tr, domain);
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                   "Using locally generated SRV record %s\n", zone));
+    }
 
   OSIP_TRACE (osip_trace
               (__FILE__, __LINE__, OSIP_INFO2, NULL,
@@ -1156,6 +1194,7 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
                    "SRV record %s IN SRV -> %s:%i/%i/%i/%i\n",
                    zone, srventry->srv, srventry->port, srventry->priority,
                    srventry->weight, srventry->rweight));
+
       n++;
     }
 
