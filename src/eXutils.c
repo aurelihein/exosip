@@ -995,6 +995,71 @@ _eXosip_srv_lookup (osip_transaction_t * tr, osip_message_t * sip,
 #if defined(WIN32) && !defined(_WIN32_WCE)
 
 int
+_eX_dn_expand(unsigned char *msg, unsigned char *eomorig, unsigned char *comp_dn, unsigned char *exp_dn, int length)
+{
+	unsigned char *cp;
+  unsigned char *dest;
+  unsigned char *eom;
+	int len = -1;
+  int len_copied = 0;
+
+	dest = exp_dn;
+	cp = comp_dn;
+	eom = exp_dn + length;
+
+	while (*cp != '\0') {
+    int w = *cp;
+    int comp = w & 0xc0;
+    cp++;
+		if (comp == 0) {
+
+      if (dest != exp_dn) {
+				if (dest >= eom)
+					return -1;
+				*dest = '.';
+        dest++;
+			}
+			if (dest+w >= eom)
+				return -1;
+			len_copied++;
+			len_copied = len_copied + w;
+      w--;
+      for (;w>=0;w--,cp++)
+      {
+				if ((*cp == '.') || (*cp == '\\')) {
+					if (dest + w + 2 >= eom)
+						return -1;
+					*dest = '\\';
+          dest++;
+          }
+				*dest = *cp;
+        dest++;
+				if (cp >= eomorig)
+					return -1;
+      }
+    }
+		else if ( comp == 0xc0) {
+			if (len < 0)
+				len = cp - comp_dn + 1;
+			cp = msg + (((w & 0x3f) << 8) | (*cp & 0xff));
+			if (cp < msg || cp >= eomorig)
+				return -1;
+			len_copied = len_copied + 2;
+			if (len_copied >= eomorig - msg)
+				return -1;
+    }
+		else
+			return -1;
+	}
+
+	*dest = '\0';
+
+	if (len < 0)
+		len = cp - comp_dn;
+	return len;
+}
+
+int
 eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length)
 {
   char zone[1024];
@@ -1003,7 +1068,7 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
   char tr[100];
 
   /* Not yet implemented 100% (replacement string is not expanded) */
-  return OSIP_UNDEFINED_ERROR;
+  //return OSIP_UNDEFINED_ERROR;
 
   if (domain == NULL || protocol == NULL)
     return OSIP_BADPARAMETER;
@@ -1076,10 +1141,11 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
       anaptr.regexp[len] = '\0';
       buf += len;
 
-      len = *buf;
-      buf++;
-      strncpy(anaptr.replacement, buf, len);
-      anaptr.replacement[len] = '\0';
+      len = _eX_dn_expand ((char *)&tmp->Data, ((char *)&tmp->Data)+tmp->wDataLength, buf, anaptr.replacement, 1024 - 1);
+
+      if (len < 0)
+        break;
+      buf += len;
 
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
