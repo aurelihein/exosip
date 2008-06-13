@@ -144,7 +144,17 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param domain      domain name for SRV record
  * @param protocol    protocol to use
  */
-  int _eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
+  int eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
+
+/**
+ * Ask for NAPTR request.
+ * 
+ * @param domain        domain name for SRV record
+ * @param protocol      protocol to use
+ * @param srv_record  result structure.
+ * @param max_length sizeof srv_record.
+ */
+  int eXosip_get_naptr(char *domain, char *protocol, char *srv_record, int max_length);
 
 /**
  * Listen on a specified socket.
