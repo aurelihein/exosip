@@ -1064,48 +1064,25 @@ eXosip_get_naptr (struct osip_srv_record *record, char *domain, char *protocol)
       len = *buf;
       buf++;
       strncpy (anaptr.flag, buf, len);
-      anaptr.flag[len] = '\0';
-      buf += len;
+      anaptr.flag[len] = '\0';
+      buf += len;
 
       len = *buf;
       buf++;
       strncpy (anaptr.service, buf, len);
-      anaptr.service[len] = '\0';
-      buf += len;
+      anaptr.service[len] = '\0';
+      buf += len;
 
       len = *buf;
       buf++;
       strncpy (anaptr.regexp, buf, len);
-      anaptr.regexp[len] = '\0';
-      buf += len;
+      anaptr.regexp[len] = '\0';
+      buf += len;
 
-      dn_expand (tmp->Data, ((char *) (&tmp->Data)) + tmp->wDataLength,
-                 buf, anaptr.replacement, 1024 - 1);
-/*
-    len = *buf;
-    buf++;
-    strncpy(anaptr.replacement, buf, len);
-	  anaptr.replacement[len] = '\0';
-  */
-      /*
-         1  1  1  1  1  1
-         0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         |                     ORDER                     |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         |                   PREFERENCE                  |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         /                     FLAGS                     /
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         /                   SERVICES                    /
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         /                    REGEXP                     /
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         /                  REPLACEMENT                  /
-         /                                               /
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-       */
-
+      len = *buf;
+      buf++;
+      strncpy(anaptr.replacement, buf, len);
+      anaptr.replacement[len] = '\0';
 
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
