@@ -1105,15 +1105,11 @@ eXosip_get_naptr (struct osip_srv_record *record, char *domain, char *protocol)
 
 
 int
-eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
-                       char *protocol)
+eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length)
 {
   char zone[1024];
-
   PDNS_RECORD answer, tmp;      /* answer buffer from nameserver */
-
   int n;
-
   char tr[100];
 
   if (domain == NULL || protocol == NULL)
@@ -1143,7 +1139,6 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   for (tmp = answer; tmp != NULL; tmp = tmp->pNext)
     {
       struct osip_srv_entry *srventry;
-
       DNS_SRV_DATA *data;
 
       if (tmp->wType != DNS_TYPE_SRV)
@@ -1206,25 +1201,15 @@ int
 eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length)
 {
   querybuf answer;              /* answer buffer from nameserver */
-
   int n;
-
   char zone[1024];
-
   int ancount, qdcount;         /* answer count and query count */
-
   HEADER *hp;                   /* answer buffer header */
-
   char hostbuf[256];
-
   unsigned char *msg, *eom, *cp;        /* answer buffer positions */
-
   int dlen, type, aclass;
-
   long ttl;
-
   int answerno;
-
   char tr[100];
 
   memset (srv_record, 0, max_length);
@@ -1433,25 +1418,15 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
                        char *protocol)
 {
   querybuf answer;              /* answer buffer from nameserver */
-
   int n;
-
   char zone[1024];
-
   int ancount, qdcount;         /* answer count and query count */
-
   HEADER *hp;                   /* answer buffer header */
-
   char hostbuf[256];
-
   unsigned char *msg, *eom, *cp;        /* answer buffer positions */
-
   int dlen, type, aclass, pref, weight, port;
-
   long ttl;
-
   int answerno;
-
   char tr[100];
 
   if (domain == NULL || protocol == NULL)
