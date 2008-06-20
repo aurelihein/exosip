@@ -612,16 +612,32 @@ eXosip_process_new_subscribe (osip_transaction_t * transaction, osip_event_t * e
 		  evt_answer = osip_new_outgoing_sipmessage (answer);
 		  evt_answer->transactionid = transaction->transactionid;
 		  eXosip_update ();
+  	  osip_message_set_content_length (answer, "0");
 		  osip_transaction_add_event (transaction, evt_answer);
-		  return;
 	  }
-	  osip_message_set_content_length (answer, "0");
 	  osip_list_add (&eXosip.j_transactions, transaction, 0);
 	  osip_transaction_set_your_instance (transaction, NULL);
 	  return;
   }
 
-  eXosip_notify_init (&jn, evt->sip);
+  i = eXosip_notify_init (&jn, evt->sip);
+  if (i != 0)
+    {
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                              "ERROR: missing contact or memory\n"));
+	  i = _eXosip_build_response_default (&answer, NULL, 400, evt->sip);
+	  if (i == 0)	
+	  {
+		  evt_answer = osip_new_outgoing_sipmessage (answer);
+		  evt_answer->transactionid = transaction->transactionid;
+		  eXosip_update ();
+  	  osip_message_set_content_length (answer, "0");
+		  osip_transaction_add_event (transaction, evt_answer);
+	  }
+	  osip_list_add (&eXosip.j_transactions, transaction, 0);
+	  osip_transaction_set_your_instance (transaction, NULL);
+	  return;
+    }
   _eXosip_notify_set_refresh_interval (jn, evt->sip);
 
   i = _eXosip_build_response_default (&answer, NULL, 101, evt->sip);
