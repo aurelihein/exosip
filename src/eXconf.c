@@ -805,10 +805,10 @@ eXosip_execute (void)
   osip_timers_ist_execute (eXosip.j_osip);
   osip_timers_nist_execute (eXosip.j_osip);
 
-  osip_ict_execute (eXosip.j_osip);
+  osip_nist_execute (eXosip.j_osip);
   osip_nict_execute (eXosip.j_osip);
   osip_ist_execute (eXosip.j_osip);
-  osip_nist_execute (eXosip.j_osip);
+  osip_ict_execute (eXosip.j_osip);
 
   /* free all Calls that are in the TERMINATED STATE? */
   eXosip_release_terminated_calls ();

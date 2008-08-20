@@ -1130,18 +1130,24 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
       buf += sizeof (unsigned short);
 
       len = *buf;
+      if (len<0 || len>255)
+	break;
       buf++;
       strncpy (anaptr.flag, buf, len);
       anaptr.flag[len] = '\0';
       buf += len;
 
       len = *buf;
+      if (len<0 || len>1023)
+	break;
       buf++;
       strncpy (anaptr.service, buf, len);
       anaptr.service[len] = '\0';
       buf += len;
 
       len = *buf;
+      if (len<0 || len>1023)
+	break;
       buf++;
       strncpy (anaptr.regexp, buf, len);
       anaptr.regexp[len] = '\0';

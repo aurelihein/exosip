@@ -326,13 +326,22 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
           osip_message_free (request);
           return i;
         }
-      osip_message_set_to (request, from);
+      i = osip_message_set_to (request, from);
+      if (i!=0 || request->to==NULL)
+      {
+        if (i>=0)
+          i=OSIP_SYNTAXERROR;
+        osip_message_free (request);
+        return i;
+      }
   } else
     {
       /* in any cases except REGISTER: */
       i = osip_message_set_to (request, to);
-      if (i != 0)
+      if (i != 0 || request->to==NULL)
         {
+          if (i>=0)
+            i=OSIP_SYNTAXERROR;
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_ERROR, NULL,
                        "ERROR: callee address does not seems to be a sipurl: %s\n",
@@ -432,8 +441,10 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
 
   /* set To and From */
   i = osip_message_set_from (request, from);
-  if (i!=0)
+  if (i!=0 || request->from==NULL)
   {
+    if (i>=0)
+      i=OSIP_SYNTAXERROR;
     osip_message_free (request);
     return i;
   }
