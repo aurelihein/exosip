@@ -1220,15 +1220,17 @@ eXosip_find_authentication_info (const char *username, const char *realm)
 
   for (authinfo = eXosip.authinfos; authinfo != NULL; authinfo = authinfo->next)
     {
-      OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO3, NULL,
-                   "INFO: authinfo: %s %s\n", realm, authinfo->realm));
+      if (realm!=NULL && authinfo->realm!=NULL)
+		  OSIP_TRACE (osip_trace
+					  (__FILE__, __LINE__, OSIP_INFO3, NULL,
+					   "INFO: authinfo: %s %s\n", realm, authinfo->realm));
       if (0 == osip_strcasecmp (authinfo->username, username))
         {
           if (authinfo->realm == NULL || authinfo->realm[0] == '\0')
             {
               fallback = authinfo;
-          } else if (osip_strcasecmp (realm, authinfo->realm) == 0
+          } else if (realm==NULL
+			  || osip_strcasecmp (realm, authinfo->realm) == 0
                      || 0 == osip_strncasecmp (realm + 1, authinfo->realm,
                                       strlen (realm) - 2))
             {
@@ -1241,13 +1243,15 @@ eXosip_find_authentication_info (const char *username, const char *realm)
      try with another username... */
   for (authinfo = eXosip.authinfos; authinfo != NULL; authinfo = authinfo->next)
     {
-      OSIP_TRACE (osip_trace
+      if (realm!=NULL && authinfo->realm!=NULL)
+		  OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO3, NULL,
                    "INFO: authinfo: %s %s\n", realm, authinfo->realm));
       if ((authinfo->realm == NULL || authinfo->realm[0] == '\0') && fallback==NULL)
         {
           fallback = authinfo;
-      } else if (osip_strcasecmp (realm, authinfo->realm) == 0
+      } else if (realm==NULL
+		  || osip_strcasecmp (realm, authinfo->realm) == 0
                  || 0 == osip_strncasecmp (realm + 1, authinfo->realm, strlen (realm) - 2))
         {
           return authinfo;
@@ -1351,10 +1355,11 @@ eXosip_add_authentication_information (osip_message_t * req,
 												  http_auth->wa->realm);
 			if (authinfo == NULL)
 			{
-				OSIP_TRACE (osip_trace
-						  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-						   "authinfo: No authentication found for %s %s\n",
-						   req->from->url->username, http_auth->wa->realm));
+				if (http_auth->wa->realm!=NULL)
+					OSIP_TRACE (osip_trace
+							  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+							   "authinfo: No authentication found for %s %s\n",
+							   req->from->url->username, http_auth->wa->realm));
 				return OSIP_NOTFOUND;
 			}
 
@@ -1417,10 +1422,11 @@ eXosip_add_authentication_information (osip_message_t * req,
                                                   wwwauth->realm);
       if (authinfo == NULL)
         {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "authinfo: No authentication found for %s %s\n",
-                       req->from->url->username, wwwauth->realm));
+		  if (wwwauth->realm!=NULL)
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+						   "authinfo: No authentication found for %s %s\n",
+						   req->from->url->username, wwwauth->realm));
           return OSIP_NOTFOUND;
         }
 
@@ -1480,10 +1486,11 @@ eXosip_add_authentication_information (osip_message_t * req,
                                                   proxyauth->realm);
       if (authinfo == NULL)
         {
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "authinfo: No authentication found for %s %s\n",
-                       req->from->url->username, proxyauth->realm));
+		  if (proxyauth->realm!=NULL)
+			  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+						   "authinfo: No authentication found for %s %s\n",
+						   req->from->url->username, proxyauth->realm));
           return OSIP_NOTFOUND;
         }
       OSIP_TRACE (osip_trace

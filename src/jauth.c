@@ -539,14 +539,21 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
   if (wa == NULL)
 	  return OSIP_BADPARAMETER;
 
-  if (wa->auth_type == NULL
-      || (wa->realm == NULL) || (wa->nonce == NULL))
+  if (wa->auth_type == NULL || (wa->nonce == NULL))
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "www_authenticate header is not acceptable.\n"));
       return OSIP_SYNTAXERROR;
     }
+  
+  if (wa->realm == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "www_authenticate header contains an empty realm: contact your admin!\n"));
+    }
+
   if (0 != osip_strcasecmp ("Digest", wa->auth_type))
     {
       OSIP_TRACE (osip_trace
@@ -633,8 +640,7 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
       osip_strdup_without_quote (osip_www_authenticate_get_nonce (wa));
     char *pszCNonce = NULL;
     const char *pszUser = username;
-    char *pszRealm =
-      osip_strdup_without_quote (osip_authorization_get_realm (aut));
+    char *pszRealm=NULL;
     const char *pszPass = NULL;
     char *szNonceCount = NULL;
     const char *pszMethod = method;     /* previous_answer->cseq->method; */
@@ -646,6 +652,15 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
     HASHHEX Response;
     RESHEXAKA2 Response2;
     const char *pha1 = NULL;
+
+	if (osip_authorization_get_realm (aut)==NULL)
+	{
+		pszRealm = osip_strdup("");
+	}
+	else
+	{
+		pszRealm = osip_strdup_without_quote (osip_authorization_get_realm (aut));
+	}
 
 	if (qop!=NULL)
       {
@@ -802,14 +817,21 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   if (wa == NULL)
 	  return OSIP_BADPARAMETER;
 
-  if (wa->auth_type == NULL
-      || (wa->realm == NULL) || (wa->nonce == NULL))
+  if (wa->auth_type == NULL || (wa->nonce == NULL))
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "www_authenticate header is not acceptable.\n"));
       return OSIP_SYNTAXERROR;
     }
+
+  if (wa->realm == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				  "www_authenticate header contains an empty realm: contact your admin!\n"));
+    }
+
   if (0 != osip_strcasecmp ("Digest", wa->auth_type))
     {
       OSIP_TRACE (osip_trace
@@ -896,8 +918,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
     char *pszNonce = NULL;
     char *pszCNonce = NULL;
     const char *pszUser = username;
-    char *pszRealm =
-      osip_strdup_without_quote (osip_proxy_authorization_get_realm (aut));
+    char *pszRealm = NULL;
     const char *pszPass = NULL;
     char *szNonceCount = NULL;
     char *pszMethod = (char *) method;  /* previous_answer->cseq->method; */
@@ -909,6 +930,15 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
     HASHHEX Response;
     RESHEXAKA2 Response2;
     const char *pha1 = NULL;
+
+	if (osip_proxy_authorization_get_realm (aut)==NULL)
+	{
+		pszRealm = osip_strdup("");
+	}
+	else
+	{
+		pszRealm = osip_strdup_without_quote (osip_proxy_authorization_get_realm (aut));
+	}
 
     pszPass = passwd;
 
@@ -1052,7 +1082,10 @@ int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int 
 		if (http_auth->pszCallId[0]=='\0')
 			continue;
 		if (osip_strcasecmp(http_auth->pszCallId, call_id)==0
-			&& osip_strcasecmp(http_auth->wa->realm, wa->realm)==0)
+			&& ((http_auth->wa->realm==NULL && wa->realm==NULL)
+			    || (http_auth->wa->realm!=NULL
+					&& wa->realm!=NULL
+					&& osip_strcasecmp(http_auth->wa->realm, wa->realm)==0)))
 		{
 			osip_proxy_authenticate_free(http_auth->wa);
 			http_auth->wa=NULL;
