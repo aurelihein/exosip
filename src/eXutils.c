@@ -979,8 +979,11 @@ _eXosip_srv_lookup (osip_transaction_t * tr, osip_message_t * sip,
         port = osip_atoi (rport->gvalue);
     }
 
-  /* check if we have an IP address */
-
+  /* check if we have an IPv4 or IPv6 address */
+  if (strchr (host, ':') || (INADDR_NONE != inet_addr (host)) )
+  {
+    return OSIP_UNKNOWN_HOST;
+  }
 
   if (use_srv == 1)
     {
