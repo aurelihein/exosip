@@ -1,5 +1,4 @@
 --gnu-style
---blank-lines-after-declarations
 --cuddle-else
 --space-special-semicolon
 --no-blank-before-sizeof
