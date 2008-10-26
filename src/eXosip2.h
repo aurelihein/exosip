@@ -99,29 +99,30 @@ extern "C"
 
 #define PF_INET6        AF_INET6
 
-  struct sockaddr_storage {
-    unsigned char sa_len;
-    unsigned char sa_family;         /* Address family AF_XXX */
-    char          sa_data[14];       /* Protocol specific address */
-  };
-  
-  struct addrinfo
+  struct sockaddr_storage
   {
-    int ai_flags;                 /* Input flags.  */
-    int ai_family;                /* Protocol family for socket.  */
-    int ai_socktype;              /* Socket type.  */
-    int ai_protocol;              /* Protocol for socket.  */
-    socklen_t ai_addrlen;         /* Length of socket address.  */
-    struct sockaddr *ai_addr;     /* Socket address for socket.  */
-    char *ai_canonname;           /* Canonical name for service location.  */
-    struct addrinfo *ai_next;     /* Pointer to next in list.  */
+    unsigned char sa_len;
+    unsigned char sa_family;    /* Address family AF_XXX */
+    char sa_data[14];           /* Protocol specific address */
   };
 
-void eXosip_freeaddrinfo(struct addrinfo *ai);
+  struct addrinfo
+  {
+    int ai_flags;               /* Input flags.  */
+    int ai_family;              /* Protocol family for socket.  */
+    int ai_socktype;            /* Socket type.  */
+    int ai_protocol;            /* Protocol for socket.  */
+    socklen_t ai_addrlen;       /* Length of socket address.  */
+    struct sockaddr *ai_addr;   /* Socket address for socket.  */
+    char *ai_canonname;         /* Canonical name for service location.  */
+    struct addrinfo *ai_next;   /* Pointer to next in list.  */
+  };
+
+  void eXosip_freeaddrinfo (struct addrinfo *ai);
 
 #else
 
-#define eXosip_freeaddrinfo freeaddrinfo 
+#define eXosip_freeaddrinfo freeaddrinfo
 
 #endif
 
@@ -156,7 +157,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     osip_list_t *d_inc_trs;
     osip_list_t *d_out_trs;
     int d_retry;                /* avoid too many unsuccessfull retry */
-    int d_mincseq; /* remember cseq after PRACK and UPDATE during setup */
+    int d_mincseq;              /* remember cseq after PRACK and UPDATE during setup */
 
     eXosip_dialog_t *next;
     eXosip_dialog_t *parent;
@@ -288,26 +289,26 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   };
 
   int
-    __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
+    __eXosip_create_authorization_header (osip_www_authenticate_t * wa,
                                           const char *rquri,
                                           const char *username,
                                           const char *passwd,
                                           const char *ha1,
                                           osip_authorization_t ** auth,
                                           const char *method,
-										  const char *pszCNonce,
-										  int iNonceCount);
-  int __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
+                                          const char *pszCNonce, int iNonceCount);
+  int __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t * wa,
                                                   const char *rquri,
                                                   const char *username,
                                                   const char *passwd,
                                                   const char *ha1,
                                                   osip_proxy_authorization_t
                                                   ** auth, const char *method,
-												  const char *pszCNonce,
-												  int iNonceCount);
-  int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int answer_code);
-  int _eXosip_delete_nonce(const char *call_id);
+                                                  const char *pszCNonce,
+                                                  int iNonceCount);
+  int _eXosip_store_nonce (const char *call_id, osip_proxy_authenticate_t * wa,
+                           int answer_code);
+  int _eXosip_delete_nonce (const char *call_id);
 
   eXosip_event_t *eXosip_event_init_for_call (int type, eXosip_call_t * jc,
                                               eXosip_dialog_t * jd,
@@ -457,7 +458,7 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
     char event_package[256];
 #endif
     struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
-	struct eXosip_account_info account_entries[MAX_EXOSIP_ACCOUNT_INFO];
+    struct eXosip_account_info account_entries[MAX_EXOSIP_ACCOUNT_INFO];
     struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
 
     CbSipCallback cbsipCallback;
@@ -530,7 +531,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int generating_ack_for_2xx (osip_message_t ** ack, osip_dialog_t * dialog);
 
   int eXosip_update_top_via (osip_message_t * sip);
-  int _eXosip_request_add_via(osip_message_t *request, const char *transport, const char *locip);
+  int _eXosip_request_add_via (osip_message_t * request, const char *transport,
+                               const char *locip);
 
   int eXosip_add_authentication_information (osip_message_t * req,
                                              osip_message_t * last_response);
@@ -539,27 +541,29 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int eXosip_reg_init (eXosip_reg_t ** jr, const char *from,
                        const char *proxy, const char *contact);
   void eXosip_reg_free (eXosip_reg_t * jreg);
-  int generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport, char *from,
-                           char *proxy, char *contact, int expires);
+  int generating_register (eXosip_reg_t * jreg, osip_message_t ** reg,
+                           char *transport, char *from, char *proxy, char *contact,
+                           int expires);
 
   int _eXosip_call_transaction_find (int tid, eXosip_call_t ** jc,
                                      eXosip_dialog_t ** jd,
                                      osip_transaction_t ** tr);
   int _eXosip_call_retry_request (eXosip_call_t * jc,
-                                     eXosip_dialog_t * jd,
-                                     osip_transaction_t * out_tr);
+                                  eXosip_dialog_t * jd,
+                                  osip_transaction_t * out_tr);
   int eXosip_transaction_find (int tid, osip_transaction_t ** transaction);
   int eXosip_call_dialog_find (int jid, eXosip_call_t ** jc,
                                eXosip_dialog_t ** jd);
 #ifndef MINISIZE
   int _eXosip_insubscription_transaction_find (int tid,
-					       eXosip_notify_t ** jn,
-					       eXosip_dialog_t ** jd,
-					       osip_transaction_t ** tr);
+                                               eXosip_notify_t ** jn,
+                                               eXosip_dialog_t ** jd,
+                                               osip_transaction_t ** tr);
   int eXosip_notify_dialog_find (int nid, eXosip_notify_t ** jn,
                                  eXosip_dialog_t ** jd);
   int _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
-					  eXosip_dialog_t ** jd, osip_transaction_t ** tr);
+                                          eXosip_dialog_t ** jd,
+                                          osip_transaction_t ** tr);
   int eXosip_subscribe_dialog_find (int nid, eXosip_subscribe_t ** js,
                                     eXosip_dialog_t ** jd);
 #endif
@@ -567,7 +571,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int eXosip_dialog_set_200ok (eXosip_dialog_t * _jd, osip_message_t * _200Ok);
 
   int _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd,
-				  int code, osip_message_t ** answer, int send);
+                                      int code, osip_message_t ** answer,
+                                      int send);
 #ifndef MINISIZE
   int _eXosip_insubscription_answer_1xx (eXosip_notify_t * jc,
                                          eXosip_dialog_t * jd, int code);
@@ -618,7 +623,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
                                                    eXosip_dialog_t * jd);
   osip_transaction_t *eXosip_find_previous_invite (eXosip_call_t * jc,
                                                    eXosip_dialog_t * jd,
-                                                   osip_transaction_t *last_invite);
+                                                   osip_transaction_t *
+                                                   last_invite);
 
 
   int eXosip_call_init (eXosip_call_t ** jc);
@@ -631,8 +637,8 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   void eXosip_release_terminated_publications (void);
 
 #ifndef MINISIZE
-  void eXosip_release_terminated_subscriptions(void);
-  void eXosip_release_terminated_in_subscriptions(void);
+  void eXosip_release_terminated_subscriptions (void);
+  void eXosip_release_terminated_in_subscriptions (void);
   int eXosip_subscribe_init (eXosip_subscribe_t ** js);
   void eXosip_subscribe_free (eXosip_subscribe_t * js);
   int _eXosip_subscribe_set_refresh_interval (eXosip_subscribe_t * js,
@@ -642,9 +648,9 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
   int _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
                                                       eXosip_dialog_t * jd,
                                                       osip_transaction_t * out_tr);
-  int _eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
-										  eXosip_dialog_t * jd,
-										  osip_transaction_t *out_tr);
+  int _eXosip_subscribe_automatic_refresh (eXosip_subscribe_t * js,
+                                           eXosip_dialog_t * jd,
+                                           osip_transaction_t * out_tr);
   int eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe);
   void eXosip_notify_free (eXosip_notify_t * jn);
   int _eXosip_notify_set_contact_info (eXosip_notify_t * jn, char *uri);
@@ -662,17 +668,19 @@ void eXosip_freeaddrinfo(struct addrinfo *ai);
 
   int eXosip_is_public_address (const char *addr);
 
-  void eXosip_retransmit_lost200ok(void);
-  int _eXosip_dialog_add_contact(osip_message_t *request, osip_message_t *answer);
+  void eXosip_retransmit_lost200ok (void);
+  int _eXosip_dialog_add_contact (osip_message_t * request,
+                                  osip_message_t * answer);
 
   int _eXosip_transaction_init (osip_transaction_t ** transaction,
-	  osip_fsm_type_t ctx_type, osip_t * osip,
-	  osip_message_t * message);
+                                osip_fsm_type_t ctx_type, osip_t * osip,
+                                osip_message_t * message);
 
-  int _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip, struct osip_srv_record *record);
+  int _eXosip_srv_lookup (osip_transaction_t * tr, osip_message_t * sip,
+                          struct osip_srv_record *record);
 
   int _eXosip_handle_incoming_message (char *buf, size_t len, int socket,
-				       char *host, int port);
+                                       char *host, int port);
 
 #ifdef __cplusplus
 }

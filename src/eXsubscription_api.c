@@ -30,7 +30,8 @@ extern eXosip_t eXosip;
 
 int
 _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
-				    eXosip_dialog_t ** jd, osip_transaction_t ** tr)
+                                    eXosip_dialog_t ** jd,
+                                    osip_transaction_t ** tr)
 {
   for (*js = eXosip.j_subscribes; *js != NULL; *js = (*js)->next)
     {
@@ -82,13 +83,14 @@ _eXosip_subscribe_transaction_find (int tid, eXosip_subscribe_t ** js,
   return OSIP_NOTFOUND;
 }
 
-int eXosip_subscribe_remove (int did)
+int
+eXosip_subscribe_remove (int did)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_subscribe_t *js = NULL;
 
-  if (did<=0)
-	  return OSIP_BADPARAMETER;
+  if (did <= 0)
+    return OSIP_BADPARAMETER;
 
   if (did > 0)
     {
@@ -101,9 +103,9 @@ int eXosip_subscribe_remove (int did)
                    "eXosip: No outgoing subscription here?\n"));
       return OSIP_NOTFOUND;
     }
-    REMOVE_ELEMENT (eXosip.j_subscribes, js);
-    eXosip_subscribe_free (js);
-    return OSIP_SUCCESS;
+  REMOVE_ELEMENT (eXosip.j_subscribes, js);
+  eXosip_subscribe_free (js);
+  return OSIP_SUCCESS;
 }
 
 int
@@ -136,12 +138,13 @@ eXosip_subscribe_build_initial_request (osip_message_t ** sub, const char *to,
       return i;
     }
 
-  i = generating_request_out_of_dialog (sub, "SUBSCRIBE", to, eXosip.transport, from,
-                                            route);
+  i =
+    generating_request_out_of_dialog (sub, "SUBSCRIBE", to, eXosip.transport, from,
+                                      route);
   osip_to_free (_to);
   if (i != 0)
     return i;
-  _eXosip_dialog_add_contact(*sub, NULL);
+  _eXosip_dialog_add_contact (*sub, NULL);
 
   snprintf (tmp, 10, "%i", expires);
   osip_message_set_expires (*sub, tmp);
@@ -206,8 +209,8 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
 
   *sub = NULL;
 
-  if (did<=0)
-	  return OSIP_BADPARAMETER;
+  if (did <= 0)
+    return OSIP_BADPARAMETER;
 
   if (did > 0)
     {
@@ -251,7 +254,7 @@ eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub)
     return i;
 
 
-  eXosip_add_authentication_information(*sub, NULL);
+  eXosip_add_authentication_information (*sub, NULL);
 
   return OSIP_SUCCESS;
 }
@@ -266,8 +269,8 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
   osip_event_t *sipevent;
   int i;
 
-  if (did<=0)
-	  return OSIP_BADPARAMETER;
+  if (did <= 0)
+    return OSIP_BADPARAMETER;
 
   if (did > 0)
     {
@@ -322,74 +325,77 @@ eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub)
 }
 
 int
-_eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
-									eXosip_dialog_t * jd,
-									osip_transaction_t *out_tr)
+_eXosip_subscribe_automatic_refresh (eXosip_subscribe_t * js,
+                                     eXosip_dialog_t * jd,
+                                     osip_transaction_t * out_tr)
 {
-	osip_message_t *sub=NULL;
-	osip_header_t *expires;
-	int i;
-	if (js==NULL || jd==NULL || out_tr==NULL || out_tr->orig_request==NULL)
-		return OSIP_BADPARAMETER;
+  osip_message_t *sub = NULL;
+  osip_header_t *expires;
+  int i;
+  if (js == NULL || jd == NULL || out_tr == NULL || out_tr->orig_request == NULL)
+    return OSIP_BADPARAMETER;
 
-	i = eXosip_subscribe_build_refresh_request (jd->d_id, &sub);
-	if (i != 0)
-		return i;
+  i = eXosip_subscribe_build_refresh_request (jd->d_id, &sub);
+  if (i != 0)
+    return i;
 
-	i = osip_message_get_expires (out_tr->orig_request, 0, &expires);
-	if (expires != NULL && expires->hvalue != NULL)
-	{
-		osip_message_set_expires (sub, expires->hvalue);
-	}
+  i = osip_message_get_expires (out_tr->orig_request, 0, &expires);
+  if (expires != NULL && expires->hvalue != NULL)
+    {
+      osip_message_set_expires (sub, expires->hvalue);
+    }
 
-	{
-		int pos=0;
-		osip_accept_t *_accept = NULL;
+  {
+    int pos = 0;
+    osip_accept_t *_accept = NULL;
 
-		i = osip_message_get_accept (out_tr->orig_request, pos, &_accept);
-		while (i >= 0 && _accept != NULL)
-		  {
-			osip_accept_t *_accept2;
+    i = osip_message_get_accept (out_tr->orig_request, pos, &_accept);
+    while (i >= 0 && _accept != NULL)
+      {
+        osip_accept_t *_accept2;
 
-			i = osip_accept_clone (_accept, &_accept2);
-			if (i != 0)
-			  {
-				OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-										"Error in Accept header\n"));
-				break;
-			  }
-			osip_list_add (&sub->accepts, _accept2, -1);
-			_accept = NULL;
-			pos++;
-			i = osip_message_get_accept (out_tr->orig_request, pos, &_accept);
-		  }
-	}
+        i = osip_accept_clone (_accept, &_accept2);
+        if (i != 0)
+          {
+            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                    "Error in Accept header\n"));
+            break;
+          }
+        osip_list_add (&sub->accepts, _accept2, -1);
+        _accept = NULL;
+        pos++;
+        i = osip_message_get_accept (out_tr->orig_request, pos, &_accept);
+      }
+  }
 
-	{
-		int pos=0;
-		osip_header_t *_event = NULL;
+  {
+    int pos = 0;
+    osip_header_t *_event = NULL;
 
-		pos = osip_message_header_get_byname (out_tr->orig_request, "Event", 0, &_event);
-		while (pos >= 0 && _event != NULL)
-		  {
-			osip_header_t *_event2;
+    pos =
+      osip_message_header_get_byname (out_tr->orig_request, "Event", 0, &_event);
+    while (pos >= 0 && _event != NULL)
+      {
+        osip_header_t *_event2;
 
-			i = osip_header_clone (_event, &_event2);
-			if (i != 0)
-			  {
-				OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-										"Error in Event header\n"));
-				break;
-			  }
-			osip_list_add (&sub->headers, _event2, -1);
-			_event = NULL;
-			pos++;
-			pos = osip_message_header_get_byname (out_tr->orig_request, "Event", pos, &_event);
-		  }
-	}
+        i = osip_header_clone (_event, &_event2);
+        if (i != 0)
+          {
+            OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                    "Error in Event header\n"));
+            break;
+          }
+        osip_list_add (&sub->headers, _event2, -1);
+        _event = NULL;
+        pos++;
+        pos =
+          osip_message_header_get_byname (out_tr->orig_request, "Event", pos,
+                                          &_event);
+      }
+  }
 
-	i = eXosip_subscribe_send_refresh_request (jd->d_id, sub);
-	return i;
+  i = eXosip_subscribe_send_refresh_request (jd->d_id, sub);
+  return i;
 }
 
 int
@@ -423,7 +429,7 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
     return OSIP_NOTFOUND;
 
   i = osip_message_clone (out_tr->orig_request, &msg);
-  if (i!=0)
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -433,12 +439,12 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
 
   {
     osip_generic_param_t *tag = NULL;
-    
-    osip_to_get_tag(msg->to, &tag);
+
+    osip_to_get_tag (msg->to, &tag);
     if (NULL == tag && jd != NULL && jd->d_dialog != NULL
-	&& jd->d_dialog->remote_tag != NULL)
+        && jd->d_dialog->remote_tag != NULL)
       {
-	osip_to_set_tag(msg->to, osip_strdup(jd->d_dialog->remote_tag));
+        osip_to_set_tag (msg->to, osip_strdup (jd->d_dialog->remote_tag));
       }
   }
 
@@ -456,19 +462,19 @@ _eXosip_subscribe_send_request_with_credential (eXosip_subscribe_t * js,
   cseq = atoi (msg->cseq->number);
   osip_free (msg->cseq->number);
   msg->cseq->number = strdup_printf ("%i", cseq + 1);
-  if (msg->cseq->number==NULL)
-  {
+  if (msg->cseq->number == NULL)
+    {
       osip_message_free (msg);
       return OSIP_NOMEM;
-  }
+    }
 
   if (jd != NULL && jd->d_dialog != NULL)
     {
       jd->d_dialog->local_cseq++;
     }
 
-  i = eXosip_update_top_via(msg);
-  if (i!=0)
+  i = eXosip_update_top_via (msg);
+  if (i != 0)
     {
       osip_message_free (msg);
       return i;

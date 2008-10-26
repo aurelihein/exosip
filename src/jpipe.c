@@ -43,15 +43,15 @@ jpipe ()
       osip_free (my_pipe);
       return NULL;
     }
-  
-  if (fcntl(my_pipe->pipes[1], F_SETFL, O_NONBLOCK) == -1)
+
+  if (fcntl (my_pipe->pipes[1], F_SETFL, O_NONBLOCK) == -1)
     {
       /* failed for some reason... */
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
                    "cannot set O_NONBLOCK to the pipe[1]!\n"));
     }
-  
+
   return my_pipe;
 }
 

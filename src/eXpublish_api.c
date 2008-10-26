@@ -71,9 +71,9 @@ eXosip_build_publish (osip_message_t ** message,
       osip_message_set_content_type (*message, ctype);
       osip_message_set_body (*message, body, strlen (body));
       /*
-	  osip_message_set_header (*message, "Content-Disposition",
-                               "render;handling=required");
-		*/
+         osip_message_set_header (*message, "Content-Disposition",
+         "render;handling=required");
+       */
     }
   if (expires != NULL && expires[0] != '\0')
     osip_message_set_expires (*message, expires);
@@ -123,7 +123,7 @@ eXosip_publish (osip_message_t * message, const char *to)
         {
           /* start a new publication context */
           i = _eXosip_pub_init (&pub, to, expires->hvalue);
-          if (i!=0)
+          if (i != 0)
             {
               osip_message_free (message);
               return i;
@@ -139,18 +139,18 @@ eXosip_publish (osip_message_t * message, const char *to)
         }
 
       {
-	osip_header_t *expires;
-	
-	osip_message_get_expires (message, 0, &expires);
-	if (expires == NULL || expires->hvalue == NULL)
-	  {
-	    OSIP_TRACE (osip_trace
-			(__FILE__, __LINE__, OSIP_ERROR, NULL,
-			 "eXosip: missing expires header in PUBLISH!"));
-	    osip_message_free (message);
-	    return OSIP_SYNTAXERROR;
-	  }
-	pub->p_period = atoi (expires->hvalue);
+        osip_header_t *expires;
+
+        osip_message_get_expires (message, 0, &expires);
+        if (expires == NULL || expires->hvalue == NULL)
+          {
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                         "eXosip: missing expires header in PUBLISH!"));
+            osip_message_free (message);
+            return OSIP_SYNTAXERROR;
+          }
+        pub->p_period = atoi (expires->hvalue);
       }
 
       if (pub->p_last_tr != NULL && pub->p_last_tr->cseq != NULL
@@ -162,11 +162,11 @@ eXosip_publish (osip_message_t * message, const char *to)
           osip_cseq_num++;
           osip_free (message->cseq->number);
           message->cseq->number = (char *) osip_malloc (length + 2);    /* +2 like for 9 to 10 */
-		  if (message->cseq->number==NULL)
-		  {
-		      osip_message_free (message);
-			  return OSIP_NOMEM;
-		  }
+          if (message->cseq->number == NULL)
+            {
+              osip_message_free (message);
+              return OSIP_NOMEM;
+            }
           sprintf (message->cseq->number, "%i", osip_cseq_num);
         }
     }

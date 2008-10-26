@@ -83,13 +83,14 @@ _eXosip_insubscription_transaction_find (int tid, eXosip_notify_t ** jn,
   return OSIP_NOTFOUND;
 }
 
-int eXosip_insubscription_remove (int did)
+int
+eXosip_insubscription_remove (int did)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
 
-  if (did<=0)
-	  return OSIP_BADPARAMETER;
+  if (did <= 0)
+    return OSIP_BADPARAMETER;
 
   if (did > 0)
     {
@@ -102,9 +103,9 @@ int eXosip_insubscription_remove (int did)
                    "eXosip: No incoming subscription here?\n"));
       return OSIP_NOTFOUND;
     }
-    REMOVE_ELEMENT (eXosip.j_notifies, jn);
-    eXosip_notify_free (jn);
-    return OSIP_SUCCESS;
+  REMOVE_ELEMENT (eXosip.j_notifies, jn);
+  eXosip_notify_free (jn);
+  return OSIP_SUCCESS;
 }
 
 int
@@ -117,8 +118,8 @@ eXosip_insubscription_build_answer (int tid, int status, osip_message_t ** answe
 
   *answer = NULL;
 
-  if (tid<=0)
-	  return OSIP_BADPARAMETER;
+  if (tid <= 0)
+    return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -173,8 +174,8 @@ eXosip_insubscription_send_answer (int tid, int status, osip_message_t * answer)
   osip_transaction_t *tr = NULL;
   osip_event_t *evt_answer;
 
-  if (tid<=0)
-	  return OSIP_BADPARAMETER;
+  if (tid <= 0)
+    return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -294,8 +295,8 @@ eXosip_insubscription_build_notify (int did, int subscription_status,
 
   *request = NULL;
 
-  if (did<=0)
-	  return OSIP_BADPARAMETER;
+  if (did <= 0)
+    return OSIP_BADPARAMETER;
 
   if (did > 0)
     {
@@ -362,8 +363,8 @@ eXosip_insubscription_build_request (int did, const char *method,
   if (method == NULL || method[0] == '\0')
     return OSIP_BADPARAMETER;
 
-  if (did<=0)
-	  return OSIP_BADPARAMETER;
+  if (did <= 0)
+    return OSIP_BADPARAMETER;
 
   if (did > 0)
     {
@@ -420,13 +421,13 @@ eXosip_insubscription_send_request (int did, osip_message_t * request)
   int i;
 
   if (request == NULL)
-	return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
-  if (did<=0)
-  {
-	  osip_message_free (request);
-	  return OSIP_BADPARAMETER;
-  }
+  if (did <= 0)
+    {
+      osip_message_free (request);
+      return OSIP_BADPARAMETER;
+    }
 
   if (did > 0)
     {
@@ -506,7 +507,7 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
     return OSIP_NOTFOUND;
 
   i = osip_message_clone (out_tr->orig_request, &msg);
-  if (i!=0)
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -528,19 +529,19 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
   cseq = atoi (msg->cseq->number);
   osip_free (msg->cseq->number);
   msg->cseq->number = strdup_printf ("%i", cseq + 1);
-  if (msg->cseq->number==NULL)
-  {
+  if (msg->cseq->number == NULL)
+    {
       osip_message_free (msg);
-	  return OSIP_NOMEM;
-  }
+      return OSIP_NOMEM;
+    }
 
   if (jd != NULL && jd->d_dialog != NULL)
     {
       jd->d_dialog->local_cseq++;
     }
 
-  i = eXosip_update_top_via(msg);
-  if (i!=0)
+  i = eXosip_update_top_via (msg);
+  if (i != 0)
     {
       osip_message_free (msg);
       OSIP_TRACE (osip_trace
@@ -549,7 +550,8 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
       return i;
     }
 
-  if (out_tr->last_response->status_code==401 || out_tr->last_response->status_code==407)
+  if (out_tr->last_response->status_code == 401
+      || out_tr->last_response->status_code == 407)
     eXosip_add_authentication_information (msg, out_tr->last_response);
   else
     eXosip_add_authentication_information (msg, NULL);
@@ -579,170 +581,181 @@ _eXosip_insubscription_send_request_with_credential (eXosip_notify_t * jn,
 
 int
 _eXosip_insubscription_auto_send_notify (int did,
-                          int subscription_status, int subscription_reason)
+                                         int subscription_status,
+                                         int subscription_reason)
 {
-	osip_message_t *notify;
-	int i;
-	char xml[4096];
-	char *entity;
-	eXosip_call_t *jc;
-	eXosip_dialog_t *jd;
+  osip_message_t *notify;
+  int i;
+  char xml[4096];
+  char *entity;
+  eXosip_call_t *jc;
+  eXosip_dialog_t *jd;
 
-    if (did<=0)
-	  return OSIP_BADPARAMETER;
+  if (did <= 0)
+    return OSIP_BADPARAMETER;
 
-	i = eXosip_insubscription_build_notify (did, subscription_status,
-										  subscription_reason, &notify);
-	if (i != 0)
-	{
-		return i;
-	}
+  i = eXosip_insubscription_build_notify (did, subscription_status,
+                                          subscription_reason, &notify);
+  if (i != 0)
+    {
+      return i;
+    }
 
-	/* build dialog xml state */
-	memset(xml, 0, sizeof(xml));
+  /* build dialog xml state */
+  memset (xml, 0, sizeof (xml));
 
-	i = osip_uri_to_str(notify->from->url , &entity);
-	if (i!=0 || entity==NULL)
-	{
-		osip_message_free(notify);
-		return i;
-	}
-	snprintf(xml, sizeof(xml),
-		   "<?xml version=\"1.0\"?>" "\r\n"
-		   "<dialog-info xmlns=\"urn:ietf:params:xml:ns:dialog-info\"" "\r\n"
-		   "	version=\"2\" state=\"full\"" "\r\n"
-		   "	entity=\"%s\">" "\r\n",
-		   entity);
-	osip_free(entity);
+  i = osip_uri_to_str (notify->from->url, &entity);
+  if (i != 0 || entity == NULL)
+    {
+      osip_message_free (notify);
+      return i;
+    }
+  snprintf (xml, sizeof (xml),
+            "<?xml version=\"1.0\"?>" "\r\n"
+            "<dialog-info xmlns=\"urn:ietf:params:xml:ns:dialog-info\"" "\r\n"
+            "	version=\"2\" state=\"full\"" "\r\n"
+            "	entity=\"%s\">" "\r\n", entity);
+  osip_free (entity);
 
-	/* loop over all jc/jd */
-	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
-	{
-		for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
-		{
-			if (jd->d_dialog == NULL)     /* finished call */
-			{
-			}
-			else
-			{
-				char tmp_dialog[2048];
-				char direction[20];
-				char dlg_state[20];
-				char *remote_uri=NULL;
+  /* loop over all jc/jd */
+  for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
+    {
+      for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
+        {
+          if (jd->d_dialog == NULL)     /* finished call */
+            {
+          } else
+            {
+              char tmp_dialog[2048];
+              char direction[20];
+              char dlg_state[20];
+              char *remote_uri = NULL;
 
-				if (jd->d_dialog->type == CALLER)
-					strcpy(direction, "initiator");
-				else
-					strcpy(direction, "recipient");
-				if (jd->d_dialog->state == DIALOG_CONFIRMED)
-					strcpy(dlg_state, "confirmed");
-				else
-					strcpy(dlg_state, "early");
+              if (jd->d_dialog->type == CALLER)
+                strcpy (direction, "initiator");
+              else
+                strcpy (direction, "recipient");
+              if (jd->d_dialog->state == DIALOG_CONFIRMED)
+                strcpy (dlg_state, "confirmed");
+              else
+                strcpy (dlg_state, "early");
 
-				if (jd->d_dialog->remote_uri!=NULL
-					&&jd->d_dialog->remote_uri->url!=NULL)
-				{
-					osip_uri_to_str(jd->d_dialog->remote_uri->url, &remote_uri);
-				}
-				if (remote_uri!=NULL)
-				{
-					/* add dialog info */
-					snprintf(tmp_dialog, sizeof(tmp_dialog),
-						"	<dialog id=\"%s\" call-id=\"%s\"" "\r\n"
-						"		local-tag=\"%s\" remote-tag=\"%s\"" "\r\n"
-						"		direction=\"%s\">" "\r\n"
-						"		<state>%s</state>" "\r\n"
-						"		<remote>" "\r\n"
-						"			<identity>%s</identity>" "\r\n"
-						"		</remote>" "\r\n"
-						"	</dialog>" "\r\n",
-						jd->d_dialog->call_id,
-						jd->d_dialog->call_id,
-						jd->d_dialog->local_tag,
-						jd->d_dialog->remote_tag,
-						direction,
-						dlg_state,
-						remote_uri);
-					strcat(xml, tmp_dialog);
-				}
-			}
-		}
-	}
-	strcat(xml, "</dialog-info>" "\r\n");
-	osip_message_set_content_type (notify, "application/dialog-info+xml");
-	osip_message_set_body (notify, xml, strlen(xml));
+              if (jd->d_dialog->remote_uri != NULL
+                  && jd->d_dialog->remote_uri->url != NULL)
+                {
+                  osip_uri_to_str (jd->d_dialog->remote_uri->url, &remote_uri);
+                }
+              if (remote_uri != NULL)
+                {
+                  /* add dialog info */
+                  snprintf (tmp_dialog, sizeof (tmp_dialog),
+                            "	<dialog id=\"%s\" call-id=\"%s\"" "\r\n"
+                            "		local-tag=\"%s\" remote-tag=\"%s\""
+                            "\r\n" "		direction=\"%s\">"
+                            "\r\n"
+                            "		<state>%s</state>"
+                            "\r\n"
+                            "		<remote>"
+                            "\r\n"
+                            "			<identity>%s</identity>"
+                            "\r\n"
+                            "		</remote>"
+                            "\r\n"
+                            "	</dialog>"
+                            "\r\n",
+                            jd->
+                            d_dialog->
+                            call_id,
+                            jd->
+                            d_dialog->
+                            call_id,
+                            jd->
+                            d_dialog->
+                            local_tag,
+                            jd->
+                            d_dialog->
+                            remote_tag, direction, dlg_state, remote_uri);
+                  strcat (xml, tmp_dialog);
+                }
+            }
+        }
+    }
+  strcat (xml, "</dialog-info>" "\r\n");
+  osip_message_set_content_type (notify, "application/dialog-info+xml");
+  osip_message_set_body (notify, xml, strlen (xml));
 
-	return eXosip_insubscription_send_request (did, notify);
+  return eXosip_insubscription_send_request (did, notify);
 }
 
 int
-eXosip_insubscription_automatic(eXosip_event_t *evt)
+eXosip_insubscription_automatic (eXosip_event_t * evt)
 {
-	eXosip_dialog_t *jd = NULL;
-	eXosip_notify_t *jn = NULL;
+  eXosip_dialog_t *jd = NULL;
+  eXosip_notify_t *jn = NULL;
 
-	osip_header_t *event_header;
-	if (evt->did<=0 || evt->nid<=0)
-		return OSIP_BADPARAMETER;
-	if (evt->request==NULL)
-		return OSIP_BADPARAMETER;
+  osip_header_t *event_header;
+  if (evt->did <= 0 || evt->nid <= 0)
+    return OSIP_BADPARAMETER;
+  if (evt->request == NULL)
+    return OSIP_BADPARAMETER;
 
-	eXosip_notify_dialog_find (evt->did, &jn, &jd);
-	if (jd == NULL || jn == NULL)
-	{
-		OSIP_TRACE (osip_trace
-				  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				   "eXosip: No incoming subscription here?\n"));
-		return OSIP_NOTFOUND;
-	}
+  eXosip_notify_dialog_find (evt->did, &jn, &jd);
+  if (jd == NULL || jn == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No incoming subscription here?\n"));
+      return OSIP_NOTFOUND;
+    }
 
-	osip_message_header_get_byname (evt->request , "event",
-                                    0, &event_header);
-	if (event_header == NULL || event_header->hvalue == NULL)
-	{
-		eXosip_insubscription_send_answer (evt->tid, 400, NULL);
-		return OSIP_SUCCESS;
-	}
+  osip_message_header_get_byname (evt->request, "event", 0, &event_header);
+  if (event_header == NULL || event_header->hvalue == NULL)
+    {
+      eXosip_insubscription_send_answer (evt->tid, 400, NULL);
+      return OSIP_SUCCESS;
+    }
 
-	/* this event should be handled internally */
-	if (osip_strcasecmp(event_header->hvalue, "dialog") == 0)
-	{
-		/* send 200 ok to SUBSCRIBEs */
+  /* this event should be handled internally */
+  if (osip_strcasecmp (event_header->hvalue, "dialog") == 0)
+    {
+      /* send 200 ok to SUBSCRIBEs */
 
-		if (evt->type == EXOSIP_IN_SUBSCRIPTION_NEW)
-		{
-			osip_message_t *answer;
-			int i;
+      if (evt->type == EXOSIP_IN_SUBSCRIPTION_NEW)
+        {
+          osip_message_t *answer;
+          int i;
 
-			i = eXosip_insubscription_build_answer (evt->tid, 202, &answer);
-			if (i == 0)
-			{
-				i = eXosip_insubscription_send_answer (evt->tid, 202, answer);
-			}
-			if (i != 0)
-			{
-				i = eXosip_insubscription_send_answer (evt->tid, 400, NULL);
-				return OSIP_SUCCESS;
-			}
+          i = eXosip_insubscription_build_answer (evt->tid, 202, &answer);
+          if (i == 0)
+            {
+              i = eXosip_insubscription_send_answer (evt->tid, 202, answer);
+            }
+          if (i != 0)
+            {
+              i = eXosip_insubscription_send_answer (evt->tid, 400, NULL);
+              return OSIP_SUCCESS;
+            }
 
-			/* send initial notify */
-			i = _eXosip_insubscription_auto_send_notify(evt->did , EXOSIP_SUBCRSTATE_ACTIVE, PROBATION);
-			if (i != 0)
-			{
-				/* delete subscription... */
-				return OSIP_SUCCESS;
-			}
-		}
-	}
-	else
-	{
-		if (evt->type == EXOSIP_IN_SUBSCRIPTION_NEW)
-		{
-		  eXosip_insubscription_send_answer (evt->tid, 489, NULL);
-		}
-	}
+          /* send initial notify */
+          i =
+            _eXosip_insubscription_auto_send_notify (evt->did,
+                                                     EXOSIP_SUBCRSTATE_ACTIVE,
+                                                     PROBATION);
+          if (i != 0)
+            {
+              /* delete subscription... */
+              return OSIP_SUCCESS;
+            }
+        }
+  } else
+    {
+      if (evt->type == EXOSIP_IN_SUBSCRIPTION_NEW)
+        {
+          eXosip_insubscription_send_answer (evt->tid, 489, NULL);
+        }
+    }
 
-	return OSIP_SUCCESS;
+  return OSIP_SUCCESS;
 }
 
 #endif

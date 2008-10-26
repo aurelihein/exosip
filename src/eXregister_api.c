@@ -45,20 +45,21 @@ eXosip_reg_find (int rid)
   return NULL;
 }
 
-int eXosip_register_remove (int rid)
+int
+eXosip_register_remove (int rid)
 {
   eXosip_reg_t *jr;
 
-  if (rid<=0)
-	  return OSIP_BADPARAMETER;
+  if (rid <= 0)
+    return OSIP_BADPARAMETER;
 
   jr = eXosip_reg_find (rid);
   if (jr == NULL)
-      return OSIP_NOTFOUND;
+    return OSIP_NOTFOUND;
   jr->r_reg_period = 0;
   REMOVE_ELEMENT (eXosip.j_reg, jr);
   eXosip_reg_free (jr);
-  jr=NULL;
+  jr = NULL;
   return OSIP_SUCCESS;
 }
 
@@ -70,8 +71,8 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 
   *_reg = NULL;
 
-  if (jr==NULL)
-	  return OSIP_BADPARAMETER;
+  if (jr == NULL)
+    return OSIP_BADPARAMETER;
 
   if (jr->r_last_tr != NULL)
     {
@@ -84,12 +85,13 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
           osip_transaction_t *tr;
 
           i = osip_message_clone (jr->r_last_tr->orig_request, &reg);
-          if (i!=0)
+          if (i != 0)
             return i;
           if (jr->r_last_tr->last_response != NULL)
             {
-              i = osip_message_clone (jr->r_last_tr->last_response, &last_response);
-              if (i!=0)
+              i =
+                osip_message_clone (jr->r_last_tr->last_response, &last_response);
+              if (i != 0)
                 {
                   osip_message_free (reg);
                   return i;
@@ -107,11 +109,14 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
             int length = strlen (reg->cseq->number);
 
 
-	    osip_list_special_free(&reg->authorizations, (void *(*)(void *)) &osip_authorization_free);
-	    osip_list_special_free(&reg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
+            osip_list_special_free (&reg->authorizations,
+                                    (void *(*)(void *)) &osip_authorization_free);
+            osip_list_special_free (&reg->proxy_authorizations,
+                                    (void *(*)(void *))
+                                    &osip_proxy_authorization_free);
 
 
-			i = eXosip_update_top_via (reg);
+            i = eXosip_update_top_via (reg);
             if (i != 0)
               {
                 osip_message_free (reg);
@@ -123,33 +128,33 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
             osip_cseq_num++;
             osip_free (reg->cseq->number);
             reg->cseq->number = (char *) osip_malloc (length + 2);      /* +2 like for 9 to 10 */
-			if (reg->cseq->number==NULL)
-			{
+            if (reg->cseq->number == NULL)
+              {
                 osip_message_free (reg);
                 if (last_response != NULL)
                   osip_message_free (last_response);
-				return OSIP_NOMEM;
-			}
+                return OSIP_NOMEM;
+              }
             sprintf (reg->cseq->number, "%i", osip_cseq_num);
 
-	    {
-	      osip_header_t *exp;
-	      
+            {
+              osip_header_t *exp;
+
               osip_message_header_get_byname (reg, "expires", 0, &exp);
-              if (exp!=NULL)
-		{
-		  if (exp->hvalue!=NULL)
-		    osip_free (exp->hvalue);
-		  exp->hvalue = (char *) osip_malloc (10);
-		  if (exp->hvalue==NULL)
-		  {
-			  osip_message_free (reg);
-			  if (last_response != NULL)
-				  osip_message_free (last_response);
-			  return OSIP_NOMEM;
-		  }
-		  snprintf (exp->hvalue, 9, "%i", jr->r_reg_period);
-		}
+              if (exp != NULL)
+                {
+                  if (exp->hvalue != NULL)
+                    osip_free (exp->hvalue);
+                  exp->hvalue = (char *) osip_malloc (10);
+                  if (exp->hvalue == NULL)
+                    {
+                      osip_message_free (reg);
+                      if (last_response != NULL)
+                        osip_message_free (last_response);
+                      return OSIP_NOMEM;
+                    }
+                  snprintf (exp->hvalue, 9, "%i", jr->r_reg_period);
+                }
             }
 
             osip_message_force_update (reg);
@@ -157,12 +162,12 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 
           if (last_response != NULL)
             {
-	      if (last_response->status_code==401 || last_response->status_code==407)
+              if (last_response->status_code == 401
+                  || last_response->status_code == 407)
                 {
                   eXosip_add_authentication_information (reg, last_response);
-                }
-	      else
-		eXosip_add_authentication_information (reg, NULL);
+              } else
+                eXosip_add_authentication_information (reg, NULL);
               osip_message_free (last_response);
             }
         }
@@ -173,7 +178,7 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
                                jr->r_aor, jr->r_registrar, jr->r_contact,
                                jr->r_reg_period);
       if (i != 0)
-          return i;
+        return i;
     }
 
   *_reg = reg;
@@ -190,17 +195,17 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
 
   *reg = NULL;
 
-  if (from==NULL || proxy==NULL)
-	  return OSIP_BADPARAMETER;
+  if (from == NULL || proxy == NULL)
+    return OSIP_BADPARAMETER;
 
   /* Avoid adding the same registration info twice to prevent mem leaks */
   for (jr = eXosip.j_reg; jr != NULL; jr = jr->next)
     {
       if (strcmp (jr->r_aor, from) == 0 && strcmp (jr->r_registrar, proxy) == 0)
         {
-	  REMOVE_ELEMENT (eXosip.j_reg, jr);
-	  eXosip_reg_free (jr);
-	  jr=NULL;
+          REMOVE_ELEMENT (eXosip.j_reg, jr);
+          eXosip_reg_free (jr);
+          jr = NULL;
           break;
         }
     }
@@ -220,7 +225,7 @@ eXosip_register_build_initial_register (const char *from, const char *proxy,
 
   /* build register */
   jr->r_reg_period = expires;
-  if (jr->r_reg_period <= 0)      /* too low */
+  if (jr->r_reg_period <= 0)    /* too low */
     jr->r_reg_period = 0;
   else if (jr->r_reg_period < 100)      /* too low */
     jr->r_reg_period = 100;
@@ -246,12 +251,12 @@ eXosip_register_build_register (int rid, int expires, osip_message_t ** reg)
 
   *reg = NULL;
 
-  if (rid<=0)
-	  return OSIP_BADPARAMETER;
+  if (rid <= 0)
+    return OSIP_BADPARAMETER;
 
   jr = eXosip_reg_find (rid);
   if (jr == NULL)
-      return OSIP_NOTFOUND;
+    return OSIP_NOTFOUND;
   jr->r_reg_period = expires;
   if (jr->r_reg_period == 0)
     {
@@ -290,11 +295,11 @@ eXosip_register_send_register (int rid, osip_message_t * reg)
   eXosip_reg_t *jr;
   int i;
 
-  if (rid<=0)
-  {
-	  osip_message_free (reg);
-	  return OSIP_BADPARAMETER;
-  }
+  if (rid <= 0)
+    {
+      osip_message_free (reg);
+      return OSIP_BADPARAMETER;
+    }
 
   jr = eXosip_reg_find (rid);
   if (jr == NULL)

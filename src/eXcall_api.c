@@ -34,7 +34,8 @@ static int eXosip_create_cancel_transaction (eXosip_call_t * jc,
                                              eXosip_dialog_t * jd,
                                              osip_message_t * request);
 
-static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *msg);
+static int _eXosip_call_reuse_contact (osip_message_t * invite,
+                                       osip_message_t * msg);
 
 static int
 eXosip_create_transaction (eXosip_call_t * jc,
@@ -96,32 +97,33 @@ eXosip_create_cancel_transaction (eXosip_call_t * jc,
   return OSIP_SUCCESS;
 }
 
-static int _eXosip_call_reuse_contact(osip_message_t *invite, osip_message_t *msg)
+static int
+_eXosip_call_reuse_contact (osip_message_t * invite, osip_message_t * msg)
 {
-    osip_contact_t *co_invite=NULL;
-    osip_contact_t *co_msg=NULL;
-    int i;
-    i = osip_message_get_contact(invite, 0, &co_invite);
-    if (i<0 || co_invite==NULL || co_invite->url==NULL)
+  osip_contact_t *co_invite = NULL;
+  osip_contact_t *co_msg = NULL;
+  int i;
+  i = osip_message_get_contact (invite, 0, &co_invite);
+  if (i < 0 || co_invite == NULL || co_invite->url == NULL)
     {
-        return i;
+      return i;
     }
 
-    i = osip_message_get_contact(msg, 0, &co_msg);
-    if (i>=0 && co_msg!=NULL)
+  i = osip_message_get_contact (msg, 0, &co_msg);
+  if (i >= 0 && co_msg != NULL)
     {
-        osip_list_remove(&msg->contacts, 0);
-        osip_contact_free(co_msg);
+      osip_list_remove (&msg->contacts, 0);
+      osip_contact_free (co_msg);
     }
 
-    co_msg=NULL;
-    i = osip_contact_clone(co_invite, &co_msg);
-    if (i>=0 && co_msg!=NULL)
+  co_msg = NULL;
+  i = osip_contact_clone (co_invite, &co_msg);
+  if (i >= 0 && co_msg != NULL)
     {
-        osip_list_add(&msg->contacts, co_msg, 0);
-        return OSIP_SUCCESS;
+      osip_list_add (&msg->contacts, co_msg, 0);
+      return OSIP_SUCCESS;
     }
-    return i;
+  return i;
 }
 
 int
@@ -235,11 +237,11 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
     }
 
   i = generating_request_out_of_dialog (invite, "INVITE", to,
-                                          eXosip.transport, from, route);
+                                        eXosip.transport, from, route);
   osip_to_free (_to);
   if (i != 0)
     return i;
-  _eXosip_dialog_add_contact(*invite, NULL);
+  _eXosip_dialog_add_contact (*invite, NULL);
 
   if (subject != NULL)
     osip_message_set_subject (*invite, subject);
@@ -257,11 +259,11 @@ eXosip_call_send_initial_invite (osip_message_t * invite)
   osip_event_t *sipevent;
   int i;
 
-  if (invite==NULL)
-  {
+  if (invite == NULL)
+    {
       osip_message_free (invite);
-	  return OSIP_BADPARAMETER;
-  }
+      return OSIP_BADPARAMETER;
+    }
 
   i = eXosip_call_init (&jc);
   if (i != 0)
@@ -287,8 +289,7 @@ eXosip_call_send_initial_invite (osip_message_t * invite)
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, NULL, NULL, NULL));
 #else
-  osip_transaction_set_your_instance (transaction,
-                                      __eXosip_new_jinfo (jc, NULL));
+  osip_transaction_set_your_instance (transaction, __eXosip_new_jinfo (jc, NULL));
 #endif
   osip_transaction_add_event (transaction, sipevent);
 
@@ -314,7 +315,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
   *_ack = NULL;
 
   if (did <= 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (did > 0)
     {
       eXosip_call_dialog_find (did, &jc, &jd);
@@ -357,7 +358,7 @@ eXosip_call_build_ack (int did, osip_message_t ** _ack)
       return i;
     }
 
-  _eXosip_call_reuse_contact(tr->orig_request, ack);
+  _eXosip_call_reuse_contact (tr->orig_request, ack);
 
   /* Fix CSeq Number when request has been exchanged during INVITE transactions */
   if (tr->orig_request->cseq != NULL && tr->orig_request->cseq->number != NULL)
@@ -409,7 +410,7 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
   int port;
 
   if (did <= 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (did > 0)
     {
       eXosip_call_dialog_find (did, &jc, &jd);
@@ -455,16 +456,16 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
       /* search for maddr parameter */
       osip_uri_param_t *maddr_param = NULL;
       osip_uri_uparam_get_byname (ack->req_uri, "maddr", &maddr_param);
-      host=NULL;
-      if (maddr_param!=NULL && maddr_param->gvalue!=NULL)
-	host = maddr_param->gvalue;
-      
+      host = NULL;
+      if (maddr_param != NULL && maddr_param->gvalue != NULL)
+        host = maddr_param->gvalue;
+
       port = 5060;
       if (ack->req_uri->port != NULL)
-	port = osip_atoi (ack->req_uri->port);
-      
-      if (host==NULL)
-	host = ack->req_uri->host;
+        port = osip_atoi (ack->req_uri->port);
+
+      if (host == NULL)
+        host = ack->req_uri->host;
     }
 
   i = cb_snd_message (NULL, ack, host, port, -1);
@@ -472,8 +473,8 @@ eXosip_call_send_ack (int did, osip_message_t * ack)
   if (jd->d_ack != NULL)
     osip_message_free (jd->d_ack);
   jd->d_ack = ack;
-  if (i<0)
-	  return i;
+  if (i < 0)
+    return i;
 
   /* TODO: could be 1 for icmp... */
   return OSIP_SUCCESS;
@@ -490,7 +491,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
 
   *request = NULL;
   if (jid <= 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (method == NULL || method[0] == '\0')
     return OSIP_BADPARAMETER;
 
@@ -539,7 +540,7 @@ eXosip_call_build_request (int jid, const char *method, osip_message_t ** reques
   if (i != 0)
     return i;
 
-  eXosip_add_authentication_information(*request, NULL);
+  eXosip_add_authentication_information (*request, NULL);
 
   return OSIP_SUCCESS;
 }
@@ -558,10 +559,10 @@ eXosip_call_send_request (int jid, osip_message_t * request)
   if (request == NULL)
     return OSIP_BADPARAMETER;
   if (jid <= 0)
-  {
+    {
       osip_message_free (request);
-	  return OSIP_BADPARAMETER;
-  }
+      return OSIP_BADPARAMETER;
+    }
 
   if (request->sip_method == NULL)
     {
@@ -640,8 +641,7 @@ eXosip_call_send_request (int jid, osip_message_t * request)
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, jd, NULL, NULL));
 #else
-  osip_transaction_set_your_instance (transaction,
-                                      __eXosip_new_jinfo (jc, jd));
+  osip_transaction_set_your_instance (transaction, __eXosip_new_jinfo (jc, jd));
 #endif
   osip_transaction_add_event (transaction, sipevent);
   __eXosip_wakeup ();
@@ -761,11 +761,11 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
   *answer = NULL;
 
   if (tid < 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (status <= 100)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (status > 699)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -780,24 +780,23 @@ eXosip_call_build_answer (int tid, int status, osip_message_t ** answer)
     }
 
   if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
-  {
+    {
       i = _eXosip_answer_invite_123456xx (jc, jd, status, answer, 0);
-  }
-  else
-  {
+  } else
+    {
       if (jd != NULL)
-          i = _eXosip_build_response_default (answer, jd->d_dialog, status,
+        i = _eXosip_build_response_default (answer, jd->d_dialog, status,
                                             tr->orig_request);
       else
-          i = _eXosip_build_response_default (answer, NULL, status,
+        i = _eXosip_build_response_default (answer, NULL, status,
                                             tr->orig_request);
-	  if (i != 0)
-		{
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-								  "ERROR: Could not create response for %s\n",
-								  tr->orig_request->sip_method));
-		  return i;
-		}
+      if (i != 0)
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "ERROR: Could not create response for %s\n",
+                                  tr->orig_request->sip_method));
+          return i;
+        }
       if (status > 100 && status < 300)
         i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
     }
@@ -821,20 +820,20 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
   osip_event_t *evt_answer;
 
   if (tid < 0)
-  {
-	  osip_message_free (answer);
-	  return OSIP_BADPARAMETER;
-  }
+    {
+      osip_message_free (answer);
+      return OSIP_BADPARAMETER;
+    }
   if (status <= 100)
-  {
-	  osip_message_free (answer);
-	  return OSIP_BADPARAMETER;
-  }
+    {
+      osip_message_free (answer);
+      return OSIP_BADPARAMETER;
+    }
   if (status > 699)
-  {
-	  osip_message_free (answer);
-	  return OSIP_BADPARAMETER;
-  }
+    {
+      osip_message_free (answer);
+      return OSIP_BADPARAMETER;
+    }
 
   if (tid > 0)
     {
@@ -859,7 +858,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Wrong parameter?\n"));
-		      osip_message_free (answer);
+              osip_message_free (answer);
               return OSIP_BADPARAMETER;
             }
         }
@@ -882,24 +881,24 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
     {
       if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
         {
-		  osip_message_t *response;
+          osip_message_t *response;
           return _eXosip_answer_invite_123456xx (jc, jd, status, &response, 1);
-		}
+        }
       osip_message_free (answer);
       return OSIP_BADPARAMETER;
-  }
-  
+    }
+
   if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE"))
     {
-      if (MSG_IS_STATUS_2XX (answer) && jd!=NULL)
-	{
-	  if (status >= 200 && status <300 && jd!=NULL)
-	    {
-	      eXosip_dialog_set_200ok (jd, answer);
-	      /* wait for a ACK */
-	      osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
-	    }
-	}
+      if (MSG_IS_STATUS_2XX (answer) && jd != NULL)
+        {
+          if (status >= 200 && status < 300 && jd != NULL)
+            {
+              eXosip_dialog_set_200ok (jd, answer);
+              /* wait for a ACK */
+              osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
+            }
+        }
     }
 
   evt_answer = osip_new_outgoing_sipmessage (answer);
@@ -921,7 +920,7 @@ eXosip_call_terminate (int cid, int did)
   eXosip_call_t *jc = NULL;
 
   if (did <= 0 && cid <= 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (did > 0)
     {
       eXosip_call_dialog_find (did, &jc, &jd);
@@ -943,12 +942,12 @@ eXosip_call_terminate (int cid, int did)
     }
 
   tr = eXosip_find_last_out_invite (jc, jd);
-  if (jd != NULL && jd->d_dialog!=NULL && jd->d_dialog->state == DIALOG_CONFIRMED)
-  {
-	  /* don't send CANCEL on re-INVITE: send BYE instead */
-  }
-  else if (tr != NULL && tr->last_response != NULL
-      && MSG_IS_STATUS_1XX (tr->last_response))
+  if (jd != NULL && jd->d_dialog != NULL
+      && jd->d_dialog->state == DIALOG_CONFIRMED)
+    {
+      /* don't send CANCEL on re-INVITE: send BYE instead */
+  } else if (tr != NULL && tr->last_response != NULL
+             && MSG_IS_STATUS_1XX (tr->last_response))
     {
       i = generating_cancel (&request, tr->orig_request);
       if (i != 0)
@@ -990,17 +989,17 @@ eXosip_call_terminate (int cid, int did)
       if (tr != NULL && tr->last_response != NULL &&
           MSG_IS_STATUS_1XX (tr->last_response))
         {                       /* answer with 603 */
-	  osip_generic_param_t *to_tag;
-	  osip_from_param_get_byname (tr->orig_request->to, "tag", &to_tag);
+          osip_generic_param_t *to_tag;
+          osip_from_param_get_byname (tr->orig_request->to, "tag", &to_tag);
 
           i = eXosip_call_send_answer (tr->transactionid, 603, NULL);
 
-	  if (to_tag==NULL)
-	    return i;
+          if (to_tag == NULL)
+            return i;
         }
     }
 
-  if (jd->d_dialog==NULL)
+  if (jd->d_dialog == NULL)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -1051,7 +1050,7 @@ eXosip_call_build_prack (int tid, osip_message_t ** prack)
   *prack = NULL;
 
   if (tid < 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -1180,7 +1179,7 @@ eXosip_call_send_prack (int tid, osip_message_t * prack)
 
 int
 _eXosip_call_retry_request (eXosip_call_t * jc,
-                               eXosip_dialog_t * jd, osip_transaction_t * out_tr)
+                            eXosip_dialog_t * jd, osip_transaction_t * out_tr)
 {
   osip_transaction_t *tr = NULL;
   osip_message_t *msg = NULL;
@@ -1223,124 +1222,131 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
       return OSIP_SYNTAXERROR;
     }
 
-  if (MSG_IS_STATUS_3XX(out_tr->last_response))
+  if (MSG_IS_STATUS_3XX (out_tr->last_response))
     {
       co = NULL;
       pos = 0;
       while (!osip_list_eol (&out_tr->last_response->contacts, pos))
-	{
-	  co = (osip_contact_t *) osip_list_get (&out_tr->last_response->contacts, pos);
-	  if (co != NULL && co->url != NULL)
-	    {
-	      /* check tranport? Only allow UDP, right now */
-	      osip_uri_param_t *u_param;
-	      int pos2;
-	      
-	      u_param = NULL;
-	      pos2 = 0;
-	      while (!osip_list_eol (&co->url->url_params, pos2))
-		{
-		  u_param =
-		    (osip_uri_param_t *) osip_list_get (&co->url->url_params, pos2);
-		  if (u_param == NULL || u_param->gname == NULL
-		      || u_param->gvalue == NULL)
-		    {
-		      u_param = NULL;
-		      /* skip */
-		    } else if (0 == osip_strcasecmp (u_param->gname, "transport"))
-		      {
-			if (0 == osip_strcasecmp (u_param->gvalue, "udp"))
-			  {
-			    u_param = NULL;
-			    protocol = IPPROTO_UDP;
-			    break;    /* ok */
-			  }
-			else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
-			  {
-			    protocol = IPPROTO_TCP;
-			    u_param = NULL;
-			  }
-			break;
-		      }
-		  pos2++;
-		}
-	      
-	      if (u_param == NULL || u_param->gname == NULL || u_param->gvalue == NULL)
-		{
-		  break;            /* default is udp! */
-		}
-	    }
-	  pos++;
-	  co = NULL;
-	}
-      
+        {
+          co =
+            (osip_contact_t *) osip_list_get (&out_tr->last_response->contacts,
+                                              pos);
+          if (co != NULL && co->url != NULL)
+            {
+              /* check tranport? Only allow UDP, right now */
+              osip_uri_param_t *u_param;
+              int pos2;
+
+              u_param = NULL;
+              pos2 = 0;
+              while (!osip_list_eol (&co->url->url_params, pos2))
+                {
+                  u_param =
+                    (osip_uri_param_t *) osip_list_get (&co->url->url_params,
+                                                        pos2);
+                  if (u_param == NULL || u_param->gname == NULL
+                      || u_param->gvalue == NULL)
+                    {
+                      u_param = NULL;
+                      /* skip */
+                  } else if (0 == osip_strcasecmp (u_param->gname, "transport"))
+                    {
+                      if (0 == osip_strcasecmp (u_param->gvalue, "udp"))
+                        {
+                          u_param = NULL;
+                          protocol = IPPROTO_UDP;
+                          break;        /* ok */
+                      } else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
+                        {
+                          protocol = IPPROTO_TCP;
+                          u_param = NULL;
+                        }
+                      break;
+                    }
+                  pos2++;
+                }
+
+              if (u_param == NULL || u_param->gname == NULL
+                  || u_param->gvalue == NULL)
+                {
+                  break;        /* default is udp! */
+                }
+            }
+          pos++;
+          co = NULL;
+        }
+
       if (co == NULL || co->url == NULL)
-	{
-	  osip_message_free (msg);
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "eXosip: contact header\n"));
-	  return OSIP_SYNTAXERROR;
-	}
-      
+        {
+          osip_message_free (msg);
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: contact header\n"));
+          return OSIP_SYNTAXERROR;
+        }
+
       /* TODO:
-	 remove extra parameter from new request-uri
-	 check usual parameter like "transport"
-      */
-      
-      if (msg->req_uri!=NULL && msg->req_uri->host!=NULL && co->url->host!=NULL
-	  && 0==osip_strcasecmp(co->url->host, msg->req_uri->host))
-	{
-	  osip_uri_param_t *maddr_param = NULL;
-	  osip_uri_uparam_get_byname (co->url, "maddr", &maddr_param);
-	  if (maddr_param!=NULL && maddr_param->gvalue!=NULL)
-	    {
-	      /* This is a redirect server, the route should probably be removed? */
-	      osip_route_t *route=NULL;
-	      osip_generic_param_t *tag=NULL;
-	      osip_message_get_route (msg, 0, &route);
-	      if (route!=NULL)
-		{
-		  osip_to_get_tag (msg->to, &tag);
-		  if (tag==NULL && route != NULL && route->url != NULL)
-		    {
-		      osip_list_remove(&msg->routes, 0);
-		      osip_route_free(route);
-		    }
-		}
-	    }
-	}
+         remove extra parameter from new request-uri
+         check usual parameter like "transport"
+       */
+
+      if (msg->req_uri != NULL && msg->req_uri->host != NULL
+          && co->url->host != NULL
+          && 0 == osip_strcasecmp (co->url->host, msg->req_uri->host))
+        {
+          osip_uri_param_t *maddr_param = NULL;
+          osip_uri_uparam_get_byname (co->url, "maddr", &maddr_param);
+          if (maddr_param != NULL && maddr_param->gvalue != NULL)
+            {
+              /* This is a redirect server, the route should probably be removed? */
+              osip_route_t *route = NULL;
+              osip_generic_param_t *tag = NULL;
+              osip_message_get_route (msg, 0, &route);
+              if (route != NULL)
+                {
+                  osip_to_get_tag (msg->to, &tag);
+                  if (tag == NULL && route != NULL && route->url != NULL)
+                    {
+                      osip_list_remove (&msg->routes, 0);
+                      osip_route_free (route);
+                    }
+                }
+            }
+        }
 
       /* replace request-uri with NEW contact address */
       osip_uri_free (msg->req_uri);
       msg->req_uri = NULL;
       osip_uri_clone (co->url, &msg->req_uri);
 
-	  /* support for diversions headers/draft! */
-	  {
-		  int count=0;
-		  pos=0;
-		  while (!osip_list_eol (&out_tr->last_response->headers, pos))
-		  {
-			  osip_header_t *copy=NULL;
-			  osip_header_t *head = osip_list_get (&out_tr->last_response->headers, pos);
-			  if (head!=NULL && 0==osip_strcasecmp(head->hname, "diversion"))
-			  {
-				  i = osip_header_clone(head, &copy);
-				  if (i==0)
-				  {
-					  osip_list_add (&msg->headers,  copy, count);
-					  count++;
-				  }
-			  }
-			  pos++;
-		  }
-	  }
+      /* support for diversions headers/draft! */
+      {
+        int count = 0;
+        pos = 0;
+        while (!osip_list_eol (&out_tr->last_response->headers, pos))
+          {
+            osip_header_t *copy = NULL;
+            osip_header_t *head =
+              osip_list_get (&out_tr->last_response->headers, pos);
+            if (head != NULL && 0 == osip_strcasecmp (head->hname, "diversion"))
+              {
+                i = osip_header_clone (head, &copy);
+                if (i == 0)
+                  {
+                    osip_list_add (&msg->headers, copy, count);
+                    count++;
+                  }
+              }
+            pos++;
+          }
+      }
 
     }
   /* remove all previous authentication headers */
-  osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
-  osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
+  osip_list_special_free (&msg->authorizations,
+                          (void *(*)(void *)) &osip_authorization_free);
+  osip_list_special_free (&msg->proxy_authorizations,
+                          (void *(*)(void *)) &osip_proxy_authorization_free);
 
   /* increment cseq */
   cseq = atoi (msg->cseq->number);
@@ -1351,15 +1357,15 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
       jd->d_dialog->local_cseq++;
     }
 
-  i = eXosip_update_top_via(msg);
-  if (i!=0)
+  i = eXosip_update_top_via (msg);
+  if (i != 0)
     {
       osip_message_free (msg);
       return i;
     }
 
-  if (out_tr->last_response->status_code==401
-      ||out_tr->last_response->status_code==407)
+  if (out_tr->last_response->status_code == 401
+      || out_tr->last_response->status_code == 407)
     eXosip_add_authentication_information (msg, out_tr->last_response);
   else
     eXosip_add_authentication_information (msg, NULL);
@@ -1415,25 +1421,25 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 #ifndef MINISIZE
 
 int
-eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
+eXosip_call_get_referto (int did, char *refer_to, size_t refer_to_len)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   osip_transaction_t *tr = NULL;
   osip_uri_t *referto_uri;
   char atmp[256];
-  char *referto_tmp=NULL;
+  char *referto_tmp = NULL;
   int i;
 
   if (did <= 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
   eXosip_call_dialog_find (did, &jc, &jd);
   if (jc == NULL || jd == NULL || jd->d_dialog == NULL)
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "eXosip: No call here?\n"));
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: No call here?\n"));
       return OSIP_NOTFOUND;
     }
 
@@ -1447,85 +1453,81 @@ eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len)
       return OSIP_NOTFOUND;
     }
 
-  i = osip_uri_clone(jd->d_dialog->remote_uri->url, &referto_uri);
-  if (i!=0)
+  i = osip_uri_clone (jd->d_dialog->remote_uri->url, &referto_uri);
+  if (i != 0)
     return i;
 
-  snprintf(atmp, sizeof(atmp), "%s;to-tag=%s;from-tag=%s",
-	   jd->d_dialog->call_id,
-	   jd->d_dialog->remote_tag,
-	   jd->d_dialog->local_tag);      
+  snprintf (atmp, sizeof (atmp), "%s;to-tag=%s;from-tag=%s",
+            jd->d_dialog->call_id,
+            jd->d_dialog->remote_tag, jd->d_dialog->local_tag);
 
-  osip_uri_uheader_add(referto_uri, osip_strdup("Replaces"), osip_strdup(atmp));
-  i = osip_uri_to_str(referto_uri, &referto_tmp);
-  if (i!=0)
+  osip_uri_uheader_add (referto_uri, osip_strdup ("Replaces"), osip_strdup (atmp));
+  i = osip_uri_to_str (referto_uri, &referto_tmp);
+  if (i != 0)
     {
-      osip_uri_free(referto_uri);      
+      osip_uri_free (referto_uri);
       return i;
     }
 
-  snprintf(refer_to, refer_to_len, "%s", referto_tmp);
-  osip_uri_free(referto_uri);
+  snprintf (refer_to, refer_to_len, "%s", referto_tmp);
+  osip_uri_free (referto_uri);
 
   return OSIP_SUCCESS;
 }
 
-int 
-eXosip_call_find_by_replaces (char* ReplacesStr)
+int
+eXosip_call_find_by_replaces (char *ReplacesStr)
 {
-  eXosip_call_t* jc = NULL;
+  eXosip_call_t *jc = NULL;
   eXosip_dialog_t *jd = NULL;
-  char call_id [256];
-  char* to_tag;
-  char* from_tag;
-  char* early_flag;
-  char* semicolon;
-  
+  char call_id[256];
+  char *to_tag;
+  char *from_tag;
+  char *early_flag;
+  char *semicolon;
+
   /* parse replaces string */
   strcpy (call_id, ReplacesStr);
-  to_tag = strstr(call_id,"to-tag=");
-  from_tag = strstr(call_id,"from-tag=");
-  early_flag = strstr(call_id,"early-only");
-  
-  if ((to_tag == NULL) ||
-      (from_tag == NULL))
+  to_tag = strstr (call_id, "to-tag=");
+  from_tag = strstr (call_id, "from-tag=");
+  early_flag = strstr (call_id, "early-only");
+
+  if ((to_tag == NULL) || (from_tag == NULL))
     return OSIP_SYNTAXERROR;
   to_tag += strlen ("to-tag=");
   from_tag += strlen ("from-tag=");
-  
-  while ((semicolon = strrchr(call_id,';')) != NULL)
+
+  while ((semicolon = strrchr (call_id, ';')) != NULL)
     {
       *semicolon = '\0';
     }
-  
+
   for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
     {
       for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
-		{
-		  if (jd->d_dialog == NULL)
-			{
-			  /* skip */
-			}    
-		  else if (
-			  ( (0 == strcmp (jd->d_dialog->call_id, call_id)) &&
-			  (0 == strcmp (jd->d_dialog->remote_tag, to_tag)) &&
-			  (0 == strcmp (jd->d_dialog->local_tag, from_tag)) )
-			  ||
-			  ( (0 == strcmp (jd->d_dialog->call_id, call_id)) &&
-			  (0 == strcmp (jd->d_dialog->local_tag, to_tag)) &&
-			  (0 == strcmp (jd->d_dialog->remote_tag, from_tag)) )
-			  )
-			{
-			  /* This dialog match! */
-				if (jd->d_dialog->state == DIALOG_CONFIRMED && early_flag!=NULL)
-					return OSIP_WRONG_STATE; /* confirmed dialog but already answered: use 486 */
-				if (jd->d_dialog->state == DIALOG_EARLY && jd->d_dialog->type == CALLEE)
-					return OSIP_BADPARAMETER; /* use 481 */
-				return jc->c_id; /* match anyway */
-			}
-		}
-	}
-  return OSIP_NOTFOUND;   /* answer with 481 */
+        {
+          if (jd->d_dialog == NULL)
+            {
+              /* skip */
+          } else if (((0 == strcmp (jd->d_dialog->call_id, call_id)) &&
+                      (0 == strcmp (jd->d_dialog->remote_tag, to_tag)) &&
+                      (0 == strcmp (jd->d_dialog->local_tag, from_tag)))
+                     ||
+                     ((0 == strcmp (jd->d_dialog->call_id, call_id)) &&
+                      (0 == strcmp (jd->d_dialog->local_tag, to_tag)) &&
+                      (0 == strcmp (jd->d_dialog->remote_tag, from_tag))))
+            {
+              /* This dialog match! */
+              if (jd->d_dialog->state == DIALOG_CONFIRMED && early_flag != NULL)
+                return OSIP_WRONG_STATE;        /* confirmed dialog but already answered: use 486 */
+              if (jd->d_dialog->state == DIALOG_EARLY
+                  && jd->d_dialog->type == CALLEE)
+                return OSIP_BADPARAMETER;       /* use 481 */
+              return jc->c_id;  /* match anyway */
+            }
+        }
+    }
+  return OSIP_NOTFOUND;         /* answer with 481 */
 }
 
 #endif

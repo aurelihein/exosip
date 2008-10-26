@@ -73,29 +73,29 @@ eXosip_unlock (void)
 
 int
 _eXosip_transaction_init (osip_transaction_t ** transaction,
-                       osip_fsm_type_t ctx_type, osip_t * osip,
-                       osip_message_t * message)
+                          osip_fsm_type_t ctx_type, osip_t * osip,
+                          osip_message_t * message)
 {
 #ifdef SRV_RECORD
-	osip_srv_record_t record;
+  osip_srv_record_t record;
 #endif
-	int i;
-    i = osip_transaction_init (transaction, ctx_type, osip, message);
-	if (i != 0)
-	{
-		return i;
-	}
+  int i;
+  i = osip_transaction_init (transaction, ctx_type, osip, message);
+  if (i != 0)
+    {
+      return i;
+    }
 #ifdef SRV_RECORD
-	memset(&record, 0, sizeof(osip_srv_record_t));
-	i = _eXosip_srv_lookup(*transaction, message, &record);
-	if (i<0)
-	{
-		/* might be a simple DNS request or an IP */
-		return OSIP_SUCCESS;
-	}
-	osip_transaction_set_srv_record(*transaction, &record);
+  memset (&record, 0, sizeof (osip_srv_record_t));
+  i = _eXosip_srv_lookup (*transaction, message, &record);
+  if (i < 0)
+    {
+      /* might be a simple DNS request or an IP */
+      return OSIP_SUCCESS;
+    }
+  osip_transaction_set_srv_record (*transaction, &record);
 #endif
-	return OSIP_SUCCESS;
+  return OSIP_SUCCESS;
 }
 
 int
@@ -181,35 +181,38 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       jd->d_dialog->local_cseq++;
     }
 
-  i = eXosip_update_top_via(msg);
-  if (i!=0)
+  i = eXosip_update_top_via (msg);
+  if (i != 0)
     {
       osip_message_free (msg);
       return i;
     }
 
-  osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
-  osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
+  osip_list_special_free (&msg->authorizations,
+                          (void *(*)(void *)) &osip_authorization_free);
+  osip_list_special_free (&msg->proxy_authorizations,
+                          (void *(*)(void *)) &osip_proxy_authorization_free);
 
-  if (out_tr!=NULL && out_tr->last_response!=NULL && (out_tr->last_response->status_code==401 || out_tr->last_response->status_code==407))
+  if (out_tr != NULL && out_tr->last_response != NULL
+      && (out_tr->last_response->status_code == 401
+          || out_tr->last_response->status_code == 407))
     {
-		i = eXosip_add_authentication_information (msg, out_tr->last_response);
+      i = eXosip_add_authentication_information (msg, out_tr->last_response);
       if (i < 0)
-	{
-	  osip_message_free (msg);
-	  return i;
-	}
-    }
-  else
+        {
+          osip_message_free (msg);
+          return i;
+        }
+  } else
     {
-		i = eXosip_add_authentication_information (msg, NULL);
+      i = eXosip_add_authentication_information (msg, NULL);
       if (i < 0)
-	{
-	  osip_message_free (msg);
-	  return i;
-	}
+        {
+          osip_message_free (msg);
+          return i;
+        }
     }
-  
+
 
   osip_message_force_update (msg);
 
@@ -225,14 +228,13 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
     }
 
   /* replace with the new tr */
-  if (MSG_IS_PUBLISH(msg))
+  if (MSG_IS_PUBLISH (msg))
     {
       /* old transaction is put in the garbage list */
       osip_list_add (&eXosip.j_transactions, out_tr, 0);
       /* new transaction is put in the publish context */
       *ptr = tr;
-    }
-  else
+  } else
     osip_list_add (&eXosip.j_transactions, tr, 0);
 
   sipevent = osip_new_outgoing_sipmessage (msg);
@@ -284,7 +286,7 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
     return OSIP_UNDEFINED_ERROR;
 
   i = osip_message_clone (out_tr->orig_request, &msg);
-  if (i!=0)
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -306,7 +308,7 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
   cseq = atoi (msg->cseq->number);
   osip_free (msg->cseq->number);
   msg->cseq->number = strdup_printf ("%i", cseq + 1);
-  if (msg->cseq->number==NULL)
+  if (msg->cseq->number == NULL)
     {
       osip_message_free (msg);
       return OSIP_NOMEM;
@@ -316,62 +318,67 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
       jd->d_dialog->local_cseq++;
     }
 
-  i = eXosip_update_top_via(msg);
-  if (i!=0)
+  i = eXosip_update_top_via (msg);
+  if (i != 0)
     {
       osip_message_free (msg);
       return i;
     }
 
-  osip_list_special_free(&msg->authorizations, (void *(*)(void *)) &osip_authorization_free);
-  osip_list_special_free(&msg->proxy_authorizations, (void *(*)(void *)) &osip_proxy_authorization_free);
+  osip_list_special_free (&msg->authorizations,
+                          (void *(*)(void *)) &osip_authorization_free);
+  osip_list_special_free (&msg->proxy_authorizations,
+                          (void *(*)(void *)) &osip_proxy_authorization_free);
 
-  if (out_tr!=NULL && out_tr->last_response!=NULL && (out_tr->last_response->status_code==401 || out_tr->last_response->status_code==407))
+  if (out_tr != NULL && out_tr->last_response != NULL
+      && (out_tr->last_response->status_code == 401
+          || out_tr->last_response->status_code == 407))
     {
       eXosip_add_authentication_information (msg, out_tr->last_response);
-    }
-  else
+  } else
     eXosip_add_authentication_information (msg, NULL);
 
-  if (out_tr!=NULL && out_tr->last_response!=NULL && out_tr->last_response->status_code == 412)
+  if (out_tr != NULL && out_tr->last_response != NULL
+      && out_tr->last_response->status_code == 412)
     {
       /* remove SIP-If-Match header */
-      int pos=0;
+      int pos = 0;
       while (!osip_list_eol (&msg->headers, pos))
-	{
-	  osip_header_t *head = osip_list_get (&msg->headers, pos);
-	  if (head!=NULL && 0==osip_strcasecmp(head->hname, "sip-if-match"))
-	    {
-	      i = osip_list_remove(&msg->headers, pos);
-	      osip_header_free(head);
-	      break;
-	    }
-	  pos++;
-	}
+        {
+          osip_header_t *head = osip_list_get (&msg->headers, pos);
+          if (head != NULL && 0 == osip_strcasecmp (head->hname, "sip-if-match"))
+            {
+              i = osip_list_remove (&msg->headers, pos);
+              osip_header_free (head);
+              break;
+            }
+          pos++;
+        }
     }
 
-  if (out_tr!=NULL && out_tr->last_response!=NULL && out_tr->last_response->status_code == 423)
+  if (out_tr != NULL && out_tr->last_response != NULL
+      && out_tr->last_response->status_code == 423)
     {
       /* increase expires value to "min-expires" value */
       osip_header_t *exp;
       osip_header_t *min_exp;
-      
+
       osip_message_header_get_byname (msg, "expires", 0, &exp);
-      osip_message_header_get_byname (out_tr->last_response, "min-expires", 0, &min_exp);
-      if (exp!=NULL && exp->hvalue!=NULL
-	  && min_exp!=NULL && min_exp->hvalue!=NULL)
-	{
-	  osip_free(exp->hvalue);
-	  exp->hvalue = osip_strdup(min_exp->hvalue);
-	}
-      else
-	{
-	  osip_message_free (msg);
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "eXosip: missing Min-Expires or Expires in PUBLISH\n"));
-	  return OSIP_SYNTAXERROR;
-	}
+      osip_message_header_get_byname (out_tr->last_response, "min-expires", 0,
+                                      &min_exp);
+      if (exp != NULL && exp->hvalue != NULL && min_exp != NULL
+          && min_exp->hvalue != NULL)
+        {
+          osip_free (exp->hvalue);
+          exp->hvalue = osip_strdup (min_exp->hvalue);
+      } else
+        {
+          osip_message_free (msg);
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "eXosip: missing Min-Expires or Expires in PUBLISH\n"));
+          return OSIP_SYNTAXERROR;
+        }
     }
 
   osip_message_force_update (msg);
@@ -388,14 +395,13 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
     }
 
   /* replace with the new tr */
-  if (MSG_IS_PUBLISH(msg))
+  if (MSG_IS_PUBLISH (msg))
     {
       /* old transaction is put in the garbage list */
       osip_list_add (&eXosip.j_transactions, out_tr, 0);
       /* new transaction is put in the publish context */
       *ptr = tr;
-    }
-  else
+  } else
     osip_list_add (&eXosip.j_transactions, tr, 0);
 
   sipevent = osip_new_outgoing_sipmessage (msg);
@@ -435,7 +441,7 @@ _eXosip_retry_register_with_auth (eXosip_event_t * je)
       return eXosip_register_send_register (jr->r_id, NULL);
     }
 
-    return OSIP_UNDEFINED_ERROR;
+  return OSIP_UNDEFINED_ERROR;
 }
 
 static int
@@ -444,16 +450,15 @@ _eXosip_retry_invite_with_auth (eXosip_event_t * je)
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
   int *retry = NULL;
-  osip_transaction_t *tr=NULL;
+  osip_transaction_t *tr = NULL;
   int i;
 
-  i = _eXosip_call_transaction_find (je->tid, &jc,
-				 &jd, &tr);
-  if (i!=0)
+  i = _eXosip_call_transaction_find (je->tid, &jc, &jd, &tr);
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "eXosip: call dialog not found\n"));
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: call dialog not found\n"));
       return i;
     }
 
@@ -465,7 +470,7 @@ _eXosip_retry_invite_with_auth (eXosip_event_t * je)
   if (*retry < 3)
     {
       (*retry)++;
-      return _eXosip_call_retry_request(jc, jd, tr);
+      return _eXosip_call_retry_request (jc, jd, tr);
     }
   return OSIP_UNDEFINED_ERROR;
 }
@@ -475,19 +480,18 @@ _eXosip_redirect_invite (eXosip_event_t * je)
 {
   eXosip_dialog_t *jd = NULL;
   eXosip_call_t *jc = NULL;
-  osip_transaction_t *tr=NULL;
+  osip_transaction_t *tr = NULL;
   int i;
 
-  i = _eXosip_call_transaction_find (je->tid, &jc,
-				 &jd, &tr);
-  if (i!=0)
+  i = _eXosip_call_transaction_find (je->tid, &jc, &jd, &tr);
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "eXosip: call dialog not found\n"));
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "eXosip: call dialog not found\n"));
       return i;
     }
-  
+
   return _eXosip_call_retry_request (jc, jd, tr);
 }
 
@@ -497,11 +501,11 @@ _eXosip_retry_subscribe_with_auth (eXosip_event_t * je)
   eXosip_dialog_t *jd = NULL;
   eXosip_subscribe_t *js = NULL;
   int *retry = NULL;
-  osip_transaction_t *tr=NULL;
+  osip_transaction_t *tr = NULL;
   int i;
 
   i = _eXosip_subscribe_transaction_find (je->tid, &js, &jd, &tr);
-  if (i!=0)
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -517,7 +521,7 @@ _eXosip_retry_subscribe_with_auth (eXosip_event_t * je)
   if (*retry < 3)
     {
       (*retry)++;
-      return _eXosip_subscribe_send_request_with_credential(js, jd, tr);
+      return _eXosip_subscribe_send_request_with_credential (js, jd, tr);
     }
   return OSIP_UNDEFINED_ERROR;
 }
@@ -529,7 +533,7 @@ _eXosip_retry_publish_with_auth (eXosip_event_t * je)
   int i;
 
   i = _eXosip_pub_find_by_tid (&jp, je->tid);
-  if (i!=0)
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -546,11 +550,11 @@ _eXosip_retry_notify_with_auth (eXosip_event_t * je)
   /* TODO untested */
   eXosip_dialog_t *jd = NULL;
   eXosip_notify_t *jn = NULL;
-  osip_transaction_t *tr=NULL;
+  osip_transaction_t *tr = NULL;
   int i;
 
   i = _eXosip_insubscription_transaction_find (je->tid, &jn, &jd, &tr);
-  if (i!=0)
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -568,39 +572,36 @@ eXosip_retry_with_auth (eXosip_event_t * je)
   if (!je || !je->request || !je->response)
     return OSIP_BADPARAMETER;
 
-  if (je->rid>0)
+  if (je->rid > 0)
     {
       return _eXosip_retry_register_with_auth (je);
-    }
-  else if (je->cid>0)
+  } else if (je->cid > 0)
     {
       return _eXosip_retry_invite_with_auth (je);
     }
 #ifndef MINISIZE
-  else if (je->sid>0)
+  else if (je->sid > 0)
     {
       return _eXosip_retry_subscribe_with_auth (je);
-    }
-  else if (je->nid>0)
+  } else if (je->nid > 0)
     {
       return _eXosip_retry_notify_with_auth (je);
-    }
-  else if (MSG_IS_PUBLISH (je->request))
+  } else if (MSG_IS_PUBLISH (je->request))
     return _eXosip_retry_publish_with_auth (je);
 #endif
   else
     {
-      osip_transaction_t *tr=NULL;
-      eXosip_transaction_find(je->tid, &tr);
-      if (tr!=NULL)
-	{
-	  return _eXosip_retry_with_auth (NULL, &tr, NULL);
-	}
+      osip_transaction_t *tr = NULL;
+      eXosip_transaction_find (je->tid, &tr);
+      if (tr != NULL)
+        {
+          return _eXosip_retry_with_auth (NULL, &tr, NULL);
+        }
     }
 
   OSIP_TRACE (osip_trace
-	      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-	       "eXosip: Can't retry event %d with auth\n", je->type));
+              (__FILE__, __LINE__, OSIP_ERROR, NULL,
+               "eXosip: Can't retry event %d with auth\n", je->type));
   return OSIP_UNDEFINED_ERROR;
 }
 
@@ -671,8 +672,8 @@ eXosip_automatic_refresh (void)
                 {               /* will expires in 60 sec: send refresh! */
                   int i;
 
-				  i = _eXosip_subscribe_automatic_refresh(js, jd, out_tr);
-				  if (i != 0)
+                  i = _eXosip_subscribe_automatic_refresh (js, jd, out_tr);
+                  if (i != 0)
                     {
                       OSIP_TRACE (osip_trace
                                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -711,52 +712,51 @@ eXosip_automatic_refresh (void)
 #endif
 
 void
-eXosip_retransmit_lost200ok()
+eXosip_retransmit_lost200ok ()
 {
-	eXosip_call_t *jc;
-	eXosip_dialog_t *jd;
-	time_t now;
+  eXosip_call_t *jc;
+  eXosip_dialog_t *jd;
+  time_t now;
 
-	now = time (NULL);
+  now = time (NULL);
 
-	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
-	{
-		if (jc->c_id >= 1 && jc->c_dialogs != NULL)
-		{
-			for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
-			{
-				if (jd->d_id >=1 && jd->d_dialog != NULL && jd->d_200Ok!=NULL)
-				{
-					if (jd->d_count==9)
-					{
-						OSIP_TRACE (osip_trace
-									(__FILE__, __LINE__, OSIP_ERROR, NULL,
-									"eXosip: no ACK received during 20s: dropping call\n"));
-						/* hard for users to detect than I sent this BYE... */
-						jd->d_count=0;
-						osip_message_free(jd->d_200Ok);
-						jd->d_200Ok=NULL;
-						eXosip_call_terminate(jc->c_id, jd->d_id);
-					}
-					else if (jd->d_timer<now)
-					{
-						/* a dialog exist: retransmit lost 200ok */
-						jd->d_count++;
-						if (jd->d_count==1)
-						  jd->d_timer = time (NULL) + 1;
-						if (jd->d_count==2)
-						  jd->d_timer = time (NULL) + 2;
-						if (jd->d_count>=3)
-						  jd->d_timer = time (NULL) + 4;
-						jd = jc->c_dialogs;
-						/* TU retransmission */
-						cb_snd_message (NULL, jd->d_200Ok, NULL,0, -1);
-					}
-				}
-			}
-		}
-	}
-	return;
+  for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
+    {
+      if (jc->c_id >= 1 && jc->c_dialogs != NULL)
+        {
+          for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
+            {
+              if (jd->d_id >= 1 && jd->d_dialog != NULL && jd->d_200Ok != NULL)
+                {
+                  if (jd->d_count == 9)
+                    {
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                   "eXosip: no ACK received during 20s: dropping call\n"));
+                      /* hard for users to detect than I sent this BYE... */
+                      jd->d_count = 0;
+                      osip_message_free (jd->d_200Ok);
+                      jd->d_200Ok = NULL;
+                      eXosip_call_terminate (jc->c_id, jd->d_id);
+                  } else if (jd->d_timer < now)
+                    {
+                      /* a dialog exist: retransmit lost 200ok */
+                      jd->d_count++;
+                      if (jd->d_count == 1)
+                        jd->d_timer = time (NULL) + 1;
+                      if (jd->d_count == 2)
+                        jd->d_timer = time (NULL) + 2;
+                      if (jd->d_count >= 3)
+                        jd->d_timer = time (NULL) + 4;
+                      jd = jc->c_dialogs;
+                      /* TU retransmission */
+                      cb_snd_message (NULL, jd->d_200Ok, NULL, 0, -1);
+                    }
+                }
+            }
+        }
+    }
+  return;
 }
 
 void
@@ -866,8 +866,7 @@ eXosip_automatic_action (void)
                     {
                       int i;
 
-                      i =
-                        _eXosip_call_retry_request (jc, jd, out_tr);
+                      i = _eXosip_call_retry_request (jc, jd, out_tr);
                       if (i != 0)
                         {
                           OSIP_TRACE (osip_trace
@@ -967,9 +966,9 @@ eXosip_automatic_action (void)
                       if (jd->d_retry < 3)
                         {
                           int i;
-						  i =
-							_eXosip_subscribe_send_request_with_credential (js, jd,
-																			out_tr);
+                          i =
+                            _eXosip_subscribe_send_request_with_credential (js, jd,
+                                                                            out_tr);
                           if (i != 0)
                             {
                               OSIP_TRACE (osip_trace
@@ -985,7 +984,7 @@ eXosip_automatic_action (void)
                     {           /* will expires in 60 sec: send refresh! */
                       int i;
 
-					  i = _eXosip_subscribe_automatic_refresh(js, jd, out_tr);
+                      i = _eXosip_subscribe_automatic_refresh (js, jd, out_tr);
                       if (i != 0)
                         {
                           OSIP_TRACE (osip_trace
@@ -1113,7 +1112,7 @@ eXosip_automatic_action (void)
                 {
                   /* TODO: improve support for several retries when
                      several credentials are needed */
-		  _eXosip_retry_with_auth (NULL, &jpub->p_last_tr, NULL);
+                  _eXosip_retry_with_auth (NULL, &jpub->p_last_tr, NULL);
                   jpub->p_retry++;
                 }
           } else if (now - jpub->p_last_tr->birth_time < 120 &&
@@ -1127,7 +1126,7 @@ eXosip_automatic_action (void)
         }
     }
 #endif
-  
+
 }
 
 void
@@ -1220,19 +1219,19 @@ eXosip_find_authentication_info (const char *username, const char *realm)
 
   for (authinfo = eXosip.authinfos; authinfo != NULL; authinfo = authinfo->next)
     {
-      if (realm!=NULL && authinfo->realm!=NULL)
-		  OSIP_TRACE (osip_trace
-					  (__FILE__, __LINE__, OSIP_INFO3, NULL,
-					   "INFO: authinfo: %s %s\n", realm, authinfo->realm));
+      if (realm != NULL && authinfo->realm != NULL)
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO3, NULL,
+                     "INFO: authinfo: %s %s\n", realm, authinfo->realm));
       if (0 == osip_strcasecmp (authinfo->username, username))
         {
           if (authinfo->realm == NULL || authinfo->realm[0] == '\0')
             {
               fallback = authinfo;
-          } else if (realm==NULL
-			  || osip_strcasecmp (realm, authinfo->realm) == 0
+          } else if (realm == NULL
+                     || osip_strcasecmp (realm, authinfo->realm) == 0
                      || 0 == osip_strncasecmp (realm + 1, authinfo->realm,
-                                      strlen (realm) - 2))
+                                               strlen (realm) - 2))
             {
               return authinfo;
             }
@@ -1243,16 +1242,18 @@ eXosip_find_authentication_info (const char *username, const char *realm)
      try with another username... */
   for (authinfo = eXosip.authinfos; authinfo != NULL; authinfo = authinfo->next)
     {
-      if (realm!=NULL && authinfo->realm!=NULL)
-		  OSIP_TRACE (osip_trace
-                  (__FILE__, __LINE__, OSIP_INFO3, NULL,
-                   "INFO: authinfo: %s %s\n", realm, authinfo->realm));
-      if ((authinfo->realm == NULL || authinfo->realm[0] == '\0') && fallback==NULL)
+      if (realm != NULL && authinfo->realm != NULL)
+        OSIP_TRACE (osip_trace
+                    (__FILE__, __LINE__, OSIP_INFO3, NULL,
+                     "INFO: authinfo: %s %s\n", realm, authinfo->realm));
+      if ((authinfo->realm == NULL || authinfo->realm[0] == '\0')
+          && fallback == NULL)
         {
           fallback = authinfo;
-      } else if (realm==NULL
-		  || osip_strcasecmp (realm, authinfo->realm) == 0
-                 || 0 == osip_strncasecmp (realm + 1, authinfo->realm, strlen (realm) - 2))
+      } else if (realm == NULL
+                 || osip_strcasecmp (realm, authinfo->realm) == 0
+                 || 0 == osip_strncasecmp (realm + 1, authinfo->realm,
+                                           strlen (realm) - 2))
         {
           return authinfo;
         }
@@ -1333,75 +1334,76 @@ eXosip_add_authentication_information (osip_message_t * req,
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
                    "authinfo: Invalid message\n"));
       return OSIP_BADPARAMETER;
-   }
+    }
 
-  if (last_response==NULL)
-  {
-	  /* we can add all credential that belongs to the same call-id */
-	struct eXosip_http_auth *http_auth;
-	int pos;
+  if (last_response == NULL)
+    {
+      /* we can add all credential that belongs to the same call-id */
+      struct eXosip_http_auth *http_auth;
+      int pos;
 
-	/* update entries with same call_id */
-	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
-	{
-		http_auth = &eXosip.http_auths[pos];
-		if (http_auth->pszCallId[0]=='\0')
-			continue;
-		if (osip_strcasecmp(http_auth->pszCallId, req->call_id->number)==0)
-		{
-			char *uri;
+      /* update entries with same call_id */
+      for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++)
+        {
+          http_auth = &eXosip.http_auths[pos];
+          if (http_auth->pszCallId[0] == '\0')
+            continue;
+          if (osip_strcasecmp (http_auth->pszCallId, req->call_id->number) == 0)
+            {
+              char *uri;
 
-			authinfo = eXosip_find_authentication_info (req->from->url->username,
-												  http_auth->wa->realm);
-			if (authinfo == NULL)
-			{
-				if (http_auth->wa->realm!=NULL)
-					OSIP_TRACE (osip_trace
-							  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-							   "authinfo: No authentication found for %s %s\n",
-							   req->from->url->username, http_auth->wa->realm));
-				return OSIP_NOTFOUND;
-			}
+              authinfo = eXosip_find_authentication_info (req->from->url->username,
+                                                          http_auth->wa->realm);
+              if (authinfo == NULL)
+                {
+                  if (http_auth->wa->realm != NULL)
+                    OSIP_TRACE (osip_trace
+                                (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                 "authinfo: No authentication found for %s %s\n",
+                                 req->from->url->username, http_auth->wa->realm));
+                  return OSIP_NOTFOUND;
+                }
 
-			i = osip_uri_to_str (req->req_uri, &uri);
-			if (i != 0)
-				return i;
+              i = osip_uri_to_str (req->req_uri, &uri);
+              if (i != 0)
+                return i;
 
-			http_auth->iNonceCount++;
-			if (http_auth->answer_code==401)
-			  /*osip_strcasecmp(req->sip_method, "REGISTER")==0) */
-			  i = __eXosip_create_authorization_header (http_auth->wa, uri,
-								    authinfo->userid,
-								    authinfo->passwd,
-								    authinfo->ha1, &aut,
-								    req->sip_method,
-								    http_auth->pszCNonce,
-								    http_auth->iNonceCount);
-			else
-			  i = __eXosip_create_proxy_authorization_header (http_auth->wa, uri,
-									  authinfo->userid,
-									  authinfo->passwd,
-									  authinfo->ha1, &aut,
-									  req->sip_method,
-									  http_auth->pszCNonce,
-									  http_auth->iNonceCount);
-			
-			osip_free (uri);
-			if (i != 0)
-				return i;
+              http_auth->iNonceCount++;
+              if (http_auth->answer_code == 401)
+                /*osip_strcasecmp(req->sip_method, "REGISTER")==0) */
+                i = __eXosip_create_authorization_header (http_auth->wa, uri,
+                                                          authinfo->userid,
+                                                          authinfo->passwd,
+                                                          authinfo->ha1, &aut,
+                                                          req->sip_method,
+                                                          http_auth->pszCNonce,
+                                                          http_auth->iNonceCount);
+              else
+                i = __eXosip_create_proxy_authorization_header (http_auth->wa, uri,
+                                                                authinfo->userid,
+                                                                authinfo->passwd,
+                                                                authinfo->ha1,
+                                                                &aut,
+                                                                req->sip_method,
+                                                                http_auth->pszCNonce,
+                                                                http_auth->iNonceCount);
 
-			if (aut != NULL)
-			{
-				if (osip_strcasecmp(req->sip_method, "REGISTER")==0)
-					osip_list_add (&req->authorizations, aut, -1);
-				else
-					osip_list_add (&req->proxy_authorizations, aut, -1);
-				osip_message_force_update (req);
-			}
-		}
-	}
-	return OSIP_SUCCESS;
-  }
+              osip_free (uri);
+              if (i != 0)
+                return i;
+
+              if (aut != NULL)
+                {
+                  if (osip_strcasecmp (req->sip_method, "REGISTER") == 0)
+                    osip_list_add (&req->authorizations, aut, -1);
+                  else
+                    osip_list_add (&req->proxy_authorizations, aut, -1);
+                  osip_message_force_update (req);
+                }
+            }
+        }
+      return OSIP_SUCCESS;
+    }
 
   pos = 0;
   osip_message_get_www_authenticate (last_response, pos, &wwwauth);
@@ -1422,11 +1424,11 @@ eXosip_add_authentication_information (osip_message_t * req,
                                                   wwwauth->realm);
       if (authinfo == NULL)
         {
-		  if (wwwauth->realm!=NULL)
-			  OSIP_TRACE (osip_trace
-						  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-						   "authinfo: No authentication found for %s %s\n",
-						   req->from->url->username, wwwauth->realm));
+          if (wwwauth->realm != NULL)
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                         "authinfo: No authentication found for %s %s\n",
+                         req->from->url->username, wwwauth->realm));
           return OSIP_NOTFOUND;
         }
 
@@ -1438,9 +1440,7 @@ eXosip_add_authentication_information (osip_message_t * req,
                                                 authinfo->userid,
                                                 authinfo->passwd,
                                                 authinfo->ha1, &aut,
-                                                req->sip_method,
-												"0a4f113b",
-												1);
+                                                req->sip_method, "0a4f113b", 1);
       osip_free (uri);
       if (i != 0)
         return i;
@@ -1450,27 +1450,26 @@ eXosip_add_authentication_information (osip_message_t * req,
           osip_list_add (&req->authorizations, aut, -1);
           osip_message_force_update (req);
         }
-
 #if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
-	  if (wwwauth->qop_options!=NULL)
-	  {
+      if (wwwauth->qop_options != NULL)
+        {
 #endif
-		  if (osip_strcasecmp(req->sip_method, "REGISTER")==0
-			  || osip_strcasecmp(req->sip_method, "INVITE")==0
-  			  || osip_strcasecmp(req->sip_method, "SUBSCRIBE")==0)
-		  	  _eXosip_store_nonce(req->call_id->number, wwwauth, 401);
-		  else
-		  {
-			  osip_generic_param_t *to_tag=NULL;
-			  osip_from_param_get_byname (req->to, "tag", &to_tag);
-			  if (to_tag!=NULL)
-			  {
-				  /* if message is part of a dialog */
-			  	  _eXosip_store_nonce(req->call_id->number, wwwauth, 401);
-			  }
-		  }
+          if (osip_strcasecmp (req->sip_method, "REGISTER") == 0
+              || osip_strcasecmp (req->sip_method, "INVITE") == 0
+              || osip_strcasecmp (req->sip_method, "SUBSCRIBE") == 0)
+            _eXosip_store_nonce (req->call_id->number, wwwauth, 401);
+          else
+            {
+              osip_generic_param_t *to_tag = NULL;
+              osip_from_param_get_byname (req->to, "tag", &to_tag);
+              if (to_tag != NULL)
+                {
+                  /* if message is part of a dialog */
+                  _eXosip_store_nonce (req->call_id->number, wwwauth, 401);
+                }
+            }
 #if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
-	  }
+        }
 #endif
 
       pos++;
@@ -1486,11 +1485,11 @@ eXosip_add_authentication_information (osip_message_t * req,
                                                   proxyauth->realm);
       if (authinfo == NULL)
         {
-		  if (proxyauth->realm!=NULL)
-			  OSIP_TRACE (osip_trace
-						  (__FILE__, __LINE__, OSIP_INFO2, NULL,
-						   "authinfo: No authentication found for %s %s\n",
-						   req->from->url->username, proxyauth->realm));
+          if (proxyauth->realm != NULL)
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                         "authinfo: No authentication found for %s %s\n",
+                         req->from->url->username, proxyauth->realm));
           return OSIP_NOTFOUND;
         }
       OSIP_TRACE (osip_trace
@@ -1505,8 +1504,7 @@ eXosip_add_authentication_information (osip_message_t * req,
                                                       authinfo->passwd,
                                                       authinfo->ha1,
                                                       &proxy_aut, req->sip_method,
-													  "0a4f113b",
-													  1);
+                                                      "0a4f113b", 1);
       osip_free (uri);
       if (i != 0)
         return i;
@@ -1516,27 +1514,26 @@ eXosip_add_authentication_information (osip_message_t * req,
           osip_list_add (&req->proxy_authorizations, proxy_aut, -1);
           osip_message_force_update (req);
         }
-
 #if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
-	  if (proxyauth->qop_options!=NULL)
-	  {
+      if (proxyauth->qop_options != NULL)
+        {
 #endif
-		  if (osip_strcasecmp(req->sip_method, "REGISTER")==0
-			  || osip_strcasecmp(req->sip_method, "INVITE")==0
-  			  || osip_strcasecmp(req->sip_method, "SUBSCRIBE")==0)
-		  	  _eXosip_store_nonce(req->call_id->number, proxyauth, 407);
-		  else
-		  {
-			  osip_generic_param_t *to_tag=NULL;
-			  osip_from_param_get_byname (req->to, "tag", &to_tag);
-			  if (to_tag!=NULL)
-			  {
-				  /* if message is part of a dialog */
-			  	  _eXosip_store_nonce(req->call_id->number, proxyauth, 407);
-			  }
-		  }
+          if (osip_strcasecmp (req->sip_method, "REGISTER") == 0
+              || osip_strcasecmp (req->sip_method, "INVITE") == 0
+              || osip_strcasecmp (req->sip_method, "SUBSCRIBE") == 0)
+            _eXosip_store_nonce (req->call_id->number, proxyauth, 407);
+          else
+            {
+              osip_generic_param_t *to_tag = NULL;
+              osip_from_param_get_byname (req->to, "tag", &to_tag);
+              if (to_tag != NULL)
+                {
+                  /* if message is part of a dialog */
+                  _eXosip_store_nonce (req->call_id->number, proxyauth, 407);
+                }
+            }
 #if defined(AVOID_REFRESH_WITHOUT_CREDENTIAL)
-	  }
+        }
 #endif
 
       pos++;
@@ -1551,31 +1548,31 @@ eXosip_update_top_via (osip_message_t * sip)
 {
   unsigned int number;
   char tmp[40];
-  osip_generic_param_t *br=NULL;
+  osip_generic_param_t *br = NULL;
   osip_via_t *via = (osip_via_t *) osip_list_get (&sip->vias, 0);
 
-  if (via==NULL)
+  if (via == NULL)
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "missing via in SIP message\n"));
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "missing via in SIP message\n"));
       return OSIP_SYNTAXERROR;
     }
   /* browse parameter and replace "branch" */
   osip_via_param_get_byname (via, "branch", &br);
 
-  if (br==NULL || br->gvalue==NULL)
+  if (br == NULL || br->gvalue == NULL)
     {
       OSIP_TRACE (osip_trace
-		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		   "missing branch parameter via in SIP message\n"));
+                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                   "missing branch parameter via in SIP message\n"));
       return OSIP_SYNTAXERROR;
     }
-  
-  osip_free(br->gvalue);
+
+  osip_free (br->gvalue);
   number = osip_build_random_number ();
 
   sprintf (tmp, "z9hG4bK%u", number);
-  br->gvalue = osip_strdup(tmp);
+  br->gvalue = osip_strdup (tmp);
   return OSIP_SUCCESS;
 }

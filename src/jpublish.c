@@ -62,7 +62,7 @@ _eXosip_pub_update (eXosip_pub_t ** pub, osip_transaction_t * tr,
 int
 _eXosip_pub_find_by_aor (eXosip_pub_t ** pub, const char *aor)
 {
-  eXosip_pub_t *jpub;  
+  eXosip_pub_t *jpub;
   *pub = NULL;
 
   for (jpub = eXosip.j_pub; jpub != NULL; jpub = jpub->next)
@@ -81,7 +81,7 @@ _eXosip_pub_find_by_tid (eXosip_pub_t ** pjp, int tid)
 {
   eXosip_pub_t *pub = eXosip.j_pub;
 
-  *pjp=NULL;
+  *pjp = NULL;
   while (pub)
     {
       if (pub->p_last_tr && pub->p_last_tr->transactionid == tid)
@@ -125,10 +125,10 @@ _eXosip_pub_free (eXosip_pub_t * pub)
 {
   if (pub->p_last_tr != NULL)
     {
-      if (pub->p_last_tr!=NULL && pub->p_last_tr->orig_request!=NULL
-	  && pub->p_last_tr->orig_request->call_id!=NULL
-	  && pub->p_last_tr->orig_request->call_id->number!=NULL)
-	_eXosip_delete_nonce(pub->p_last_tr->orig_request->call_id->number);
+      if (pub->p_last_tr != NULL && pub->p_last_tr->orig_request != NULL
+          && pub->p_last_tr->orig_request->call_id != NULL
+          && pub->p_last_tr->orig_request->call_id->number != NULL)
+        _eXosip_delete_nonce (pub->p_last_tr->orig_request->call_id->number);
 
       osip_list_add (&eXosip.j_transactions, pub->p_last_tr, 0);
     }

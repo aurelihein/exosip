@@ -72,10 +72,10 @@ typedef char AUTS64[AUTS64LEN];
 typedef unsigned char RES[RESLEN];
 #define RESHEXLEN 17
 typedef char RESHEX[RESHEXLEN];
-typedef char RESHEXAKA2[RESHEXLEN+IKLEN*2+CKLEN*2];
+typedef char RESHEXAKA2[RESHEXLEN + IKLEN * 2 + CKLEN * 2];
 
-AMF amf="\0\0";
-AMF amfstar="\0\0";
+AMF amf = "\0\0";
+AMF amfstar = "\0\0";
 
 /* end AKA */
 
@@ -96,14 +96,13 @@ static void DigestCalcResponse (IN HASHHEX HA1, IN const char *pszNonce,
                                 IN const char *pszMethod,
                                 IN const char *pszDigestUri,
                                 IN HASHHEX HEntity, OUT HASHHEX Response);
-static void DigestCalcResponseAka(IN const char *pszPassword,
-				  IN const char *pszNonce,
-				  IN const char *pszCNonce,
-				  IN const char *pszQop,
-				  IN const char *pszMethod,
-				  IN const char *pszDigestUri,
-				  IN int version,
-				  OUT HASHHEX Response);
+static void DigestCalcResponseAka (IN const char *pszPassword,
+                                   IN const char *pszNonce,
+                                   IN const char *pszCNonce,
+                                   IN const char *pszQop,
+                                   IN const char *pszMethod,
+                                   IN const char *pszDigestUri,
+                                   IN int version, OUT HASHHEX Response);
 
 void
 CvtHex (IN HASH Bin, OUT HASHHEX Hex)
@@ -166,7 +165,7 @@ DigestCalcResponse (IN HASHHEX HA1,     /* H(A1) */
                     IN const char *pszNonceCount,       /* 8 hex digits */
                     IN const char *pszCNonce,   /* client nonce */
                     IN const char *pszQop,      /* qop-value: "", "auth", "auth-int" */
-                    IN int Aka,		/* Calculating AKAv1-MD5 response */
+                    IN int Aka, /* Calculating AKAv1-MD5 response */
                     IN const char *pszMethod,   /* method from the request */
                     IN const char *pszDigestUri,        /* requested URL */
                     IN HASHHEX HEntity, /* H(entity body) if qop="auth-int" */
@@ -187,12 +186,10 @@ DigestCalcResponse (IN HASHHEX HA1,     /* H(A1) */
   if (pszQop == NULL)
     {
       goto auth_withoutqop;
-    }
-  else if (0 == osip_strcasecmp (pszQop, "auth-int"))
+  } else if (0 == osip_strcasecmp (pszQop, "auth-int"))
     {
       goto auth_withauth_int;
-    }
-  else if (0 == osip_strcasecmp (pszQop, "auth"))
+  } else if (0 == osip_strcasecmp (pszQop, "auth"))
     {
       goto auth_withauth;
     }
@@ -225,14 +222,16 @@ auth_withauth:
   osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
   osip_MD5Update (&Md5Ctx, (unsigned char *) pszNonce, strlen (pszNonce));
   osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-  if(Aka == 0){
-  osip_MD5Update (&Md5Ctx, (unsigned char *) pszNonceCount, strlen (pszNonceCount));
-  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-  osip_MD5Update (&Md5Ctx, (unsigned char *) pszCNonce, strlen (pszCNonce));
-  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-  osip_MD5Update (&Md5Ctx, (unsigned char *) pszQop, strlen (pszQop));
-  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-  }
+  if (Aka == 0)
+    {
+      osip_MD5Update (&Md5Ctx, (unsigned char *) pszNonceCount,
+                      strlen (pszNonceCount));
+      osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+      osip_MD5Update (&Md5Ctx, (unsigned char *) pszCNonce, strlen (pszCNonce));
+      osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+      osip_MD5Update (&Md5Ctx, (unsigned char *) pszQop, strlen (pszQop));
+      osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+    }
 end:
   osip_MD5Update (&Md5Ctx, (unsigned char *) HA2Hex, HASHHEXLEN);
   osip_MD5Final ((unsigned char *) RespHash, &Md5Ctx);
@@ -241,295 +240,392 @@ end:
 
 /*"
 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";*/
-static int base64_val(char x)\
+static int
+base64_val (char x)
 {
-	switch(x){
-		case '=': return -1;
-		case 'A': return OSIP_SUCCESS;
-		case 'B': return 1;
-		case 'C': return 2;
-		case 'D': return 3;
-		case 'E': return 4;
-		case 'F': return 5;
-		case 'G': return 6;
-		case 'H': return 7;
-		case 'I': return 8;
-		case 'J': return 9;
-		case 'K': return 10;
-		case 'L': return 11;
-		case 'M': return 12;
-		case 'N': return 13;
-		case 'O': return 14;
-		case 'P': return 15;
-		case 'Q': return 16;
-		case 'R': return 17;
-		case 'S': return 18;
-		case 'T': return 19;
-		case 'U': return 20;
-		case 'V': return 21;
-		case 'W': return 22;
-		case 'X': return 23;
-		case 'Y': return 24;
-		case 'Z': return 25;
-		case 'a': return 26;
-		case 'b': return 27;
-		case 'c': return 28;
-		case 'd': return 29;
-		case 'e': return 30;
-		case 'f': return 31;
-		case 'g': return 32;
-		case 'h': return 33;
-		case 'i': return 34;
-		case 'j': return 35;
-		case 'k': return 36;
-		case 'l': return 37;
-		case 'm': return 38;
-		case 'n': return 39;
-		case 'o': return 40;
-		case 'p': return 41;
-		case 'q': return 42;
-		case 'r': return 43;
-		case 's': return 44;
-		case 't': return 45;
-		case 'u': return 46;
-		case 'v': return 47;
-		case 'w': return 48;
-		case 'x': return 49;
-		case 'y': return 50;
-		case 'z': return 51;
-		case '0': return 52;
-		case '1': return 53;
-		case '2': return 54;
-		case '3': return 55;
-		case '4': return 56;
-		case '5': return 57;
-		case '6': return 58;
-		case '7': return 59;
-		case '8': return 60;
-		case '9': return 61;
-		case '+': return 62;
-		case '/': return 63;
-	}
-	return OSIP_SUCCESS;
+  switch (x)
+    {
+      case '=':
+        return -1;
+      case 'A':
+        return OSIP_SUCCESS;
+      case 'B':
+        return 1;
+      case 'C':
+        return 2;
+      case 'D':
+        return 3;
+      case 'E':
+        return 4;
+      case 'F':
+        return 5;
+      case 'G':
+        return 6;
+      case 'H':
+        return 7;
+      case 'I':
+        return 8;
+      case 'J':
+        return 9;
+      case 'K':
+        return 10;
+      case 'L':
+        return 11;
+      case 'M':
+        return 12;
+      case 'N':
+        return 13;
+      case 'O':
+        return 14;
+      case 'P':
+        return 15;
+      case 'Q':
+        return 16;
+      case 'R':
+        return 17;
+      case 'S':
+        return 18;
+      case 'T':
+        return 19;
+      case 'U':
+        return 20;
+      case 'V':
+        return 21;
+      case 'W':
+        return 22;
+      case 'X':
+        return 23;
+      case 'Y':
+        return 24;
+      case 'Z':
+        return 25;
+      case 'a':
+        return 26;
+      case 'b':
+        return 27;
+      case 'c':
+        return 28;
+      case 'd':
+        return 29;
+      case 'e':
+        return 30;
+      case 'f':
+        return 31;
+      case 'g':
+        return 32;
+      case 'h':
+        return 33;
+      case 'i':
+        return 34;
+      case 'j':
+        return 35;
+      case 'k':
+        return 36;
+      case 'l':
+        return 37;
+      case 'm':
+        return 38;
+      case 'n':
+        return 39;
+      case 'o':
+        return 40;
+      case 'p':
+        return 41;
+      case 'q':
+        return 42;
+      case 'r':
+        return 43;
+      case 's':
+        return 44;
+      case 't':
+        return 45;
+      case 'u':
+        return 46;
+      case 'v':
+        return 47;
+      case 'w':
+        return 48;
+      case 'x':
+        return 49;
+      case 'y':
+        return 50;
+      case 'z':
+        return 51;
+      case '0':
+        return 52;
+      case '1':
+        return 53;
+      case '2':
+        return 54;
+      case '3':
+        return 55;
+      case '4':
+        return 56;
+      case '5':
+        return 57;
+      case '6':
+        return 58;
+      case '7':
+        return 59;
+      case '8':
+        return 60;
+      case '9':
+        return 61;
+      case '+':
+        return 62;
+      case '/':
+        return 63;
+    }
+  return OSIP_SUCCESS;
 }
 
 
-static char *base64_decode_string(const char *buf, unsigned int len, int *newlen)
+static char *
+base64_decode_string (const char *buf, unsigned int len, int *newlen)
 {
-	int i,j,x1,x2,x3,x4;
-	char *out;
-	out = (char *)osip_malloc( ( len * 3/4 ) + 8 );
-	if (out==NULL)
-		return NULL;
-	for(i=0,j=0;i+3<len;i+=4){
-		x1=base64_val(buf[i]);
-		x2=base64_val(buf[i+1]);
-		x3=base64_val(buf[i+2]);
-		x4=base64_val(buf[i+3]);
-		out[j++]=(x1<<2) | ((x2 & 0x30)>>4);
-		out[j++]=((x2 & 0x0F)<<4) | ((x3 & 0x3C)>>2);
-		out[j++]=((x3 & 0x03)<<6) | (x4 & 0x3F);
-	}
-	if (i<len) {
-		x1 = base64_val(buf[i]);
-		if (i+1<len)
-			x2=base64_val(buf[i+1]);
-		else 
-			x2=-1;
-		if (i+2<len)		
-			x3=base64_val(buf[i+2]);
-		else
-			x3=-1;
-		if(i+3<len)	
-			x4=base64_val(buf[i+3]);
-		else x4=-1;
-		if (x2!=-1) {
-			out[j++]=(x1<<2) | ((x2 & 0x30)>>4);
-			if (x3==-1) {
-				out[j++]=((x2 & 0x0F)<<4) | ((x3 & 0x3C)>>2);
-				if (x4==-1) {
-					out[j++]=((x3 & 0x03)<<6) | (x4 & 0x3F);
-				}
-			}
-		}
-			
-	}
-			
-	out[j++] = 0;
-	*newlen=j;
-	return out;
+  int i, j, x1, x2, x3, x4;
+  char *out;
+  out = (char *) osip_malloc ((len * 3 / 4) + 8);
+  if (out == NULL)
+    return NULL;
+  for (i = 0, j = 0; i + 3 < len; i += 4)
+    {
+      x1 = base64_val (buf[i]);
+      x2 = base64_val (buf[i + 1]);
+      x3 = base64_val (buf[i + 2]);
+      x4 = base64_val (buf[i + 3]);
+      out[j++] = (x1 << 2) | ((x2 & 0x30) >> 4);
+      out[j++] = ((x2 & 0x0F) << 4) | ((x3 & 0x3C) >> 2);
+      out[j++] = ((x3 & 0x03) << 6) | (x4 & 0x3F);
+    }
+  if (i < len)
+    {
+      x1 = base64_val (buf[i]);
+      if (i + 1 < len)
+        x2 = base64_val (buf[i + 1]);
+      else
+        x2 = -1;
+      if (i + 2 < len)
+        x3 = base64_val (buf[i + 2]);
+      else
+        x3 = -1;
+      if (i + 3 < len)
+        x4 = base64_val (buf[i + 3]);
+      else
+        x4 = -1;
+      if (x2 != -1)
+        {
+          out[j++] = (x1 << 2) | ((x2 & 0x30) >> 4);
+          if (x3 == -1)
+            {
+              out[j++] = ((x2 & 0x0F) << 4) | ((x3 & 0x3C) >> 2);
+              if (x4 == -1)
+                {
+                  out[j++] = ((x3 & 0x03) << 6) | (x4 & 0x3F);
+                }
+            }
+        }
+
+    }
+
+  out[j++] = 0;
+  *newlen = j;
+  return out;
 }
 
-char base64[64]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-static char *base64_encode_string(const char *buf, unsigned int len, int *newlen)
+char base64[64] =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static char *
+base64_encode_string (const char *buf, unsigned int len, int *newlen)
 {
-	int i,k;
-	int triplets,rest;
-	char *out,*ptr;	
+  int i, k;
+  int triplets, rest;
+  char *out, *ptr;
 
-	triplets = len/3;
-	rest = len%3;
-	out = (char *)osip_malloc( ( triplets * 4 ) + 8 );
-	if (out==NULL)
-		return NULL;
-	
-	ptr = out;
-	for(i=0;i<triplets*3;i+=3){
-		k = (((unsigned char) buf[i])&0xFC)>>2;
-		*ptr=base64[k];ptr++;
+  triplets = len / 3;
+  rest = len % 3;
+  out = (char *) osip_malloc ((triplets * 4) + 8);
+  if (out == NULL)
+    return NULL;
 
-		k = (((unsigned char) buf[i])&0x03)<<4;
-		k |=(((unsigned char) buf[i+1])&0xF0)>>4;
-		*ptr=base64[k];ptr++;
+  ptr = out;
+  for (i = 0; i < triplets * 3; i += 3)
+    {
+      k = (((unsigned char) buf[i]) & 0xFC) >> 2;
+      *ptr = base64[k];
+      ptr++;
 
-		k = (((unsigned char) buf[i+1])&0x0F)<<2;
-		k |=(((unsigned char) buf[i+2])&0xC0)>>6;
-		*ptr=base64[k];ptr++;
+      k = (((unsigned char) buf[i]) & 0x03) << 4;
+      k |= (((unsigned char) buf[i + 1]) & 0xF0) >> 4;
+      *ptr = base64[k];
+      ptr++;
 
-		k = (((unsigned char) buf[i+2])&0x3F);
-		*ptr=base64[k];ptr++;
-	}
-	i=triplets*3;
-	switch(rest){
-		case 0:
-			break;
-		case 1:
-			k = (((unsigned char) buf[i])&0xFC)>>2;
-			*ptr=base64[k];ptr++;
+      k = (((unsigned char) buf[i + 1]) & 0x0F) << 2;
+      k |= (((unsigned char) buf[i + 2]) & 0xC0) >> 6;
+      *ptr = base64[k];
+      ptr++;
 
-			k = (((unsigned char) buf[i])&0x03)<<4;
-			*ptr=base64[k];ptr++;
+      k = (((unsigned char) buf[i + 2]) & 0x3F);
+      *ptr = base64[k];
+      ptr++;
+    }
+  i = triplets * 3;
+  switch (rest)
+    {
+      case 0:
+        break;
+      case 1:
+        k = (((unsigned char) buf[i]) & 0xFC) >> 2;
+        *ptr = base64[k];
+        ptr++;
 
-			*ptr='=';ptr++;
+        k = (((unsigned char) buf[i]) & 0x03) << 4;
+        *ptr = base64[k];
+        ptr++;
 
-			*ptr='=';ptr++;
-			break;
-		case 2:
-			k = (((unsigned char) buf[i])&0xFC)>>2;
-			*ptr=base64[k];ptr++;
+        *ptr = '=';
+        ptr++;
 
-			k = (((unsigned char) buf[i])&0x03)<<4;
-			k |=(((unsigned char) buf[i+1])&0xF0)>>4;
-			*ptr=base64[k];ptr++;
+        *ptr = '=';
+        ptr++;
+        break;
+      case 2:
+        k = (((unsigned char) buf[i]) & 0xFC) >> 2;
+        *ptr = base64[k];
+        ptr++;
 
-			k = (((unsigned char) buf[i+1])&0x0F)<<2;
-			*ptr=base64[k];ptr++;
+        k = (((unsigned char) buf[i]) & 0x03) << 4;
+        k |= (((unsigned char) buf[i + 1]) & 0xF0) >> 4;
+        *ptr = base64[k];
+        ptr++;
 
-			*ptr='=';ptr++;
-			break;
-	}
+        k = (((unsigned char) buf[i + 1]) & 0x0F) << 2;
+        *ptr = base64[k];
+        ptr++;
 
-	*newlen = ptr-out;
-	return out;
+        *ptr = '=';
+        ptr++;
+        break;
+    }
+
+  *newlen = ptr - out;
+  return out;
 }
 
 
 
-char hexa[16]="0123456789abcdef";
+char hexa[16] = "0123456789abcdef";
 /* calculate AKA request-digest/response-digest as per HTTP Digest spec */
-void DigestCalcResponseAka(IN const char *pszPassword,
-			   IN const char *pszNonce,    /* nonce from server */
-			   IN const char *pszCNonce,   /* client nonce */
-			   IN const char *pszQop,      /* qop-value: "", "auth", "auth-int" */
-			   IN const char *pszMethod,   /* method from the request */
-			   IN const char *pszDigestUri,        /* requested URL */
-			   IN int version,		/* AKA version */
-			   OUT RESHEXAKA2 resp_hex         /* request-digest or response-digest */ ) {
-                     	
-    char tmp[MAX_HEADER_LEN];
-    /* static unsigned int mync = 1; */
-    /* int has_opaque = 0; */
-	char *nonce64, *nonce;
-	int noncelen;
-	RAND rnd;
-	MAC mac,xmac;
-	SQN sqn_he;
-	K k;
-	RES res;
-	CK ck;
-	IK ik;
-	AK ak;
-	int i,j;
+void
+DigestCalcResponseAka (IN const char *pszPassword, IN const char *pszNonce,     /* nonce from server */
+                       IN const char *pszCNonce,        /* client nonce */
+                       IN const char *pszQop,   /* qop-value: "", "auth", "auth-int" */
+                       IN const char *pszMethod,        /* method from the request */
+                       IN const char *pszDigestUri,     /* requested URL */
+                       IN int version,  /* AKA version */
+                       OUT RESHEXAKA2 resp_hex
+                       /* request-digest or response-digest */ )
+{
+
+  char tmp[MAX_HEADER_LEN];
+  /* static unsigned int mync = 1; */
+  /* int has_opaque = 0; */
+  char *nonce64, *nonce;
+  int noncelen;
+  RAND rnd;
+  MAC mac, xmac;
+  SQN sqn_he;
+  K k;
+  RES res;
+  CK ck;
+  IK ik;
+  AK ak;
+  int i, j;
 
 
-	/* Compute the AKA response */
-	resp_hex[0]=0;
-	sprintf(tmp,"%s",pszNonce);
-	nonce64 = tmp;
-	nonce = base64_decode_string(nonce64,strlen(tmp),&noncelen);
-	if (nonce==NULL)
-		return;
+  /* Compute the AKA response */
+  resp_hex[0] = 0;
+  sprintf (tmp, "%s", pszNonce);
+  nonce64 = tmp;
+  nonce = base64_decode_string (nonce64, strlen (tmp), &noncelen);
+  if (nonce == NULL)
+    return;
 
-	if (noncelen<RANDLEN+AUTNLEN) {
-	  /* Nonce is too short */
-	  goto done;
-	}
-	memcpy(rnd,nonce,RANDLEN);
-	/* memcpy(autn,nonce+RANDLEN,AUTNLEN); */
-	memcpy(sqn_he,nonce+RANDLEN,SQNLEN);
-	memcpy(mac,nonce+RANDLEN+SQNLEN+AMFLEN,MACLEN);
+  if (noncelen < RANDLEN + AUTNLEN)
+    {
+      /* Nonce is too short */
+      goto done;
+    }
+  memcpy (rnd, nonce, RANDLEN);
+  /* memcpy(autn,nonce+RANDLEN,AUTNLEN); */
+  memcpy (sqn_he, nonce + RANDLEN, SQNLEN);
+  memcpy (mac, nonce + RANDLEN + SQNLEN + AMFLEN, MACLEN);
 
-	osip_free(nonce);
+  osip_free (nonce);
 
-	j = strlen(pszPassword);
-	memcpy(k,pszPassword,j);
-	memset(k+j,0,KLEN-j);
+  j = strlen (pszPassword);
+  memcpy (k, pszPassword, j);
+  memset (k + j, 0, KLEN - j);
 
-	/* compute XMAC */
-	f1(k,rnd,sqn_he,amf,xmac);
-	if (memcmp(mac,xmac,MACLEN)!=0) {
-	  /*
-	    createAuthHeaderAKAv1MD5 : MAC != eXpectedMAC
-	    -> Server might not know the secret (man-in-the-middle attack?)
-	    return OSIP_SUCCESS;
-	  */
-	}
+  /* compute XMAC */
+  f1 (k, rnd, sqn_he, amf, xmac);
+  if (memcmp (mac, xmac, MACLEN) != 0)
+    {
+      /*
+         createAuthHeaderAKAv1MD5 : MAC != eXpectedMAC
+         -> Server might not know the secret (man-in-the-middle attack?)
+         return OSIP_SUCCESS;
+       */
+    }
 
-	/* compute the response and keys */	
-	f2345(k,rnd,res,ck,ik,ak);
-	/* no check for sqn is performed, so no AUTS synchronization performed */
-	
-	/* Format data for output in the SIP message */
-	for(i=0;i<RESLEN;i++){
-		resp_hex[2*i]=hexa[(res[i]&0xF0)>>4];
-		resp_hex[2*i+1]=hexa[res[i]&0x0F];
-	}
-	resp_hex[RESHEXLEN-1]=0;
+  /* compute the response and keys */
+  f2345 (k, rnd, res, ck, ik, ak);
+  /* no check for sqn is performed, so no AUTS synchronization performed */
+
+  /* Format data for output in the SIP message */
+  for (i = 0; i < RESLEN; i++)
+    {
+      resp_hex[2 * i] = hexa[(res[i] & 0xF0) >> 4];
+      resp_hex[2 * i + 1] = hexa[res[i] & 0x0F];
+    }
+  resp_hex[RESHEXLEN - 1] = 0;
 
 done:
-	switch (version){
-		case 1:
-			/* AKA v1 */
-			/* Nothing to do */
-			break;
-		case 2:
-			/* AKA v2 */
-			resp_hex[RESHEXLEN+IKLEN*2+CKLEN*2-1] = 0;
-			for(i=0;i<IKLEN;i++){
-				resp_hex[RESLEN*2+2*i]=hexa[(ik[i]&0xF0)>>4];
-				resp_hex[RESLEN*2+2*i+1]=hexa[ik[i]&0x0F];
-			}
-			for(i=0;i<CKLEN;i++){
-				resp_hex[RESLEN*2+IKLEN*2+2*i]=hexa[(ck[i]&0xF0)>>4];
-				resp_hex[RESLEN*2+IKLEN*2+2*i+1]=hexa[ck[i]&0x0F];
-			}
-			break;
-	}
+  switch (version)
+    {
+      case 1:
+        /* AKA v1 */
+        /* Nothing to do */
+        break;
+      case 2:
+        /* AKA v2 */
+        resp_hex[RESHEXLEN + IKLEN * 2 + CKLEN * 2 - 1] = 0;
+        for (i = 0; i < IKLEN; i++)
+          {
+            resp_hex[RESLEN * 2 + 2 * i] = hexa[(ik[i] & 0xF0) >> 4];
+            resp_hex[RESLEN * 2 + 2 * i + 1] = hexa[ik[i] & 0x0F];
+          }
+        for (i = 0; i < CKLEN; i++)
+          {
+            resp_hex[RESLEN * 2 + IKLEN * 2 + 2 * i] = hexa[(ck[i] & 0xF0) >> 4];
+            resp_hex[RESLEN * 2 + IKLEN * 2 + 2 * i + 1] = hexa[ck[i] & 0x0F];
+          }
+        break;
+    }
 }
 
 int
-__eXosip_create_authorization_header (osip_www_authenticate_t *wa,
+__eXosip_create_authorization_header (osip_www_authenticate_t * wa,
                                       const char *rquri, const char *username,
                                       const char *passwd, const char *ha1,
                                       osip_authorization_t ** auth,
                                       const char *method,
-				      const char *pCNonce,
-				      int iNonceCount)
+                                      const char *pCNonce, int iNonceCount)
 {
   osip_authorization_t *aut;
 
-  char *qop=NULL;
-  char *Alg="MD5";
+  char *qop = NULL;
+  char *Alg = "MD5";
   int version = 0;
   int i;
 
@@ -537,7 +633,7 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
   if (passwd == NULL)
     return OSIP_BADPARAMETER;
   if (wa == NULL)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
   if (wa->auth_type == NULL || (wa->nonce == NULL))
     {
@@ -546,12 +642,12 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
                    "www_authenticate header is not acceptable.\n"));
       return OSIP_SYNTAXERROR;
     }
-  
+
   if (wa->realm == NULL)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				  "www_authenticate header contains an empty realm: contact your admin!\n"));
+                   "www_authenticate header contains an empty realm: contact your admin!\n"));
     }
 
   if (0 != osip_strcasecmp ("Digest", wa->auth_type))
@@ -565,26 +661,23 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
   if (wa->algorithm != NULL)
     {
       if (0 == osip_strcasecmp ("MD5", wa->algorithm)
-	  || 0 == osip_strcasecmp ("\"MD5\"", wa->algorithm))
-	{
-	}
-      else if (0 == osip_strcasecmp ("AKAv1-MD5", wa->algorithm)
-	       || 0 == osip_strcasecmp ("\"AKAv1-MD5\"", wa->algorithm))
-	{
-	  Alg = "AKAv1-MD5";
-	}
-      else if (0 == osip_strcasecmp ("AKAv2-MD5", wa->algorithm)
-	       || 0 == osip_strcasecmp ("\"AKAv2-MD5\"", wa->algorithm))
-	{
-	    Alg = "AKAv2-MD5";
-	}
-      else
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "Authentication method not supported. (MD5, AKAv1-MD5, AKAv2-MD5)\n"));
-	  return OSIP_UNDEFINED_ERROR;
-	}
+          || 0 == osip_strcasecmp ("\"MD5\"", wa->algorithm))
+        {
+      } else if (0 == osip_strcasecmp ("AKAv1-MD5", wa->algorithm)
+                 || 0 == osip_strcasecmp ("\"AKAv1-MD5\"", wa->algorithm))
+        {
+          Alg = "AKAv1-MD5";
+      } else if (0 == osip_strcasecmp ("AKAv2-MD5", wa->algorithm)
+                 || 0 == osip_strcasecmp ("\"AKAv2-MD5\"", wa->algorithm))
+        {
+          Alg = "AKAv2-MD5";
+      } else
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "Authentication method not supported. (MD5, AKAv1-MD5, AKAv2-MD5)\n"));
+          return OSIP_UNDEFINED_ERROR;
+        }
     }
 
   i = osip_authorization_init (&aut);
@@ -610,20 +703,20 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
                                    (osip_www_authenticate_get_opaque (wa)));
   /* copy the username field in new request */
   aut->username = osip_malloc (strlen (username) + 3);
-  if (aut->username==NULL)
-  {
-		osip_authorization_free (aut);
-		return OSIP_NOMEM;
-  }
+  if (aut->username == NULL)
+    {
+      osip_authorization_free (aut);
+      return OSIP_NOMEM;
+    }
   sprintf (aut->username, "\"%s\"", username);
 
   {
     char *tmp = osip_malloc (strlen (rquri) + 3);
-	if (tmp==NULL)
-	{
-		osip_authorization_free (aut);
-		return OSIP_NOMEM;
-	}
+    if (tmp == NULL)
+      {
+        osip_authorization_free (aut);
+        return OSIP_NOMEM;
+      }
     sprintf (tmp, "\"%s\"", rquri);
     osip_authorization_set_uri (aut, tmp);
   }
@@ -631,8 +724,8 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
   osip_authorization_set_algorithm (aut, osip_strdup (Alg));
 
   qop = osip_www_authenticate_get_qop_options (wa);
-  if (qop==NULL || qop[0]=='\0' || strlen(qop)<4)
-    qop=NULL;
+  if (qop == NULL || qop[0] == '\0' || strlen (qop) < 4)
+    qop = NULL;
 
 
   {
@@ -640,7 +733,7 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
       osip_strdup_without_quote (osip_www_authenticate_get_nonce (wa));
     char *pszCNonce = NULL;
     const char *pszUser = username;
-    char *pszRealm=NULL;
+    char *pszRealm = NULL;
     const char *pszPass = NULL;
     char *szNonceCount = NULL;
     const char *pszMethod = method;     /* previous_answer->cseq->method; */
@@ -653,114 +746,110 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
     RESHEXAKA2 Response2;
     const char *pha1 = NULL;
 
-	if (osip_authorization_get_realm (aut)==NULL)
-	{
-		pszRealm = osip_strdup("");
-	}
-	else
-	{
-		pszRealm = osip_strdup_without_quote (osip_authorization_get_realm (aut));
-	}
-
-	if (qop!=NULL)
+    if (osip_authorization_get_realm (aut) == NULL)
       {
-	    /* only accept qop="auth" */
-	    pszQop = osip_strdup("auth");
-	    if (pszQop==NULL)
-	    {
-		    osip_authorization_free (aut);
-		    osip_free (pszNonce);
-		    osip_free (pszRealm);
-		    return OSIP_NOMEM;
-	    }
+        pszRealm = osip_strdup ("");
+    } else
+      {
+        pszRealm = osip_strdup_without_quote (osip_authorization_get_realm (aut));
+      }
 
-		szNonceCount = osip_malloc(10);
-	    if (szNonceCount==NULL)
-	    {
-		    osip_authorization_free (aut);
-		    osip_free (pszNonce);
-		    osip_free (pszRealm);
-		    osip_free (pszQop);
-		    return OSIP_NOMEM;
-	    }
-		snprintf(szNonceCount, 9, "%.8i", iNonceCount);
+    if (qop != NULL)
+      {
+        /* only accept qop="auth" */
+        pszQop = osip_strdup ("auth");
+        if (pszQop == NULL)
+          {
+            osip_authorization_free (aut);
+            osip_free (pszNonce);
+            osip_free (pszRealm);
+            return OSIP_NOMEM;
+          }
 
-		pszCNonce = osip_strdup (pCNonce);
-	    if (pszCNonce==NULL)
-	    {
-		    osip_authorization_free (aut);
-		    osip_free (pszNonce);
-		    osip_free (pszRealm);
-		    osip_free (pszQop);
-		    osip_free (szNonceCount);
-		    return OSIP_NOMEM;
-	    }
-	
-		osip_authorization_set_message_qop (aut, osip_strdup ("auth"));
-		osip_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
-	
-		{
-		  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
-		  if (tmp==NULL)
-		  {
-			  osip_authorization_free (aut);
-			  osip_free (pszNonce);
-			  osip_free (pszCNonce);
-			  osip_free (pszRealm);
-			  osip_free (pszQop);
-			  osip_free (szNonceCount);
-			  return OSIP_NOMEM;
-		  }
-		  sprintf (tmp, "\"%s\"", pszCNonce);
-		  osip_authorization_set_cnonce (aut, tmp);
-		}
+        szNonceCount = osip_malloc (10);
+        if (szNonceCount == NULL)
+          {
+            osip_authorization_free (aut);
+            osip_free (pszNonce);
+            osip_free (pszRealm);
+            osip_free (pszQop);
+            return OSIP_NOMEM;
+          }
+        snprintf (szNonceCount, 9, "%.8i", iNonceCount);
+
+        pszCNonce = osip_strdup (pCNonce);
+        if (pszCNonce == NULL)
+          {
+            osip_authorization_free (aut);
+            osip_free (pszNonce);
+            osip_free (pszRealm);
+            osip_free (pszQop);
+            osip_free (szNonceCount);
+            return OSIP_NOMEM;
+          }
+
+        osip_authorization_set_message_qop (aut, osip_strdup ("auth"));
+        osip_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
+
+        {
+          char *tmp = osip_malloc (strlen (pszCNonce) + 3);
+          if (tmp == NULL)
+            {
+              osip_authorization_free (aut);
+              osip_free (pszNonce);
+              osip_free (pszCNonce);
+              osip_free (pszRealm);
+              osip_free (pszQop);
+              osip_free (szNonceCount);
+              return OSIP_NOMEM;
+            }
+          sprintf (tmp, "\"%s\"", pszCNonce);
+          osip_authorization_set_cnonce (aut, tmp);
+        }
       }
 
     pszPass = passwd;
 
     /* Depending on which algorithm the response will be calculated, MD5 or AKAv1-MD5 */
-    if(0 == osip_strcasecmp(Alg,"MD5"))
+    if (0 == osip_strcasecmp (Alg, "MD5"))
       {
-      if (ha1 && ha1[0])
-      {
-        /* Depending on algorithm=md5 */
-        pha1 = ha1;
-      }
-    else
-      {
-        DigestCalcHA1 ("MD5", pszUser, pszRealm, pszPass, pszNonce,
-                       pszCNonce, HA1);
-        pha1 = HA1;
-      }
+        if (ha1 && ha1[0])
+          {
+            /* Depending on algorithm=md5 */
+            pha1 = ha1;
+        } else
+          {
+            DigestCalcHA1 ("MD5", pszUser, pszRealm, pszPass, pszNonce,
+                           pszCNonce, HA1);
+            pha1 = HA1;
+          }
 
-      version = 0;
-      DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
-			  pszQop, version, pszMethod, pszURI, HA2, Response);
-      }
-    else
+        version = 0;
+        DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
+                            pszQop, version, pszMethod, pszURI, HA2, Response);
+    } else
       {
-	if(0==osip_strcasecmp(Alg,"AKAv1-MD5"))
-	  version = 1;
-	else
-	  version = 2;
-	
-	DigestCalcResponseAka(pszPass, pszNonce,pszCNonce,
-			      pszQop,pszMethod,pszURI,version,Response2);
-	if (ha1 && ha1[0])
-	  {
-	    /* Depending on algorithm=md5 */
-	    pha1 = ha1;
-	  }
-	else
-	  {
-	    DigestCalcHA1 ("MD5", pszUser, pszRealm, Response2, pszNonce,
-			   pszCNonce, HA1);
-	    pha1 = HA1;
-	  }
-	
-	DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
-			    pszQop, version, pszMethod, pszURI, HA2, Response);
-	
+        if (0 == osip_strcasecmp (Alg, "AKAv1-MD5"))
+          version = 1;
+        else
+          version = 2;
+
+        DigestCalcResponseAka (pszPass, pszNonce, pszCNonce,
+                               pszQop, pszMethod, pszURI, version, Response2);
+        if (ha1 && ha1[0])
+          {
+            /* Depending on algorithm=md5 */
+            pha1 = ha1;
+        } else
+          {
+            DigestCalcHA1 ("MD5", pszUser, pszRealm, Response2, pszNonce,
+                           pszCNonce, HA1);
+            pha1 = HA1;
+          }
+
+        DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
+                            pszQop, version, pszMethod, pszURI, HA2, Response);
+
       }
 
     OSIP_TRACE (osip_trace
@@ -768,16 +857,16 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
                  "Response in authorization |%s|\n", Response));
     {
       char *resp = osip_malloc (35);
-	  if (resp==NULL)
-	  {
-		  osip_authorization_free (aut);
-		  osip_free (pszNonce);
-		  osip_free (pszCNonce);
-		  osip_free (pszRealm);
-		  osip_free (pszQop);
-		  osip_free (szNonceCount);
-		  return OSIP_NOMEM;
-	  }
+      if (resp == NULL)
+        {
+          osip_authorization_free (aut);
+          osip_free (pszNonce);
+          osip_free (pszCNonce);
+          osip_free (pszRealm);
+          osip_free (pszQop);
+          osip_free (szNonceCount);
+          return OSIP_NOMEM;
+        }
 
       sprintf (resp, "\"%s\"", Response);
       osip_authorization_set_response (aut, resp);
@@ -794,20 +883,19 @@ __eXosip_create_authorization_header (osip_www_authenticate_t *wa,
 }
 
 int
-__eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
-					    const char *rquri,
+__eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t * wa,
+                                            const char *rquri,
                                             const char *username,
                                             const char *passwd,
                                             const char *ha1,
                                             osip_proxy_authorization_t **
                                             auth, const char *method,
-					    const char *pCNonce,
-					    int iNonceCount)
+                                            const char *pCNonce, int iNonceCount)
 {
   osip_proxy_authorization_t *aut;
 
-  char *qop=NULL;
-  char *Alg="MD5";
+  char *qop = NULL;
+  char *Alg = "MD5";
   int version = 0;
   int i;
 
@@ -815,7 +903,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   if (passwd == NULL)
     return OSIP_BADPARAMETER;
   if (wa == NULL)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
   if (wa->auth_type == NULL || (wa->nonce == NULL))
     {
@@ -829,7 +917,7 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				  "www_authenticate header contains an empty realm: contact your admin!\n"));
+                   "www_authenticate header contains an empty realm: contact your admin!\n"));
     }
 
   if (0 != osip_strcasecmp ("Digest", wa->auth_type))
@@ -844,26 +932,23 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   if (wa->algorithm != NULL)
     {
       if (0 == osip_strcasecmp ("MD5", wa->algorithm)
-	  || 0 == osip_strcasecmp ("\"MD5\"", wa->algorithm))
-	{
-	}
-      else if (0 == osip_strcasecmp ("AKAv1-MD5", wa->algorithm)
-	       || 0 == osip_strcasecmp ("\"AKAv1-MD5\"", wa->algorithm))
-	{
-	  Alg = "AKAv1-MD5";
-	}
-      else if (0 == osip_strcasecmp ("AKAv2-MD5", wa->algorithm)
-	       || 0 == osip_strcasecmp ("\"AKAv2-MD5\"", wa->algorithm))
-	{
-	    Alg = "AKAv2-MD5";
-	}
-      else
-	{
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "Authentication method not supported. (MD5, AKAv1-MD5, AKAv2-MD5)\n"));
-	  return OSIP_UNDEFINED_ERROR;
-	}
+          || 0 == osip_strcasecmp ("\"MD5\"", wa->algorithm))
+        {
+      } else if (0 == osip_strcasecmp ("AKAv1-MD5", wa->algorithm)
+                 || 0 == osip_strcasecmp ("\"AKAv1-MD5\"", wa->algorithm))
+        {
+          Alg = "AKAv1-MD5";
+      } else if (0 == osip_strcasecmp ("AKAv2-MD5", wa->algorithm)
+                 || 0 == osip_strcasecmp ("\"AKAv2-MD5\"", wa->algorithm))
+        {
+          Alg = "AKAv2-MD5";
+      } else
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "Authentication method not supported. (MD5, AKAv1-MD5, AKAv2-MD5)\n"));
+          return OSIP_UNDEFINED_ERROR;
+        }
     }
 
   i = osip_proxy_authorization_init (&aut);
@@ -890,20 +975,20 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
                                           (wa)));
   /* copy the username field in new request */
   aut->username = osip_malloc (strlen (username) + 3);
-  if (aut->username==NULL)
-  {
-		osip_authorization_free (aut);
-		return OSIP_NOMEM;
-  }
+  if (aut->username == NULL)
+    {
+      osip_authorization_free (aut);
+      return OSIP_NOMEM;
+    }
   sprintf (aut->username, "\"%s\"", username);
 
   {
     char *tmp = osip_malloc (strlen (rquri) + 3);
-	if (tmp==NULL)
-	{
-		osip_authorization_free (aut);
-		return OSIP_NOMEM;
-	}
+    if (tmp == NULL)
+      {
+        osip_authorization_free (aut);
+        return OSIP_NOMEM;
+      }
 
     sprintf (tmp, "\"%s\"", rquri);
     osip_proxy_authorization_set_uri (aut, tmp);
@@ -911,8 +996,8 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   osip_proxy_authorization_set_algorithm (aut, osip_strdup (Alg));
 
   qop = osip_www_authenticate_get_qop_options (wa);
-  if (qop==NULL || qop[0]=='\0' || strlen(qop)<4)
-    qop=NULL;
+  if (qop == NULL || qop[0] == '\0' || strlen (qop) < 4)
+    qop = NULL;
 
   {
     char *pszNonce = NULL;
@@ -931,14 +1016,14 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
     RESHEXAKA2 Response2;
     const char *pha1 = NULL;
 
-	if (osip_proxy_authorization_get_realm (aut)==NULL)
-	{
-		pszRealm = osip_strdup("");
-	}
-	else
-	{
-		pszRealm = osip_strdup_without_quote (osip_proxy_authorization_get_realm (aut));
-	}
+    if (osip_proxy_authorization_get_realm (aut) == NULL)
+      {
+        pszRealm = osip_strdup ("");
+    } else
+      {
+        pszRealm =
+          osip_strdup_without_quote (osip_proxy_authorization_get_realm (aut));
+      }
 
     pszPass = passwd;
 
@@ -946,98 +1031,97 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
       return OSIP_SYNTAXERROR;
     pszNonce = osip_strdup_without_quote (osip_www_authenticate_get_nonce (wa));
 
-    if (qop!=NULL)
+    if (qop != NULL)
       {
-	    /* only accept qop="auth" */
-	    pszQop = osip_strdup("auth");
-	    if (pszQop==NULL)
-	    {
-		    osip_authorization_free (aut);
-		    osip_free (pszNonce);
-		    osip_free (pszRealm);
-		    return OSIP_NOMEM;
-	    }
-		
-		szNonceCount = osip_malloc(10);
-	    if (szNonceCount==NULL)
-	    {
-		    osip_authorization_free (aut);
-		    osip_free (pszNonce);
-		    osip_free (pszRealm);
-		    osip_free (pszQop);
-		    return OSIP_NOMEM;
-	    }
-		snprintf(szNonceCount, 9, "%.8i", iNonceCount);
+        /* only accept qop="auth" */
+        pszQop = osip_strdup ("auth");
+        if (pszQop == NULL)
+          {
+            osip_authorization_free (aut);
+            osip_free (pszNonce);
+            osip_free (pszRealm);
+            return OSIP_NOMEM;
+          }
 
-		pszCNonce = osip_strdup (pCNonce);
-	    if (pszCNonce==NULL)
-	    {
-		    osip_authorization_free (aut);
-		    osip_free (pszNonce);
-		    osip_free (pszRealm);
-		    osip_free (pszQop);
-		    osip_free (szNonceCount);
-		    return OSIP_NOMEM;
-	    }
+        szNonceCount = osip_malloc (10);
+        if (szNonceCount == NULL)
+          {
+            osip_authorization_free (aut);
+            osip_free (pszNonce);
+            osip_free (pszRealm);
+            osip_free (pszQop);
+            return OSIP_NOMEM;
+          }
+        snprintf (szNonceCount, 9, "%.8i", iNonceCount);
 
-		osip_proxy_authorization_set_message_qop (aut, osip_strdup ("auth"));
-		osip_proxy_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
+        pszCNonce = osip_strdup (pCNonce);
+        if (pszCNonce == NULL)
+          {
+            osip_authorization_free (aut);
+            osip_free (pszNonce);
+            osip_free (pszRealm);
+            osip_free (pszQop);
+            osip_free (szNonceCount);
+            return OSIP_NOMEM;
+          }
 
-		{
-		  char *tmp = osip_malloc (strlen (pszCNonce) + 3);
-		  if (tmp==NULL)
-		  {
-			  osip_authorization_free (aut);
-			  osip_free (pszNonce);
-			  osip_free (pszCNonce);
-			  osip_free (pszRealm);
-			  osip_free (pszQop);
-			  osip_free (szNonceCount);
-			  return OSIP_NOMEM;
-		  }
-		  sprintf (tmp, "\"%s\"", pszCNonce);
-		  osip_proxy_authorization_set_cnonce (aut, tmp);
-		}
+        osip_proxy_authorization_set_message_qop (aut, osip_strdup ("auth"));
+        osip_proxy_authorization_set_nonce_count (aut, osip_strdup (szNonceCount));
+
+        {
+          char *tmp = osip_malloc (strlen (pszCNonce) + 3);
+          if (tmp == NULL)
+            {
+              osip_authorization_free (aut);
+              osip_free (pszNonce);
+              osip_free (pszCNonce);
+              osip_free (pszRealm);
+              osip_free (pszQop);
+              osip_free (szNonceCount);
+              return OSIP_NOMEM;
+            }
+          sprintf (tmp, "\"%s\"", pszCNonce);
+          osip_proxy_authorization_set_cnonce (aut, tmp);
+        }
       }
 
-    if(0 == osip_strcasecmp(Alg,"MD5"))
+    if (0 == osip_strcasecmp (Alg, "MD5"))
       {
-	if (ha1 && ha1[0])
-	  {
-	    /* Depending on algorithm=md5 */
-	    pha1 = ha1;
-	  } else
-	    {
-	      DigestCalcHA1 ("MD5", pszUser, pszRealm, pszPass, pszNonce,
-			     pszCNonce, HA1);
-	      pha1 = HA1;
-	    }
-	version = 0;
-	DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
-			    pszQop, version, pszMethod, pszURI, HA2, Response);
-      }
-    else
+        if (ha1 && ha1[0])
+          {
+            /* Depending on algorithm=md5 */
+            pha1 = ha1;
+        } else
+          {
+            DigestCalcHA1 ("MD5", pszUser, pszRealm, pszPass, pszNonce,
+                           pszCNonce, HA1);
+            pha1 = HA1;
+          }
+        version = 0;
+        DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
+                            pszQop, version, pszMethod, pszURI, HA2, Response);
+    } else
       {
-	if(0==osip_strcasecmp(Alg,"AKAv1-MD5"))
-	  version = 1;
-	else
-	  version = 2;
+        if (0 == osip_strcasecmp (Alg, "AKAv1-MD5"))
+          version = 1;
+        else
+          version = 2;
 
-	DigestCalcResponseAka(pszPass, pszNonce,pszCNonce,pszQop,pszMethod,pszURI,version,Response2);
-	if (ha1 && ha1[0])
-	  {
-	    /* Depending on algorithm=md5 */
-	    pha1 = ha1;
-	  }
-	else
-	  {
-	    DigestCalcHA1 ("MD5", pszUser, pszRealm, Response2, pszNonce,
-			   pszCNonce, HA1);
-	    pha1 = HA1;
-	  }
-	
-	DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
-			    pszQop, version, pszMethod, pszURI, HA2, Response);
+        DigestCalcResponseAka (pszPass, pszNonce, pszCNonce, pszQop, pszMethod,
+                               pszURI, version, Response2);
+        if (ha1 && ha1[0])
+          {
+            /* Depending on algorithm=md5 */
+            pha1 = ha1;
+        } else
+          {
+            DigestCalcHA1 ("MD5", pszUser, pszRealm, Response2, pszNonce,
+                           pszCNonce, HA1);
+            pha1 = HA1;
+          }
+
+        DigestCalcResponse ((char *) pha1, pszNonce, szNonceCount, pszCNonce,
+                            pszQop, version, pszMethod, pszURI, HA2, Response);
       }
 
     OSIP_TRACE (osip_trace
@@ -1045,16 +1129,16 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
                  "Response in proxy_authorization |%s|\n", Response));
     {
       char *resp = osip_malloc (35);
-	  if (resp==NULL)
-	  {
-		  osip_authorization_free (aut);
-		  osip_free (pszNonce);
-		  osip_free (pszCNonce);
-		  osip_free (pszRealm);
-		  osip_free (pszQop);
-		  osip_free (szNonceCount);
-		  return OSIP_NOMEM;
-	  }
+      if (resp == NULL)
+        {
+          osip_authorization_free (aut);
+          osip_free (pszNonce);
+          osip_free (pszCNonce);
+          osip_free (pszRealm);
+          osip_free (pszQop);
+          osip_free (szNonceCount);
+          return OSIP_NOMEM;
+        }
 
       sprintf (resp, "\"%s\"", Response);
       osip_proxy_authorization_set_response (aut, resp);
@@ -1070,75 +1154,78 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t *wa,
   return OSIP_SUCCESS;
 }
 
-int _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t *wa, int answer_code)
+int
+_eXosip_store_nonce (const char *call_id, osip_proxy_authenticate_t * wa,
+                     int answer_code)
 {
-	struct eXosip_http_auth *http_auth;
-	int pos;
+  struct eXosip_http_auth *http_auth;
+  int pos;
 
-	/* update entries with same call_id */
-	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
-	{
-		http_auth = &eXosip.http_auths[pos];
-		if (http_auth->pszCallId[0]=='\0')
-			continue;
-		if (osip_strcasecmp(http_auth->pszCallId, call_id)==0
-			&& ((http_auth->wa->realm==NULL && wa->realm==NULL)
-			    || (http_auth->wa->realm!=NULL
-					&& wa->realm!=NULL
-					&& osip_strcasecmp(http_auth->wa->realm, wa->realm)==0)))
-		{
-			osip_proxy_authenticate_free(http_auth->wa);
-			http_auth->wa=NULL;
-			osip_proxy_authenticate_clone(wa, &(http_auth->wa));
-			http_auth->iNonceCount = 1;
-			if (http_auth->wa==NULL)
-				memset(http_auth, 0, sizeof(struct eXosip_http_auth));
-			return OSIP_SUCCESS;
-		}
-	}
+  /* update entries with same call_id */
+  for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++)
+    {
+      http_auth = &eXosip.http_auths[pos];
+      if (http_auth->pszCallId[0] == '\0')
+        continue;
+      if (osip_strcasecmp (http_auth->pszCallId, call_id) == 0
+          && ((http_auth->wa->realm == NULL && wa->realm == NULL)
+              || (http_auth->wa->realm != NULL
+                  && wa->realm != NULL
+                  && osip_strcasecmp (http_auth->wa->realm, wa->realm) == 0)))
+        {
+          osip_proxy_authenticate_free (http_auth->wa);
+          http_auth->wa = NULL;
+          osip_proxy_authenticate_clone (wa, &(http_auth->wa));
+          http_auth->iNonceCount = 1;
+          if (http_auth->wa == NULL)
+            memset (http_auth, 0, sizeof (struct eXosip_http_auth));
+          return OSIP_SUCCESS;
+        }
+    }
 
-	/* not found */
-	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
-	{
-		http_auth = &eXosip.http_auths[pos];
-		if (http_auth->pszCallId[0]=='\0')
-		{
-			snprintf(http_auth->pszCallId, sizeof(http_auth->pszCallId),
-				call_id);
-			snprintf(http_auth->pszCNonce, sizeof(http_auth->pszCNonce),
-				"0a4f113b");
-			http_auth->iNonceCount = 1;
-			osip_proxy_authenticate_clone(wa, &(http_auth->wa));
-			http_auth->answer_code = answer_code;
-			if (http_auth->wa==NULL)
-				memset(http_auth, 0, sizeof(struct eXosip_http_auth));
-			return OSIP_SUCCESS;
-		}
-	}
+  /* not found */
+  for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++)
+    {
+      http_auth = &eXosip.http_auths[pos];
+      if (http_auth->pszCallId[0] == '\0')
+        {
+          snprintf (http_auth->pszCallId, sizeof (http_auth->pszCallId), call_id);
+          snprintf (http_auth->pszCNonce, sizeof (http_auth->pszCNonce),
+                    "0a4f113b");
+          http_auth->iNonceCount = 1;
+          osip_proxy_authenticate_clone (wa, &(http_auth->wa));
+          http_auth->answer_code = answer_code;
+          if (http_auth->wa == NULL)
+            memset (http_auth, 0, sizeof (struct eXosip_http_auth));
+          return OSIP_SUCCESS;
+        }
+    }
 
-	OSIP_TRACE (osip_trace
-                (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                 "Compile with higher MAX_EXOSIP_HTTP_AUTH value (current=%i)\n", MAX_EXOSIP_HTTP_AUTH));
-	return OSIP_UNDEFINED_ERROR;
+  OSIP_TRACE (osip_trace
+              (__FILE__, __LINE__, OSIP_ERROR, NULL,
+               "Compile with higher MAX_EXOSIP_HTTP_AUTH value (current=%i)\n",
+               MAX_EXOSIP_HTTP_AUTH));
+  return OSIP_UNDEFINED_ERROR;
 }
 
-int _eXosip_delete_nonce(const char *call_id)
+int
+_eXosip_delete_nonce (const char *call_id)
 {
-	struct eXosip_http_auth *http_auth;
-	int pos;
+  struct eXosip_http_auth *http_auth;
+  int pos;
 
-	/* update entries with same call_id */
-	for (pos=0;pos<MAX_EXOSIP_HTTP_AUTH;pos++)
-	{
-		http_auth = &eXosip.http_auths[pos];
-		if (http_auth->pszCallId[0]=='\0')
-			continue;
-		if (osip_strcasecmp(http_auth->pszCallId, call_id)==0)
-		{
-			osip_proxy_authenticate_free(http_auth->wa);
-			memset(http_auth, 0, sizeof(struct eXosip_http_auth));
-			return OSIP_SUCCESS;
-		}
-	}
-	return OSIP_NOTFOUND;
+  /* update entries with same call_id */
+  for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++)
+    {
+      http_auth = &eXosip.http_auths[pos];
+      if (http_auth->pszCallId[0] == '\0')
+        continue;
+      if (osip_strcasecmp (http_auth->pszCallId, call_id) == 0)
+        {
+          osip_proxy_authenticate_free (http_auth->wa);
+          memset (http_auth, 0, sizeof (struct eXosip_http_auth));
+          return OSIP_SUCCESS;
+        }
+    }
+  return OSIP_NOTFOUND;
 }

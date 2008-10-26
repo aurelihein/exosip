@@ -96,14 +96,14 @@ eXosip_subscribe_free (eXosip_subscribe_t * js)
 
   eXosip_dialog_t *jd;
 
-  if (js->s_inc_tr!=NULL && js->s_inc_tr->orig_request!=NULL
-	  && js->s_inc_tr->orig_request->call_id!=NULL
-	  && js->s_inc_tr->orig_request->call_id->number!=NULL)
-	  _eXosip_delete_nonce(js->s_inc_tr->orig_request->call_id->number);
-  else if (js->s_out_tr!=NULL && js->s_out_tr->orig_request!=NULL
-	  && js->s_out_tr->orig_request->call_id!=NULL
-	  && js->s_out_tr->orig_request->call_id->number!=NULL)
-	  _eXosip_delete_nonce(js->s_out_tr->orig_request->call_id->number);
+  if (js->s_inc_tr != NULL && js->s_inc_tr->orig_request != NULL
+      && js->s_inc_tr->orig_request->call_id != NULL
+      && js->s_inc_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (js->s_inc_tr->orig_request->call_id->number);
+  else if (js->s_out_tr != NULL && js->s_out_tr->orig_request != NULL
+           && js->s_out_tr->orig_request->call_id != NULL
+           && js->s_out_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (js->s_out_tr->orig_request->call_id->number);
 
   for (jd = js->s_dialogs; jd != NULL; jd = js->s_dialogs)
     {

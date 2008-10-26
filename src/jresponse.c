@@ -48,11 +48,11 @@ _eXosip_build_response_default (osip_message_t ** dest,
   /* yet done... */
 
   response->sip_version = (char *) osip_malloc (8 * sizeof (char));
-  if (response->sip_version==NULL)
-  {
-	  osip_message_free (response);
-	  return OSIP_NOMEM;
-  }
+  if (response->sip_version == NULL)
+    {
+      osip_message_free (response);
+      return OSIP_NOMEM;
+    }
   sprintf (response->sip_version, "SIP/2.0");
   osip_message_set_status_code (response, status);
 
@@ -82,26 +82,26 @@ _eXosip_build_response_default (osip_message_t ** dest,
   if (response->reason_phrase == NULL)
     {
       if (response->status_code == 101)
-	response->reason_phrase = osip_strdup ("Dialog Establishement");
+        response->reason_phrase = osip_strdup ("Dialog Establishement");
       else
-	response->reason_phrase = osip_strdup ("Unknown code");
+        response->reason_phrase = osip_strdup ("Unknown code");
     }
   response->req_uri = NULL;
   response->sip_method = NULL;
 #endif
 
-  if (response->reason_phrase==NULL)
-  {
-	  osip_message_free (response);
-	  return OSIP_NOMEM;
-  }
+  if (response->reason_phrase == NULL)
+    {
+      osip_message_free (response);
+      return OSIP_NOMEM;
+    }
 
   i = osip_to_clone (request->to, &(response->to));
   if (i != 0)
-  {
-	  osip_message_free (response);
-	  return i;
-  }
+    {
+      osip_message_free (response);
+      return i;
+    }
 
   i = osip_to_get_tag (response->to, &tag);
   if (i != 0)
@@ -119,10 +119,10 @@ _eXosip_build_response_default (osip_message_t ** dest,
 
   i = osip_from_clone (request->from, &(response->from));
   if (i != 0)
-  {
-	  osip_message_free (response);
-	  return i;
-  }
+    {
+      osip_message_free (response);
+      return i;
+    }
 
   pos = 0;
   while (!osip_list_eol (&request->vias, pos))
@@ -133,27 +133,26 @@ _eXosip_build_response_default (osip_message_t ** dest,
       via = (osip_via_t *) osip_list_get (&request->vias, pos);
       i = osip_via_clone (via, &via2);
       if (i != 0)
-	  {
-		  osip_message_free (response);
-		  return i;
-	  }
+        {
+          osip_message_free (response);
+          return i;
+        }
       osip_list_add (&response->vias, via2, -1);
       pos++;
     }
 
   i = osip_call_id_clone (request->call_id, &(response->call_id));
   if (i != 0)
-  {
-	  osip_message_free (response);
-	  return i;
-  }
+    {
+      osip_message_free (response);
+      return i;
+    }
   i = osip_cseq_clone (request->cseq, &(response->cseq));
   if (i != 0)
-  {
-	  osip_message_free (response);
-	  return i;
-  }
-
+    {
+      osip_message_free (response);
+      return i;
+    }
 #ifndef MINISIZE
   if (MSG_IS_SUBSCRIBE (request))
     {
@@ -193,10 +192,11 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
   char locip[65];
   char firewall_ip[65];
   char firewall_port[10];
-  if (eXosip.eXtl->tl_get_masquerade_contact!=NULL)
+  if (eXosip.eXtl->tl_get_masquerade_contact != NULL)
     {
-      eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
-					     firewall_port, sizeof(firewall_port));
+      eXosip.eXtl->tl_get_masquerade_contact (firewall_ip, sizeof (firewall_ip),
+                                              firewall_port,
+                                              sizeof (firewall_port));
     }
 
   /* 12.1.1:
@@ -216,7 +216,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
       pos++;
     }
 
-  memset(locip, '\0', sizeof(locip));
+  memset (locip, '\0', sizeof (locip));
   eXosip_guess_ip_for_via (eXosip.eXtl->proto_family, locip, 49);
 
   if (request->to->url->username == NULL)
@@ -257,27 +257,26 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
                           firewall_ip, firewall_port);
               else
                 snprintf (contact, 1000, "<sip:%s@%s:%s>",
-                          request->to->url->username,
-                          firewall_ip, firewall_port);
+                          request->to->url->username, firewall_ip, firewall_port);
             }
         }
     }
 
-    {
-      osip_via_t *via;
-      
-      via = (osip_via_t *) osip_list_get (&response->vias, 0);
-      if (via == NULL || via->protocol == NULL)
-	return OSIP_SYNTAXERROR;
-      if (strlen(contact)+strlen(via->protocol)<1024
-	  && 0 != osip_strcasecmp (via->protocol, "UDP"))
-	{
-	  contact[strlen(contact)-1]='\0';
-	  strcat(contact, ";transport=");
-	  strcat(contact, via->protocol);
-	  strcat(contact, ">");
-	}
-    }
+  {
+    osip_via_t *via;
+
+    via = (osip_via_t *) osip_list_get (&response->vias, 0);
+    if (via == NULL || via->protocol == NULL)
+      return OSIP_SYNTAXERROR;
+    if (strlen (contact) + strlen (via->protocol) < 1024
+        && 0 != osip_strcasecmp (via->protocol, "UDP"))
+      {
+        contact[strlen (contact) - 1] = '\0';
+        strcat (contact, ";transport=");
+        strcat (contact, via->protocol);
+        strcat (contact, ">");
+      }
+  }
 
   osip_message_set_contact (response, contact);
 
@@ -286,7 +285,7 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
 
 int
 _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
-                           osip_message_t ** answer, int send)
+                                osip_message_t ** answer, int send)
 {
   int i;
   osip_transaction_t *tr;
@@ -302,7 +301,7 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
       return OSIP_NOTFOUND;
     }
 
-  if (code>=200 && code<300 && jd != NULL && jd->d_dialog == NULL)
+  if (code >= 200 && code < 300 && jd != NULL && jd->d_dialog == NULL)
     {                           /* element previously removed */
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -332,40 +331,40 @@ _eXosip_answer_invite_123456xx (eXosip_call_t * jc, eXosip_dialog_t * jd, int co
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "ERROR: Could not create response for invite\n"));
-	  *answer=NULL;
+      *answer = NULL;
       return i;
     }
 
   /* request that estabish a dialog: */
   /* 12.1.1 UAS Behavior */
-  if (code > 100 && code <300)
-  {
-    i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
-    if (i != 0)
-	{
-	  osip_message_free (*answer);
-	  *answer=NULL;
-	  return i;
-	}
-  }
+  if (code > 100 && code < 300)
+    {
+      i = complete_answer_that_establish_a_dialog (*answer, tr->orig_request);
+      if (i != 0)
+        {
+          osip_message_free (*answer);
+          *answer = NULL;
+          return i;
+        }
+    }
 
 
-  if (send==1)
+  if (send == 1)
     {
       osip_event_t *evt_answer;
-      if (code >= 200 && code <300 && jd!=NULL)
-	{
-	  eXosip_dialog_set_200ok (jd, *answer);
-	  /* wait for a ACK */
-	  osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
-	}
+      if (code >= 200 && code < 300 && jd != NULL)
+        {
+          eXosip_dialog_set_200ok (jd, *answer);
+          /* wait for a ACK */
+          osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
+        }
 
       evt_answer = osip_new_outgoing_sipmessage (*answer);
       evt_answer->transactionid = tr->transactionid;
-      
+
       osip_transaction_add_event (tr, evt_answer);
       __eXosip_wakeup ();
-      *answer=NULL;
+      *answer = NULL;
     }
 
   return OSIP_SUCCESS;
@@ -411,9 +410,9 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
       /* request that estabish a dialog: */
       /* 12.1.1 UAS Behavior */
       i = complete_answer_that_establish_a_dialog (response, tr->orig_request);
-	  if (i != 0)
-	  {
-	  }
+      if (i != 0)
+        {
+        }
 
       if (jd == NULL)
         {
@@ -423,9 +422,8 @@ _eXosip_insubscription_answer_1xx (eXosip_notify_t * jn, eXosip_dialog_t * jd,
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: cannot create dialog!\n"));
-            }
-		  else
-	          ADD_ELEMENT (jn->n_dialogs, jd);
+          } else
+            ADD_ELEMENT (jn->n_dialogs, jd);
         }
     }
 

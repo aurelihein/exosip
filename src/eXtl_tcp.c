@@ -50,39 +50,39 @@ struct socket_tab
 static struct socket_tab tcp_socket_tab[EXOSIP_MAX_SOCKETS];
 
 static int
-tcp_tl_init(void)
+tcp_tl_init (void)
 {
-  tcp_socket=0;
-  memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
-  memset(&tcp_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
-  memset(tcp_firewall_ip, 0, sizeof(tcp_firewall_ip));
-  memset(tcp_firewall_port, 0, sizeof(tcp_firewall_port));
+  tcp_socket = 0;
+  memset (&ai_addr, 0, sizeof (struct sockaddr_storage));
+  memset (&tcp_socket_tab, 0, sizeof (struct socket_tab) * EXOSIP_MAX_SOCKETS);
+  memset (tcp_firewall_ip, 0, sizeof (tcp_firewall_ip));
+  memset (tcp_firewall_port, 0, sizeof (tcp_firewall_port));
   return OSIP_SUCCESS;
 }
 
 static int
-tcp_tl_free(void)
+tcp_tl_free (void)
 {
   int pos;
-  memset(tcp_firewall_ip, 0, sizeof(tcp_firewall_ip));
-  memset(tcp_firewall_port, 0, sizeof(tcp_firewall_port));
-  memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
-  if (tcp_socket>0)
-    close(tcp_socket);
+  memset (tcp_firewall_ip, 0, sizeof (tcp_firewall_ip));
+  memset (tcp_firewall_port, 0, sizeof (tcp_firewall_port));
+  memset (&ai_addr, 0, sizeof (struct sockaddr_storage));
+  if (tcp_socket > 0)
+    close (tcp_socket);
 
   for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
       if (tcp_socket_tab[pos].socket > 0)
-	{
-	  close(tcp_socket_tab[pos].socket);
-	}
+        {
+          close (tcp_socket_tab[pos].socket);
+        }
     }
-  memset(&tcp_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
+  memset (&tcp_socket_tab, 0, sizeof (struct socket_tab) * EXOSIP_MAX_SOCKETS);
   return OSIP_SUCCESS;
 }
 
 static int
-tcp_tl_open(void)
+tcp_tl_open (void)
 {
   int res;
   struct addrinfo *addrinfo = NULL;
@@ -94,9 +94,8 @@ tcp_tl_open(void)
 
 
   res = eXosip_get_addrinfo (&addrinfo,
-			     eXtl_tcp.proto_ifs,
-			     eXtl_tcp.proto_port,
-			     eXtl_tcp.proto_num);
+                             eXtl_tcp.proto_ifs,
+                             eXtl_tcp.proto_port, eXtl_tcp.proto_num);
   if (res)
     return -1;
 
@@ -167,7 +166,8 @@ tcp_tl_open(void)
               OSIP_TRACE (osip_trace
                           (__FILE__, __LINE__, OSIP_ERROR, NULL,
                            "eXosip: Cannot bind socket node:%s family:%d %s\n",
-                           eXtl_tcp.proto_ifs, curinfo->ai_family, strerror (errno)));
+                           eXtl_tcp.proto_ifs, curinfo->ai_family,
+                           strerror (errno)));
               close (sock);
               sock = -1;
               continue;
@@ -195,21 +195,23 @@ tcp_tl_open(void)
       if (eXtl_tcp.proto_family == AF_INET)
         eXtl_tcp.proto_port = ntohs (((struct sockaddr_in *) &ai_addr)->sin_port);
       else
-        eXtl_tcp.proto_port = ntohs (((struct sockaddr_in6 *) &ai_addr)->sin6_port);
+        eXtl_tcp.proto_port =
+          ntohs (((struct sockaddr_in6 *) &ai_addr)->sin6_port);
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO1, NULL,
                    "eXosip: Binding on port %i!\n", eXtl_tcp.proto_port));
     }
 
-  snprintf(tcp_firewall_port, sizeof(tcp_firewall_port), "%i", eXtl_tcp.proto_port);
+  snprintf (tcp_firewall_port, sizeof (tcp_firewall_port), "%i",
+            eXtl_tcp.proto_port);
   return OSIP_SUCCESS;
 }
 
 static int
-tcp_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
+tcp_tl_set_fdset (fd_set * osip_fdset, int *fd_max)
 {
   int pos;
-  if (tcp_socket<=0)
+  if (tcp_socket <= 0)
     return -1;
 
   eXFD_SET (tcp_socket, osip_fdset);
@@ -220,18 +222,18 @@ tcp_tl_set_fdset(fd_set *osip_fdset, int *fd_max)
   for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
       if (tcp_socket_tab[pos].socket > 0)
-	{
-	  eXFD_SET (tcp_socket_tab[pos].socket, osip_fdset);
-	  if (tcp_socket_tab[pos].socket > *fd_max)
-	    *fd_max = tcp_socket_tab[pos].socket;
-	}
+        {
+          eXFD_SET (tcp_socket_tab[pos].socket, osip_fdset);
+          if (tcp_socket_tab[pos].socket > *fd_max)
+            *fd_max = tcp_socket_tab[pos].socket;
+        }
     }
 
   return OSIP_SUCCESS;
 }
 
 static int
-tcp_tl_read_message(fd_set *osip_fdset)
+tcp_tl_read_message (fd_set * osip_fdset)
 {
   int pos = 0;
   char *buf;
@@ -251,144 +253,140 @@ tcp_tl_read_message(fd_set *osip_fdset)
       int slen;
 #endif
       if (eXtl_tcp.proto_family == AF_INET)
-	slen = sizeof (struct sockaddr_in);
+        slen = sizeof (struct sockaddr_in);
       else
-	slen = sizeof (struct sockaddr_in6);
+        slen = sizeof (struct sockaddr_in6);
 
       for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
-	{
-	  if (tcp_socket_tab[pos].socket == 0)
-	    break;
-	}
+        {
+          if (tcp_socket_tab[pos].socket == 0)
+            break;
+        }
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
-			      "creating TCP socket at index: %i\n", pos));
-      sock = accept (tcp_socket,
-		     (struct sockaddr *) &sa, &slen);
+                              "creating TCP socket at index: %i\n", pos));
+      sock = accept (tcp_socket, (struct sockaddr *) &sa, &slen);
       if (sock < 0)
-	{
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				  "Error accepting TCP socket\n"));
-	}
-      else
-	{
-	  tcp_socket_tab[pos].socket = sock;
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-				  "New TCP connection accepted\n"));
-	  
-	  memset (src6host, 0, sizeof (src6host));
-	  
-	  if (eXtl_tcp.proto_family == AF_INET)
-	    recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
-	  else
-	    recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
-	  
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "Error accepting TCP socket\n"));
+      } else
+        {
+          tcp_socket_tab[pos].socket = sock;
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                  "New TCP connection accepted\n"));
+
+          memset (src6host, 0, sizeof (src6host));
+
+          if (eXtl_tcp.proto_family == AF_INET)
+            recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
+          else
+            recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
+
 #if defined(__arc__)
-	  {
-	    struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
-	    char *tmp;
-	    tmp = inet_ntoa(fromsa->sin_addr);
-	    if (tmp==NULL)
-	      {
-		OSIP_TRACE (osip_trace
-			    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			     "Message received from: NULL:%i inet_ntoa failure\n",
-			     recvport));
-	      }
-	    else
-	      {
-		snprintf(src6host, sizeof(src6host), "%s", tmp);
-		OSIP_TRACE (osip_trace
-			    (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			     "Message received from: %s:%i\n", src6host, recvport));
-		osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
-			      sizeof (tcp_socket_tab[pos].remote_ip)-1);
-		tcp_socket_tab[pos].remote_port = recvport;
-	      }
-	  }
+          {
+            struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
+            char *tmp;
+            tmp = inet_ntoa (fromsa->sin_addr);
+            if (tmp == NULL)
+              {
+                OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                             "Message received from: NULL:%i inet_ntoa failure\n",
+                             recvport));
+            } else
+              {
+                snprintf (src6host, sizeof (src6host), "%s", tmp);
+                OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                             "Message received from: %s:%i\n", src6host,
+                             recvport));
+                osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
+                              sizeof (tcp_socket_tab[pos].remote_ip) - 1);
+                tcp_socket_tab[pos].remote_port = recvport;
+              }
+          }
 #else
-	  i = getnameinfo ((struct sockaddr *) &sa, slen,
-			   src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-	  
-	  if (i != 0)
-	    {
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			   "Message received from: NULL:%i getnameinfo failure\n",
-			   recvport));
-	      snprintf(src6host, sizeof(src6host), "127.0.0.1");
-	    }
-	  else
-	    {
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			   "Message received from: %s:%i\n", src6host, recvport));
-	      osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
-			    sizeof (tcp_socket_tab[pos].remote_ip)-1);
-	      tcp_socket_tab[pos].remote_port = recvport;
-	    }
+          i = getnameinfo ((struct sockaddr *) &sa, slen,
+                           src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
+          if (i != 0)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "Message received from: NULL:%i getnameinfo failure\n",
+                           recvport));
+              snprintf (src6host, sizeof (src6host), "127.0.0.1");
+          } else
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "Message received from: %s:%i\n", src6host, recvport));
+              osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
+                            sizeof (tcp_socket_tab[pos].remote_ip) - 1);
+              tcp_socket_tab[pos].remote_port = recvport;
+            }
 #endif
-	} 
+        }
     }
 
 
 
-  buf=NULL;
+  buf = NULL;
 
   for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
     {
       if (tcp_socket_tab[pos].socket > 0
-	  && FD_ISSET (tcp_socket_tab[pos].socket, osip_fdset))
-	{
-	  int i;
+          && FD_ISSET (tcp_socket_tab[pos].socket, osip_fdset))
+        {
+          int i;
 
-	  if (buf==NULL)
-	    buf = (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
-	  if (buf==NULL)
-	    return OSIP_NOMEM;
+          if (buf == NULL)
+            buf =
+              (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
+          if (buf == NULL)
+            return OSIP_NOMEM;
 
-	  i = recv (tcp_socket_tab[pos].socket, buf, SIP_MESSAGE_MAX_LENGTH, 0);
-	  if (i > 5)
-	    {
-	      osip_strncpy (buf + i, "\0", 1);
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			   "Received TCP message: \n%s\n", buf));
-	      _eXosip_handle_incoming_message (buf, i,
-					       tcp_socket_tab[pos].socket,
-					       tcp_socket_tab[pos].remote_ip,
-					       tcp_socket_tab[pos].remote_port);
-	    }
-	  else if (i < 0)
-	    {
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			   "Could not read socket - close it\n"));
-	      close (tcp_socket_tab[pos].socket);
-	      memset (&(tcp_socket_tab[pos]), 0, sizeof (tcp_socket_tab[pos]));
-	    }
-	  else if (i == 0)
-	    {
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			   "End of stream (read 0 byte from %s:%i)\n",
-			   tcp_socket_tab[pos].remote_ip,
-			   tcp_socket_tab[pos].remote_port));
-	      close (tcp_socket_tab[pos].socket);
-	      memset (&(tcp_socket_tab[pos]), 0, sizeof (tcp_socket_tab[pos]));
-	    }
+          i = recv (tcp_socket_tab[pos].socket, buf, SIP_MESSAGE_MAX_LENGTH, 0);
+          if (i > 5)
+            {
+              osip_strncpy (buf + i, "\0", 1);
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "Received TCP message: \n%s\n", buf));
+              _eXosip_handle_incoming_message (buf, i,
+                                               tcp_socket_tab[pos].socket,
+                                               tcp_socket_tab[pos].remote_ip,
+                                               tcp_socket_tab[pos].remote_port);
+          } else if (i < 0)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "Could not read socket - close it\n"));
+              close (tcp_socket_tab[pos].socket);
+              memset (&(tcp_socket_tab[pos]), 0, sizeof (tcp_socket_tab[pos]));
+          } else if (i == 0)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "End of stream (read 0 byte from %s:%i)\n",
+                           tcp_socket_tab[pos].remote_ip,
+                           tcp_socket_tab[pos].remote_port));
+              close (tcp_socket_tab[pos].socket);
+              memset (&(tcp_socket_tab[pos]), 0, sizeof (tcp_socket_tab[pos]));
+            }
 #ifndef MINISIZE
-	  else
-	    {
-	      /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_INFO1, NULL,
-			   "Dummy SIP message received (size=%i)\n", i));
-	    }
+          else
+            {
+              /* we expect at least one byte, otherwise there's no doubt that it is not a sip message ! */
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "Dummy SIP message received (size=%i)\n", i));
+            }
 #endif
-	}
+        }
     }
 
-  if (buf!=NULL)
+  if (buf != NULL)
     osip_free (buf);
 
   return OSIP_SUCCESS;
@@ -451,20 +449,20 @@ _tcp_tl_connect_socket (char *host, int port)
         }
 
       res = getnameinfo ((struct sockaddr *) curinfo->ai_addr, curinfo->ai_addrlen,
-		       src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-      
+                         src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
       if (res == 0)
-	{
-	  int i = _tcp_tl_find_socket (src6host, port);
-	  if (i>=0)
-	    {
-	      eXosip_freeaddrinfo (addrinfo);
-	      return i;
-	    }
-	  OSIP_TRACE (osip_trace
-		      (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		       "New binding with %s\n", src6host));
-	}
+        {
+          int i = _tcp_tl_find_socket (src6host, port);
+          if (i >= 0)
+            {
+              eXosip_freeaddrinfo (addrinfo);
+              return i;
+            }
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "New binding with %s\n", src6host));
+        }
 
       sock = (int) socket (curinfo->ai_family, curinfo->ai_socktype,
                            curinfo->ai_protocol);
@@ -532,12 +530,12 @@ _tcp_tl_connect_socket (char *host, int port)
     {
       tcp_socket_tab[pos].socket = sock;
 
-      if (src6host[0]=='\0')
-	osip_strncpy (tcp_socket_tab[pos].remote_ip, host,
-		      sizeof (tcp_socket_tab[pos].remote_ip) - 1);
+      if (src6host[0] == '\0')
+        osip_strncpy (tcp_socket_tab[pos].remote_ip, host,
+                      sizeof (tcp_socket_tab[pos].remote_ip) - 1);
       else
-	osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
-		      sizeof (tcp_socket_tab[pos].remote_ip) - 1);
+        osip_strncpy (tcp_socket_tab[pos].remote_ip, src6host,
+                      sizeof (tcp_socket_tab[pos].remote_ip) - 1);
 
       tcp_socket_tab[pos].remote_port = port;
       return sock;
@@ -547,8 +545,8 @@ _tcp_tl_connect_socket (char *host, int port)
 }
 
 static int
-tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
-                    int port, int out_socket)
+tcp_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
+                     int port, int out_socket)
 {
   size_t length = 0;
   char *message;
@@ -565,22 +563,22 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   /* remove preloaded route if there is no tag in the To header
    */
-    {
-      osip_route_t *route=NULL;
-      osip_generic_param_t *tag=NULL;
-      osip_message_get_route (sip, 0, &route);
-      
-      osip_to_get_tag (sip->to, &tag);
-      if (tag==NULL && route != NULL && route->url != NULL)
-	{
-	  osip_list_remove(&sip->routes, 0);
-	}
-      i = osip_message_to_str (sip, &message, &length);
-      if (tag==NULL && route != NULL && route->url != NULL)
-	{
-	  osip_list_add(&sip->routes, route, 0);
-	}
-    }
+  {
+    osip_route_t *route = NULL;
+    osip_generic_param_t *tag = NULL;
+    osip_message_get_route (sip, 0, &route);
+
+    osip_to_get_tag (sip->to, &tag);
+    if (tag == NULL && route != NULL && route->url != NULL)
+      {
+        osip_list_remove (&sip->routes, 0);
+      }
+    i = osip_message_to_str (sip, &message, &length);
+    if (tag == NULL && route != NULL && route->url != NULL)
+      {
+        osip_list_add (&sip->routes, route, 0);
+      }
+  }
 
   if (i != 0 || length <= 0)
     {
@@ -648,21 +646,21 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 }
 
 static int
-tcp_tl_keepalive(void)
+tcp_tl_keepalive (void)
 {
   return OSIP_SUCCESS;
 }
 
 static int
-tcp_tl_set_socket(int socket)
+tcp_tl_set_socket (int socket)
 {
   tcp_socket = socket;
-  
+
   return OSIP_SUCCESS;
 }
 
 static int
-tcp_tl_masquerade_contact(const char *public_address, int port)
+tcp_tl_masquerade_contact (const char *public_address, int port)
 {
   if (public_address == NULL || public_address[0] == '\0')
     {
@@ -672,44 +670,43 @@ tcp_tl_masquerade_contact(const char *public_address, int port)
   snprintf (tcp_firewall_ip, sizeof (tcp_firewall_ip), "%s", public_address);
   if (port > 0)
     {
-      snprintf (tcp_firewall_port, sizeof(tcp_firewall_port), "%i", port);
+      snprintf (tcp_firewall_port, sizeof (tcp_firewall_port), "%i", port);
     }
   return OSIP_SUCCESS;
 }
 
 static int
-tcp_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
+tcp_tl_get_masquerade_contact (char *ip, int ip_size, char *port, int port_size)
 {
-  memset(ip, 0, ip_size);
-  memset(port, 0, port_size);
+  memset (ip, 0, ip_size);
+  memset (port, 0, port_size);
 
-  if (tcp_firewall_ip!='\0')
-    snprintf(ip, ip_size, "%s", tcp_firewall_ip);
-  
-  if (tcp_firewall_port!='\0')
-    snprintf(port, port_size, "%s", tcp_firewall_port);
+  if (tcp_firewall_ip != '\0')
+    snprintf (ip, ip_size, "%s", tcp_firewall_ip);
+
+  if (tcp_firewall_port != '\0')
+    snprintf (port, port_size, "%s", tcp_firewall_port);
   return OSIP_SUCCESS;
 }
 
-struct eXtl_protocol eXtl_tcp = 
-  {
-    1,
-    5060,
-    "TCP",
-    "0.0.0.0",
-    IPPROTO_TCP,
-    AF_INET,
-    0,
-    0,
-    
-    &tcp_tl_init,
-    &tcp_tl_free,
-    &tcp_tl_open,
-    &tcp_tl_set_fdset,
-    &tcp_tl_read_message,
-    &tcp_tl_send_message,
-    &tcp_tl_keepalive,
-    &tcp_tl_set_socket,
-    &tcp_tl_masquerade_contact,
-    &tcp_tl_get_masquerade_contact
+struct eXtl_protocol eXtl_tcp = {
+  1,
+  5060,
+  "TCP",
+  "0.0.0.0",
+  IPPROTO_TCP,
+  AF_INET,
+  0,
+  0,
+
+  &tcp_tl_init,
+  &tcp_tl_free,
+  &tcp_tl_open,
+  &tcp_tl_set_fdset,
+  &tcp_tl_read_message,
+  &tcp_tl_send_message,
+  &tcp_tl_keepalive,
+  &tcp_tl_set_socket,
+  &tcp_tl_masquerade_contact,
+  &tcp_tl_get_masquerade_contact
 };

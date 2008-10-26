@@ -36,7 +36,7 @@
  * SOFTWARE.
  */
 
-#if defined(WIN32) || defined(_WIN32_WCE) 
+#if defined(WIN32) || defined(_WIN32_WCE)
 
 #include <osipparser2/osip_port.h>
 #include "eXosip2.h"
@@ -103,7 +103,7 @@ _inet_ntop (af, src, dst, size)
         return (_inet_ntop6 (src, dst, size));
       default:
 #ifndef _WIN32_WCE
-		  errno = EAFNOSUPPORT;
+        errno = EAFNOSUPPORT;
 #endif
         return (NULL);
     }

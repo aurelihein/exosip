@@ -25,4 +25,3 @@ struct eXtl_protocol *eXtl_protos[] = {
   &eXtl_tcp,
   NULL
 };
-

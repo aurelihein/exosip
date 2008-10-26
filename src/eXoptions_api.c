@@ -90,9 +90,9 @@ eXosip_options_build_answer (int tid, int status, osip_message_t ** answer)
   *answer = NULL;
 
   if (tid <= 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (status < 200 || status > 699)
-      return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -106,11 +106,11 @@ eXosip_options_build_answer (int tid, int status, osip_message_t ** answer)
       return OSIP_NOTFOUND;
     }
 
-  i=-1;
+  i = -1;
   if (status > 199 && status < 300)
-      i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
+    i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
   else if (status > 300 && status <= 699)
-      i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
+    i = _eXosip_build_response_default (answer, NULL, status, tr->orig_request);
   if (i != 0)
     return i;
 
@@ -125,11 +125,11 @@ eXosip_options_send_answer (int tid, int status, osip_message_t * answer)
   int i = -1;
 
   if (tid <= 0)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (status <= 100 || status > 699)
-      return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
   if (answer == NULL && status > 100 && status < 200)
-      return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
   if (tid > 0)
     {
@@ -156,12 +156,12 @@ eXosip_options_send_answer (int tid, int status, osip_message_t * answer)
 
   if (answer == NULL)
     {
-	  i=-1;
+      i = -1;
       if (status > 199 && status < 300)
-          i = _eXosip_build_response_default (&answer, NULL, status,
+        i = _eXosip_build_response_default (&answer, NULL, status,
                                             tr->orig_request);
       else if (status > 300 && status <= 699)
-          i = _eXosip_build_response_default (&answer, NULL, status,
+        i = _eXosip_build_response_default (&answer, NULL, status,
                                             tr->orig_request);
       if (i != 0)
         return i;

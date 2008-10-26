@@ -30,8 +30,8 @@ extern eXosip_t eXosip;
 int
 eXosip_call_find (int cid, eXosip_call_t ** jc)
 {
-  if (cid<=0)
-	  return OSIP_BADPARAMETER;
+  if (cid <= 0)
+    return OSIP_BADPARAMETER;
 
   for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next)
     {
@@ -94,14 +94,14 @@ eXosip_call_free (eXosip_call_t * jc)
 
   eXosip_dialog_t *jd;
 
-  if (jc->c_inc_tr!=NULL && jc->c_inc_tr->orig_request!=NULL
-	  && jc->c_inc_tr->orig_request->call_id!=NULL
-	  && jc->c_inc_tr->orig_request->call_id->number!=NULL)
-	  _eXosip_delete_nonce(jc->c_inc_tr->orig_request->call_id->number);
-  else if (jc->c_out_tr!=NULL && jc->c_out_tr->orig_request!=NULL
-	  && jc->c_out_tr->orig_request->call_id!=NULL
-	  && jc->c_out_tr->orig_request->call_id->number!=NULL)
-	  _eXosip_delete_nonce(jc->c_out_tr->orig_request->call_id->number);
+  if (jc->c_inc_tr != NULL && jc->c_inc_tr->orig_request != NULL
+      && jc->c_inc_tr->orig_request->call_id != NULL
+      && jc->c_inc_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (jc->c_inc_tr->orig_request->call_id->number);
+  else if (jc->c_out_tr != NULL && jc->c_out_tr->orig_request != NULL
+           && jc->c_out_tr->orig_request->call_id != NULL
+           && jc->c_out_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (jc->c_out_tr->orig_request->call_id->number);
 
   for (jd = jc->c_dialogs; jd != NULL; jd = jc->c_dialogs)
     {

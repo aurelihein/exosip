@@ -980,10 +980,10 @@ _eXosip_srv_lookup (osip_transaction_t * tr, osip_message_t * sip,
     }
 
   /* check if we have an IPv4 or IPv6 address */
-  if (strchr (host, ':') || (INADDR_NONE != inet_addr (host)) )
-  {
-    return OSIP_UNKNOWN_HOST;
-  }
+  if (strchr (host, ':') || (INADDR_NONE != inet_addr (host)))
+    {
+      return OSIP_UNKNOWN_HOST;
+    }
 
   if (use_srv == 1)
     {
@@ -1133,24 +1133,24 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
       buf += sizeof (unsigned short);
 
       len = *buf;
-      if (len<0 || len>255)
-	break;
+      if (len < 0 || len > 255)
+        break;
       buf++;
       strncpy (anaptr.flag, buf, len);
       anaptr.flag[len] = '\0';
       buf += len;
 
       len = *buf;
-      if (len<0 || len>1023)
-	break;
+      if (len < 0 || len > 1023)
+        break;
       buf++;
       strncpy (anaptr.service, buf, len);
       anaptr.service[len] = '\0';
       buf += len;
 
       len = *buf;
-      if (len<0 || len>1023)
-	break;
+      if (len < 0 || len > 1023)
+        break;
       buf++;
       strncpy (anaptr.regexp, buf, len);
       anaptr.regexp[len] = '\0';

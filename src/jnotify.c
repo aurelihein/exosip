@@ -84,7 +84,7 @@ eXosip_notify_init (eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
 {
   osip_contact_t *co;
 
-  *jn=NULL;
+  *jn = NULL;
   co = (osip_contact_t *) osip_list_get (&inc_subscribe->contacts, 0);
   if (co == NULL || co->url == NULL)
     return -1;
@@ -104,14 +104,14 @@ eXosip_notify_free (eXosip_notify_t * jn)
 
   eXosip_dialog_t *jd;
 
-  if (jn->n_inc_tr!=NULL && jn->n_inc_tr->orig_request!=NULL
-	  && jn->n_inc_tr->orig_request->call_id!=NULL
-	  && jn->n_inc_tr->orig_request->call_id->number!=NULL)
-	  _eXosip_delete_nonce(jn->n_inc_tr->orig_request->call_id->number);
-  else if (jn->n_out_tr!=NULL && jn->n_out_tr->orig_request!=NULL
-	  && jn->n_out_tr->orig_request->call_id!=NULL
-	  && jn->n_out_tr->orig_request->call_id->number!=NULL)
-	  _eXosip_delete_nonce(jn->n_out_tr->orig_request->call_id->number);
+  if (jn->n_inc_tr != NULL && jn->n_inc_tr->orig_request != NULL
+      && jn->n_inc_tr->orig_request->call_id != NULL
+      && jn->n_inc_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (jn->n_inc_tr->orig_request->call_id->number);
+  else if (jn->n_out_tr != NULL && jn->n_out_tr->orig_request != NULL
+           && jn->n_out_tr->orig_request->call_id != NULL
+           && jn->n_out_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (jn->n_out_tr->orig_request->call_id->number);
 
   for (jd = jn->n_dialogs; jd != NULL; jd = jn->n_dialogs)
     {

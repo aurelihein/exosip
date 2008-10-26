@@ -54,58 +54,58 @@ eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
   (*jr)->r_id = ++r_id;
   (*jr)->r_reg_period = 3600;   /* delay between registration */
   (*jr)->r_aor = osip_strdup (from);    /* sip identity */
-  if ((*jr)->r_aor==NULL)
-  {
-	  osip_free(*jr);
-	  *jr=NULL;
-	  return OSIP_NOMEM;
-  }
+  if ((*jr)->r_aor == NULL)
+    {
+      osip_free (*jr);
+      *jr = NULL;
+      return OSIP_NOMEM;
+    }
   (*jr)->r_contact = osip_strdup (contact);     /* sip identity */
   (*jr)->r_registrar = osip_strdup (proxy);     /* registrar */
-  if ((*jr)->r_registrar==NULL)
-  {
-	  osip_free((*jr)->r_contact);
-	  osip_free((*jr)->r_aor);
-	  osip_free(*jr);
-	  *jr=NULL;
-	  return OSIP_NOMEM;
-  }
+  if ((*jr)->r_registrar == NULL)
+    {
+      osip_free ((*jr)->r_contact);
+      osip_free ((*jr)->r_aor);
+      osip_free (*jr);
+      *jr = NULL;
+      return OSIP_NOMEM;
+    }
 
   {
-	  osip_MD5_CTX Md5Ctx;
-	  HASH hval;
-	  HASHHEX key_line;
-      char localip[128];
-	  char firewall_ip[65];
-	  char firewall_port[10];
+    osip_MD5_CTX Md5Ctx;
+    HASH hval;
+    HASHHEX key_line;
+    char localip[128];
+    char firewall_ip[65];
+    char firewall_port[10];
 
-	  memset(localip, '\0', sizeof(localip));
-	  memset(firewall_ip, '\0', sizeof(firewall_ip));
-	  memset(firewall_port, '\0', sizeof(firewall_port));
+    memset (localip, '\0', sizeof (localip));
+    memset (firewall_ip, '\0', sizeof (firewall_ip));
+    memset (firewall_port, '\0', sizeof (firewall_port));
 
-	  eXosip_guess_localip (AF_INET, localip, 128);
-	  if (eXosip.eXtl!=NULL
-		  && eXosip.eXtl->tl_get_masquerade_contact!=NULL)
-	  {
-		  eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
-							 firewall_port, sizeof(firewall_port));
-	  }
+    eXosip_guess_localip (AF_INET, localip, 128);
+    if (eXosip.eXtl != NULL && eXosip.eXtl->tl_get_masquerade_contact != NULL)
+      {
+        eXosip.eXtl->tl_get_masquerade_contact (firewall_ip, sizeof (firewall_ip),
+                                                firewall_port,
+                                                sizeof (firewall_port));
+      }
 
-	  osip_MD5Init (&Md5Ctx);
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) from, strlen (from));
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) proxy, strlen (proxy));
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) localip, strlen (localip));
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) firewall_ip, strlen (firewall_ip));
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
-	  osip_MD5Update (&Md5Ctx, (unsigned char *) firewall_port, strlen (firewall_port));
-	  osip_MD5Final ((unsigned char *) hval, &Md5Ctx);
-	  CvtHex (hval, key_line);
+    osip_MD5Init (&Md5Ctx);
+    osip_MD5Update (&Md5Ctx, (unsigned char *) from, strlen (from));
+    osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+    osip_MD5Update (&Md5Ctx, (unsigned char *) proxy, strlen (proxy));
+    osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+    osip_MD5Update (&Md5Ctx, (unsigned char *) localip, strlen (localip));
+    osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+    osip_MD5Update (&Md5Ctx, (unsigned char *) firewall_ip, strlen (firewall_ip));
+    osip_MD5Update (&Md5Ctx, (unsigned char *) ":", 1);
+    osip_MD5Update (&Md5Ctx, (unsigned char *) firewall_port,
+                    strlen (firewall_port));
+    osip_MD5Final ((unsigned char *) hval, &Md5Ctx);
+    CvtHex (hval, key_line);
 
-	  osip_strncpy((*jr)->r_line, key_line,
-		  sizeof((*jr)->r_line)-1);
+    osip_strncpy ((*jr)->r_line, key_line, sizeof ((*jr)->r_line) - 1);
   }
 
   return OSIP_SUCCESS;
@@ -121,10 +121,10 @@ eXosip_reg_free (eXosip_reg_t * jreg)
 
   if (jreg->r_last_tr != NULL)
     {
-	  if (jreg->r_last_tr!=NULL && jreg->r_last_tr->orig_request!=NULL
-		  && jreg->r_last_tr->orig_request->call_id!=NULL
-		  && jreg->r_last_tr->orig_request->call_id->number!=NULL)
-		  _eXosip_delete_nonce(jreg->r_last_tr->orig_request->call_id->number);
+      if (jreg->r_last_tr != NULL && jreg->r_last_tr->orig_request != NULL
+          && jreg->r_last_tr->orig_request->call_id != NULL
+          && jreg->r_last_tr->orig_request->call_id->number != NULL)
+        _eXosip_delete_nonce (jreg->r_last_tr->orig_request->call_id->number);
 
       if (jreg->r_last_tr->state == IST_TERMINATED ||
           jreg->r_last_tr->state == ICT_TERMINATED ||

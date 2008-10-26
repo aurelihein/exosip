@@ -36,8 +36,8 @@ eXosip_dialog_set_state (eXosip_dialog_t * jd, int state)
 int
 eXosip_call_dialog_find (int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
 {
-  if (jid<=0)
-	  return OSIP_BADPARAMETER;
+  if (jid <= 0)
+    return OSIP_BADPARAMETER;
 
   for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next)
     {
@@ -57,8 +57,8 @@ eXosip_call_dialog_find (int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
 int
 eXosip_notify_dialog_find (int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
 {
-  if (nid<=0)
-	  return OSIP_BADPARAMETER;
+  if (nid <= 0)
+    return OSIP_BADPARAMETER;
   for (*jn = eXosip.j_notifies; *jn != NULL; *jn = (*jn)->next)
     {
       for (*jd = (*jn)->n_dialogs; *jd != NULL; *jd = (*jd)->next)
@@ -76,8 +76,8 @@ int
 eXosip_subscribe_dialog_find (int sid, eXosip_subscribe_t ** js,
                               eXosip_dialog_t ** jd)
 {
-  if (sid<=0)
-	  return OSIP_BADPARAMETER;
+  if (sid <= 0)
+    return OSIP_BADPARAMETER;
   for (*js = eXosip.j_subscribes; *js != NULL; *js = (*js)->next)
     {
       *jd = NULL;
@@ -103,13 +103,13 @@ eXosip_dialog_set_200ok (eXosip_dialog_t * jd, osip_message_t * _200Ok)
 
   if (jd == NULL)
     return OSIP_BADPARAMETER;
-  if (jd->d_200Ok!=NULL)
-    osip_message_free(jd->d_200Ok);
+  if (jd->d_200Ok != NULL)
+    osip_message_free (jd->d_200Ok);
   jd->d_timer = time (NULL) + 1;
   jd->d_count = 0;
   i = osip_message_clone (_200Ok, &(jd->d_200Ok));
   if (i != 0)
-      return i;
+    return i;
   return OSIP_SUCCESS;
 }
 
@@ -121,8 +121,8 @@ eXosip_dialog_init_as_uac (eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 
   *_jd = NULL;
   jd = (eXosip_dialog_t *) osip_malloc (sizeof (eXosip_dialog_t));
-  if (jd==NULL)
-	  return OSIP_NOMEM;
+  if (jd == NULL)
+    return OSIP_NOMEM;
   memset (jd, 0, sizeof (eXosip_dialog_t));
 
   jd->d_id = -1;                /* not yet available to user */
@@ -149,21 +149,21 @@ eXosip_dialog_init_as_uac (eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
   jd->next = NULL;
   jd->parent = NULL;
   jd->d_out_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
-  if (jd->d_out_trs==NULL)
-  {
-	  osip_dialog_free (jd->d_dialog);
+  if (jd->d_out_trs == NULL)
+    {
+      osip_dialog_free (jd->d_dialog);
       osip_free (jd);
-	  return OSIP_NOMEM;
-  }
+      return OSIP_NOMEM;
+    }
   osip_list_init (jd->d_out_trs);
   jd->d_inc_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
-  if (jd->d_inc_trs==NULL)
-  {
-	  osip_dialog_free (jd->d_dialog);
-	  osip_free(jd->d_out_trs);
+  if (jd->d_inc_trs == NULL)
+    {
+      osip_dialog_free (jd->d_dialog);
+      osip_free (jd->d_out_trs);
       osip_free (jd);
-	  return OSIP_NOMEM;
-  }
+      return OSIP_NOMEM;
+    }
   osip_list_init (jd->d_inc_trs);
 
   *_jd = jd;
@@ -179,8 +179,8 @@ eXosip_dialog_init_as_uas (eXosip_dialog_t ** _jd, osip_message_t * _invite,
 
   *_jd = NULL;
   jd = (eXosip_dialog_t *) osip_malloc (sizeof (eXosip_dialog_t));
-  if (jd==NULL)
-	  return OSIP_NOMEM;
+  if (jd == NULL)
+    return OSIP_NOMEM;
   memset (jd, 0, sizeof (eXosip_dialog_t));
   jd->d_id = -1;                /* not yet available to user */
   jd->d_STATE = JD_EMPTY;
@@ -198,21 +198,21 @@ eXosip_dialog_init_as_uas (eXosip_dialog_t ** _jd, osip_message_t * _invite,
   jd->next = NULL;
   jd->parent = NULL;
   jd->d_out_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
-  if (jd->d_out_trs==NULL)
-  {
-	  osip_dialog_free (jd->d_dialog);
+  if (jd->d_out_trs == NULL)
+    {
+      osip_dialog_free (jd->d_dialog);
       osip_free (jd);
-	  return OSIP_NOMEM;
-  }
+      return OSIP_NOMEM;
+    }
   osip_list_init (jd->d_out_trs);
   jd->d_inc_trs = (osip_list_t *) osip_malloc (sizeof (osip_list_t));
-  if (jd->d_inc_trs==NULL)
-  {
-	  osip_dialog_free (jd->d_dialog);
-	  osip_free(jd->d_out_trs);
+  if (jd->d_inc_trs == NULL)
+    {
+      osip_dialog_free (jd->d_dialog);
+      osip_free (jd->d_out_trs);
       osip_free (jd);
-	  return OSIP_NOMEM;
-  }
+      return OSIP_NOMEM;
+    }
   osip_list_init (jd->d_inc_trs);
 
   jd->d_dialog->local_cseq = 1;

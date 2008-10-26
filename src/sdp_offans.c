@@ -211,9 +211,8 @@ eXosip_get_sdp_info (osip_message_t * message)
   if (osip_strcasecmp (ctt->type, "multipart") == 0)
     {
       /* probably within the multipart attachement */
-    }
-  else if (osip_strcasecmp (ctt->type, "application") != 0 ||
-	   osip_strcasecmp (ctt->subtype, "sdp") != 0)
+  } else if (osip_strcasecmp (ctt->type, "application") != 0 ||
+             osip_strcasecmp (ctt->subtype, "sdp") != 0)
     return NULL;
 
   pos = 0;

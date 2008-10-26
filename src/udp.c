@@ -60,9 +60,9 @@ static int cancel_match_invite (osip_transaction_t * invite,
 static void eXosip_process_cancel (osip_transaction_t * transaction,
                                    osip_event_t * evt);
 static void eXosip_process_reinvite (eXosip_call_t * jc,
-				     eXosip_dialog_t * jd,
-				     osip_transaction_t *
-				     transaction, osip_event_t * evt);
+                                     eXosip_dialog_t * jd,
+                                     osip_transaction_t *
+                                     transaction, osip_event_t * evt);
 static void eXosip_process_new_invite (osip_transaction_t * transaction,
                                        osip_event_t * evt);
 #ifndef MINISIZE
@@ -91,9 +91,11 @@ static int eXosip_release_finished_calls (eXosip_call_t * jc,
                                           eXosip_dialog_t * jd);
 static int eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd);
 
-static int eXosip_release_finished_transactions (eXosip_call_t *jc, eXosip_dialog_t * jd);
+static int eXosip_release_finished_transactions (eXosip_call_t * jc,
+                                                 eXosip_dialog_t * jd);
 #ifndef MINISIZE
-static int eXosip_release_finished_transactions_for_subscription (eXosip_dialog_t *jd);
+static int eXosip_release_finished_transactions_for_subscription (eXosip_dialog_t *
+                                                                  jd);
 #endif
 
 static void
@@ -161,7 +163,7 @@ eXosip_process_bye (eXosip_call_t * jc, eXosip_dialog_t * jd,
                                                           NULL, NULL));
 #else
   osip_transaction_set_your_instance (transaction,
-                                      __eXosip_new_jinfo (jc, NULL /*jd */));
+                                      __eXosip_new_jinfo (jc, NULL /*jd */ ));
 #endif
 
   i = _eXosip_build_response_default (&answer, jd->d_dialog, 200, evt->sip);
@@ -204,46 +206,46 @@ eXosip_process_ack (eXosip_call_t * jc, eXosip_dialog_t * jd, osip_event_t * evt
   if (je != NULL)
     {
       osip_transaction_t *tr;
-      tr= eXosip_find_last_inc_invite(jc, jd);
-      if (tr!=NULL)
-	{
-	  je->tid = tr->transactionid;
-	  /* fill request and answer */
-	  if (tr->orig_request != NULL)
-	    {
-	      i = osip_message_clone (tr->orig_request, &je->request);
-	      if (i != 0)
-		{
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					  "failed to clone request for event\n"));
-		}
-	    }
-	  if (tr->last_response != NULL)
-	    {
-	      i = osip_message_clone (tr->last_response, &je->response);
-	      if (i != 0)
-		{
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					  "failed to clone response for event\n"));
-		}
-	    }
-	}
-      
+      tr = eXosip_find_last_inc_invite (jc, jd);
+      if (tr != NULL)
+        {
+          je->tid = tr->transactionid;
+          /* fill request and answer */
+          if (tr->orig_request != NULL)
+            {
+              i = osip_message_clone (tr->orig_request, &je->request);
+              if (i != 0)
+                {
+                  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                          "failed to clone request for event\n"));
+                }
+            }
+          if (tr->last_response != NULL)
+            {
+              i = osip_message_clone (tr->last_response, &je->response);
+              if (i != 0)
+                {
+                  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                          "failed to clone response for event\n"));
+                }
+            }
+        }
+
       i = osip_message_clone (evt->sip, &je->ack);
       if (i != 0)
-	{
-	  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				  "failed to clone ACK for event\n"));
-	}
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "failed to clone ACK for event\n"));
+        }
     }
 
   /* stop ACK retransmission, in case there is any */
-  jd->d_count=0;
-  osip_message_free(jd->d_200Ok);
-  jd->d_200Ok=NULL;
+  jd->d_count = 0;
+  osip_message_free (jd->d_200Ok);
+  jd->d_200Ok = NULL;
 
   if (je != NULL)
-	  report_event (je, NULL);
+    report_event (je, NULL);
 
   osip_event_free (evt);
 }
@@ -260,8 +262,7 @@ eXosip_process_prack (eXosip_call_t * jc, eXosip_dialog_t * jd,
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, jd, NULL, NULL));
 #else
-  osip_transaction_set_your_instance (transaction,
-                                      __eXosip_new_jinfo (jc, jd));
+  osip_transaction_set_your_instance (transaction, __eXosip_new_jinfo (jc, jd));
 #endif
 
   i = _eXosip_build_response_default (&answer, jd->d_dialog, 200, evt->sip);
@@ -290,7 +291,7 @@ cancel_match_invite (osip_transaction_t * invite, osip_message_t * cancel)
   osip_via_param_get_byname (invite->topvia, "branch", &br);
   via = osip_list_get (&cancel->vias, 0);
   if (via == NULL)
-    return OSIP_SYNTAXERROR;                  /* request without via??? */
+    return OSIP_SYNTAXERROR;    /* request without via??? */
   osip_via_param_get_byname (via, "branch", &br2);
   if (br != NULL && br2 == NULL)
     return OSIP_UNDEFINED_ERROR;
@@ -477,8 +478,7 @@ eXosip_process_reinvite (eXosip_call_t * jc, eXosip_dialog_t * jd,
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, jd, NULL, NULL));
 #else
-  osip_transaction_set_your_instance (transaction,
-                                      __eXosip_new_jinfo (jc, jd));
+  osip_transaction_set_your_instance (transaction, __eXosip_new_jinfo (jc, jd));
 #endif
 
   osip_list_add (jd->d_inc_trs, transaction, 0);
@@ -494,28 +494,28 @@ eXosip_process_new_invite (osip_transaction_t * transaction, osip_event_t * evt)
   eXosip_call_t *jc;
   eXosip_dialog_t *jd;
   osip_message_t *answer;
-  osip_generic_param_t *to_tag=NULL;
-  if (evt->sip!=NULL && evt->sip->to!=NULL)
-	  osip_from_param_get_byname (evt->sip->to, "tag", &to_tag);
+  osip_generic_param_t *to_tag = NULL;
+  if (evt->sip != NULL && evt->sip->to != NULL)
+    osip_from_param_get_byname (evt->sip->to, "tag", &to_tag);
 
-  if (to_tag!=NULL)
-  {
+  if (to_tag != NULL)
+    {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		  "ERROR: Existing To-Tag in new INVITE -> reject with 481\n"));
-	  i = _eXosip_build_response_default (&answer, NULL, 481, evt->sip);
-	  if (i == 0)	
-	  {
-		  evt_answer = osip_new_outgoing_sipmessage (answer);
-		  evt_answer->transactionid = transaction->transactionid;
-		  eXosip_update ();
-		  osip_transaction_add_event (transaction, evt_answer);
-		  return;
-	  }
-	  osip_message_set_content_length (answer, "0");
-	  osip_list_add (&eXosip.j_transactions, transaction, 0);
-	  osip_transaction_set_your_instance (transaction, NULL);
-	  return;
-  }
+                              "ERROR: Existing To-Tag in new INVITE -> reject with 481\n"));
+      i = _eXosip_build_response_default (&answer, NULL, 481, evt->sip);
+      if (i == 0)
+        {
+          evt_answer = osip_new_outgoing_sipmessage (answer);
+          evt_answer->transactionid = transaction->transactionid;
+          eXosip_update ();
+          osip_transaction_add_event (transaction, evt_answer);
+          return;
+        }
+      osip_message_set_content_length (answer, "0");
+      osip_list_add (&eXosip.j_transactions, transaction, 0);
+      osip_transaction_set_your_instance (transaction, NULL);
+      return;
+    }
 
   eXosip_call_init (&jc);
 
@@ -563,8 +563,7 @@ eXosip_process_new_invite (osip_transaction_t * transaction, osip_event_t * evt)
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, jd, NULL, NULL));
 #else
-  osip_transaction_set_your_instance (transaction,
-                                      __eXosip_new_jinfo (jc, jd));
+  osip_transaction_set_your_instance (transaction, __eXosip_new_jinfo (jc, jd));
 #endif
 
   evt_answer = osip_new_outgoing_sipmessage (answer);
@@ -597,46 +596,46 @@ eXosip_process_new_subscribe (osip_transaction_t * transaction, osip_event_t * e
   eXosip_dialog_t *jd;
   osip_message_t *answer;
   int i;
-  osip_generic_param_t *to_tag=NULL;
+  osip_generic_param_t *to_tag = NULL;
 
-  if (evt->sip!=NULL && evt->sip->to!=NULL)
-	  osip_from_param_get_byname (evt->sip->to, "tag", &to_tag);
+  if (evt->sip != NULL && evt->sip->to != NULL)
+    osip_from_param_get_byname (evt->sip->to, "tag", &to_tag);
 
-  if (to_tag!=NULL)
-  {
+  if (to_tag != NULL)
+    {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-		  "ERROR: Existing To-Tag in new SUBSCRIBE -> reject with 481\n"));
-	  i = _eXosip_build_response_default (&answer, NULL, 481, evt->sip);
-	  if (i == 0)	
-	  {
-		  evt_answer = osip_new_outgoing_sipmessage (answer);
-		  evt_answer->transactionid = transaction->transactionid;
-		  eXosip_update ();
-  	  osip_message_set_content_length (answer, "0");
-		  osip_transaction_add_event (transaction, evt_answer);
-	  }
-	  osip_list_add (&eXosip.j_transactions, transaction, 0);
-	  osip_transaction_set_your_instance (transaction, NULL);
-	  return;
-  }
+                              "ERROR: Existing To-Tag in new SUBSCRIBE -> reject with 481\n"));
+      i = _eXosip_build_response_default (&answer, NULL, 481, evt->sip);
+      if (i == 0)
+        {
+          evt_answer = osip_new_outgoing_sipmessage (answer);
+          evt_answer->transactionid = transaction->transactionid;
+          eXosip_update ();
+          osip_message_set_content_length (answer, "0");
+          osip_transaction_add_event (transaction, evt_answer);
+        }
+      osip_list_add (&eXosip.j_transactions, transaction, 0);
+      osip_transaction_set_your_instance (transaction, NULL);
+      return;
+    }
 
   i = eXosip_notify_init (&jn, evt->sip);
   if (i != 0)
     {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
                               "ERROR: missing contact or memory\n"));
-	  i = _eXosip_build_response_default (&answer, NULL, 400, evt->sip);
-	  if (i == 0)	
-	  {
-		  evt_answer = osip_new_outgoing_sipmessage (answer);
-		  evt_answer->transactionid = transaction->transactionid;
-		  eXosip_update ();
-  	  osip_message_set_content_length (answer, "0");
-		  osip_transaction_add_event (transaction, evt_answer);
-	  }
-	  osip_list_add (&eXosip.j_transactions, transaction, 0);
-	  osip_transaction_set_your_instance (transaction, NULL);
-	  return;
+      i = _eXosip_build_response_default (&answer, NULL, 400, evt->sip);
+      if (i == 0)
+        {
+          evt_answer = osip_new_outgoing_sipmessage (answer);
+          evt_answer->transactionid = transaction->transactionid;
+          eXosip_update ();
+          osip_message_set_content_length (answer, "0");
+          osip_transaction_add_event (transaction, evt_answer);
+        }
+      osip_list_add (&eXosip.j_transactions, transaction, 0);
+      osip_transaction_set_your_instance (transaction, NULL);
+      return;
     }
   _eXosip_notify_set_refresh_interval (jn, evt->sip);
 
@@ -813,15 +812,15 @@ eXosip_process_notify_within_dialog (eXosip_subscribe_t * js,
         je =
           eXosip_event_init_for_subscribe (EXOSIP_SUBSCRIPTION_NOTIFY, js, jd,
                                            transaction);
-		if (je->request == NULL && evt->sip != NULL)
-		{
-		  i = osip_message_clone (evt->sip, &je->request);
-		  if (i != 0)
-			{
-			  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-									  "failed to clone request for event\n"));
-			}
-		}
+        if (je->request == NULL && evt->sip != NULL)
+          {
+            i = osip_message_clone (evt->sip, &je->request);
+            if (i != 0)
+              {
+                OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                        "failed to clone request for event\n"));
+              }
+          }
 
         eXosip_event_add (je);
       }
@@ -872,10 +871,9 @@ eXosip_match_notify_for_subscribe (eXosip_subscribe_t * js,
 
   /* some checks to avoid crashing on bad requests */
   if (notify == NULL)
-	  return OSIP_BADPARAMETER;
+    return OSIP_BADPARAMETER;
 
-  if (notify->cseq == NULL
-      || notify->cseq->method == NULL || notify->to == NULL)
+  if (notify->cseq == NULL || notify->cseq->method == NULL || notify->to == NULL)
     return OSIP_SYNTAXERROR;
 
   if (0 != osip_call_id_match (out_sub->callid, notify->call_id))
@@ -924,8 +922,7 @@ eXosip_process_message_within_dialog (eXosip_call_t * jc,
   osip_transaction_set_your_instance (transaction,
                                       __eXosip_new_jinfo (jc, jd, NULL, NULL));
 #else
-  osip_transaction_set_your_instance (transaction,
-                                      __eXosip_new_jinfo (jc, jd));
+  osip_transaction_set_your_instance (transaction, __eXosip_new_jinfo (jc, jd));
 #endif
   __eXosip_wakeup ();
   return;
@@ -969,8 +966,8 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
   if (ctx_type != -1)
     {
       i = _eXosip_transaction_init (&transaction,
-                                 (osip_fsm_type_t) ctx_type,
-                                 eXosip.j_osip, evt->sip);
+                                    (osip_fsm_type_t) ctx_type,
+                                    eXosip.j_osip, evt->sip);
       if (i != 0)
         {
           osip_event_free (evt);
@@ -1012,53 +1009,51 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
     }
 
   /* check CSeq */
-  if (jd!=NULL && transaction!=NULL && evt->sip!=NULL
-      && evt->sip->cseq!=NULL && evt->sip->cseq->number!=NULL)
+  if (jd != NULL && transaction != NULL && evt->sip != NULL
+      && evt->sip->cseq != NULL && evt->sip->cseq->number != NULL)
     {
-      if (jd->d_dialog!=NULL && jd->d_dialog->remote_cseq>0)
-	{
-	  int cseq = osip_atoi (evt->sip->cseq->number);
-	  if (cseq==jd->d_dialog->remote_cseq)
-	    {
-	      OSIP_TRACE (osip_trace
-			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			   "eXosip: receive a request with same cseq??\n"));
-	      osip_transaction_free(transaction);
-	      return;
-	    }
-	  if (cseq<=jd->d_dialog->remote_cseq)
-	    {
-	      eXosip_send_default_answer (jd, transaction, evt, 500,
-					  NULL,
-					  "Wrong Lower CSeq", __LINE__);
-	      return;
-	    }
-	}
+      if (jd->d_dialog != NULL && jd->d_dialog->remote_cseq > 0)
+        {
+          int cseq = osip_atoi (evt->sip->cseq->number);
+          if (cseq == jd->d_dialog->remote_cseq)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "eXosip: receive a request with same cseq??\n"));
+              osip_transaction_free (transaction);
+              return;
+            }
+          if (cseq <= jd->d_dialog->remote_cseq)
+            {
+              eXosip_send_default_answer (jd, transaction, evt, 500,
+                                          NULL, "Wrong Lower CSeq", __LINE__);
+              return;
+            }
+        }
     }
-
 #ifndef MINISIZE
   if (ctx_type == IST)
     {
       i = _eXosip_build_response_default (&answer, NULL, 100, evt->sip);
       if (i != 0)
-	{
-	  __eXosip_delete_jinfo (transaction);
-	  osip_transaction_free (transaction);
-	  return;
-	}
-      
+        {
+          __eXosip_delete_jinfo (transaction);
+          osip_transaction_free (transaction);
+          return;
+        }
+
       osip_message_set_content_length (answer, "0");
       /*  send message to transaction layer */
-      
+
       evt_answer = osip_new_outgoing_sipmessage (answer);
       evt_answer->transactionid = transaction->transactionid;
-      
+
       /* add the REQUEST & the 100 Trying */
       osip_transaction_add_event (transaction, evt_answer);
       __eXosip_wakeup ();
     }
 #endif
-  
+
   if (jd != NULL)
     {
       osip_transaction_t *old_trn;
@@ -1071,11 +1066,10 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
          4: a NOT-SUPPORTED method with a wrong CSeq.
        */
 
-      if (transaction==NULL)
-	{
-	  /* cannot answer ACK transaction */
-	}
-      else if (!MSG_IS_BYE (evt->sip))
+      if (transaction == NULL)
+        {
+          /* cannot answer ACK transaction */
+      } else if (!MSG_IS_BYE (evt->sip))
         {
           /* reject all requests for a closed dialog */
           old_trn = eXosip_find_last_inc_transaction (jc, jd, "BYE");
@@ -1091,8 +1085,8 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
             }
         }
 
-      if (transaction!=NULL) /* NOT for ACK */
-	osip_dialog_update_osip_cseq_as_uas (jd->d_dialog, evt->sip);
+      if (transaction != NULL)  /* NOT for ACK */
+        osip_dialog_update_osip_cseq_as_uas (jd->d_dialog, evt->sip);
 
       if (MSG_IS_INVITE (evt->sip))
         {
@@ -1100,7 +1094,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
           old_trn = eXosip_find_last_inc_invite (jc, jd);
 
           if (old_trn != NULL && old_trn->state != IST_COMPLETED
-	      && old_trn->state != IST_TERMINATED)
+              && old_trn->state != IST_TERMINATED)
             {
               osip_list_add (&eXosip.j_transactions, transaction, 0);
               eXosip_send_default_answer (jd, transaction, evt, 500,
@@ -1111,7 +1105,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 
           old_trn = eXosip_find_last_out_invite (jc, jd);
           if (old_trn != NULL && old_trn->state != ICT_COMPLETED
-	       && old_trn->state != ICT_TERMINATED)
+              && old_trn->state != ICT_TERMINATED)
             {
               osip_list_add (&eXosip.j_transactions, transaction, 0);
               eXosip_send_default_answer (jd, transaction, evt, 491, NULL,
@@ -1125,20 +1119,19 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
           eXosip_process_reinvite (jc, jd, transaction, evt);
       } else if (MSG_IS_BYE (evt->sip))
         {
-	  osip_generic_param_t *tag_to=NULL;
-	  if (evt->sip->to!=NULL)
-	  osip_from_param_get_byname (evt->sip->to, "tag", &tag_to);
-	  if (tag_to == NULL || tag_to->gvalue == NULL)
-	    {
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-				      "Uncompliant user agent: missing a tag in To of incoming BYE\n"));
+          osip_generic_param_t *tag_to = NULL;
+          if (evt->sip->to != NULL)
+            osip_from_param_get_byname (evt->sip->to, "tag", &tag_to);
+          if (tag_to == NULL || tag_to->gvalue == NULL)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                      "Uncompliant user agent: missing a tag in To of incoming BYE\n"));
               osip_list_add (&eXosip.j_transactions, transaction, 0);
               eXosip_send_default_answer (jd, transaction, evt, 481,
                                           "Missing tags in BYE",
-                                          "Missing tags in BYE",
-                                          __LINE__);
-	      return;
-	    }
+                                          "Missing tags in BYE", __LINE__);
+              return;
+            }
 
           old_trn = eXosip_find_last_inc_transaction (jc, jd, "BYE");
 
@@ -1181,14 +1174,12 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
     {
       eXosip_process_new_invite (transaction, evt);
       return;
-    }
-  else if (MSG_IS_BYE (evt->sip))
+  } else if (MSG_IS_BYE (evt->sip))
     {
       osip_list_add (&eXosip.j_transactions, transaction, 0);
       eXosip_send_default_answer (jd, transaction, evt, 481, NULL, NULL, __LINE__);
       return;
     }
-
 #ifndef MINISIZE
   js = NULL;
   /* first, look for a Dialog in the map of element */
@@ -1366,7 +1357,6 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
         }
       return;
     }
-
 #endif
 
 #ifndef MINISIZE
@@ -1385,188 +1375,192 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
 static void
 eXosip_process_response_out_of_transaction (osip_event_t * evt)
 {
-	eXosip_call_t *jc = NULL;
-	eXosip_dialog_t *jd = NULL;
-	time_t now;
+  eXosip_call_t *jc = NULL;
+  eXosip_dialog_t *jd = NULL;
+  time_t now;
 
-	now = time (NULL);
-	if (evt->sip==NULL
-	    || evt->sip->cseq==NULL
-	    || evt->sip->cseq->number==NULL
-	    || evt->sip->to==NULL
-	    || evt->sip->from==NULL)
-	{
-		osip_event_free (evt);
-		return;
-	}
+  now = time (NULL);
+  if (evt->sip == NULL
+      || evt->sip->cseq == NULL
+      || evt->sip->cseq->number == NULL
+      || evt->sip->to == NULL || evt->sip->from == NULL)
+    {
+      osip_event_free (evt);
+      return;
+    }
 
-	/* search for existing dialog: match branch & to tag */
-	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
-	{
-		/* search for calls with only ONE outgoing transaction */
-		if (jc->c_id >= 1 && jc->c_dialogs != NULL && jc->c_out_tr!=NULL)
-		{
-			for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
-			{
-				/* only initial request are concerned with this */
-				if (jd->d_id >=1 && jd->d_dialog != NULL)
-				{
-					/* match answer with dialog */
-					osip_generic_param_t *tag;
+  /* search for existing dialog: match branch & to tag */
+  for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
+    {
+      /* search for calls with only ONE outgoing transaction */
+      if (jc->c_id >= 1 && jc->c_dialogs != NULL && jc->c_out_tr != NULL)
+        {
+          for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
+            {
+              /* only initial request are concerned with this */
+              if (jd->d_id >= 1 && jd->d_dialog != NULL)
+                {
+                  /* match answer with dialog */
+                  osip_generic_param_t *tag;
 
-					osip_from_get_tag (evt->sip->to, &tag);
+                  osip_from_get_tag (evt->sip->to, &tag);
 
-					if (jd->d_dialog->remote_tag == NULL || tag == NULL)
-						continue;
-					if (jd->d_dialog->remote_tag != NULL && tag != NULL
-					    && tag->gvalue != NULL
-					    && 0 == strcmp (jd->d_dialog->remote_tag, tag->gvalue))
-					  break;
-				}
-			}
-			if (jd!=NULL)
-			  break; /* found a matching dialog! */
+                  if (jd->d_dialog->remote_tag == NULL || tag == NULL)
+                    continue;
+                  if (jd->d_dialog->remote_tag != NULL && tag != NULL
+                      && tag->gvalue != NULL
+                      && 0 == strcmp (jd->d_dialog->remote_tag, tag->gvalue))
+                    break;
+                }
+            }
+          if (jd != NULL)
+            break;              /* found a matching dialog! */
 
-			/* check if the transaction match this from tag */
-			if (jc->c_out_tr->orig_request!=NULL && jc->c_out_tr->orig_request->from!=NULL)
-			  {
-			    osip_generic_param_t *tag_invite;
-			    osip_generic_param_t *tag;
-			    osip_from_get_tag (jc->c_out_tr->orig_request->from, &tag_invite);
-			    osip_from_get_tag (evt->sip->from, &tag);
-			    
-			    if (tag_invite == NULL || tag == NULL)
-			      continue;
-			    if (tag_invite->gvalue != NULL && tag->gvalue != NULL
-				&& 0 == strcmp (tag_invite->gvalue, tag->gvalue))
-			      break;
-			  }
-		}
-	}
+          /* check if the transaction match this from tag */
+          if (jc->c_out_tr->orig_request != NULL
+              && jc->c_out_tr->orig_request->from != NULL)
+            {
+              osip_generic_param_t *tag_invite;
+              osip_generic_param_t *tag;
+              osip_from_get_tag (jc->c_out_tr->orig_request->from, &tag_invite);
+              osip_from_get_tag (evt->sip->from, &tag);
 
-	if (jc==NULL)
-	  {
-	    OSIP_TRACE (osip_trace
-			(__FILE__, __LINE__, OSIP_INFO1, NULL,
-			 "Incoming 2xx has no relations with current calls: Message discarded.\r\n"));
-	    osip_event_free (evt);
-	    return;
-	  }
+              if (tag_invite == NULL || tag == NULL)
+                continue;
+              if (tag_invite->gvalue != NULL && tag->gvalue != NULL
+                  && 0 == strcmp (tag_invite->gvalue, tag->gvalue))
+                break;
+            }
+        }
+    }
 
+  if (jc == NULL)
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                   "Incoming 2xx has no relations with current calls: Message discarded.\r\n"));
+      osip_event_free (evt);
+      return;
+    }
 #ifndef MINISIZE
-	if (jc!=NULL && jd!=NULL)
-	  {
-	    /* we have to restransmit the ACK (if already available) */
-	    OSIP_TRACE (osip_trace
-			(__FILE__, __LINE__, OSIP_INFO1, NULL,
-			 "2xx restransmission receveid.\r\n"));
-	    /* check if the 2xx is for the same ACK */ 
-	    if (jd->d_ack!=NULL && jd->d_ack->cseq!=NULL
-		&& jd->d_ack->cseq->number!=NULL)
-	      {
-		if (0==osip_strcasecmp(jd->d_ack->cseq->number, evt->sip->cseq->number))
-		  {
-		    cb_snd_message (NULL, jd->d_ack, NULL,0, -1);
-		    OSIP_TRACE (osip_trace
-				(__FILE__, __LINE__, OSIP_INFO1, NULL,
-				 "ACK restransmission sent.\r\n"));
- 		  }
-	      }
+  if (jc != NULL && jd != NULL)
+    {
+      /* we have to restransmit the ACK (if already available) */
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                   "2xx restransmission receveid.\r\n"));
+      /* check if the 2xx is for the same ACK */
+      if (jd->d_ack != NULL && jd->d_ack->cseq != NULL
+          && jd->d_ack->cseq->number != NULL)
+        {
+          if (0 ==
+              osip_strcasecmp (jd->d_ack->cseq->number, evt->sip->cseq->number))
+            {
+              cb_snd_message (NULL, jd->d_ack, NULL, 0, -1);
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "ACK restransmission sent.\r\n"));
+            }
+        }
 
-	    osip_event_free (evt);
-	    return;
-	  }
+      osip_event_free (evt);
+      return;
+    }
 #endif
 
-	if (jc!=NULL)
-	  {
-	    /* match answer with dialog */
-	    osip_dialog_t *dlg;
+  if (jc != NULL)
+    {
+      /* match answer with dialog */
+      osip_dialog_t *dlg;
 #ifndef MINISIZE
-	    osip_transaction_t *last_tr;
+      osip_transaction_t *last_tr;
 #endif
-	    int i;
-	    
-	    /* we match an existing dialog: send a retransmission of ACK */
-	    i = osip_dialog_init_as_uac (&dlg, evt->sip);
-	    if (i != 0 || dlg==NULL)
-	      {
-		OSIP_TRACE (osip_trace
-			    (__FILE__, __LINE__, OSIP_ERROR, NULL,
-			     "Cannot build dialog for 200ok.\r\n"));
-		osip_event_free (evt);
-		return;
-	      }
+      int i;
 
- 	    OSIP_TRACE (osip_trace
-			(__FILE__, __LINE__, OSIP_INFO1, NULL,
-			 "sending ACK for 2xx out of transaction.\r\n"));
+      /* we match an existing dialog: send a retransmission of ACK */
+      i = osip_dialog_init_as_uac (&dlg, evt->sip);
+      if (i != 0 || dlg == NULL)
+        {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                       "Cannot build dialog for 200ok.\r\n"));
+          osip_event_free (evt);
+          return;
+        }
 
-	    {
-	      osip_message_t *bye;
-	      char *transport = _eXosip_transport_protocol (evt->sip);
-#ifndef MINISIZE  /* Don't send ACK in MINISIZE mode to save code size */
-	      osip_message_t *ack;
-	      if (transport == NULL)
-		i = _eXosip_build_request_within_dialog (&ack, "ACK", dlg, "UDP");
-	      else
-		i = _eXosip_build_request_within_dialog (&ack, "ACK", dlg, transport);
-	      if (i != 0)
-		{
-		  osip_dialog_free(dlg);
-		  osip_event_free (evt);
-		  return;
-		}
-	      /* copy all credentials from INVITE! */
-	      last_tr = jc->c_out_tr;
-	      if (last_tr!=NULL)
-		{
-		  int pos = 0;
-		  int i;
-		  osip_proxy_authorization_t *pa = NULL;
-		  
-		  i = osip_message_get_proxy_authorization (last_tr->orig_request, pos, &pa);
-		  while (i >= 0 && pa != NULL)
-		    {
-		      osip_proxy_authorization_t *pa2;
-		      
-		      i = osip_proxy_authorization_clone (pa, &pa2);
-		      if (i != 0)
-			{
-			  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						  "Error in credential from INVITE\n"));
-			  break;
-			}
-		      osip_list_add (&ack->proxy_authorizations, pa2, -1);
-		      pa = NULL;
-		      pos++;
-		      i = osip_message_get_proxy_authorization (last_tr->orig_request, pos, &pa);
-		    }
-		}
-	      cb_snd_message (NULL, ack, NULL,0, -1);
-	      osip_message_free(ack);
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                   "sending ACK for 2xx out of transaction.\r\n"));
+
+      {
+        osip_message_t *bye;
+        char *transport = _eXosip_transport_protocol (evt->sip);
+#ifndef MINISIZE                /* Don't send ACK in MINISIZE mode to save code size */
+        osip_message_t *ack;
+        if (transport == NULL)
+          i = _eXosip_build_request_within_dialog (&ack, "ACK", dlg, "UDP");
+        else
+          i = _eXosip_build_request_within_dialog (&ack, "ACK", dlg, transport);
+        if (i != 0)
+          {
+            osip_dialog_free (dlg);
+            osip_event_free (evt);
+            return;
+          }
+        /* copy all credentials from INVITE! */
+        last_tr = jc->c_out_tr;
+        if (last_tr != NULL)
+          {
+            int pos = 0;
+            int i;
+            osip_proxy_authorization_t *pa = NULL;
+
+            i =
+              osip_message_get_proxy_authorization (last_tr->orig_request, pos,
+                                                    &pa);
+            while (i >= 0 && pa != NULL)
+              {
+                osip_proxy_authorization_t *pa2;
+
+                i = osip_proxy_authorization_clone (pa, &pa2);
+                if (i != 0)
+                  {
+                    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                            "Error in credential from INVITE\n"));
+                    break;
+                  }
+                osip_list_add (&ack->proxy_authorizations, pa2, -1);
+                pa = NULL;
+                pos++;
+                i =
+                  osip_message_get_proxy_authorization (last_tr->orig_request, pos,
+                                                        &pa);
+              }
+          }
+        cb_snd_message (NULL, ack, NULL, 0, -1);
+        osip_message_free (ack);
 #endif
-	      /* in some case, PRACK and UPDATE may have been sent
-		 so we have to send a cseq which is above the previous
-		 one. */
-	      dlg->local_cseq=dlg->local_cseq+4;
+        /* in some case, PRACK and UPDATE may have been sent
+           so we have to send a cseq which is above the previous
+           one. */
+        dlg->local_cseq = dlg->local_cseq + 4;
 
-	      /* ready to send a BYE */
-	      if (transport == NULL)
-		i = generating_bye (&bye, dlg, "UDP");
-	      else
-		i = generating_bye (&bye, dlg, transport);
-	      cb_snd_message (NULL, bye, NULL,0, -1);
-	      osip_message_free(bye);
-	    }
-	    
-	    osip_dialog_free(dlg);
-	    osip_event_free (evt);
-	    return;
-	  }
-	
-	/* we don't match any existing dialog: send a ACK & send a BYE */
-	osip_event_free (evt);
+        /* ready to send a BYE */
+        if (transport == NULL)
+          i = generating_bye (&bye, dlg, "UDP");
+        else
+          i = generating_bye (&bye, dlg, transport);
+        cb_snd_message (NULL, bye, NULL, 0, -1);
+        osip_message_free (bye);
+      }
+
+      osip_dialog_free (dlg);
+      osip_event_free (evt);
+      return;
+    }
+
+  /* we don't match any existing dialog: send a ACK & send a BYE */
+  osip_event_free (evt);
 }
 
 int
@@ -1591,7 +1585,7 @@ _eXosip_handle_incoming_message (char *buf, size_t length, int socket,
       return i;
     }
   i = osip_message_parse (se->sip, buf, length);
-  if (i!=0)
+  if (i != 0)
     {
       OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -1599,19 +1593,19 @@ _eXosip_handle_incoming_message (char *buf, size_t length, int socket,
       osip_message_free (se->sip);
       osip_free (se);
       return i;
-  }
+    }
 
   if (se->sip->call_id != NULL && se->sip->call_id->number != NULL)
-  {
-	  OSIP_TRACE (osip_trace
-				  (__FILE__, __LINE__, OSIP_INFO3, NULL,
-				   "MESSAGE REC. CALLID:%s\n", se->sip->call_id->number));
-  }
+    {
+      OSIP_TRACE (osip_trace
+                  (__FILE__, __LINE__, OSIP_INFO3, NULL,
+                   "MESSAGE REC. CALLID:%s\n", se->sip->call_id->number));
+    }
 
-  if (eXosip.cbsipCallback!=NULL)
-  {
-    eXosip.cbsipCallback(se->sip, 1);  
-  }
+  if (eXosip.cbsipCallback != NULL)
+    {
+      eXosip.cbsipCallback (se->sip, 1);
+    }
 
   if (MSG_IS_REQUEST (se->sip))
     {
@@ -1629,15 +1623,15 @@ _eXosip_handle_incoming_message (char *buf, size_t length, int socket,
         se->type = RCV_REQINVITE;
       else if (MSG_IS_ACK (se->sip))
         se->type = RCV_REQACK;
-	  else
-		se->type = RCV_REQUEST;
+      else
+        se->type = RCV_REQUEST;
   } else
     {
       if (MSG_IS_STATUS_1XX (se->sip))
         se->type = RCV_STATUS_1XX;
       else if (MSG_IS_STATUS_2XX (se->sip))
         se->type = RCV_STATUS_2XX;
-	  else
+      else
         se->type = RCV_STATUS_3456XX;
     }
 
@@ -1688,19 +1682,19 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
   while (max_message_nb != 0 && eXosip.j_stop_ua == 0)
     {
       int i;
-      int max=0;
+      int max = 0;
 #ifdef OSIP_MT
       int wakeup_socket = jpipe_get_read_descr (eXosip.j_socketctl);
 #endif
 
       FD_ZERO (&osip_fdset);
-      eXtl_udp.tl_set_fdset(&osip_fdset, &max);
-      eXtl_tcp.tl_set_fdset(&osip_fdset, &max);
+      eXtl_udp.tl_set_fdset (&osip_fdset, &max);
+      eXtl_tcp.tl_set_fdset (&osip_fdset, &max);
 #ifdef HAVE_OPENSSL_SSL_H
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-      eXtl_dtls.tl_set_fdset(&osip_fdset, &max);
+      eXtl_dtls.tl_set_fdset (&osip_fdset, &max);
 #endif
-      eXtl_tls.tl_set_fdset(&osip_fdset, &max);
+      eXtl_tls.tl_set_fdset (&osip_fdset, &max);
 #endif
 
 #ifdef OSIP_MT
@@ -1717,7 +1711,7 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 #if defined (_WIN32_WCE)
       /* TODO: fix me for wince */
       /* if (i == -1)
-	 continue; */
+         continue; */
 #else
       if ((i == -1) && (errno == EINTR || errno == EAGAIN))
         continue;
@@ -1733,24 +1727,22 @@ eXosip_read_message (int max_message_nb, int sec_max, int usec_max)
 
       if (0 == i || eXosip.j_stop_ua != 0)
         {
-	}
-      else if (-1 == i)
+      } else if (-1 == i)
         {
 #if !defined (_WIN32_WCE)       /* TODO: fix me for wince */
-          return -2000;            /* error */
+          return -2000;         /* error */
 #endif
-	}
-      else 
-	{
-	  eXtl_udp.tl_read_message(&osip_fdset);
-	  eXtl_tcp.tl_read_message(&osip_fdset);
+      } else
+        {
+          eXtl_udp.tl_read_message (&osip_fdset);
+          eXtl_tcp.tl_read_message (&osip_fdset);
 #ifdef HAVE_OPENSSL_SSL_H
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-	  eXtl_dtls.tl_read_message(&osip_fdset);
+          eXtl_dtls.tl_read_message (&osip_fdset);
 #endif
-	  eXtl_tls.tl_read_message(&osip_fdset);
+          eXtl_tls.tl_read_message (&osip_fdset);
 #endif
-	  }
+        }
 
       max_message_nb--;
     }
@@ -1845,7 +1837,7 @@ eXosip_pendingosip_transaction_exist (eXosip_call_t * jc, eXosip_dialog_t * jd)
 }
 
 static int
-eXosip_release_finished_transactions (eXosip_call_t *jc, eXosip_dialog_t *jd)
+eXosip_release_finished_transactions (eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
   time_t now = time (NULL);
   osip_transaction_t *inc_tr;
@@ -1853,9 +1845,9 @@ eXosip_release_finished_transactions (eXosip_call_t *jc, eXosip_dialog_t *jd)
   osip_transaction_t *last_invite;
   int pos;
   int ret;
-  
+
   ret = -1;
-  
+
   last_invite = eXosip_find_last_inc_invite (jc, jd);
 
   if (jd != NULL)
@@ -1863,95 +1855,88 @@ eXosip_release_finished_transactions (eXosip_call_t *jc, eXosip_dialog_t *jd)
       /* go through all incoming transactions of this dialog */
       pos = 1;
       while (!osip_list_eol (jd->d_inc_trs, pos))
-	{
-	  inc_tr = osip_list_get (jd->d_inc_trs, pos);
-	  if (0 != osip_strcasecmp (inc_tr->cseq->method, "INVITE"))
-	    {
-	      /* remove, if transaction too old, independent of the state */
-	      if ((inc_tr->state == NIST_TERMINATED) &&
-		  (inc_tr->birth_time + 30 < now))  /* Wait a max of 30 seconds */
-		{
-		  /* remove the transaction from oSIP */
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					  "eXosip: release non-INVITE server transaction (did=%i)\n",
-					  jd->d_id));
-		  osip_remove_transaction (eXosip.j_osip, inc_tr);
-		  osip_list_remove (jd->d_inc_trs, pos);
-		  osip_list_add (&eXosip.j_transactions, inc_tr, 0);
-		  
-		  ret = 0;
-		  break;
-		}
-	    }
-	  else
-	    {
-	      /* remove, if transaction too old, independent of the state */
-	      if (last_invite!=inc_tr && (inc_tr->state == IST_TERMINATED) &&
-		  (inc_tr->birth_time + 30 < now))  /* Wait a max of 30 seconds */
-		{
-		  /* remove the transaction from oSIP */
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					  "eXosip: release INVITE server transaction (did=%i)\n",
-					  jd->d_id));
-		  osip_remove_transaction (eXosip.j_osip, inc_tr);
-		  osip_list_remove (jd->d_inc_trs, pos);
-		  osip_list_add (&eXosip.j_transactions, inc_tr, 0);
-		  
-		  ret = 0;
-		  break;
-		}
-	    }
-	  pos++;
-	}
-      
+        {
+          inc_tr = osip_list_get (jd->d_inc_trs, pos);
+          if (0 != osip_strcasecmp (inc_tr->cseq->method, "INVITE"))
+            {
+              /* remove, if transaction too old, independent of the state */
+              if ((inc_tr->state == NIST_TERMINATED) && (inc_tr->birth_time + 30 < now))        /* Wait a max of 30 seconds */
+                {
+                  /* remove the transaction from oSIP */
+                  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                          "eXosip: release non-INVITE server transaction (did=%i)\n",
+                                          jd->d_id));
+                  osip_remove_transaction (eXosip.j_osip, inc_tr);
+                  osip_list_remove (jd->d_inc_trs, pos);
+                  osip_list_add (&eXosip.j_transactions, inc_tr, 0);
+
+                  ret = 0;
+                  break;
+                }
+          } else
+            {
+              /* remove, if transaction too old, independent of the state */
+              if (last_invite != inc_tr && (inc_tr->state == IST_TERMINATED) && (inc_tr->birth_time + 30 < now))        /* Wait a max of 30 seconds */
+                {
+                  /* remove the transaction from oSIP */
+                  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                          "eXosip: release INVITE server transaction (did=%i)\n",
+                                          jd->d_id));
+                  osip_remove_transaction (eXosip.j_osip, inc_tr);
+                  osip_list_remove (jd->d_inc_trs, pos);
+                  osip_list_add (&eXosip.j_transactions, inc_tr, 0);
+
+                  ret = 0;
+                  break;
+                }
+            }
+          pos++;
+        }
+
       last_invite = eXosip_find_last_out_invite (jc, jd);
 
       /* go through all outgoing transactions of this dialog */
       pos = 1;
       while (!osip_list_eol (jd->d_out_trs, pos))
-	{
-	  out_tr = osip_list_get (jd->d_out_trs, pos);
-	  if (0 != osip_strcasecmp (out_tr->cseq->method, "INVITE"))
-	    {
-	      /* remove, if transaction too old, independent of the state */
-	      if ((out_tr->state == NICT_TERMINATED) &&
-		  (out_tr->birth_time + 30 < now)) /* Wait a max of 30 seconds */
-		{
-		  /* remove the transaction from oSIP */
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					  "eXosip: release non INVITE client transaction (did=%i)\n",
-					  jd->d_id));
-		  osip_remove_transaction (eXosip.j_osip, out_tr);
-		  osip_list_remove (jd->d_out_trs, pos);
-		  osip_list_add (&eXosip.j_transactions, out_tr, 0);
-		  
-		  ret = 0;
-		  break;
-		}
-	    }
-	  else
-	    {
-	      /* remove, if transaction too old, independent of the state */
-	      if (last_invite!=out_tr
-		  && (out_tr->state == ICT_TERMINATED) &&
-		  (out_tr->birth_time + 30 < now)) /* Wait a max of 30 seconds */
-		{
-		  /* remove the transaction from oSIP */
-		  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					  "eXosip: release INVITE client transaction (did=%i)\n",
-					  jd->d_id));
-		  osip_remove_transaction (eXosip.j_osip, out_tr);
-		  osip_list_remove (jd->d_out_trs, pos);
-		  osip_list_add (&eXosip.j_transactions, out_tr, 0);
-		  
-		  ret = 0;
-		  break;
-		}
-	    }
-	  pos++;
-	}
-    } 
-  
+        {
+          out_tr = osip_list_get (jd->d_out_trs, pos);
+          if (0 != osip_strcasecmp (out_tr->cseq->method, "INVITE"))
+            {
+              /* remove, if transaction too old, independent of the state */
+              if ((out_tr->state == NICT_TERMINATED) && (out_tr->birth_time + 30 < now))        /* Wait a max of 30 seconds */
+                {
+                  /* remove the transaction from oSIP */
+                  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                          "eXosip: release non INVITE client transaction (did=%i)\n",
+                                          jd->d_id));
+                  osip_remove_transaction (eXosip.j_osip, out_tr);
+                  osip_list_remove (jd->d_out_trs, pos);
+                  osip_list_add (&eXosip.j_transactions, out_tr, 0);
+
+                  ret = 0;
+                  break;
+                }
+          } else
+            {
+              /* remove, if transaction too old, independent of the state */
+              if (last_invite != out_tr && (out_tr->state == ICT_TERMINATED) && (out_tr->birth_time + 30 < now))        /* Wait a max of 30 seconds */
+                {
+                  /* remove the transaction from oSIP */
+                  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                          "eXosip: release INVITE client transaction (did=%i)\n",
+                                          jd->d_id));
+                  osip_remove_transaction (eXosip.j_osip, out_tr);
+                  osip_list_remove (jd->d_out_trs, pos);
+                  osip_list_add (&eXosip.j_transactions, out_tr, 0);
+
+                  ret = 0;
+                  break;
+                }
+            }
+          pos++;
+        }
+    }
+
   return ret;
 }
 
@@ -2048,9 +2033,9 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
             {
               /* OSIP_TRACE(osip_trace(__FILE__,__LINE__,OSIP_INFO2,NULL,
                  "eXosip: eXosip_release_aborted_calls transaction with no answer\n")); */
-	    }
+            }
 #ifndef MINISIZE
-	  else if (MSG_IS_STATUS_3XX (jc->c_inc_tr->last_response))
+          else if (MSG_IS_STATUS_3XX (jc->c_inc_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a 3xx\n"));
@@ -2076,16 +2061,15 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               return OSIP_SUCCESS;
             }
 #else
-	  else if (jc->c_inc_tr->last_response->status_code >= 300)
+          else if (jc->c_inc_tr->last_response->status_code >= 300)
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls answered with a answer above 3xx\n"));
               __eXosip_release_call (jc, jd);
               return OSIP_SUCCESS;
-          }
+            }
 #endif
-	}
-      else if (tr == jc->c_out_tr)
+      } else if (tr == jc->c_out_tr)
         {
           if (jc->c_out_tr->last_response == NULL)
             {
@@ -2093,9 +2077,9 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
                                       "eXosip: eXosip_release_aborted_calls completed with no answer\n"));
               __eXosip_release_call (jc, jd);
               return OSIP_SUCCESS;
-	    } 
+            }
 #ifndef MINISIZE
-	  else if (MSG_IS_STATUS_3XX (jc->c_out_tr->last_response))
+          else if (MSG_IS_STATUS_3XX (jc->c_out_tr->last_response))
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
@@ -2121,13 +2105,13 @@ eXosip_release_aborted_calls (eXosip_call_t * jc, eXosip_dialog_t * jd)
               return OSIP_SUCCESS;
             }
 #else
-	  else if (jc->c_out_tr->last_response->status_code >= 300)
+          else if (jc->c_out_tr->last_response->status_code >= 300)
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
                                       "eXosip: eXosip_release_aborted_calls completed answered with 3xx\n"));
               __eXosip_release_call (jc, jd);
               return OSIP_SUCCESS;
-          }
+            }
 #endif
         }
     }
@@ -2188,8 +2172,8 @@ eXosip_release_terminated_calls (void)
       if (jc->c_dialogs == NULL)
         {
           if (jc->c_inc_tr != NULL
-                     && jc->c_inc_tr->state != IST_TERMINATED
-                     && jc->c_inc_tr->birth_time + 180 < now)
+              && jc->c_inc_tr->state != IST_TERMINATED
+              && jc->c_inc_tr->birth_time + 180 < now)
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                                       "eXosip: remove an incoming call with no final answer\n"));
@@ -2206,16 +2190,16 @@ eXosip_release_terminated_calls (void)
           } else if (jc->c_out_tr != NULL && jc->c_out_tr->state != ICT_TERMINATED)
             {
           } else if (jc->c_out_tr != NULL
-		     && jc->c_out_tr->state == ICT_TERMINATED
+                     && jc->c_out_tr->state == ICT_TERMINATED
                      && jc->c_out_tr->completed_time + 10 > now)
             {
-	      /* With unreliable protocol, the transaction enter the terminated
-		 state right after the ACK is sent: In this case, we really want
-		 to wait for additionnal user/automatic action to be processed
-		 before we decide to delete the call.
-	      */
-	      
-	      
+              /* With unreliable protocol, the transaction enter the terminated
+                 state right after the ACK is sent: In this case, we really want
+                 to wait for additionnal user/automatic action to be processed
+                 before we decide to delete the call.
+               */
+
+
           } else                /* no active pending transaction */
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -2322,83 +2306,79 @@ eXosip_release_terminated_publications (void)
 #ifndef MINISIZE
 
 static int
-eXosip_release_finished_transactions_for_subscription (eXosip_dialog_t *jd)
+eXosip_release_finished_transactions_for_subscription (eXosip_dialog_t * jd)
 {
   time_t now = time (NULL);
   osip_transaction_t *inc_tr;
   osip_transaction_t *out_tr;
-  int skip_first=0;
+  int skip_first = 0;
   int pos;
   int ret;
-  
+
   ret = OSIP_UNDEFINED_ERROR;
-  
+
   if (jd != NULL)
     {
       /* go through all incoming transactions of this dialog */
       pos = 0;
       while (!osip_list_eol (jd->d_inc_trs, pos))
-	{
-	  inc_tr = osip_list_get (jd->d_inc_trs, pos);
-	  /* remove, if transaction too old, independent of the state */
-	  if ((skip_first==1)
-	      && (inc_tr->state == NIST_TERMINATED)
-	      && (inc_tr->birth_time + 30 < now)) /* keep it for 30 seconds */
-	    {
-	      /* remove the transaction from oSIP */
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				      "eXosip: releaase non-INVITE server transaction (did=%i)\n",
-				      jd->d_id));
-	      osip_remove_transaction (eXosip.j_osip, inc_tr);
-	      osip_list_remove (jd->d_inc_trs, pos);
-	      osip_list_add (&eXosip.j_transactions, inc_tr, 0);
-	      
-	      ret = OSIP_SUCCESS; /* return "released" */
-	      break;
-	    }
-	  if (0 == osip_strcasecmp (inc_tr->cseq->method, "SUBSCRIBE"))
-	    skip_first=1;
-	  if (0 == osip_strcasecmp (inc_tr->cseq->method, "NOTIFY"))
-	    skip_first=1;
-	  pos++;
-	}
-      
-      skip_first=0;
+        {
+          inc_tr = osip_list_get (jd->d_inc_trs, pos);
+          /* remove, if transaction too old, independent of the state */
+          if ((skip_first == 1) && (inc_tr->state == NIST_TERMINATED) && (inc_tr->birth_time + 30 < now))       /* keep it for 30 seconds */
+            {
+              /* remove the transaction from oSIP */
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                      "eXosip: releaase non-INVITE server transaction (did=%i)\n",
+                                      jd->d_id));
+              osip_remove_transaction (eXosip.j_osip, inc_tr);
+              osip_list_remove (jd->d_inc_trs, pos);
+              osip_list_add (&eXosip.j_transactions, inc_tr, 0);
+
+              ret = OSIP_SUCCESS;       /* return "released" */
+              break;
+            }
+          if (0 == osip_strcasecmp (inc_tr->cseq->method, "SUBSCRIBE"))
+            skip_first = 1;
+          if (0 == osip_strcasecmp (inc_tr->cseq->method, "NOTIFY"))
+            skip_first = 1;
+          pos++;
+        }
+
+      skip_first = 0;
 
       /* go through all outgoing transactions of this dialog */
       pos = 0;
       while (!osip_list_eol (jd->d_out_trs, pos))
-	{
-	  out_tr = osip_list_get (jd->d_out_trs, pos);
-	  /* remove, if transaction too old, independent of the state */
-	  if ((skip_first==1)
-	      && (out_tr->state == NICT_TERMINATED)
-	      && (out_tr->birth_time + 30 < now)) /* Wait a max of 30 seconds */
-	    {
-	      /* remove the transaction from oSIP */
-	      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				      "eXosip: release non INVITE client transaction (did=%i)\n",
-				      jd->d_id));
-	      osip_remove_transaction (eXosip.j_osip, out_tr);
-	      osip_list_remove (jd->d_out_trs, pos);
-	      osip_list_add (&eXosip.j_transactions, out_tr, 0);
-	      
-	      ret = OSIP_SUCCESS; /* return "released" */
-	      break;
-	    }
-	  if (0 == osip_strcasecmp (out_tr->cseq->method, "SUBSCRIBE"))
-	    skip_first=1;
-	  if (0 == osip_strcasecmp (out_tr->cseq->method, "NOTIFY"))
-	    skip_first=1;
-	  pos++;
-	}
-    } 
-  
+        {
+          out_tr = osip_list_get (jd->d_out_trs, pos);
+          /* remove, if transaction too old, independent of the state */
+          if ((skip_first == 1) && (out_tr->state == NICT_TERMINATED) && (out_tr->birth_time + 30 < now))       /* Wait a max of 30 seconds */
+            {
+              /* remove the transaction from oSIP */
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                                      "eXosip: release non INVITE client transaction (did=%i)\n",
+                                      jd->d_id));
+              osip_remove_transaction (eXosip.j_osip, out_tr);
+              osip_list_remove (jd->d_out_trs, pos);
+              osip_list_add (&eXosip.j_transactions, out_tr, 0);
+
+              ret = OSIP_SUCCESS;       /* return "released" */
+              break;
+            }
+          if (0 == osip_strcasecmp (out_tr->cseq->method, "SUBSCRIBE"))
+            skip_first = 1;
+          if (0 == osip_strcasecmp (out_tr->cseq->method, "NOTIFY"))
+            skip_first = 1;
+          pos++;
+        }
+    }
+
   return ret;
 }
 
 void
-eXosip_release_terminated_subscriptions()
+eXosip_release_terminated_subscriptions ()
 {
   time_t now = time (NULL);
   eXosip_dialog_t *jd;
@@ -2410,46 +2390,45 @@ eXosip_release_terminated_subscriptions()
     {
       jsnext = js->next;
 
-	  if (js->s_dialogs==NULL)
-	  {
-	      if (js->s_out_tr!=NULL && js->s_out_tr->birth_time + 64 < now)   /* Wait a max of 64 sec */
-		  {
-			  /* destroy non established contexts after max of 64 sec */
-			  REMOVE_ELEMENT (eXosip.j_subscribes, js);
-			  eXosip_subscribe_free (js);
-			  __eXosip_wakeup ();
-			  return;
-		  }
-	  }
-	  else
-	  {
-		  for (jd = js->s_dialogs; jd != NULL;)
-			{
-			  jdnext = jd->next;
-			  eXosip_release_finished_transactions_for_subscription (jd);
+      if (js->s_dialogs == NULL)
+        {
+          if (js->s_out_tr != NULL && js->s_out_tr->birth_time + 64 < now)      /* Wait a max of 64 sec */
+            {
+              /* destroy non established contexts after max of 64 sec */
+              REMOVE_ELEMENT (eXosip.j_subscribes, js);
+              eXosip_subscribe_free (js);
+              __eXosip_wakeup ();
+              return;
+            }
+      } else
+        {
+          for (jd = js->s_dialogs; jd != NULL;)
+            {
+              jdnext = jd->next;
+              eXosip_release_finished_transactions_for_subscription (jd);
 
-			  if (jd->d_dialog==NULL || jd->d_dialog->state==DIALOG_EARLY)
-			  {
-				  if (js->s_out_tr!=NULL && js->s_out_tr->birth_time + 64 < now)   /* Wait a max of 2 minutes */
-				  {
-					  /* destroy non established contexts after max of 64 sec */
-					  REMOVE_ELEMENT (eXosip.j_subscribes, js);
-					  eXosip_subscribe_free (js);
-					  __eXosip_wakeup ();
-					  return;
-				  }
-			  }
+              if (jd->d_dialog == NULL || jd->d_dialog->state == DIALOG_EARLY)
+                {
+                  if (js->s_out_tr != NULL && js->s_out_tr->birth_time + 64 < now)      /* Wait a max of 2 minutes */
+                    {
+                      /* destroy non established contexts after max of 64 sec */
+                      REMOVE_ELEMENT (eXosip.j_subscribes, js);
+                      eXosip_subscribe_free (js);
+                      __eXosip_wakeup ();
+                      return;
+                    }
+                }
 
-			  jd = jdnext;
-			}
-	  }
+              jd = jdnext;
+            }
+        }
       js = jsnext;
     }
 
 }
 
 void
-eXosip_release_terminated_in_subscriptions(void)
+eXosip_release_terminated_in_subscriptions (void)
 {
   eXosip_dialog_t *jd;
   eXosip_dialog_t *jdnext;
@@ -2463,12 +2442,11 @@ eXosip_release_terminated_in_subscriptions(void)
       for (jd = jn->n_dialogs; jd != NULL;)
         {
           jdnext = jd->next;
-		  eXosip_release_finished_transactions_for_subscription (jd);
-		  jd = jdnext;
-		}
+          eXosip_release_finished_transactions_for_subscription (jd);
+          jd = jdnext;
+        }
       jn = jnnext;
     }
 }
 
 #endif
-
