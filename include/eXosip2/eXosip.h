@@ -390,6 +390,54 @@ eXosip_event_t *eXosip_event_get(void);
  */
 int eXosip_event_geteventsocket(void);
 
+
+ /**
+  * structure used to describe credentials for a client or server
+  * consists of a certificate, a corresponding private key and its password
+  * @struct eXosip_tls_credentials_s
+  */
+  typedef struct eXosip_tls_credentials_s {
+	  char priv_key[1024];
+    char priv_key_pw[1024];
+	  char cert[1024];
+  } eXosip_tls_credentials_t;
+
+ /**
+  * structure to describe the whole TLS-context for eXosip
+  * consists of a certificate, a corresponding private key and its password
+  * @struct eXosip_tls_ctx_s
+  */
+  typedef struct eXosip_tls_ctx_s {
+	char random_file[1024];						/**< absolute path to a file with random(!) data */
+	char dh_param[1024];						/**< absolute path to a file necessary for diffie hellman key exchange */
+	char root_ca_cert[1024];					/**< absolute path to the file with known rootCAs */
+	eXosip_tls_credentials_t client;	/**< credential of the client */
+	eXosip_tls_credentials_t server;	/**< credential of the server */
+  } eXosip_tls_ctx_t;
+
+ /**
+  * An enumeration which describes the error which can occur while setting the eXosip_tls_ctx
+  */
+  typedef enum {
+	TLS_OK = 0,							/**< yippieh, everything is fine :) */
+    TLS_ERR_NO_RAND = -1,				/**< no absolute path to the random file was specified */
+	TLS_ERR_NO_DH_PARAM = -2,			/**< no absolute path to the diifie hellman file was specified */
+	TLS_ERR_NO_PW = -3,					/**< no password was specified */
+	TLS_ERR_NO_ROOT_CA = -4,			/**< no absolute path to the rootCA file was specified */
+	TLS_ERR_MISSING_AUTH_PART = -5		/**< something is missing: the private key or the certificate */
+	
+  } eXosip_tls_ctx_error;
+
+ /**
+  *	sets the parameters for the TLS context, which is used for encrypted connections
+  *	
+  *	@param ctx, IN
+  *		a struct which holds the necessary parameters
+  *
+  *	@return  the eXosip_tls_ctx_error code
+  */
+  eXosip_tls_ctx_error eXosip_set_tls_ctx( eXosip_tls_ctx_t *ctx);
+
 /** @} */
 
 #ifdef __cplusplus

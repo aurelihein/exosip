@@ -28,24 +28,22 @@
 #ifdef HAVE_OPENSSL_SSL_H
 
 #include <openssl/ssl.h>
-#define SPROTO_TLS 500
-#define SPROTO_DTLS 501
-#include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/rand.h>
 
 #define SSLDEBUG 1
+/*#define PATH "D:/conf/"
 
-#define PASSWORD "password"
-#define CLIENT_KEYFILE "ckey.pem"
-#define CLIENT_CERTFILE "c.pem"
-#define SERVER_KEYFILE "skey.pem"
-#define SERVER_CERTFILE "s.pem"
-#define CA_LIST "cacert.pem"
-#define RANDOM  "random.pem"
-#define DHFILE "dh1024.pem"
+#define PASSWORD "23-+Wert"
+#define CLIENT_KEYFILE PATH"ckey.pem"
+#define CLIENT_CERTFILE PATH"c.pem"
+#define SERVER_KEYFILE PATH"skey.pem"
+#define SERVER_CERTFILE PATH"s.pem"
+#define CA_LIST PATH"cacert.pem"
+#define RANDOM  PATH"random.pem"
+#define DHFILE PATH"dh1024.pem"*/
 
 #if defined(_WIN32_WCE)
 #define strerror(X) "-1"
@@ -67,6 +65,7 @@ static char tls_firewall_port[10];
 
 static SSL_CTX *ssl_ctx;
 static SSL_CTX *client_ctx;
+static eXosip_tls_ctx_t eXosip_tls_ctx_params;
 
 /* persistent connection */
 struct socket_tab
@@ -118,11 +117,22 @@ tls_tl_free(void)
 	      SSL_shutdown (tls_socket_tab[pos].ssl_conn);
 	      SSL_shutdown (tls_socket_tab[pos].ssl_conn);
 	      SSL_free (tls_socket_tab[pos].ssl_conn);
-	      SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
 	    }
+    if (tls_socket_tab[pos].ssl_ctx!=NULL)
+	      SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
 	  close(tls_socket_tab[pos].socket);
 	}
     }
+
+	//free error strings (OpenSSL-lib)
+	EVP_cleanup();
+	ERR_free_strings();
+	ERR_remove_state(0); 
+	//clear the encryption data (OpenSSL-lib)
+	
+	CRYPTO_cleanup_all_ex_data();
+
+
   memset(&tls_socket_tab, 0, sizeof(struct socket_tab)*EXOSIP_MAX_SOCKETS);
 
   memset(tls_firewall_ip, 0, sizeof(tls_firewall_ip));
@@ -131,17 +141,20 @@ tls_tl_free(void)
   if (tls_socket>0)
     close(tls_socket);
 
+	//free the memory from our SSL parameters
+  memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
   return OSIP_SUCCESS;
 }
 
 static int
 password_cb (char *buf, int num, int rwflag, void *userdata)
 {
-  if (userdata == NULL)
+  char *passwd = (char *) userdata;
+  if (passwd == NULL || passwd[0] == '\0')
     {
       return OSIP_SUCCESS;
     }
-  strncpy (buf, (char *) userdata, num);
+  strncpy (buf, passwd, num);
   buf[num - 1] = '\0';
   return strlen (buf);
 }
@@ -187,13 +200,97 @@ generate_eph_rsa_key (SSL_CTX * ctx)
     }
 }
 
+eXosip_tls_ctx_error eXosip_set_tls_ctx( eXosip_tls_ctx_t *ctx)
+{
+	eXosip_tls_credentials_t *ownClient = &eXosip_tls_ctx_params.client;
+	eXosip_tls_credentials_t *ownServer = &eXosip_tls_ctx_params.server;
+
+	//get the credentials
+	eXosip_tls_credentials_t *client = &ctx->client;
+	eXosip_tls_credentials_t *server = &ctx->server;
+
+	//check if public AND private keys are valid
+	if((client->cert[0] != '\0' && client->priv_key[0] == '\0') ||
+		(client->cert[0] == '\0' && client->priv_key[0] != '\0')) {
+			//no, one is missing
+			return TLS_ERR_MISSING_AUTH_PART;
+	}
+
+	//check if a password is set, when a private key is present
+	if(client->priv_key[0] != '\0' && client->priv_key_pw[0] == '\0') {
+		return TLS_ERR_NO_PW;
+	}
+	
+	//check if public AND private keys are valid
+	if((server->cert[0] != '\0' && server->priv_key[0] == '\0') ||
+		(server->cert[0] == '\0' && server->priv_key[0] != '\0')) {
+			//no, one is missing
+			return TLS_ERR_MISSING_AUTH_PART;
+	}
+
+	//check if a password is set, when a private key is present
+	if(server->priv_key[0] != '\0' && server->priv_key_pw[0] == '\0') {
+		return TLS_ERR_NO_PW;
+	}
+
+	//check if the file for diffie hellman is present 
+	/*if(ctx->dh_param[0] == '\0') {
+		return TLS_ERR_NO_DH_PARAM;
+	}*/
+
+	//check if a file with random data is present --> will be verified when random file is needed (see tls_tl_open)
+	/*if(ctx->random_file[0] == '\0') {
+		return TLS_ERR_NO_RAND;
+	}*/
+
+	//check if a file with the list of possible rootCAs is available
+	/*if(ctx->root_ca_cert[0] == '\0') {
+		return TLS_ERR_NO_ROOT_CA;
+	}*/
+
+  /* clean up configuration */
+  memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
+
+	//check if client has own certificate
+	if (client->cert[0] != '\0') {
+    snprintf(ownClient->cert, sizeof(ownClient->cert), "%s", client->cert);
+    snprintf(ownClient->priv_key, sizeof(ownClient->priv_key), "%s", client->priv_key);
+    snprintf(ownClient->priv_key_pw, sizeof(ownClient->priv_key_pw), "%s", client->priv_key_pw);
+  }
+	else if (server->cert[0] != '\0') {
+		//no, has no certificates -> copy the chars of the server
+    snprintf(ownClient->cert, sizeof(ownClient->cert), "%s", server->cert);
+    snprintf(ownClient->priv_key, sizeof(ownClient->priv_key), "%s", server->priv_key);
+    snprintf(ownClient->priv_key_pw, sizeof(ownClient->priv_key_pw), "%s", server->priv_key_pw);
+  }
+
+	//check if server has own certificate
+	if (server->cert[0] != '\0') {
+    snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", server->cert);
+    snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", server->priv_key);
+    snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", server->priv_key_pw);
+  }
+  else if (client->cert[0] != '\0')
+  {
+		//no, has no certificates -> copy the chars of the client
+    snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", client->cert);
+    snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", client->priv_key);
+    snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", client->priv_key_pw);
+  }
+
+  snprintf(eXosip_tls_ctx_params.dh_param, sizeof(ctx->dh_param), "%s", ctx->dh_param);
+  snprintf(eXosip_tls_ctx_params.random_file, sizeof(ctx->random_file), "%s", ctx->random_file);
+  snprintf(eXosip_tls_ctx_params.root_ca_cert, sizeof(ctx->root_ca_cert), "%s", ctx->root_ca_cert);
+
+	return TLS_OK;
+}
+
 SSL_CTX *
 initialize_client_ctx (const char *keyfile, const char *certfile,
 		       const char *password, int transport)
 {
   SSL_METHOD *meth=NULL;
   SSL_CTX *ctx;
-  char *passwd;
 
   if (transport == IPPROTO_UDP)
     {
@@ -221,20 +318,12 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
     }
   /* SSL_CTX_set_read_ahead(ctx, 1); */
 
-  if (password != NULL)
-    {
-      passwd = osip_strdup (password);
-      if (passwd == NULL)
-	return NULL;
-    }
-  else
-    passwd = NULL;
-
-  SSL_CTX_set_default_passwd_cb_userdata (ctx, passwd);
+  SSL_CTX_set_default_passwd_cb_userdata (ctx, (void *)password);
   SSL_CTX_set_default_passwd_cb (ctx, password_cb);
 
 
-  /* Load our keys and certificates */
+	if(certfile[0] != '\0') {
+		// Load our keys and certificates
   if (!(SSL_CTX_use_certificate_file (ctx, certfile, SSL_FILETYPE_PEM)))
     {
       OSIP_TRACE (osip_trace
@@ -252,10 +341,10 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
     OSIP_TRACE (osip_trace
 		(__FILE__, __LINE__, OSIP_ERROR, NULL,
 		 "eXosip: Couldn't read client RSA key file %s!\n", keyfile));
+	}
 
-
-  /* Load the CAs we trust */
-  if (!(SSL_CTX_load_verify_locations (ctx, CA_LIST, 0)))
+	// Load the CAs we trust
+	if (!(SSL_CTX_load_verify_locations (ctx, eXosip_tls_ctx_params.root_ca_cert, 0)))
     OSIP_TRACE (osip_trace
 		(__FILE__, __LINE__, OSIP_ERROR, NULL,
 		 "eXosip: Couldn't read CA list\n"));
@@ -274,9 +363,6 @@ initialize_client_ctx (const char *keyfile, const char *certfile,
 		       SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
 		       SSL_OP_CIPHER_SERVER_PREFERENCE);
 
-  osip_free (passwd);
-  passwd = 0;
-
   return ctx;
 }
 
@@ -286,13 +372,8 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
 {
   SSL_METHOD *meth=NULL;
   SSL_CTX *ctx;
-  char *passwd;
 
   int s_server_session_id_context = 1;
-
-  /* initialization */
-  SSL_library_init ();
-  SSL_load_error_strings ();
 
   if (transport == IPPROTO_UDP)
     {
@@ -323,18 +404,8 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
       return NULL;
     }
 
-  if (password != NULL)
-    {
-      passwd = osip_strdup (password);
-      if (passwd == NULL)
-	return NULL;
-    }
-  else
-    passwd = NULL;
-
-  SSL_CTX_set_default_passwd_cb_userdata (ctx, passwd);
+  SSL_CTX_set_default_passwd_cb_userdata (ctx, (void *)password);
   SSL_CTX_set_default_passwd_cb (ctx, password_cb);
-
 
   if (transport == IPPROTO_UDP)
     {
@@ -351,9 +422,8 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
 		   "eXosip: Couldn't read certificate file!\n"));
     }
 
-
   /* Load the CAs we trust */
-  if (!(SSL_CTX_load_verify_locations (ctx, CA_LIST, 0)))
+	if (!(SSL_CTX_load_verify_locations (ctx, eXosip_tls_ctx_params.root_ca_cert, 0)))
     {
       OSIP_TRACE (osip_trace
 		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -380,25 +450,33 @@ initialize_server_ctx (const char *keyfile, const char *certfile,
     return NULL;
   }
 
-  /* Load randomness */
-  if (!(RAND_load_file (RANDOM, 1024 * 1024)))
-    OSIP_TRACE (osip_trace
-		(__FILE__, __LINE__, OSIP_ERROR, NULL,
-		 "eXosip: Couldn't load randomness\n"));
-
-  load_dh_params (ctx, DHFILE);
+	load_dh_params (ctx, eXosip_tls_ctx_params.dh_param);
 
   generate_eph_rsa_key (ctx);
 
   SSL_CTX_set_session_id_context (ctx, (void *) &s_server_session_id_context,
 				  sizeof s_server_session_id_context);
 
-  osip_free (passwd);
-  passwd = 0;
-
   return ctx;
 }
 
+/**
+* @brief Initializes the OpenSSL lib and the client/server contexts.
+* Depending on the previously initialized eXosip TLS context (see eXosip_set_tls_ctx() ), only the necessary contexts will be initialized.
+* The client context will be ALWAYS initialized, the server context only if certificates are available. The following chart should illustrate
+* the behaviour.
+*
+* possible certificates  | Client initialized			  | Server initialized
+* -------------------------------------------------------------------------------------
+* no certificate		 | yes, no cert used			  | not initialized
+* only client cert		 | yes, own cert (client) used    | yes, client cert used
+* only server cert		 | yes, server cert used		  | yes, own cert (server) used
+* server and client cert | yes, own cert (client) used    | yes, own cert (server) used
+*
+* The file for seeding the PRNG is only needed on Windows machines. If you compile under a Windows environment, please set W32 oder _WINDOWS as
+* Preprocessor directives.
+*@return < 0 if an error occured
+**/
 static int
 tls_tl_open(void)
 {
@@ -410,10 +488,37 @@ tls_tl_open(void)
   if (eXtl_tls.proto_port < 0)
     eXtl_tls.proto_port = 5061;
 
-  ssl_ctx = initialize_server_ctx (SERVER_KEYFILE, SERVER_CERTFILE, PASSWORD,
+	// initialization (outside initialize_server_ctx)
+	SSL_library_init ();
+	SSL_load_error_strings ();
+
+	if(eXosip_tls_ctx_params.server.cert[0] != '\0') {
+		ssl_ctx = initialize_server_ctx (eXosip_tls_ctx_params.server.priv_key, 
+			eXosip_tls_ctx_params.server.cert, eXosip_tls_ctx_params.server.priv_key_pw,
 				   IPPROTO_TCP);
-  client_ctx = initialize_client_ctx (CLIENT_KEYFILE, CLIENT_CERTFILE, PASSWORD,
+	}
+
+	//always initialize the client
+	client_ctx = initialize_client_ctx (eXosip_tls_ctx_params.client.priv_key, 
+		eXosip_tls_ctx_params.client.cert, eXosip_tls_ctx_params.server.priv_key_pw,
 				      IPPROTO_TCP);
+
+//only necessary under Windows-based OS, unix-like systems use /dev/random or /dev/urandom
+#if defined(WIN32) || defined(_WINDOWS)
+
+#if 0
+  //check if a file with random data is present --> will be verified when random file is needed
+	if(eXosip_tls_ctx_params.random_file[0] == '\0') {
+		return TLS_ERR_NO_RAND;
+	}
+#endif
+
+	/* Load randomness */
+	if (!(RAND_load_file (eXosip_tls_ctx_params.random_file, 1024 * 1024)))
+		OSIP_TRACE (osip_trace
+		(__FILE__, __LINE__, OSIP_ERROR, NULL,
+		"eXosip: Couldn't load randomness\n"));
+#endif
 
   res = eXosip_get_addrinfo (&addrinfo,
 			     eXtl_tls.proto_ifs,
@@ -1150,8 +1255,11 @@ _tls_tl_connect_socket (char *host, int port)
 
   if (sock > 0)
     {
-      ctx = initialize_client_ctx (CLIENT_KEYFILE, CLIENT_CERTFILE,
-				   PASSWORD, IPPROTO_TCP);
+		ctx = initialize_client_ctx (eXosip_tls_ctx_params.client.priv_key, 
+			eXosip_tls_ctx_params.client.cert, eXosip_tls_ctx_params.server.priv_key_pw,
+			IPPROTO_TCP);
+
+		//FIXME: changed parameter from ctx to client_ctx -> works now
       ssl = SSL_new (ctx);
       if (ssl == NULL)
 	{
@@ -1194,12 +1302,29 @@ _tls_tl_connect_socket (char *host, int port)
        
        cert = SSL_get_peer_certificate(ssl);
        if (cert != 0) {
+         int cert_err;
 	 tls_dump_cert_info("tls_connect: remote certificate: ", cert);
 
-	 if (SSL_get_verify_result(ssl) != X509_V_OK) {
+   cert_err = SSL_get_verify_result(ssl);
+	 if (cert_err != X509_V_OK) {
 	   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
 				   "Failed to verify remote certificate\n"));
-	   tls_dump_verification_failure(SSL_get_verify_result(ssl));
+	   tls_dump_verification_failure(cert_err);
+
+     if (eXosip_tls_ctx_params.server.cert[0] == '\0')
+       {
+       if (cert_err != X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+         && cert_err != X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN
+         && cert_err != X509_V_ERR_CRL_HAS_EXPIRED
+         && cert_err != X509_V_ERR_CERT_HAS_EXPIRED
+         && cert_err != X509_V_ERR_CERT_REVOKED
+         && cert_err != X509_V_ERR_CERT_UNTRUSTED
+         && cert_err != X509_V_ERR_CERT_REJECTED)
+         {
+				  X509_free(cert);
+          return -1; /* Should ask: Are you sure? */
+         }
+       }
 	 }
 	 X509_free(cert);
        }
@@ -1207,6 +1332,8 @@ _tls_tl_connect_socket (char *host, int port)
 	 {
 	   OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
 				   "No certificate received\n"));
+			//X509_free is not necessary because no cert-object was created -> cert == NULL
+			return -1;
 	 }
 
       tls_socket_tab[pos].socket = sock;
@@ -1381,10 +1508,10 @@ tls_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
   memset(ip, 0, ip_size);
   memset(port, 0, port_size);
 
-  if (tls_firewall_ip!='\0')
+  if (tls_firewall_ip[0]!='\0')
     snprintf(ip, ip_size, "%s", tls_firewall_ip);
   
-  if (tls_firewall_port!='\0')
+  if (tls_firewall_port[0]!='\0')
     snprintf(port, port_size, "%s", tls_firewall_port);
   return OSIP_SUCCESS;
 }
