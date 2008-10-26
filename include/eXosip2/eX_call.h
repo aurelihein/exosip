@@ -68,7 +68,7 @@ extern "C"
  * @param id       call-id or dialog-id of call
  * @param reference New application context.
  */
-  int eXosip_call_set_reference(int id, void *reference);
+  int eXosip_call_set_reference (int id, void *reference);
 
 /**
  * Build a default INVITE message for a new call.
@@ -79,16 +79,16 @@ extern "C"
  * @param route     Route header for INVITE. (optionnal)
  * @param subject   Subject for the call.
  */
-  int eXosip_call_build_initial_invite(osip_message_t **invite, const char *to,
-				       const char *from, const char *route,
-				       const char *subject);
+  int eXosip_call_build_initial_invite (osip_message_t ** invite, const char *to,
+                                        const char *from, const char *route,
+                                        const char *subject);
 
 /**
  * Initiate a call.
  * 
  * @param invite          SIP INVITE message to send.
  */
-  int eXosip_call_send_initial_invite(osip_message_t *invite);
+  int eXosip_call_send_initial_invite (osip_message_t * invite);
 
 /**
  * Build a default request within a call. (INVITE, OPTIONS, INFO, REFER)
@@ -97,8 +97,8 @@ extern "C"
  * @param method       request type to build.
  * @param request      The sip request to build.
  */
-  int eXosip_call_build_request(int did, const char *method,
-				osip_message_t **request);
+  int eXosip_call_build_request (int did, const char *method,
+                                 osip_message_t ** request);
 
 /**
  * Build a default ACK for a 200ok received.
@@ -106,7 +106,7 @@ extern "C"
  * @param did          dialog id of call.
  * @param ack          The sip request to build.
  */
-  int eXosip_call_build_ack(int did, osip_message_t **ack);
+  int eXosip_call_build_ack (int did, osip_message_t ** ack);
 
 /**
  * Send the ACK for the 200ok received..
@@ -114,7 +114,7 @@ extern "C"
  * @param did          dialog id of call.
  * @param ack          SIP ACK message to send.
  */
-  int eXosip_call_send_ack(int did, osip_message_t *ack);
+  int eXosip_call_send_ack (int did, osip_message_t * ack);
 
 /**
  * Build a default REFER for a call transfer.
@@ -123,7 +123,8 @@ extern "C"
  * @param refer_to     url for call transfer (Refer-To header).
  * @param request      The sip request to build.
  */
-  int eXosip_call_build_refer(int did, const char *refer_to, osip_message_t **request);
+  int eXosip_call_build_refer (int did, const char *refer_to,
+                               osip_message_t ** request);
 
 /**
  * Build a default INFO within a call.
@@ -131,7 +132,7 @@ extern "C"
  * @param did          dialog id of call.
  * @param request      The sip request to build.
  */
-  int eXosip_call_build_info(int did, osip_message_t **request);
+  int eXosip_call_build_info (int did, osip_message_t ** request);
 
 /**
  * Build a default OPTIONS within a call.
@@ -139,7 +140,7 @@ extern "C"
  * @param did          dialog id of call.
  * @param request      The sip request to build.
  */
-  int eXosip_call_build_options(int did, osip_message_t **request);
+  int eXosip_call_build_options (int did, osip_message_t ** request);
 
 /**
  * Build a default UPDATE within a call.
@@ -147,7 +148,7 @@ extern "C"
  * @param did          dialog id of call.
  * @param request      The sip request to build.
  */
-  int eXosip_call_build_update(int did, osip_message_t **request);
+  int eXosip_call_build_update (int did, osip_message_t ** request);
 
 /**
  * Build a default NOTIFY within a call.
@@ -156,7 +157,8 @@ extern "C"
  * @param subscription_status   Subscription status of the request.
  * @param request               The sip request to build.
  */
-  int eXosip_call_build_notify(int did, int subscription_status, osip_message_t **request);
+  int eXosip_call_build_notify (int did, int subscription_status,
+                                osip_message_t ** request);
 
 /**
  * send the request within call. (INVITE, OPTIONS, INFO, REFER, UPDATE)
@@ -164,7 +166,7 @@ extern "C"
  * @param did          dialog id of call.
  * @param request      The sip request to send.
  */
-  int eXosip_call_send_request(int did, osip_message_t *request);
+  int eXosip_call_send_request (int did, osip_message_t * request);
 
 /**
  * Build default Answer for request.
@@ -173,7 +175,7 @@ extern "C"
  * @param status       Status code to use.
  * @param answer       The sip answer to build.
  */
-  int eXosip_call_build_answer(int tid, int status, osip_message_t **answer);
+  int eXosip_call_build_answer (int tid, int status, osip_message_t ** answer);
 
 /**
  * Send Answer for invite.
@@ -182,7 +184,7 @@ extern "C"
  * @param status       response status if answer is NULL. (not allowed for 2XX)
  * @param answer       The sip answer to send.
  */
-  int eXosip_call_send_answer(int tid, int status, osip_message_t *answer);
+  int eXosip_call_send_answer (int tid, int status, osip_message_t * answer);
 
 /**
  * Terminate a call.
@@ -191,7 +193,7 @@ extern "C"
  * @param cid          call id of call.
  * @param did          dialog id of call.
  */
-  int eXosip_call_terminate(int cid, int did);
+  int eXosip_call_terminate (int cid, int did);
 
 /**
  * Build a PRACK for invite.
@@ -199,7 +201,7 @@ extern "C"
  * @param tid          id of the invite transaction.
  * @param prack        The sip prack to build.
  */
-  int eXosip_call_build_prack(int tid, osip_message_t **prack);
+  int eXosip_call_build_prack (int tid, osip_message_t ** prack);
 
 /**
  * Send a PRACK for invite.
@@ -207,7 +209,7 @@ extern "C"
  * @param tid          id of the invite transaction.
  * @param prack        The sip prack to send.
  */
-  int eXosip_call_send_prack(int tid, osip_message_t *prack);
+  int eXosip_call_send_prack (int tid, osip_message_t * prack);
 
 /**
  * Send a NOTIFY containing the information about a call transfer.
@@ -219,7 +221,7 @@ extern "C"
  * @param subscription_status  the subscription status.
  * @param body                 the body to attach to NOTIFY.
  */
-  int eXosip_transfer_send_notify(int did, int subscription_status, char *body);
+  int eXosip_transfer_send_notify (int did, int subscription_status, char *body);
 
 
 /**
@@ -229,7 +231,7 @@ extern "C"
  * @param refer_to       buffer to be filled with refer-to info.
  * @param refer_to_len   size of refer_to buffer.
  */
-  int eXosip_call_get_referto(int did, char *refer_to, size_t refer_to_len);
+  int eXosip_call_get_referto (int did, char *refer_to, size_t refer_to_len);
 
 
 /**
@@ -237,7 +239,7 @@ extern "C"
  * 
  * @param replaces       buffer to be filled with refer-to info.
  */
-  int eXosip_call_find_by_replaces (char* replaces);
+  int eXosip_call_find_by_replaces (char *replaces);
 
 /** @} */
 

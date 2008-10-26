@@ -64,15 +64,15 @@ extern "C"
  * @param from      SIP url for caller.
  * @param route     Route header for INVITE. (optionnal)
  */
-  int eXosip_options_build_request(osip_message_t **options, const char *to,
-				   const char *from, const char *route);
+  int eXosip_options_build_request (osip_message_t ** options, const char *to,
+                                    const char *from, const char *route);
 
 /**
  * Send an OPTIONS request.
  * 
  * @param options          SIP OPTIONS message to send.
  */
-  int eXosip_options_send_request(osip_message_t *options);
+  int eXosip_options_send_request (osip_message_t * options);
 
 /**
  * Build answer for an OPTIONS request.
@@ -81,7 +81,7 @@ extern "C"
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
  */
-  int eXosip_options_build_answer(int tid, int status, osip_message_t **answer);
+  int eXosip_options_build_answer (int tid, int status, osip_message_t ** answer);
 
 /**
  * Send answer for an OPTIONS request.
@@ -90,7 +90,7 @@ extern "C"
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)
  */
-  int eXosip_options_send_answer(int tid, int status, osip_message_t *answer);
+  int eXosip_options_send_answer (int tid, int status, osip_message_t * answer);
 
 /** @} */
 

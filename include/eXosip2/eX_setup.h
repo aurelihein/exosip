@@ -56,13 +56,13 @@ extern "C"
  * Initiate the eXtented oSIP library.
  * 
  */
-  int eXosip_init(void);
+  int eXosip_init (void);
 
 /**
  * Release ressource used by the eXtented oSIP library.
  * 
  */
-  void eXosip_quit(void);
+  void eXosip_quit (void);
 
 
 /**
@@ -71,39 +71,43 @@ extern "C"
  */
   int eXosip_execute (void);
 
-typedef enum {
+  typedef enum
+  {
     EXOSIP_OPT_UDP_KEEP_ALIVE = 1,
     EXOSIP_OPT_UDP_LEARN_PORT = 2,
     EXOSIP_OPT_SET_HTTP_TUNNEL_PORT = 3,
     EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY = 4,
-    EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY = 5, /* used for http tunnel ONLY */
+    EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY = 5,     /* used for http tunnel ONLY */
     EXOSIP_OPT_DONT_SEND_101 = 6,
     EXOSIP_OPT_USE_RPORT = 7,
     EXOSIP_OPT_SET_IPV4_FOR_GATEWAY = 8,
     EXOSIP_OPT_ADD_DNS_CACHE = 9,
     EXOSIP_OPT_EVENT_PACKAGE = 10,
     EXOSIP_OPT_SET_IPV6_FOR_GATEWAY = 11,
-	EXOSIP_OPT_ADD_ACCOUNT_INFO = 12
-} eXosip_option;
+    EXOSIP_OPT_ADD_ACCOUNT_INFO = 12
+  } eXosip_option;
 
-struct eXosip_dns_cache {
+  struct eXosip_dns_cache
+  {
     char host[1024];
     char ip[256];
-};
+  };
 
-struct eXosip_account_info {
+  struct eXosip_account_info
+  {
     char proxy[1024];
     char nat_ip[256];
     int nat_port;
-};
+  };
 
-struct eXosip_http_auth {
-	char pszCallId[64];
-	osip_proxy_authenticate_t *wa;
-	char pszCNonce[64];
-	int  iNonceCount;
-	int  answer_code;
-};
+  struct eXosip_http_auth
+  {
+    char pszCallId[64];
+    osip_proxy_authenticate_t *wa;
+    char pszCNonce[64];
+    int iNonceCount;
+    int answer_code;
+  };
 
 /**
  * Set eXosip options.
@@ -113,7 +117,7 @@ struct eXosip_http_auth {
  * @param value   value for options.
  * 
  */
-int eXosip_set_option(eXosip_option opt, const void *value);
+  int eXosip_set_option (eXosip_option opt, const void *value);
 
 #ifdef OSIP_MT
 
@@ -121,13 +125,13 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * Lock the eXtented oSIP library.
  * 
  */
-  int eXosip_lock(void);
+  int eXosip_lock (void);
 
 /**
  * UnLock the eXtented oSIP library.
  * 
  */
-  int eXosip_unlock(void);
+  int eXosip_unlock (void);
 
 #else
 
@@ -144,7 +148,8 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param domain      domain name for SRV record
  * @param protocol    protocol to use
  */
-  int eXosip_get_srv_record (struct osip_srv_record *record, char *domain, char *protocol);
+  int eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
+                             char *protocol);
 
 /**
  * Ask for NAPTR request.
@@ -154,7 +159,8 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param srv_record  result structure.
  * @param max_length sizeof srv_record.
  */
-  int eXosip_get_naptr(char *domain, char *protocol, char *srv_record, int max_length);
+  int eXosip_get_naptr (char *domain, char *protocol, char *srv_record,
+                        int max_length);
 
 /**
  * Listen on a specified socket.
@@ -165,8 +171,8 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param family    the IP family (AF_INET or AF_INET6).
  * @param secure    0 for UDP or TCP, 1 for TLS (with TCP).
  */
-  int eXosip_listen_addr(int transport, const char *addr, int port, int family,
-			 int secure);
+  int eXosip_listen_addr (int transport, const char *addr, int port, int family,
+                          int secure);
 
 /**
  * Listen on a specified socket.
@@ -175,36 +181,36 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param socket socket to use for listening to UDP sip messages.
  * @param port the listening port for masquerading.
  */
-  int eXosip_set_socket(int transport, int socket, int port);
+  int eXosip_set_socket (int transport, int socket, int port);
 
 /**
  * Set the SIP User-Agent: header string.
  *
  * @param user_agent the User-Agent header to insert in messages.
  */
-  void eXosip_set_user_agent(const char *user_agent);
+  void eXosip_set_user_agent (const char *user_agent);
 
  /**
   * Get the eXosip version as a sring
   *
   */
-  const char * eXosip_get_version(void);
+  const char *eXosip_get_version (void);
 
-  typedef void (*CbSipCallback) (osip_message_t *msg, int received);
+  typedef void (*CbSipCallback) (osip_message_t * msg, int received);
 
 /**
  * Set a callback to get sent and received SIP messages.
  *
  * @param cbsipCallback the callback to retreive messages.
  */
-  int eXosip_set_cbsip_message(CbSipCallback cbsipCallback);
+  int eXosip_set_cbsip_message (CbSipCallback cbsipCallback);
 
 /**
  * Use IPv6 instead of IPv4.
  * 
  * @param ipv6_enable  This paramter should be set to 1 to enable IPv6 mode.
  */
-  void eXosip_enable_ipv6(int ipv6_enable);
+  void eXosip_enable_ipv6 (int ipv6_enable);
 
 /**
  * This method is used to replace contact address with
@@ -219,7 +225,7 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * If set to NULL, then the local ip address will be guessed 
  * automatically (returns to default mode).
  */
-  void eXosip_masquerade_contact(const char *public_address, int port);
+  void eXosip_masquerade_contact (const char *public_address, int port);
 
 /**
  * This method is used to find out an free IPPROTO_UDP or IPPROTO_TCP port.
@@ -228,7 +234,7 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * @param transport          	IPPROTO_UDP or IPPROTO_TCP protocol.
  * 
  */
-  int eXosip_find_free_port(int free_port, int transport);
+  int eXosip_find_free_port (int free_port, int transport);
 
 #ifndef DOXYGEN
 
@@ -245,14 +251,14 @@ int eXosip_set_option(eXosip_option opt, const void *value);
  * ******LINPHONE specific methods******
  *
  */
-int eXosip_force_masquerade_contact(const char *localip);
+  int eXosip_force_masquerade_contact (const char *localip);
 
 /**
  * Wake Up the eXosip_event_wait method.
  * 
  */
 #ifdef OSIP_MT
-  void __eXosip_wakeup_event(void);
+  void __eXosip_wakeup_event (void);
 #else
 #define __eXosip_wakeup_event()   ;
 #endif
@@ -274,7 +280,7 @@ int eXosip_force_masquerade_contact(const char *localip);
  * @param msg         The SIP message to modify
  * @param transport   transport protocol to use ("UDP", "TCP" or "TLS")
  */
-  int eXosip_transport_set(osip_message_t *msg, const char *transport);
+  int eXosip_transport_set (osip_message_t * msg, const char *transport);
 
 /**
  * Find the current localip (interface with default route).
@@ -283,7 +289,7 @@ int eXosip_force_masquerade_contact(const char *localip);
  * @param address   a string containing the local IP address.
  * @param size      The size of the string
  */
-  int eXosip_guess_localip(int family, char *address, int size);
+  int eXosip_guess_localip (int family, char *address, int size);
 
 #ifndef DOXYGEN
 
@@ -298,7 +304,7 @@ int eXosip_force_masquerade_contact(const char *localip);
  * ******LINPHONE specific methods******
  *
  */
-int eXosip_get_localip_for(const char *host, char *localip, int size);
+  int eXosip_get_localip_for (const char *host, char *localip, int size);
 
 #endif
 

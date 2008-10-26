@@ -66,14 +66,13 @@ extern "C"
  * @param ctype     Content-Type of body.
  * @param body     body for publication.
  */
-int eXosip_build_publish(osip_message_t **message,
-			 const char *to,
-			 const char *from,
-			 const char *route,
-			 const char *event,
-			 const char *expires,
-			 const char *ctype,
-			 const char *body);
+  int eXosip_build_publish (osip_message_t ** message,
+                            const char *to,
+                            const char *from,
+                            const char *route,
+                            const char *event,
+                            const char *expires,
+                            const char *ctype, const char *body);
 
 /**
  * Send an Publication Message (PUBLISH request).
@@ -81,7 +80,7 @@ int eXosip_build_publish(osip_message_t **message,
  * @param message is a ready to be sent publish message .
  * @param to the aor of the publish request 
  */
-int eXosip_publish (osip_message_t *message, const char *to);
+  int eXosip_publish (osip_message_t * message, const char *to);
 
 
 /** @} */

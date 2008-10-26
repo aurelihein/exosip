@@ -64,16 +64,16 @@ extern "C"
  * @param to        SIP url for callee.
  * @param route     Route header for REFER. (optionnal)
  */
-int eXosip_refer_build_request(osip_message_t **refer, const char *refer_to,
-			       const char *from, const char *to,
-			       const char *route);
+  int eXosip_refer_build_request (osip_message_t ** refer, const char *refer_to,
+                                  const char *from, const char *to,
+                                  const char *route);
 
 /**
  * Initiate a blind tranfer outside of any call.
  * 
  * @param refer     SIP REFER message to send.
  */
-int eXosip_refer_send_request(osip_message_t *refer);
+  int eXosip_refer_send_request (osip_message_t * refer);
 
 /** @} */
 

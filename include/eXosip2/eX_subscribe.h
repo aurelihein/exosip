@@ -54,34 +54,38 @@ extern "C"
  * @{
  */
 
-typedef enum eXosip_ss {
-  EXOSIP_SUBCRSTATE_UNKNOWN,      /**< unknown subscription-state */
-  EXOSIP_SUBCRSTATE_PENDING,      /**< pending subscription-state */
-  EXOSIP_SUBCRSTATE_ACTIVE,       /**< active subscription-state */
-  EXOSIP_SUBCRSTATE_TERMINATED    /**< terminated subscription-state */
-} eXosip_ss_t;
+  typedef enum eXosip_ss
+  {
+    EXOSIP_SUBCRSTATE_UNKNOWN,    /**< unknown subscription-state */
+    EXOSIP_SUBCRSTATE_PENDING,    /**< pending subscription-state */
+    EXOSIP_SUBCRSTATE_ACTIVE,     /**< active subscription-state */
+    EXOSIP_SUBCRSTATE_TERMINATED  /**< terminated subscription-state */
+  } eXosip_ss_t;
 
-typedef enum eXosip_ss_reason {
-  DEACTIVATED,                   /**< deactivated for subscription-state */
-  PROBATION,                     /**< probation for subscription-state */
-  REJECTED,                      /**< rejected for subscription-state */
-  TIMEOUT,                       /**< timeout for subscription-state */
-  GIVEUP,                        /**< giveup for subscription-state */
-  NORESOURCE                     /**< noresource for subscription-state */
-} eXosip_ss_reason_t;
+  typedef enum eXosip_ss_reason
+  {
+    DEACTIVATED,                 /**< deactivated for subscription-state */
+    PROBATION,                   /**< probation for subscription-state */
+    REJECTED,                    /**< rejected for subscription-state */
+    TIMEOUT,                     /**< timeout for subscription-state */
+    GIVEUP,                      /**< giveup for subscription-state */
+    NORESOURCE                   /**< noresource for subscription-state */
+  } eXosip_ss_reason_t;
 
 
-typedef enum eXosip_ss_status {
-  EXOSIP_NOTIFY_UNKNOWN,     /**< unknown state for subscription */
-  EXOSIP_NOTIFY_PENDING,     /**< subscription not yet accepted */
-  EXOSIP_NOTIFY_ONLINE,      /**< online status */
-  EXOSIP_NOTIFY_BUSY,        /**< busy status */
-  EXOSIP_NOTIFY_BERIGHTBACK, /**< be right back status */
-  EXOSIP_NOTIFY_AWAY,        /**< away status */
-  EXOSIP_NOTIFY_ONTHEPHONE,  /**< on the phone status */
-  EXOSIP_NOTIFY_OUTTOLUNCH,  /**< out to lunch status */
-  EXOSIP_NOTIFY_CLOSED       /**< closed status */
-} eXosip_ss_status_t;
+  typedef enum eXosip_ss_status
+  {
+    EXOSIP_NOTIFY_UNKNOWN,   /**< unknown state for subscription */
+    EXOSIP_NOTIFY_PENDING,   /**< subscription not yet accepted */
+    EXOSIP_NOTIFY_ONLINE,    /**< online status */
+    EXOSIP_NOTIFY_BUSY,      /**< busy status */
+    EXOSIP_NOTIFY_BERIGHTBACK,
+                             /**< be right back status */
+    EXOSIP_NOTIFY_AWAY,      /**< away status */
+    EXOSIP_NOTIFY_ONTHEPHONE,/**< on the phone status */
+    EXOSIP_NOTIFY_OUTTOLUNCH,/**< out to lunch status */
+    EXOSIP_NOTIFY_CLOSED     /**< closed status */
+  } eXosip_ss_status_t;
 
 
 #ifndef MINISIZE
@@ -96,17 +100,17 @@ typedef enum eXosip_ss_status {
  * @param event     Event header for SUBSCRIBE.
  * @param expires   Expires header for SUBSCRIBE.
  */
-  int eXosip_subscribe_build_initial_request(osip_message_t **subscribe,
-					     const char *to, const char *from,
-					     const char *route, const char *event,
-					     int expires);
+  int eXosip_subscribe_build_initial_request (osip_message_t ** subscribe,
+                                              const char *to, const char *from,
+                                              const char *route, const char *event,
+                                              int expires);
 
 /**
  * Send an initial SUBSCRIBE request.
  * 
  * @param subscribe          SIP SUBSCRIBE message to send.
  */
-  int eXosip_subscribe_send_initial_request(osip_message_t *subscribe);
+  int eXosip_subscribe_send_initial_request (osip_message_t * subscribe);
 
 /**
  * Build a default new SUBSCRIBE message.
@@ -114,7 +118,7 @@ typedef enum eXosip_ss_status {
  * @param did      identifier of the subscription.
  * @param sub      Pointer for the SIP request to build.
  */
-  int eXosip_subscribe_build_refresh_request(int did, osip_message_t **sub);
+  int eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub);
 
 /**
  * Send a new SUBSCRIBE request.
@@ -122,7 +126,7 @@ typedef enum eXosip_ss_status {
  * @param did          identifier of the subscription.
  * @param sub          SIP SUBSCRIBE message to send.
  */
-  int eXosip_subscribe_send_refresh_request(int did, osip_message_t *sub);
+  int eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub);
 
 /**
  * Remove outgoing subscription context.
@@ -146,8 +150,8 @@ typedef enum eXosip_ss_status {
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
  */
-  int eXosip_insubscription_build_answer(int tid, int status,
-					 osip_message_t **answer);
+  int eXosip_insubscription_build_answer (int tid, int status,
+                                          osip_message_t ** answer);
 
 /**
  * Send answer for an SUBSCRIBE request.
@@ -156,8 +160,8 @@ typedef enum eXosip_ss_status {
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)
  */
-  int eXosip_insubscription_send_answer(int tid, int status,
-					osip_message_t *answer);
+  int eXosip_insubscription_send_answer (int tid, int status,
+                                         osip_message_t * answer);
 
 /**
  * Build a request within subscription.
@@ -166,8 +170,8 @@ typedef enum eXosip_ss_status {
  * @param method          request method to build.
  * @param request         The SIP request to build.
  */
-  int eXosip_insubscription_build_request(int did, const char *method,
-					  osip_message_t **request);
+  int eXosip_insubscription_build_request (int did, const char *method,
+                                           osip_message_t ** request);
 
 /**
  * Build a NOTIFY request within subscription.
@@ -177,9 +181,9 @@ typedef enum eXosip_ss_status {
  * @param subscription_reason  subscription reason
  * @param request              The SIP request to build.
  */
-  int eXosip_insubscription_build_notify(int did, int subscription_status,
-					 int subscription_reason,
-					 osip_message_t **request);
+  int eXosip_insubscription_build_notify (int did, int subscription_status,
+                                          int subscription_reason,
+                                          osip_message_t ** request);
 
 /**
  * Send a request within subscription.
@@ -187,8 +191,8 @@ typedef enum eXosip_ss_status {
  * @param did             id of incoming subscription.
  * @param request         The SIP request to send.
  */
-  int eXosip_insubscription_send_request(int did, osip_message_t *request);
-					  
+  int eXosip_insubscription_send_request (int did, osip_message_t * request);
+
 /**
  * Remove incoming subscription context.
  * 
@@ -207,4 +211,3 @@ typedef enum eXosip_ss_status {
 #endif
 
 #endif
-
