@@ -1333,20 +1333,24 @@ _tls_tl_connect_socket (char *host, int port)
                                       "Failed to verify remote certificate\n"));
               tls_dump_verification_failure (cert_err);
 
-              if (eXosip_tls_ctx_params.server.cert[0] == '\0')
+              if (eXosip_tls_ctx_params.server.cert[0] != '\0')
                 {
-                  if (cert_err != X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+                  X509_free(cert);
+                  return -1;
+                }
+              else if (cert_err != X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
                       && cert_err != X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN
                       && cert_err != X509_V_ERR_CRL_HAS_EXPIRED
                       && cert_err != X509_V_ERR_CERT_HAS_EXPIRED
                       && cert_err != X509_V_ERR_CERT_REVOKED
                       && cert_err != X509_V_ERR_CERT_UNTRUSTED
                       && cert_err != X509_V_ERR_CERT_REJECTED)
-                    {
-                      X509_free (cert);
-                      return -1;        /* Should ask: Are you sure? */
-                    }
+                {
+                  X509_free (cert);
+                  return -1;
                 }
+              /*else -> I want to keep going ONLY when API didn't specified
+              any SSL server certificate */
             }
           X509_free (cert);
       } else
