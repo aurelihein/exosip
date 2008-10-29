@@ -357,10 +357,9 @@ AC_CHECK_HEADERS([resolv.h], [], [],
 dnl check if we have the getifaddrs() sytem call
 AC_CHECK_FUNCS(getifaddrs)
 
-dnl support for sysV semaphore in sys/sem.h (BSD/linux...)
 AC_ARG_ENABLE(openssl,
 	[  --enable-openssl      enable support for openssl],
-	enable_openssl=$enableval,enable_openssl="no")
+	enable_openssl=$enableval,enable_openssl="yes")
 
 if test "$enable_openssl" = "yes" ; then
 	AC_CHECK_HEADERS(openssl/ssl.h)
