@@ -1515,10 +1515,6 @@ eXosip_call_find_by_replaces (char *replaces_str)
       *semicolon = '\0';
     }
 
-  // reset external reference
-  if (external_ref != NULL)
-    *external_ref = NULL;
-
   for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
     {
       for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
@@ -1546,9 +1542,6 @@ eXosip_call_find_by_replaces (char *replaces_str)
                   osip_free (call_id);
                   return OSIP_BADPARAMETER;     /* confirmed dialog but already answered with 481 */
                 }
-
-              if (external_ref != NULL)
-                *external_ref = jc->external_reference;
 
               osip_free (call_id);
               return jc->c_id;  /* match anyway */
