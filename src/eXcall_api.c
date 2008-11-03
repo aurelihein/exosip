@@ -1489,15 +1489,15 @@ eXosip_call_find_by_replaces (char *replaces_str)
   char *fromtag_str = (char *) "from-tag=";
   char *earlyonly_str = (char *) "early-only";
 
-  // copy replaces string
+  /* copy replaces string */
   if (replaces_str == NULL)
     return OSIP_SYNTAXERROR;
   call_id = osip_strdup (replaces_str);
   if (call_id == NULL)
     return OSIP_NOMEM;
 
-  // parse replaces string
-  strcpy (call_id, ReplacesStr);
+  /* parse replaces string */
+  strcpy (call_id, replaces_str);
   to_tag = strstr (call_id, totag_str);
   from_tag = strstr (call_id, fromtag_str);
   early_flag = strstr (call_id, earlyonly_str);
