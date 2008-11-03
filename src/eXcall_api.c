@@ -1475,20 +1475,20 @@ eXosip_call_get_referto (int did, char *refer_to, size_t refer_to_len)
   return OSIP_SUCCESS;
 }
 
-int 
-eXosip_call_find_by_replaces (char* replaces_str)
+int
+eXosip_call_find_by_replaces (char *replaces_str)
 {
-  eXosip_call_t* jc = NULL;
+  eXosip_call_t *jc = NULL;
   eXosip_dialog_t *jd = NULL;
-  char* call_id;
-  char* to_tag;
-  char* from_tag;
-  char* early_flag;
-  char* semicolon;
-  char *totag_str= (char*)"to-tag=";
-  char *fromtag_str= (char*)"from-tag=";
-  char *earlyonly_str= (char*)"early-only";
-  
+  char *call_id;
+  char *to_tag;
+  char *from_tag;
+  char *early_flag;
+  char *semicolon;
+  char *totag_str = (char *) "to-tag=";
+  char *fromtag_str = (char *) "from-tag=";
+  char *earlyonly_str = (char *) "early-only";
+
   // copy replaces string
   if (replaces_str == NULL)
     return OSIP_SYNTAXERROR;
@@ -1498,20 +1498,19 @@ eXosip_call_find_by_replaces (char* replaces_str)
 
   // parse replaces string
   strcpy (call_id, ReplacesStr);
-  to_tag = strstr(call_id, totag_str);
-  from_tag = strstr(call_id, fromtag_str);
-  early_flag = strstr(call_id, earlyonly_str);
-  
-  if ((to_tag == NULL) ||
-      (from_tag == NULL))
+  to_tag = strstr (call_id, totag_str);
+  from_tag = strstr (call_id, fromtag_str);
+  early_flag = strstr (call_id, earlyonly_str);
+
+  if ((to_tag == NULL) || (from_tag == NULL))
     {
       osip_free (call_id);
       return OSIP_SYNTAXERROR;
     }
   to_tag += strlen (totag_str);
   from_tag += strlen (fromtag_str);
-  
-  while ((semicolon = strrchr(call_id,';')) != NULL)
+
+  while ((semicolon = strrchr (call_id, ';')) != NULL)
     {
       *semicolon = '\0';
     }
@@ -1523,43 +1522,41 @@ eXosip_call_find_by_replaces (char* replaces_str)
   for (jc = eXosip.j_calls; jc != NULL; jc = jc->next)
     {
       for (jd = jc->c_dialogs; jd != NULL; jd = jd->next)
-	{
-	  if (jd->d_dialog == NULL)
-	    {
-	      /* skip */
-	    }    
-	  else if (
-		   ( (0 == strcmp (jd->d_dialog->call_id, call_id)) &&
-		     (0 == strcmp (jd->d_dialog->remote_tag, to_tag)) &&
-		     (0 == strcmp (jd->d_dialog->local_tag, from_tag)) )
-		   ||
-		   ( (0 == strcmp (jd->d_dialog->call_id, call_id)) &&
-		     (0 == strcmp (jd->d_dialog->local_tag, to_tag)) &&
-		     (0 == strcmp (jd->d_dialog->remote_tag, from_tag)) )
-		   )
-	    {
-	      /* This dialog match! */
-	      if (jd->d_dialog->state == DIALOG_CONFIRMED && early_flag!=NULL)
-		{
-		  osip_free (call_id);
-		  return OSIP_WRONG_STATE; /* confirmed dialog but already answered with 486 */
-		}
-	      if (jd->d_dialog->state == DIALOG_EARLY && jd->d_dialog->type == CALLEE)
-		{
-		  osip_free (call_id);
-		  return OSIP_BADPARAMETER; /* confirmed dialog but already answered with 481 */
-		}
+        {
+          if (jd->d_dialog == NULL)
+            {
+              /* skip */
+          } else if (((0 == strcmp (jd->d_dialog->call_id, call_id)) &&
+                      (0 == strcmp (jd->d_dialog->remote_tag, to_tag)) &&
+                      (0 == strcmp (jd->d_dialog->local_tag, from_tag)))
+                     ||
+                     ((0 == strcmp (jd->d_dialog->call_id, call_id)) &&
+                      (0 == strcmp (jd->d_dialog->local_tag, to_tag)) &&
+                      (0 == strcmp (jd->d_dialog->remote_tag, from_tag))))
+            {
+              /* This dialog match! */
+              if (jd->d_dialog->state == DIALOG_CONFIRMED && early_flag != NULL)
+                {
+                  osip_free (call_id);
+                  return OSIP_WRONG_STATE;      /* confirmed dialog but already answered with 486 */
+                }
+              if (jd->d_dialog->state == DIALOG_EARLY
+                  && jd->d_dialog->type == CALLEE)
+                {
+                  osip_free (call_id);
+                  return OSIP_BADPARAMETER;     /* confirmed dialog but already answered with 481 */
+                }
 
-	      if (external_ref != NULL)
-		*external_ref = jc->external_reference;
+              if (external_ref != NULL)
+                *external_ref = jc->external_reference;
 
-	      osip_free (call_id);
-	      return jc->c_id; /* match anyway */
-	    }
-	}
+              osip_free (call_id);
+              return jc->c_id;  /* match anyway */
+            }
+        }
     }
   osip_free (call_id);
-  return OSIP_NOTFOUND;   /* answer with 481 */
+  return OSIP_NOTFOUND;         /* answer with 481 */
 }
 
 #endif
