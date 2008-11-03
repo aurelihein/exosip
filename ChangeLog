@@ -1,3 +1,6 @@
+eXosip2 (3.3.0)
+	* Fix for replaces header longuer than 256 char.
+	
 eXosip2 (3.2.0)
 	* Improve TLS support and add an API for ssl information & files.
 	* return new error code for all API.
