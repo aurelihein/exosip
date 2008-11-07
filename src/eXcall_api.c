@@ -215,6 +215,7 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
 {
   int i;
   osip_to_t *_to = NULL;
+  osip_header_t *subject_header;
 
   *invite = NULL;
 
@@ -243,7 +244,9 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
     return i;
   _eXosip_dialog_add_contact (*invite, NULL);
 
-  if (subject != NULL)
+  subject_header=NULL;
+  osip_message_get_subject (*invite, 0, &subject_header);
+  if (subject_header==NULL && subject != NULL)
     osip_message_set_subject (*invite, subject);
 
   /* after this delay, we should send a CANCEL */
