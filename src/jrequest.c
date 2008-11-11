@@ -102,6 +102,8 @@ _eXosip_dialog_add_contact (osip_message_t * request, osip_message_t * answer)
   if (request == NULL)
     return OSIP_BADPARAMETER;
 
+  firewall_ip[0] = '\0';
+  firewall_port[0] = '\0';
   if (eXosip.eXtl->tl_get_masquerade_contact != NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact (firewall_ip, sizeof (firewall_ip),
@@ -523,6 +525,8 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
   if (eXosip.eXtl == NULL)
     return OSIP_NO_NETWORK;
 
+  firewall_ip[0] = '\0';
+  firewall_port[0] = '\0';
   if (eXosip.eXtl->tl_get_masquerade_contact != NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact (firewall_ip, sizeof (firewall_ip),
@@ -764,6 +768,8 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
   if (eXosip.eXtl == NULL)
     return OSIP_NO_NETWORK;
 
+  firewall_ip[0] = '\0';
+  firewall_port[0] = '\0';
   if (eXosip.eXtl->tl_get_masquerade_contact != NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact (firewall_ip, sizeof (firewall_ip),

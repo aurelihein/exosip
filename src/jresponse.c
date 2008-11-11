@@ -192,6 +192,8 @@ complete_answer_that_establish_a_dialog (osip_message_t * response,
   char locip[65];
   char firewall_ip[65];
   char firewall_port[10];
+  firewall_ip[0] = '\0';
+  firewall_port[0] = '\0';
   if (eXosip.eXtl->tl_get_masquerade_contact != NULL)
     {
       eXosip.eXtl->tl_get_masquerade_contact (firewall_ip, sizeof (firewall_ip),
