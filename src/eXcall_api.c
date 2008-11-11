@@ -205,6 +205,23 @@ eXosip_call_set_reference (int id, void *reference)
   return OSIP_SUCCESS;
 }
 
+void*
+eXosip_call_get_reference (int cid)
+{
+  eXosip_call_t* jc = NULL;
+  
+  eXosip_call_find (cid, &jc);
+  if (jc == NULL)
+    {
+      OSIP_TRACE (osip_trace
+		  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "eXosip: No call here?\n"));
+      return NULL;
+    }
+
+  return jc->external_reference;
+}
+
 /* this method can't be called unless the previous
    INVITE transaction is over. */
 int

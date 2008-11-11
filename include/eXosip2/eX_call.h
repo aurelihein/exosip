@@ -71,6 +71,14 @@ extern "C"
   int eXosip_call_set_reference (int id, void *reference);
 
 /**
+ * Get the application context pointer for an existing call.
+ * 
+ * @param cid            id of the call.
+ * @return               Application context reference
+ */
+  void* eXosip_call_get_ref (int cid);
+
+/**
  * Build a default INVITE message for a new call.
  * 
  * @param invite    Pointer for the SIP element to hold.
