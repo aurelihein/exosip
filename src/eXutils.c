@@ -890,6 +890,27 @@ eXosip_get_addrinfo (struct addrinfo **addrinfo, const char *hostname,
 
 #ifdef SRV_RECORD
 
+static void osip_srv_record_sort(struct osip_srv_record *rec, int n){
+  int i;
+  int permuts;
+  struct osip_srv_entry swap;
+  do{
+    struct osip_srv_entry *s1,*s2;
+    permuts=0;
+    for(i=0;i<n-1;++i){
+      s1=&rec->srventry[i];
+      s2=&rec->srventry[i+1];
+      if (s1->priority>s2->priority){
+        memcpy(&swap,s1,sizeof(swap));
+        memcpy(s1,s2,sizeof(swap));
+        memcpy(s2,&swap,sizeof(swap));
+        permuts++;
+      }
+    }
+  }while(permuts!=0);
+}
+
+
 int
 _eXosip_srv_lookup (osip_transaction_t * tr, osip_message_t * sip,
                     struct osip_srv_record *record)
@@ -1287,7 +1308,7 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
 
   if (n == 0)
     return OSIP_UNKNOWN_HOST;
-
+  osip_srv_record_sort(record,n);
   snprintf (record->name, sizeof (record->name), "%s", domain);
   return OSIP_SUCCESS;
 }
@@ -1726,10 +1747,11 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 
   if (answerno == 0)
     return OSIP_UNKNOWN_HOST;
-
+  osip_srv_record_sort(record,answerno);
   snprintf (record->name, sizeof (record->name), "%s", domain);
   return OSIP_SUCCESS;
 }
+
 
 #else
 
