@@ -1255,8 +1255,9 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
     return OSIP_BADPARAMETER;
   snprintf (tr, 100, protocol);
   osip_tolower (tr);
-
-  n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
+  if (eXosip.use_naptr)
+     n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
+  else n = -1;
   if (n != OSIP_SUCCESS)
     {
       snprintf (zone, sizeof (zone) - 1, "_sip._%s.%s", tr, domain);
@@ -1581,8 +1582,9 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
     return OSIP_BADPARAMETER;
   snprintf (tr, 100, protocol);
   osip_tolower (tr);
-
-  n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
+  if (eXosip.use_naptr)
+    n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
+  else n=-1;
   if (n != OSIP_SUCCESS)
     {
       snprintf (zone, sizeof (zone) - 1, "_sip._%s.%s", tr, domain);

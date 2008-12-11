@@ -752,7 +752,7 @@ eXosip_init (void)
   osip_fifo_init (eXosip.j_events);
 
   eXosip.use_rport = 1;
-
+  eXosip.use_naptr = 1;
   eXosip.keep_alive = 17000;
 
   eXtl_udp.tl_init ();
@@ -1049,7 +1049,10 @@ eXosip_set_option (eXosip_option opt, const void *value)
                      eXosip.event_package));
         break;
 #endif
-
+      case EXOSIP_OPT_SRV_WITH_NAPTR:
+        val = *((int *) value);
+        eXosip.use_naptr=val;
+        break;
       default:
         return OSIP_BADPARAMETER;
     }

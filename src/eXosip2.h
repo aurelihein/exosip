@@ -452,6 +452,7 @@ extern "C"
     int dontsend_101;
 #endif
     int use_rport;
+    int use_naptr;
     char ipv4_for_gateway[256];
     char ipv6_for_gateway[256];
 #ifndef MINISIZE
