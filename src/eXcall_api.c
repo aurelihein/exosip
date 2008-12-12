@@ -266,8 +266,6 @@ eXosip_call_build_initial_invite (osip_message_t ** invite,
   if (subject_header==NULL && subject != NULL)
     osip_message_set_subject (*invite, subject);
 
-  /* after this delay, we should send a CANCEL */
-  osip_message_set_expires (*invite, "120");
   return OSIP_SUCCESS;
 }
 
