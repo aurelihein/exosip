@@ -1054,7 +1054,7 @@ _eXosip_update_expires_according_to_contact (eXosip_reg_t * jreg,
       if (co_register->url != NULL)
         osip_uri_uparam_get_byname (co_register->url, "line", &line_param);
 
-      if (line_param != NULL)
+      if (line_param != NULL && line_param->gvalue != NULL)
         {
           if (osip_strcasecmp (jreg->r_line, line_param->gvalue) == 0)
             {
