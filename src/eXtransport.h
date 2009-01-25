@@ -31,6 +31,10 @@
 #include <openssl/opensslv.h>
 #endif
 
+#if defined (HAVE_SYS_SELECT_H)
+#  include <sys/select.h>
+#endif
+
 struct eXtl_protocol
 {
   int enabled;
