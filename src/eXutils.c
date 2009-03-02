@@ -1098,10 +1098,10 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
 
   char tr[100];
 
+  memset (srv_record, 0, max_length);
   if (domain == NULL || protocol == NULL)
     return OSIP_BADPARAMETER;
 
-  memset (srv_record, 0, max_length);
   if (strlen (domain) + strlen (protocol) > 1000)
     return OSIP_BADPARAMETER;
 
@@ -1196,6 +1196,7 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
           && osip_strncasecmp (anaptr.service, "SIP+D2U", 8) == 0)
         {
           snprintf (srv_record, max_length, "%s", anaptr.replacement);
+          DnsRecordListFree (answer, DnsFreeRecordList);
           return OSIP_SUCCESS;
       } else if (osip_strncasecmp (tr, "tcp", 4) == 0
                  && osip_strncasecmp (anaptr.service, "SIP+D2T", 8) == 0)
@@ -1231,7 +1232,10 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
   if (n == 0)
     return OSIP_UNKNOWN_HOST;
 
-  return OSIP_UNDEFINED_ERROR;
+  OSIP_TRACE (osip_trace
+              (__FILE__, __LINE__, OSIP_INFO2, NULL,
+              "protocol: %s is not supported by domain %s\n", protocol, domain));
+  return OSIP_SUCCESS;
 }
 
 
@@ -1258,6 +1262,12 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   if (eXosip.use_naptr)
      n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
   else n = -1;
+  if (n==OSIP_SUCCESS && zone=='\0')
+    {
+      /* protocol is not listed in NAPTR answer: not supported */
+      return OSIP_UNKNOWN_HOST;
+    }
+
   if (n != OSIP_SUCCESS)
     {
       snprintf (zone, sizeof (zone) - 1, "_sip._%s.%s", tr, domain);
@@ -1303,6 +1313,8 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
                    srventry->weight, srventry->rweight));
 
       n++;
+      if (n == 10)
+        break;
     }
 
   DnsRecordListFree (answer, DnsFreeRecordList);
@@ -1551,8 +1563,10 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
   if (answerno == 0)
     return OSIP_UNKNOWN_HOST;
 
-
-  return OSIP_UNDEFINED_ERROR;
+  OSIP_TRACE (osip_trace
+              (__FILE__, __LINE__, OSIP_INFO2, NULL,
+              "protocol: %s is not supported by domain %s\n", protocol, domain));
+  return OSIP_SUCCESS;
 }
 
 int
@@ -1585,6 +1599,11 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   if (eXosip.use_naptr)
     n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
   else n=-1;
+  if (n==OSIP_SUCCESS && zone=='\0')
+    {
+      /* protocol is not listed in NAPTR answer: not supported */
+      return OSIP_UNKNOWN_HOST;
+    }
   if (n != OSIP_SUCCESS)
     {
       snprintf (zone, sizeof (zone) - 1, "_sip._%s.%s", tr, domain);
@@ -1745,6 +1764,8 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
                    srventry->weight, srventry->rweight));
 
       answerno++;
+      if (answerno == 10)
+        break;
     }
 
   if (answerno == 0)
