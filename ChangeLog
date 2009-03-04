@@ -1,6 +1,9 @@
 eXosip2 (3.3.0)
 	* Fix when 200ok include a contact with an empty line parameter.
 	* Fix for replaces header longuer than 256 char.
+	* Fix SRV record with more than 10 answers.
+	* Sort SRV record.
+	* Option to disable NAPTR requests.
 	
 eXosip2 (3.2.0)
 	* Improve TLS support and add an API for ssl information & files.

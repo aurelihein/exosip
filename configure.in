@@ -7,12 +7,12 @@ dnl require at least autoconf v 2.00
 dnl AC_COPYRIGHT (COPYRIGHT-NOTICE)
 
 AC_MSG_NOTICE([eXosip2                                The Extended Open SIP library.])
-AC_MSG_NOTICE([Copyright (C) 2002,2003,2004,2005,2006,2007 Aymeric MOIZARD - <jack@atosc.org>])
+AC_MSG_NOTICE([Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009 Aymeric MOIZARD - <jack@atosc.org>])
 
 dnl *********************************************************************
 dnl Source packaging numbers
 EXOSIP_MAJOR_VERSION=3
-EXOSIP_MINOR_VERSION=2
+EXOSIP_MINOR_VERSION=3
 EXOSIP_MICRO_VERSION=0
 
 SONAME_MAJOR_VERSION=6
