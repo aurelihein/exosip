@@ -486,7 +486,7 @@ tcp_tl_read_message (fd_set * osip_fdset)
 				  continue;
 			  }
 #else
-		  } else if (i > 5)
+		  if (i > 5)
             {
               osip_strncpy (buf + i, "\0", 1);
               OSIP_TRACE (osip_trace
