@@ -41,6 +41,8 @@ struct socket_tab
   int socket;
   char remote_ip[65];
   int remote_port;
+  char *previous_content;
+  int previous_content_len;
 };
 
 #ifndef EXOSIP_MAX_SOCKETS
@@ -347,7 +349,144 @@ tcp_tl_read_message (fd_set * osip_fdset)
             return OSIP_NOMEM;
 
           i = recv (tcp_socket_tab[pos].socket, buf, SIP_MESSAGE_MAX_LENGTH, 0);
-          if (i > 5)
+
+#ifdef TEST_CODE_FOR_FRAGMENTATION
+		  if (i > 0)
+		  {
+			  char *beg_sip;
+			  char *end_sip;
+			  char *cl_header;
+			  int cl_size;
+              osip_strncpy (buf + i, "\0", 1);
+			  if (tcp_socket_tab[pos].previous_content!=NULL)
+			  {
+				  /* concat old data with new data */
+				  tcp_socket_tab[pos].previous_content = (char *)osip_realloc(tcp_socket_tab[pos].previous_content,
+					  tcp_socket_tab[pos].previous_content_len+i+1);
+				  if (tcp_socket_tab[pos].previous_content==NULL)
+				  {
+					  OSIP_TRACE (osip_trace
+						  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						  "Reallocation error: (len=%i)", tcp_socket_tab[pos].previous_content_len+i+1));
+					  tcp_socket_tab[pos].previous_content_len = 0;
+					  continue; /* give up: realloc issue */
+				  }
+				  osip_strncpy(tcp_socket_tab[pos].previous_content+tcp_socket_tab[pos].previous_content_len,
+					  buf,
+					  i);
+				  tcp_socket_tab[pos].previous_content_len = tcp_socket_tab[pos].previous_content_len+i;
+			  }
+			  if (tcp_socket_tab[pos].previous_content==NULL)
+			  {
+				  tcp_socket_tab[pos].previous_content = (char *)osip_malloc(i+1);
+				  osip_strncpy(tcp_socket_tab[pos].previous_content,
+					  buf,
+					  i);
+				  tcp_socket_tab[pos].previous_content_len = i;
+			  }
+
+			  end_sip = strstr(tcp_socket_tab[pos].previous_content, "\r\n\r\n");
+			  /* end_sip might be end of SIP headers */
+			  while (end_sip!=NULL)
+			  {
+				  /* a content-legnth MUST exist before the CRLFCRLF */
+				  cl_header = osip_strcasestr(tcp_socket_tab[pos].previous_content, "\ncontent-length ");
+				  if (cl_header==NULL || cl_header>end_sip)
+					  cl_header = osip_strcasestr(tcp_socket_tab[pos].previous_content, "\ncontent-length:");
+				  if (cl_header==NULL || cl_header>end_sip)
+					  cl_header = osip_strcasestr(tcp_socket_tab[pos].previous_content, "\r\nl ");
+				  if (cl_header==NULL || cl_header>end_sip)
+					  cl_header = osip_strcasestr(tcp_socket_tab[pos].previous_content, "\r\nl:");
+				  
+				  if (cl_header!=NULL && cl_header<end_sip)
+					  cl_header = strchr(cl_header, ':');
+				  /* broken data */
+				  if (cl_header==NULL || cl_header>=end_sip)
+				  {
+					  /* remove data up to crlfcrlf and restart */
+					  memmove(tcp_socket_tab[pos].previous_content,
+						  end_sip,
+						  tcp_socket_tab[pos].previous_content_len-(end_sip+4-tcp_socket_tab[pos].previous_content)+1);
+
+					  tcp_socket_tab[pos].previous_content_len = tcp_socket_tab[pos].previous_content_len
+						  - (end_sip+4-tcp_socket_tab[pos].previous_content);
+
+					  tcp_socket_tab[pos].previous_content = (char *)osip_realloc(tcp_socket_tab[pos].previous_content,
+						  tcp_socket_tab[pos].previous_content_len+1);
+					  if (tcp_socket_tab[pos].previous_content==NULL)
+					  {
+						  OSIP_TRACE (osip_trace
+							  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+							  "Reallocation error: (len=%i)", tcp_socket_tab[pos].previous_content_len+1));
+						  tcp_socket_tab[pos].previous_content_len = 0;
+						  break;
+					  }
+					  end_sip = strstr(tcp_socket_tab[pos].previous_content, "\r\n\r\n");
+					  continue; /* and restart from new CRLFCRLF */
+				  }
+
+				  /* header content-length was found before CRLFCRLF -> all headers are available */
+				  cl_header++; /* after ':' char */
+				  cl_size = osip_atoi(cl_header);
+
+				  if (cl_size == 0
+					  || end_sip+4+cl_size <= tcp_socket_tab[pos].previous_content + tcp_socket_tab[pos].previous_content_len)
+				  {
+					  /* we have beg_sip & end_sip */
+					  _eXosip_handle_incoming_message (tcp_socket_tab[pos].previous_content,
+						  end_sip+4+cl_size - tcp_socket_tab[pos].previous_content,
+													   tcp_socket_tab[pos].socket,
+													   tcp_socket_tab[pos].remote_ip,
+													   tcp_socket_tab[pos].remote_port);
+					  if (tcp_socket_tab[pos].previous_content_len-(end_sip+4+cl_size-tcp_socket_tab[pos].previous_content)==0)
+					  {
+						  end_sip=NULL;
+						  OSIP_TRACE (osip_trace
+							  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+							  "All TCP data consumed"));
+						  tcp_socket_tab[pos].previous_content_len = 0;
+						  osip_free(tcp_socket_tab[pos].previous_content);
+						  tcp_socket_tab[pos].previous_content=NULL;
+						  continue;
+					  }
+
+					  /* any more content? */
+					  memmove(tcp_socket_tab[pos].previous_content,
+						  end_sip+4+cl_size,
+						  tcp_socket_tab[pos].previous_content_len-(end_sip+4+cl_size-tcp_socket_tab[pos].previous_content)+1);
+
+					  tcp_socket_tab[pos].previous_content_len = tcp_socket_tab[pos].previous_content_len
+						  - (end_sip+4+cl_size-tcp_socket_tab[pos].previous_content);
+
+					  tcp_socket_tab[pos].previous_content = (char *)osip_realloc(tcp_socket_tab[pos].previous_content,
+						  tcp_socket_tab[pos].previous_content_len+1);
+					  if (tcp_socket_tab[pos].previous_content==NULL)
+					  {
+						  OSIP_TRACE (osip_trace
+							  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+							  "Reallocation error: (len=%i)", tcp_socket_tab[pos].previous_content_len+1));
+						  tcp_socket_tab[pos].previous_content_len = 0;
+						  break;
+					  }
+					  end_sip = strstr(tcp_socket_tab[pos].previous_content, "\r\n\r\n");
+					  continue; /* and restart from new CRLFCRLF */
+				  }
+
+				  /* uncomplete SIP message */
+				  end_sip=NULL;
+				  OSIP_TRACE (osip_trace
+					  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+					  "Uncomplete TCP data (%s)", buf));
+				  continue;
+			  }
+
+			  if (tcp_socket_tab[pos].previous_content_len == 0)
+			  {
+				  /* all data consumed are reallocation error ? */
+				  continue;
+			  }
+#else
+		  } else if (i > 5)
             {
               osip_strncpy (buf + i, "\0", 1);
               OSIP_TRACE (osip_trace
@@ -357,6 +496,7 @@ tcp_tl_read_message (fd_set * osip_fdset)
                                                tcp_socket_tab[pos].socket,
                                                tcp_socket_tab[pos].remote_ip,
                                                tcp_socket_tab[pos].remote_port);
+#endif
           } else if (i < 0)
             {
               OSIP_TRACE (osip_trace
