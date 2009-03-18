@@ -1208,7 +1208,6 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
   osip_contact_t *co;
   int pos;
   int i;
-  int protocol = IPPROTO_UDP;
 
   if (jc == NULL)
     return OSIP_BADPARAMETER;
@@ -1251,44 +1250,21 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
                                               pos);
           if (co != NULL && co->url != NULL)
             {
-              /* check tranport? Only allow UDP, right now */
+              /* check tranport? */
               osip_uri_param_t *u_param;
               int pos2;
-
+			  
               u_param = NULL;
-              pos2 = 0;
-              while (!osip_list_eol (&co->url->url_params, pos2))
-                {
-                  u_param =
-                    (osip_uri_param_t *) osip_list_get (&co->url->url_params,
-                                                        pos2);
-                  if (u_param == NULL || u_param->gname == NULL
-                      || u_param->gvalue == NULL)
-                    {
-                      u_param = NULL;
-                      /* skip */
-                  } else if (0 == osip_strcasecmp (u_param->gname, "transport"))
-                    {
-                      if (0 == osip_strcasecmp (u_param->gvalue, "udp"))
-                        {
-                          u_param = NULL;
-                          protocol = IPPROTO_UDP;
-                          break;        /* ok */
-                      } else if (0 == osip_strcasecmp (u_param->gvalue, "tcp"))
-                        {
-                          protocol = IPPROTO_TCP;
-                          u_param = NULL;
-                        }
-                      break;
-                    }
-                  pos2++;
-                }
-
-              if (u_param == NULL || u_param->gname == NULL
-                  || u_param->gvalue == NULL)
-                {
-                  break;        /* default is udp! */
-                }
+			  osip_uri_uparam_get_byname(co->url, "transport", &u_param);
+              if (u_param == NULL || u_param->gname == NULL || u_param->gvalue == NULL)
+				  {
+					  if (0 == osip_strcasecmp (eXosip.transport, "udp"))
+						  break; /* no transport param in uri & we want udp */
+				  }
+			  else if (0 == osip_strcasecmp (u_param->gvalue, eXosip.transport))
+				  {
+					  break; /* transport param in uri & match our protocol */
+				  }
             }
           pos++;
           co = NULL;
