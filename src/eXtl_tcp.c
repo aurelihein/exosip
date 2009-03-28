@@ -354,7 +354,6 @@ tcp_tl_read_message (fd_set * osip_fdset)
 #ifdef TEST_CODE_FOR_FRAGMENTATION
 		  if (i > 0)
 		  {
-			  char *beg_sip;
 			  char *end_sip;
 			  char *cl_header;
 			  int cl_size;
