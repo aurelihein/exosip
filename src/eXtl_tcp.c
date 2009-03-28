@@ -350,6 +350,7 @@ tcp_tl_read_message (fd_set * osip_fdset)
 
           i = recv (tcp_socket_tab[pos].socket, buf, SIP_MESSAGE_MAX_LENGTH, 0);
 
+#define TEST_CODE_FOR_FRAGMENTATION
 #ifdef TEST_CODE_FOR_FRAGMENTATION
 		  if (i > 0)
 		  {
