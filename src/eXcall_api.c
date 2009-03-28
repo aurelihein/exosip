@@ -1252,7 +1252,6 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
             {
               /* check tranport? */
               osip_uri_param_t *u_param;
-              int pos2;
 			  
               u_param = NULL;
 			  osip_uri_uparam_get_byname(co->url, "transport", &u_param);
