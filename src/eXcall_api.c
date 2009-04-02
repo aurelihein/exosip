@@ -1337,9 +1337,9 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
     }
   /* remove all previous authentication headers */
   osip_list_special_free (&msg->authorizations,
-                          (void *(*)(void *)) &osip_authorization_free);
+                          (void (*)(void *)) &osip_authorization_free);
   osip_list_special_free (&msg->proxy_authorizations,
-                          (void *(*)(void *)) &osip_proxy_authorization_free);
+                          (void (*)(void *)) &osip_proxy_authorization_free);
 
   /* increment cseq */
   cseq = atoi (msg->cseq->number);

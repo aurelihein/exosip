@@ -189,9 +189,9 @@ _eXosip_retry_with_auth (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
     }
 
   osip_list_special_free (&msg->authorizations,
-                          (void *(*)(void *)) &osip_authorization_free);
+                          (void (*)(void *)) &osip_authorization_free);
   osip_list_special_free (&msg->proxy_authorizations,
-                          (void *(*)(void *)) &osip_proxy_authorization_free);
+                          (void (*)(void *)) &osip_proxy_authorization_free);
 
   if (out_tr != NULL && out_tr->last_response != NULL
       && (out_tr->last_response->status_code == 401
@@ -326,9 +326,9 @@ _eXosip_publish_refresh (eXosip_dialog_t * jd, osip_transaction_t ** ptr,
     }
 
   osip_list_special_free (&msg->authorizations,
-                          (void *(*)(void *)) &osip_authorization_free);
+                          (void (*)(void *)) &osip_authorization_free);
   osip_list_special_free (&msg->proxy_authorizations,
-                          (void *(*)(void *)) &osip_proxy_authorization_free);
+                          (void (*)(void *)) &osip_proxy_authorization_free);
 
   if (out_tr != NULL && out_tr->last_response != NULL
       && (out_tr->last_response->status_code == 401

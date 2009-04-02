@@ -110,9 +110,9 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
 
 
             osip_list_special_free (&reg->authorizations,
-                                    (void *(*)(void *)) &osip_authorization_free);
+                                    (void (*)(void *)) &osip_authorization_free);
             osip_list_special_free (&reg->proxy_authorizations,
-                                    (void *(*)(void *))
+                                    (void (*)(void *))
                                     &osip_proxy_authorization_free);
 
 
