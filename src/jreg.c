@@ -40,13 +40,13 @@ int
 eXosip_reg_init (eXosip_reg_t ** jr, const char *from, const char *proxy,
                  const char *contact)
 {
-  static int r_id;
+  static int r_id=0;
 
   *jr = (eXosip_reg_t *) osip_malloc (sizeof (eXosip_reg_t));
   if (*jr == NULL)
     return OSIP_NOMEM;
 
-  if (r_id > 1000000)           /* keep it non-negative */
+  if (r_id == INT_MAX)           /* keep it non-negative */
     r_id = 0;
 
   memset (*jr, '\0', sizeof (eXosip_reg_t));

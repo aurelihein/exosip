@@ -99,10 +99,10 @@ _eXosip_pub_find_by_tid (eXosip_pub_t ** pjp, int tid)
 int
 _eXosip_pub_init (eXosip_pub_t ** pub, const char *aor, const char *exp)
 {
-  static int p_id;
+  static int p_id=0;
   eXosip_pub_t *jpub;
 
-  if (p_id > 1000000)           /* keep it non-negative */
+  if (p_id == INT_MAX)           /* keep it non-negative */
     p_id = 0;
 
   *pub = NULL;
