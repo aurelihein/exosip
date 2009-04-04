@@ -76,7 +76,7 @@ extern "C"
  * @param cid            id of the call.
  * @return               Application context reference
  */
-  void* eXosip_call_get_ref (int cid);
+  void* eXosip_call_get_reference (int cid);
 
 /**
  * Build a default INVITE message for a new call.
