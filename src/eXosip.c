@@ -1141,7 +1141,7 @@ eXosip_update ()
   eXosip_dialog_t *jd;
   time_t now;
 
-  if (static_id == INT_MAX)
+  if (static_id == 32767)
     static_id = 1;              /* loop */
 
   now = time (NULL);
