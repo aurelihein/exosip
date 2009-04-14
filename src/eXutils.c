@@ -1250,7 +1250,8 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
 
   if (domain == NULL || protocol == NULL)
     return OSIP_BADPARAMETER;
-
+  
+  memset (zone, 0, sizeof (zone));
   memset (record, 0, sizeof (struct osip_srv_record));
   if (strlen (domain) + strlen (protocol) > 1000)
     return OSIP_BADPARAMETER;
@@ -1262,7 +1263,7 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   if (eXosip.use_naptr)
      n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
   else n = -1;
-  if (n==OSIP_SUCCESS && zone=='\0')
+  if (n==OSIP_SUCCESS && zone[0]=='\0')
     {
       /* protocol is not listed in NAPTR answer: not supported */
       return OSIP_UNKNOWN_HOST;
@@ -1588,6 +1589,7 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   if (domain == NULL || protocol == NULL)
     return OSIP_BADPARAMETER;
 
+  memset (zone, 0, sizeof (zone));
   memset (record, 0, sizeof (struct osip_srv_record));
   if (strlen (domain) + strlen (protocol) > 1000)
     return OSIP_BADPARAMETER;
@@ -1599,7 +1601,7 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   if (eXosip.use_naptr)
     n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
   else n=-1;
-  if (n==OSIP_SUCCESS && zone=='\0')
+  if (n==OSIP_SUCCESS && zone[0]=='\0')
     {
       /* protocol is not listed in NAPTR answer: not supported */
       return OSIP_UNKNOWN_HOST;
