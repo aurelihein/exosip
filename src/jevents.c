@@ -496,7 +496,7 @@ eXosip_event_wait (int tv_s, int tv_ms)
     if (FD_ISSET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset))
       {
         char buf[500];
-        int c = jpipe_read (eXosip.j_socketctl_event, buf, 499);
+        jpipe_read (eXosip.j_socketctl_event, buf, 499);
       }
 
     eXosip_lock ();
@@ -526,7 +526,7 @@ eXosip_event_wait (int tv_s, int tv_ms)
     if (FD_ISSET (jpipe_get_read_descr (eXosip.j_socketctl_event), &fdset))
       {
         char buf[500];
-        int c = jpipe_read (eXosip.j_socketctl_event, buf, 499);
+        jpipe_read (eXosip.j_socketctl_event, buf, 499);
       }
 
     je = (eXosip_event_t *) osip_fifo_tryget (eXosip.j_events);
