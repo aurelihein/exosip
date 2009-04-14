@@ -1,3 +1,10 @@
+eXosip2 (3.4.0)
+	* remove 481 auto answer for unsolicited NOTIFY.
+	* fix static id range.
+	* initial code for TCP fragmentation.
+	* osip_list prototypes and warnings fix
+	* fix transport matching for redirection using other transport than udp
+	
 eXosip2 (3.3.0)
 	* Fix when 200ok include a contact with an empty line parameter.
 	* Fix for replaces header longuer than 256 char.

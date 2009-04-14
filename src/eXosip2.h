@@ -132,14 +132,18 @@ extern "C"
 #else
 #define __eXosip_wakeup()  ;
 #endif
-
+	
+#ifndef DEFINE_SOCKADDR_STORAGE
+#define __eXosip_sockaddr sockaddr_storage 
+#else
   struct __eXosip_sockaddr
   {
     u_char ss_len;
     u_char ss_family;
     u_char padding[128 - 2];
   };
-
+#endif
+	
   typedef struct eXosip_dialog_t eXosip_dialog_t;
 
   struct eXosip_dialog_t
