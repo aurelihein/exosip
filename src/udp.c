@@ -1286,8 +1286,6 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
         }
 
       osip_list_add (&eXosip.j_transactions, transaction, 0);
-      eXosip_send_default_answer (NULL, transaction, evt, 481, NULL, NULL,
-                                  __LINE__);
       return;
     }
 
