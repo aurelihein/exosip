@@ -1248,11 +1248,15 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   int n;
   char tr[100];
 
+  memset (zone, 0, sizeof (zone));
+  memset (record, 0, sizeof (struct osip_srv_record));
+
   if (domain == NULL || protocol == NULL)
     return OSIP_BADPARAMETER;
   
-  memset (zone, 0, sizeof (zone));
-  memset (record, 0, sizeof (struct osip_srv_record));
+  if (eXosip.dns_capabilities<=0)
+    return OSIP_UNKNOWN_HOST; /* disabled */
+
   if (strlen (domain) + strlen (protocol) > 1000)
     return OSIP_BADPARAMETER;
 
@@ -1260,9 +1264,10 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
     return OSIP_BADPARAMETER;
   snprintf (tr, 100, protocol);
   osip_tolower (tr);
-  if (eXosip.use_naptr)
+  if (eXosip.dns_capabilities>=2)
      n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
-  else n = -1;
+  else
+	 n = -1; /* avoid NAPTR */
   if (n==OSIP_SUCCESS && zone[0]=='\0')
     {
       /* protocol is not listed in NAPTR answer: not supported */
@@ -1271,8 +1276,14 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
 
   if (n != OSIP_SUCCESS)
     {
-      snprintf (zone, sizeof (zone) - 1, "_sip._%s.%s", tr, domain);
-      OSIP_TRACE (osip_trace
+		if (osip_strcasecmp(tr, "TLS")==0)
+			snprintf (zone, sizeof (zone) - 1, "_sips._tcp.%s", domain);
+		else if (osip_strcasecmp(tr, "DTLS")==0)
+			snprintf (zone, sizeof (zone) - 1, "_sips._udp.%s", domain);
+		else
+			snprintf (zone, sizeof (zone) - 1, "_sip._%s.%s", tr, domain);
+
+		OSIP_TRACE (osip_trace
                   (__FILE__, __LINE__, OSIP_INFO2, NULL,
                    "Using locally generated SRV record %s\n", zone));
     }
@@ -1586,11 +1597,15 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
   int answerno;
   char tr[100];
 
+  memset (zone, 0, sizeof (zone));
+  memset (record, 0, sizeof (struct osip_srv_record));
+
   if (domain == NULL || protocol == NULL)
     return OSIP_BADPARAMETER;
 
-  memset (zone, 0, sizeof (zone));
-  memset (record, 0, sizeof (struct osip_srv_record));
+  if (eXosip.dns_capabilities<=0)
+    return OSIP_UNKNOWN_HOST; /* disabled */
+
   if (strlen (domain) + strlen (protocol) > 1000)
     return OSIP_BADPARAMETER;
 
@@ -1598,9 +1613,10 @@ eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
     return OSIP_BADPARAMETER;
   snprintf (tr, 100, protocol);
   osip_tolower (tr);
-  if (eXosip.use_naptr)
-    n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
-  else n=-1;
+  if (eXosip.dns_capabilities>=2)
+	  n = eXosip_get_naptr (domain, protocol, zone, sizeof (zone) - 1);
+  else
+	  n = -1; /* avoid NAPTR */
   if (n==OSIP_SUCCESS && zone[0]=='\0')
     {
       /* protocol is not listed in NAPTR answer: not supported */

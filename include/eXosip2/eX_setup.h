@@ -85,8 +85,11 @@ extern "C"
     EXOSIP_OPT_EVENT_PACKAGE = 10,
     EXOSIP_OPT_SET_IPV6_FOR_GATEWAY = 11,
     EXOSIP_OPT_ADD_ACCOUNT_INFO = 12,
-    EXOSIP_OPT_SRV_WITH_NAPTR = 13
+    EXOSIP_OPT_DNS_CAPABILITIES = 13
   } eXosip_option;
+
+  //obsolete! please remove
+#define EXOSIP_OPT_SRV_WITH_NAPTR EXOSIP_OPT_DNS_CAPABILITIES
 
   struct eXosip_dns_cache
   {
