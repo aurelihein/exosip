@@ -88,7 +88,7 @@ extern "C"
     EXOSIP_OPT_DNS_CAPABILITIES = 13
   } eXosip_option;
 
-  //obsolete! please remove
+  /* obsolete: to be removed */
 #define EXOSIP_OPT_SRV_WITH_NAPTR EXOSIP_OPT_DNS_CAPABILITIES
 
   struct eXosip_dns_cache
