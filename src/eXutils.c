@@ -1162,7 +1162,8 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
 				  ovi.dwMajorVersion, ovi.dwMinorVersion, ovi.dwBuildNumber));
 	  if (ovi.dwMajorVersion > 5) {
 #if (_WIN32_WINNT >= 0x0600)
-		  /* Compile only on Vista with SDK 6.1? */
+		  /* RUN only on Vista? */
+		  /* compile starting from SDK 6.0A? even on XP... */
 		  anaptr.order = tmp->Data.NAPTR.wOrder;
 		  anaptr.pref = tmp->Data.NAPTR.wPreference;
 		  strncpy (anaptr.flag, tmp->Data.NAPTR.pFlags, sizeof(anaptr.flag)-1);
