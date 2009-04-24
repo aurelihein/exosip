@@ -71,22 +71,19 @@ extern "C"
  */
   int eXosip_execute (void);
 
-  typedef enum
-  {
-    EXOSIP_OPT_UDP_KEEP_ALIVE = 1,
-    EXOSIP_OPT_UDP_LEARN_PORT = 2,
-    EXOSIP_OPT_SET_HTTP_TUNNEL_PORT = 3,
-    EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY = 4,
-    EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY = 5,     /* used for http tunnel ONLY */
-    EXOSIP_OPT_DONT_SEND_101 = 6,
-    EXOSIP_OPT_USE_RPORT = 7,
-    EXOSIP_OPT_SET_IPV4_FOR_GATEWAY = 8,
-    EXOSIP_OPT_ADD_DNS_CACHE = 9,
-    EXOSIP_OPT_EVENT_PACKAGE = 10,
-    EXOSIP_OPT_SET_IPV6_FOR_GATEWAY = 11,
-    EXOSIP_OPT_ADD_ACCOUNT_INFO = 12,
-    EXOSIP_OPT_DNS_CAPABILITIES = 13
-  } eXosip_option;
+#define EXOSIP_OPT_UDP_KEEP_ALIVE 1
+#define EXOSIP_OPT_UDP_LEARN_PORT 2
+#define EXOSIP_OPT_SET_HTTP_TUNNEL_PORT 3
+#define EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY 4
+#define EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY 5     /* used for http tunnel ONLY */
+#define EXOSIP_OPT_DONT_SEND_101 6
+#define EXOSIP_OPT_USE_RPORT 7
+#define EXOSIP_OPT_SET_IPV4_FOR_GATEWAY 8
+#define EXOSIP_OPT_ADD_DNS_CACHE 9
+#define EXOSIP_OPT_EVENT_PACKAGE 10
+#define EXOSIP_OPT_SET_IPV6_FOR_GATEWAY 11
+#define EXOSIP_OPT_ADD_ACCOUNT_INFO 12
+#define EXOSIP_OPT_DNS_CAPABILITIES 13
 
   /* obsolete: to be removed */
 #define EXOSIP_OPT_SRV_WITH_NAPTR EXOSIP_OPT_DNS_CAPABILITIES
@@ -121,7 +118,7 @@ extern "C"
  * @param value   value for options.
  * 
  */
-  int eXosip_set_option (eXosip_option opt, const void *value);
+  int eXosip_set_option (int opt, const void *value);
 
 #ifdef OSIP_MT
 

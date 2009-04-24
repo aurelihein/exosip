@@ -840,7 +840,7 @@ eXosip_execute (void)
 }
 
 int
-eXosip_set_option (eXosip_option opt, const void *value)
+eXosip_set_option (int opt, const void *value)
 {
   int val;
   char *tmp;
