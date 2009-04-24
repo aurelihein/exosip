@@ -1160,7 +1160,7 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
 				  (__FILE__, __LINE__, OSIP_INFO2, NULL,
 				  "check OS support for NAPTR: %i %i %i\n",
 				  ovi.dwMajorVersion, ovi.dwMinorVersion, ovi.dwBuildNumber));
-	  if (ovi.dwMajorVersion >= 5) {
+	  if (ovi.dwMajorVersion > 5) {
 #if (_WIN32_WINNT >= 0x0600)
 		  /* Compile only on Vista with SDK 6.1? */
 		  anaptr.order = tmp->Data.NAPTR.wOrder;
