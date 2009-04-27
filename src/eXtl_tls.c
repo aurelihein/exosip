@@ -1517,6 +1517,10 @@ tls_tl_masquerade_contact (const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (tls_firewall_ip, '\0', sizeof (tls_firewall_ip));
+      memset (tls_firewall_port, '\0', sizeof (tls_firewall_port));
+	  if (eXtl_tls.proto_port>0)
+		  snprintf (tls_firewall_port, sizeof (tls_firewall_port), "%i",
+					eXtl_tls.proto_port);
       return OSIP_SUCCESS;
     }
   snprintf (tls_firewall_ip, sizeof (tls_firewall_ip), "%s", public_address);

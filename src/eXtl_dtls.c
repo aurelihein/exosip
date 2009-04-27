@@ -1067,6 +1067,10 @@ dtls_tl_masquerade_contact (const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (dtls_firewall_ip, '\0', sizeof (dtls_firewall_ip));
+      memset (dtls_firewall_port, '\0', sizeof (dtls_firewall_port));
+	  if (eXtl_dtls.proto_port>0)
+		  snprintf (dtls_firewall_port, sizeof (dtls_firewall_port), "%i",
+					eXtl_dtls.proto_port);
       return OSIP_SUCCESS;
     }
   snprintf (dtls_firewall_ip, sizeof (dtls_firewall_ip), "%s", public_address);

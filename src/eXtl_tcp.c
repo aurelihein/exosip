@@ -805,6 +805,10 @@ tcp_tl_masquerade_contact (const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (tcp_firewall_ip, '\0', sizeof (tcp_firewall_ip));
+      memset (tcp_firewall_port, '\0', sizeof (tcp_firewall_port));
+	  if (eXtl_tcp.proto_port>0)
+		  snprintf (tcp_firewall_port, sizeof (tcp_firewall_port), "%i",
+					eXtl_tcp.proto_port);
       return OSIP_SUCCESS;
     }
   snprintf (tcp_firewall_ip, sizeof (tcp_firewall_ip), "%s", public_address);

@@ -670,6 +670,10 @@ udp_tl_masquerade_contact (const char *public_address, int port)
   if (public_address == NULL || public_address[0] == '\0')
     {
       memset (udp_firewall_ip, '\0', sizeof (udp_firewall_ip));
+      memset (udp_firewall_port, '\0', sizeof (udp_firewall_port));
+	  if (eXtl_udp.proto_port>0)
+		  snprintf (udp_firewall_port, sizeof (udp_firewall_port), "%i",
+					eXtl_udp.proto_port);
       return OSIP_SUCCESS;
     }
   snprintf (udp_firewall_ip, sizeof (udp_firewall_ip), "%s", public_address);
