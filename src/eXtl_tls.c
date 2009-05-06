@@ -765,7 +765,7 @@ tls_tl_read_message (fd_set * osip_fdset)
                                   "Error accepting TLS socket\n"));
       } else
         {
-          if (ssl_ctx != NULL)
+          if (ssl_ctx == NULL)
             {
               OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
                                       "TLS connection rejected\n"));
