@@ -266,15 +266,15 @@ eXosip_set_tls_ctx (eXosip_tls_ctx_t * ctx)
   if (server->cert[0] != '\0')
     {
       snprintf (ownServer->cert, sizeof (ownServer->cert), "%s", server->cert);
-      snprintf (ownServer->cert, sizeof (ownServer->cert), "%s", server->priv_key);
-      snprintf (ownServer->cert, sizeof (ownServer->cert), "%s",
+      snprintf (ownServer->priv_key, sizeof (ownServer->priv_key), "%s", server->priv_key);
+      snprintf (ownServer->priv_key_pw, sizeof (ownServer->priv_key_pw), "%s",
                 server->priv_key_pw);
   } else if (client->cert[0] != '\0')
     {
       /* no, has no certificates -> copy the chars of the client */
       snprintf (ownServer->cert, sizeof (ownServer->cert), "%s", client->cert);
-      snprintf (ownServer->cert, sizeof (ownServer->cert), "%s", client->priv_key);
-      snprintf (ownServer->cert, sizeof (ownServer->cert), "%s",
+      snprintf (ownServer->priv_key, sizeof (ownServer->priv_key), "%s", client->priv_key);
+      snprintf (ownServer->priv_key_pw, sizeof (ownServer->priv_key_pw), "%s",
                 client->priv_key_pw);
     }
 
