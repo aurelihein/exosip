@@ -1128,9 +1128,7 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
       char *buf = (char *) &tmp->Data;
 
 	  int len;
-#if (_WIN32_WINNT >= 0x0600)
-	  OSVERSIONINFOEXA ovi;
-#endif
+	  OSVERSIONINFOEX ovi;
 
       typedef struct
       {
@@ -1152,7 +1150,7 @@ eXosip_get_naptr (char *domain, char *protocol, char *srv_record, int max_length
 	  memset(&ovi, 0, sizeof(ovi));
 
 	  ovi.dwOSVersionInfoSize=sizeof(ovi);
-	  GetVersionEx((LPOSVERSIONINFOA)&ovi);
+	  GetVersionEx((LPOSVERSIONINFO)&ovi);
 
 	  /* Minimum: client: Windows 2000 Professional */
 	  /* Minimum: server: Windows 2000 Server */
