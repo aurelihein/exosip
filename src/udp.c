@@ -1094,6 +1094,7 @@ eXosip_process_newrequest (osip_event_t * evt, int socket)
           old_trn = eXosip_find_last_inc_invite (jc, jd);
 
           if (old_trn != NULL && old_trn->state != IST_COMPLETED
+              && old_trn->state != IST_CONFIRMED
               && old_trn->state != IST_TERMINATED)
             {
               osip_list_add (&eXosip.j_transactions, transaction, 0);
