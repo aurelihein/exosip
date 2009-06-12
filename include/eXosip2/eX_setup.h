@@ -240,21 +240,6 @@ extern "C"
 #ifndef DOXYGEN
 
 /**
- * Force eXosip to use a specific ip address in all
- * contact and Via headers in SIP message.
- * **PLEASE DO NOT USE: use eXosip_masquerade_contact instead**
- *
- * @param localip 	the ip address.
- *
- * If set to NULL, then the local ip address will be guessed 
- * automatically (returns to default mode).
- *
- * ******LINPHONE specific methods******
- *
- */
-  int eXosip_force_masquerade_contact (const char *localip);
-
-/**
  * Wake Up the eXosip_event_wait method.
  * 
  */
@@ -291,23 +276,6 @@ extern "C"
  * @param size      The size of the string
  */
   int eXosip_guess_localip (int family, char *address, int size);
-
-#ifndef DOXYGEN
-
-/**
- * Find the interface to be used to reach the specified host.
- * 
- * @param ip    a string containing the local IP address.
- * @param localip	the local ip address to be used to reach host.
- *
- * You usually don't need this function at all.
- *
- * ******LINPHONE specific methods******
- *
- */
-  int eXosip_get_localip_for (const char *host, char *localip, int size);
-
-#endif
 
 /** @} */
 
