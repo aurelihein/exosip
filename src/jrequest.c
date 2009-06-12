@@ -378,6 +378,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                 {
               } else if (osip_strcasecmp (u_header->gname, "contact") == 0)
                 {
+              } else if (osip_strcasecmp (u_header->gname, "content-type") == 0)
+                {
+					osip_message_set_content_type(request, u_header->gvalue);
               } else
                 osip_message_set_header (request, u_header->gname,
                                          u_header->gvalue);
@@ -914,6 +917,7 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
 
   /* add specific headers for each kind of request... */
 
+#if 0
   {
     char contact[200];
 
@@ -956,6 +960,9 @@ _eXosip_build_request_within_dialog (osip_message_t ** dest,
     /* Here we'll add the supported header if it's needed! */
     /* the require header must be added by the upper layer if needed */
   }
+#else
+  _eXosip_dialog_add_contact(request, NULL);
+#endif
 
   if (0 == strcmp ("NOTIFY", method))
     {
