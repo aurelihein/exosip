@@ -1068,7 +1068,8 @@ eXosip_automatic_action (void)
                      jr->r_last_tr->orig_request != NULL &&
                      (jr->r_last_tr->last_response != NULL
                       && (jr->r_last_tr->last_response->status_code == 401
-                          || jr->r_last_tr->last_response->status_code == 407)))
+                          || jr->r_last_tr->last_response->status_code == 407
+						  || jr->r_last_tr->last_response->status_code == 423)))
             {
               if (jr->r_retry < 3)
                 {

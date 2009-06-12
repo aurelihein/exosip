@@ -137,7 +137,34 @@ _eXosip_register_build_register (eXosip_reg_t * jr, osip_message_t ** _reg)
               }
             sprintf (reg->cseq->number, "%i", osip_cseq_num);
 
-            {
+
+			if (last_response != NULL
+				&& last_response->status_code == 423)
+			{
+				/* increase expires value to "min-expires" value */
+				osip_header_t *exp;
+				osip_header_t *min_exp;
+
+				osip_message_header_get_byname (reg, "expires", 0, &exp);
+				osip_message_header_get_byname (last_response, "min-expires", 0,
+					&min_exp);
+				if (exp != NULL && exp->hvalue != NULL && min_exp != NULL
+					&& min_exp->hvalue != NULL)
+				{
+					osip_free (exp->hvalue);
+					exp->hvalue = osip_strdup (min_exp->hvalue);
+					jr->r_reg_period = atoi(min_exp->hvalue);
+				} else
+				{
+					osip_message_free (reg);
+                    if (last_response != NULL)
+                      osip_message_free (last_response);
+					OSIP_TRACE (osip_trace
+						(__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"eXosip: missing Min-Expires or Expires in REGISTER\n"));
+					return OSIP_SYNTAXERROR;
+				}
+			} else {
               osip_header_t *exp;
 
               osip_message_header_get_byname (reg, "expires", 0, &exp);
