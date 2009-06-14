@@ -1,4 +1,5 @@
 eXosip2 (3.4.0)
+	* fix Contact header in request within dialog for non-udp protocol.
 	* fix some DNS issue with vista?
 	* remove 481 auto answer for unsolicited NOTIFY.
 	* fix static id range.
