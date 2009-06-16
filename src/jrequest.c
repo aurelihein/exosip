@@ -339,6 +339,40 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
           osip_message_free (request);
           return i;
         }
+
+      /* REMOVE ALL URL PARAMETERS from to->url headers and add them as headers */
+      if (request->to != NULL && request->to->url != NULL)
+        {
+          osip_uri_t *url = request->to->url;
+          while (osip_list_size (&url->url_headers) > 0)
+            {
+              osip_uri_header_t *u_header;
+              u_header = (osip_uri_param_t *) osip_list_get (&url->url_headers, 0);
+              if (u_header == NULL)
+                break;
+
+              if (osip_strcasecmp (u_header->gname, "from") == 0)
+                {
+              } else if (osip_strcasecmp (u_header->gname, "to") == 0)
+                {
+              } else if (osip_strcasecmp (u_header->gname, "call-id") == 0)
+                {
+              } else if (osip_strcasecmp (u_header->gname, "cseq") == 0)
+                {
+              } else if (osip_strcasecmp (u_header->gname, "via") == 0)
+                {
+              } else if (osip_strcasecmp (u_header->gname, "contact") == 0)
+                {
+              } else if (osip_strcasecmp (u_header->gname, "content-type") == 0)
+                {
+					osip_message_set_content_type(request, u_header->gvalue);
+              } else
+                osip_message_set_header (request, u_header->gname,
+                                         u_header->gvalue);
+              osip_list_remove (&url->url_headers, 0);
+              osip_uri_param_free (u_header);
+            }
+        }
   } else
     {
       /* in any cases except REGISTER: */
@@ -449,6 +483,22 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
       osip_message_free (request);
       return i;
     }
+
+  /* REMOVE ALL URL PARAMETERS from from->url headers and add them as headers */
+  if (doing_register && request->from != NULL && request->from->url != NULL)
+  {
+	  osip_uri_t *url = request->from->url;
+	  while (osip_list_size (&url->url_headers) > 0)
+	  {
+		  osip_uri_header_t *u_header;
+		  u_header = (osip_uri_param_t *) osip_list_get (&url->url_headers, 0);
+		  if (u_header == NULL)
+			  break;
+
+		  osip_list_remove (&url->url_headers, 0);
+		  osip_uri_param_free (u_header);
+	  }
+  }
 
   /* add a tag */
   osip_from_set_tag (request->from, osip_from_tag_new_random ());
