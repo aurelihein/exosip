@@ -312,9 +312,9 @@ dtls_tl_open (void)
     eXtl_dtls.proto_port = 5061;
 
   server_ctx = initialize_server_ctx (SERVER_KEYFILE, SERVER_CERTFILE, PASSWORD,
-                                      IPPROTO_TCP);
+                                      IPPROTO_UDP);
   client_ctx = initialize_client_ctx (CLIENT_KEYFILE, CLIENT_CERTFILE, PASSWORD,
-                                      IPPROTO_TCP);
+                                      IPPROTO_UDP);
 
   res = eXosip_get_addrinfo (&addrinfo,
                              eXtl_dtls.proto_ifs,
