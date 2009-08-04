@@ -626,7 +626,7 @@ generating_register (eXosip_reg_t * jreg, osip_message_t ** reg, char *transport
       if (i == 0 && (*reg)->from != NULL && (*reg)->from->url != NULL)
         {
           /* serach for correct ip */
-          if (firewall_ip[0] != '\0')
+          if (firewall_ip[0] != '\0' && (*reg)->req_uri->host!=NULL)
             {
               char *c_address = (*reg)->req_uri->host;
 
