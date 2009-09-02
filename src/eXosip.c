@@ -815,6 +815,30 @@ eXosip_automatic_action (void)
                   jc->c_retry++;
                 }
           } else if (out_tr != NULL
+              && (out_tr->state == ICT_TERMINATED
+                  || out_tr->state == NICT_TERMINATED
+                  || out_tr->state == ICT_COMPLETED
+                  || out_tr->state == NICT_COMPLETED) &&
+              now - out_tr->birth_time < 120 &&
+              out_tr->orig_request != NULL &&
+              out_tr->last_response != NULL &&
+              out_tr->last_response->status_code == 422)
+            {
+              /* retry with higher Session-Expires / Min-SE */
+              if (jc->c_retry < 3)
+                {
+                  int i;
+
+                  i = _eXosip_call_retry_request (jc, NULL, out_tr);
+                  if (i != 0)
+                    {
+                      OSIP_TRACE (osip_trace
+                                  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "eXosip: could not clone msg for updating Session-Expires\n"));
+                    }
+                  jc->c_retry++;
+                }
+          } else if (out_tr != NULL
                      && (out_tr->state == ICT_TERMINATED
                          || out_tr->state == NICT_TERMINATED
                          || out_tr->state == ICT_COMPLETED
@@ -876,6 +900,30 @@ eXosip_automatic_action (void)
                       jd->d_retry++;
                     }
               } else if (out_tr != NULL
+                  && (out_tr->state == ICT_TERMINATED
+                      || out_tr->state == NICT_TERMINATED
+                      || out_tr->state == ICT_COMPLETED
+                      || out_tr->state == NICT_COMPLETED) &&
+                  now - out_tr->birth_time < 120 &&
+                  out_tr->orig_request != NULL &&
+                  out_tr->last_response != NULL &&
+                  out_tr->last_response->status_code == 422)
+                {
+                  /* retry with higher Session-Expires / Min-SE */
+                  if (jd->d_retry < 3)
+                    {
+                      int i;
+
+                      i = _eXosip_call_retry_request (jc, jd, out_tr);
+                      if (i != 0)
+                        {
+                          OSIP_TRACE (osip_trace
+                                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                       "eXosip: could not clone msg for updating Session-Expires\n"));
+                        }
+                      jd->d_retry++;
+                    }
+              } else if (out_tr != NULL
                          && (out_tr->state == ICT_TERMINATED
                              || out_tr->state == NICT_TERMINATED
                              || out_tr->state == ICT_COMPLETED
@@ -897,6 +945,9 @@ eXosip_automatic_action (void)
                                    "eXosip: could not clone msg for redirection\n"));
                     }
                 }
+			  else {
+				  /* check if we need session-timer */
+			  }
             }
         }
     }

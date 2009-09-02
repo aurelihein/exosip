@@ -1357,6 +1357,54 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
       return i;
     }
 
+  if (out_tr->last_response->status_code == 422)
+  {
+	  /* increase expires value to "min-se" value */
+	  osip_header_t *exp;
+	  osip_header_t *min_se;
+
+	  osip_message_header_get_byname (msg, "session-expires", 0, &exp);
+	  osip_message_header_get_byname (out_tr->last_response, "min-se", 0,
+		  &min_se);
+	  if (exp != NULL && exp->hvalue != NULL && min_se != NULL
+		  && min_se->hvalue != NULL)
+	  {
+		  osip_header_t *min_se_new=NULL;
+
+		  osip_free (exp->hvalue);
+		  exp->hvalue = osip_strdup (min_se->hvalue);
+
+		  //add or update Min-SE in INVITE:
+		  osip_message_header_get_byname (msg, "min-se", 0,
+			  &min_se_new);
+		  if (min_se_new!=NULL && min_se_new->hvalue!=NULL)
+		  {
+
+			  osip_free (min_se_new->hvalue);
+			  min_se_new->hvalue = osip_strdup (min_se->hvalue);
+		  }
+		  else
+		  {
+			  osip_message_set_header(msg, "Min-SE", min_se->hvalue);
+		  }
+	  } else
+	  {
+		  osip_message_free (msg);
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			  "eXosip: missing Min-SE or Session-Expires in dialog\n"));
+		  return OSIP_SYNTAXERROR;
+	  }
+  } else {
+	  osip_header_t *exp;
+
+	  osip_message_header_get_byname (msg, "session-expires", 0, &exp);
+	  if (exp == NULL)
+	  {
+		  //add missing one?
+	  }
+  }
+
   if (out_tr->last_response->status_code == 401
       || out_tr->last_response->status_code == 407)
     eXosip_add_authentication_information (msg, out_tr->last_response);
