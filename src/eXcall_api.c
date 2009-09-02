@@ -1362,6 +1362,9 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 	  /* increase expires value to "min-se" value */
 	  osip_header_t *exp;
 	  osip_header_t *min_se;
+	  /* syntax of Min-SE & Session-Expires are equivalent to "Content-Disposition" */
+	  osip_content_disposition_t *exp_h=NULL;
+	  osip_content_disposition_t *min_se_h=NULL;
 
 	  osip_message_header_get_byname (msg, "session-expires", 0, &exp);
 	  osip_message_header_get_byname (out_tr->last_response, "min-se", 0,
@@ -1369,23 +1372,55 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 	  if (exp != NULL && exp->hvalue != NULL && min_se != NULL
 		  && min_se->hvalue != NULL)
 	  {
-		  osip_header_t *min_se_new=NULL;
+		  osip_content_disposition_init(&exp_h);
+		  osip_content_disposition_init(&min_se_h);
+		  if (exp_h==NULL || min_se_h==NULL)
+		  {
+			osip_content_disposition_free(exp_h);
+			osip_content_disposition_free(min_se_h);
+			exp_h=NULL;
+			min_se_h=NULL;
+		  }
+		  else
+		  {
+			  osip_content_disposition_parse(exp_h, exp->hvalue);
+			  osip_content_disposition_parse(min_se_h, min_se->hvalue);
+			  if (exp_h->element==NULL || min_se_h->element==NULL)
+			  {
+				osip_content_disposition_free(exp_h);
+				osip_content_disposition_free(min_se_h);
+				exp_h=NULL;
+				min_se_h=NULL;
+			  }
+		  }
+	  }
 
+	  if (exp_h != NULL && exp_h->element != NULL && min_se_h != NULL
+		  && min_se_h->element != NULL)
+	  {
+		  osip_header_t *min_se_new=NULL;
+		  char minse_new[32];
+		  memset(minse_new, 0, sizeof(minse_new));
+
+		  osip_free(exp_h->element);
+		  exp_h->element = osip_strdup (min_se_h->element);
+
+		  /* rebuild session-expires with new value/same paramters */
 		  osip_free (exp->hvalue);
-		  exp->hvalue = osip_strdup (min_se->hvalue);
+		  exp->hvalue=NULL;
+		  osip_content_disposition_to_str(exp_h, &exp->hvalue);
 
 		  //add or update Min-SE in INVITE:
 		  osip_message_header_get_byname (msg, "min-se", 0,
 			  &min_se_new);
 		  if (min_se_new!=NULL && min_se_new->hvalue!=NULL)
 		  {
-
 			  osip_free (min_se_new->hvalue);
-			  min_se_new->hvalue = osip_strdup (min_se->hvalue);
+			  min_se_new->hvalue = osip_strdup (min_se_h->element);
 		  }
 		  else
 		  {
-			  osip_message_set_header(msg, "Min-SE", min_se->hvalue);
+			  osip_message_set_header(msg, "Min-SE", min_se_h->element);
 		  }
 	  } else
 	  {
@@ -1395,6 +1430,10 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 			  "eXosip: missing Min-SE or Session-Expires in dialog\n"));
 		  return OSIP_SYNTAXERROR;
 	  }
+
+	  osip_content_disposition_free(exp_h);
+	  osip_content_disposition_free(min_se_h);
+
   } else {
 	  osip_header_t *exp;
 
