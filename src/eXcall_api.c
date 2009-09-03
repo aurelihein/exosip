@@ -941,7 +941,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
 				/* add refresher=uas, if it's not already there	*/
 				osip_header_t *se_exp=NULL;
 				osip_message_header_get_byname (tr->orig_request, "session-expires", 0, &se_exp);
-				if (se_exp != NULL)
+				if (se_exp == NULL)
 					osip_message_header_get_byname (tr->orig_request, "x", 0, &se_exp);
 				if (se_exp != NULL)
 				{
@@ -976,7 +976,19 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
 									osip_free(cp->hvalue);
 									cp->hvalue=NULL;
 									osip_content_disposition_to_str(exp_h, &cp->hvalue);
+									jd->d_refresher = 0;
 								}
+								else
+								{
+									if (osip_strcasecmp(param->gvalue, "uas")==0)
+										jd->d_refresher = 0;
+									else
+										jd->d_refresher = 1;
+								}
+								jd->d_session_timer_start = time(NULL);
+								jd->d_session_timer_length = atoi(exp_h->element);
+								if (jd->d_session_timer_length<=90)
+									jd->d_session_timer_length = 90;
 								osip_list_add (&answer->headers, cp, 0);
 							}
 						}

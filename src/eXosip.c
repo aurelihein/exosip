@@ -945,8 +945,41 @@ eXosip_automatic_action (void)
                                    "eXosip: could not clone msg for redirection\n"));
                     }
                 }
-			  else {
-				  /* check if we need session-timer */
+			  else 
+			  {
+					  /* check if we need session-timer */
+				if (jd->d_refresher==-1) {
+				} else if (jd->d_refresher==0)	{
+					/* I'm the refresher */
+					if (now - (jd->d_session_timer_start + jd->d_session_timer_length) > 0)
+					{
+						/* means we tried hard... but certainly failed... */
+					}
+					else if (now - (jd->d_session_timer_start + jd->d_session_timer_length) > -10)
+					{
+						osip_message_t *request=NULL;
+
+
+						eXosip_call_build_update (jd->d_id, &request);
+						if (request!=NULL)
+						{
+							char session_exp[32];
+							int i;
+							memset(session_exp, 0, sizeof(session_exp));
+							snprintf(session_exp, sizeof(session_exp)-1, "%i;refresher=uac", jd->d_session_timer_length);
+							osip_message_set_header(request, "Session-Expires", session_exp);
+							osip_message_set_supported(request, "timer");
+							i = eXosip_call_send_request(jd->d_id, request);
+							if (i==0)
+							{
+								/* update timer */
+								jd->d_session_timer_start = time(NULL) + jd->d_session_timer_length;
+							}
+						}
+					}
+				} else if (jd->d_refresher==1)	{
+					/* remote is the refresher */
+				}
 			  }
             }
         }

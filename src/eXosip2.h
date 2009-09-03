@@ -153,6 +153,10 @@ extern "C"
     int d_STATE;
     osip_dialog_t *d_dialog;    /* active dialog */
 
+    time_t d_session_timer_start; /* session-timer helper */
+	int d_session_timer_length;
+	int d_refresher;
+
     time_t d_timer;
     int d_count;
     osip_message_t *d_200Ok;
