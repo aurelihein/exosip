@@ -910,13 +910,82 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
     {
       if (MSG_IS_STATUS_2XX (answer) && jd != NULL)
         {
-          if (status >= 200 && status < 300 && jd != NULL)
-            {
-              eXosip_dialog_set_200ok (jd, answer);
-              /* wait for a ACK */
-              osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
-            }
-        }
+			osip_header_t *supported=NULL;
+			int i=0;
+			if (status >= 200 && status < 300 && jd != NULL)
+			{
+				eXosip_dialog_set_200ok (jd, answer);
+				/* wait for a ACK */
+				osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
+			}
+
+			/* look for timer in supported header: must be added by user-application */
+
+			i = osip_message_header_get_byname (answer, "supported", 0, &supported);
+			while (i>=0)
+			{
+				i = osip_message_header_get_byname (answer, "supported", i, &supported);
+				if (supported==NULL)
+					break;
+				if (supported->hvalue!=NULL
+					&& osip_strcasecmp(supported->hvalue, "timer")==0)
+				{
+					/*found*/
+					break;
+				}
+				supported=NULL;
+			}
+			if (supported != NULL) /* timer is supported */
+			{
+				/* copy session-expires	*/
+				/* add refresher=uas, if it's not already there	*/
+				osip_header_t *se_exp=NULL;
+				osip_message_header_get_byname (tr->orig_request, "session-expires", 0, &se_exp);
+				if (se_exp != NULL)
+					osip_message_header_get_byname (tr->orig_request, "x", 0, &se_exp);
+				if (se_exp != NULL)
+				{
+					osip_header_t *cp=NULL;
+
+					i = osip_header_clone (se_exp, &cp);
+					if (cp != NULL)
+					{
+						osip_content_disposition_t *exp_h=NULL;
+						/* syntax of Session-Expires is equivalent to "Content-Disposition" */
+						osip_content_disposition_init(&exp_h);
+						if (exp_h==NULL)
+						{
+							osip_content_disposition_free(exp_h);
+							osip_header_free(cp);
+						}
+						else
+						{
+							osip_content_disposition_parse(exp_h, se_exp->hvalue);
+							if (exp_h->element==NULL)
+							{
+								osip_content_disposition_free(exp_h);
+								osip_header_free(cp);
+							}
+							else
+							{
+								osip_generic_param_t *param=NULL;
+								osip_generic_param_get_byname(&exp_h->gen_params,"refresher",&param);
+								if (param==NULL)
+								{
+									osip_generic_param_add(&exp_h->gen_params,osip_strdup("refresher"), osip_strdup("uas"));
+									osip_free(cp->hvalue);
+									cp->hvalue=NULL;
+									osip_content_disposition_to_str(exp_h, &cp->hvalue);
+								}
+								osip_list_add (&answer->headers, cp, 0);
+							}
+						}
+						osip_content_disposition_free(exp_h);
+						exp_h=NULL;
+					}
+				}
+			}
+	  }
     }
 
   evt_answer = osip_new_outgoing_sipmessage (answer);
@@ -1367,6 +1436,8 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 	  osip_content_disposition_t *min_se_h=NULL;
 
 	  osip_message_header_get_byname (msg, "session-expires", 0, &exp);
+	  if (exp==NULL)
+		  osip_message_header_get_byname (msg, "x", 0, &exp);
 	  osip_message_header_get_byname (out_tr->last_response, "min-se", 0,
 		  &min_se);
 	  if (exp != NULL && exp->hvalue != NULL && min_se != NULL
@@ -1438,6 +1509,10 @@ _eXosip_call_retry_request (eXosip_call_t * jc,
 	  osip_header_t *exp;
 
 	  osip_message_header_get_byname (msg, "session-expires", 0, &exp);
+	  if (exp == NULL)
+	  {
+		  osip_message_header_get_byname (msg, "x", 0, &exp);
+	  }
 	  if (exp == NULL)
 	  {
 		  //add missing one?
