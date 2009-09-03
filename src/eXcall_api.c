@@ -910,14 +910,22 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
     {
       if (MSG_IS_STATUS_2XX (answer) && jd != NULL)
         {
-			osip_header_t *supported=NULL;
-			int i=0;
 			if (status >= 200 && status < 300 && jd != NULL)
 			{
 				eXosip_dialog_set_200ok (jd, answer);
 				/* wait for a ACK */
 				osip_dialog_set_state (jd->d_dialog, DIALOG_CONFIRMED);
 			}
+        }
+    }
+
+  if (0 == osip_strcasecmp (tr->orig_request->sip_method, "INVITE")
+	  ||0 == osip_strcasecmp (tr->orig_request->sip_method, "UPDATE"))
+    {
+      if (MSG_IS_STATUS_2XX (answer) && jd != NULL)
+        {
+			osip_header_t *supported=NULL;
+			int i=0;
 
 			/* look for timer in supported header: must be added by user-application */
 
