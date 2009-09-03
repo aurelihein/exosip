@@ -932,6 +932,51 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
         }
     }
 
+	if (jd!=NULL)
+	{
+		osip_header_t *se_exp=NULL;
+		osip_header_t *se_exp_answer=NULL;
+		osip_message_header_get_byname (tr->orig_request, "session-expires", 0, &se_exp);
+		if (se_exp == NULL)
+			osip_message_header_get_byname (tr->orig_request, "x", 0, &se_exp);
+		osip_message_header_get_byname (sip, "session-expires", 0, &se_exp_answer);
+		if (se_exp_answer == NULL)
+			osip_message_header_get_byname (sip, "x", 0, &se_exp_answer);
+
+		if (se_exp != NULL && se_exp_answer != NULL)
+		{
+			osip_content_disposition_t *exp_h=NULL;
+			/* syntax of Session-Expires is equivalent to "Content-Disposition" */
+			osip_content_disposition_init(&exp_h);
+			if (exp_h!=NULL)
+			{
+				osip_content_disposition_parse(exp_h, se_exp_answer->hvalue);
+				if (exp_h->element!=NULL)
+				{
+					osip_generic_param_t *param=NULL;
+					osip_generic_param_get_byname(&exp_h->gen_params,"refresher",&param);
+					if (param==NULL)
+					{
+						jd->d_refresher = 0; /* me? in which case? */
+					}
+					else
+					{
+						if (osip_strcasecmp(param->gvalue, "uac")==0)
+							jd->d_refresher = 0;
+						else
+							jd->d_refresher = 1;
+					}
+					jd->d_session_timer_start = time(NULL);
+					jd->d_session_timer_length = atoi(exp_h->element);
+					if (jd->d_session_timer_length<=90)
+						jd->d_session_timer_length = 90;
+				}
+				osip_content_disposition_free(exp_h);
+				exp_h=NULL;
+			}
+		}
+	}
+
   jd->d_STATE = JD_ESTABLISHED;
 
   /* eXosip_dialog_set_200ok (jd, sip); */
@@ -943,7 +988,6 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
 
   /* don't handle hold/unhold by now... */
   /* eXosip_update_audio_session(tr); */
-
 }
 
 #ifndef MINISIZE
@@ -1246,6 +1290,53 @@ cb_rcv2xx (int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
   else if (jc != NULL)
     {
+		if (MSG_IS_RESPONSE_FOR (sip, "UPDATE"))
+		{
+			if (jd!=NULL)
+			{
+				osip_header_t *se_exp=NULL;
+				osip_header_t *se_exp_answer=NULL;
+				osip_message_header_get_byname (tr->orig_request, "session-expires", 0, &se_exp);
+				if (se_exp == NULL)
+					osip_message_header_get_byname (tr->orig_request, "x", 0, &se_exp);
+				osip_message_header_get_byname (sip, "session-expires", 0, &se_exp_answer);
+				if (se_exp_answer == NULL)
+					osip_message_header_get_byname (sip, "x", 0, &se_exp_answer);
+
+				if (se_exp != NULL && se_exp_answer != NULL)
+				{
+					osip_content_disposition_t *exp_h=NULL;
+					/* syntax of Session-Expires is equivalent to "Content-Disposition" */
+					osip_content_disposition_init(&exp_h);
+					if (exp_h!=NULL)
+					{
+						osip_content_disposition_parse(exp_h, se_exp_answer->hvalue);
+						if (exp_h->element!=NULL)
+						{
+							osip_generic_param_t *param=NULL;
+							osip_generic_param_get_byname(&exp_h->gen_params,"refresher",&param);
+							if (param==NULL)
+							{
+								jd->d_refresher = 0; /* me? in which case? */
+							}
+							else
+							{
+								if (osip_strcasecmp(param->gvalue, "uac")==0)
+									jd->d_refresher = 0;
+								else
+									jd->d_refresher = 1;
+							}
+							jd->d_session_timer_start = time(NULL);
+							jd->d_session_timer_length = atoi(exp_h->element);
+							if (jd->d_session_timer_length<=90)
+								jd->d_session_timer_length = 90;
+						}
+						osip_content_disposition_free(exp_h);
+						exp_h=NULL;
+					}
+				}
+			}
+		}
       report_call_event (EXOSIP_CALL_MESSAGE_ANSWERED, jc, jd, tr);
       return;
     }
