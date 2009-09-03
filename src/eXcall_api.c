@@ -924,7 +924,6 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
 			i = osip_message_header_get_byname (answer, "supported", 0, &supported);
 			while (i>=0)
 			{
-				i = osip_message_header_get_byname (answer, "supported", i, &supported);
 				if (supported==NULL)
 					break;
 				if (supported->hvalue!=NULL
@@ -934,6 +933,7 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
 					break;
 				}
 				supported=NULL;
+				i = osip_message_header_get_byname (answer, "supported", i+1, &supported);
 			}
 			if (supported != NULL) /* timer is supported */
 			{
@@ -994,6 +994,27 @@ eXosip_call_send_answer (int tid, int status, osip_message_t * answer)
 						}
 						osip_content_disposition_free(exp_h);
 						exp_h=NULL;
+
+
+						/* add Require only if remote UA support "timer" */
+						i = osip_message_header_get_byname (tr->orig_request, "supported", 0, &supported);
+						while (i>=0)
+						{
+							if (supported==NULL)
+								break;
+							if (supported->hvalue!=NULL
+								&& osip_strcasecmp(supported->hvalue, "timer")==0)
+							{
+								/*found*/
+								break;
+							}
+							supported=NULL;
+							i = osip_message_header_get_byname (tr->orig_request, "supported", i+1, &supported);
+						}
+						if (supported != NULL) /* timer is supported */
+						{
+							osip_message_set_header(answer,"Require", "timer");
+						}
 					}
 				}
 			}
