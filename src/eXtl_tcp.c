@@ -600,7 +600,7 @@ _tcp_tl_connect_socket (char *host, int port)
               return i;
             }
           OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			  (__FILE__, __LINE__, OSIP_INFO2, NULL,
                        "New binding with %s\n", src6host));
         }
 
