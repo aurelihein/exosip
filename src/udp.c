@@ -1492,7 +1492,7 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
                    "sending ACK for 2xx out of transaction.\r\n"));
 
       {
-        osip_message_t *bye;
+        osip_message_t *bye=NULL;
         char *transport = _eXosip_transport_protocol (evt->sip);
 #ifndef MINISIZE                /* Don't send ACK in MINISIZE mode to save code size */
         osip_message_t *ack;
@@ -1549,7 +1549,8 @@ eXosip_process_response_out_of_transaction (osip_event_t * evt)
           i = generating_bye (&bye, dlg, "UDP");
         else
           i = generating_bye (&bye, dlg, transport);
-        cb_snd_message (NULL, bye, NULL, 0, -1);
+		if (bye!=NULL && i==OSIP_SUCCESS)
+	        cb_snd_message (NULL, bye, NULL, 0, -1);
         osip_message_free (bye);
       }
 
