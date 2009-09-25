@@ -124,8 +124,6 @@ fi
 
 
 
-AM_CONDITIONAL(COMPILE_TOOLS, test "x$enable_tools" = "xyes")
-
 if test "x$enable_semaphore" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DHAVE_SEMAPHORE_H"
   AC_CHECK_HEADERS(semaphore.h)
@@ -156,6 +154,12 @@ if test "x$host_cpu" = "x$build_cpu"; then
    darwin*)
      EXOSIP_FLAGS="$EXOSIP_FLAGS -pedantic"
      ;;
+   *mingw*)
+     EXOSIP_FLAGS="$EXOSIP_FLAGS  -D_WIN32_WINNT=0x0501"
+     EXOSIP_LIB="EXOSIP_LIB -lws2_32 -liphlpapi -ldnsapi"
+dnl tools are not ported to win32
+     enable_tools=no
+     ;;
    *)
      ;;
  esac
@@ -185,6 +189,7 @@ if test "x$enable_minisize" = "xyes"; then
   EXOSIP_FLAGS="$EXOSIP_FLAGS -DMINISIZE"
 fi
 AM_CONDITIONAL(BUILD_MAXSIZE, test x$enable_minisize = xno)
+AM_CONDITIONAL(COMPILE_TOOLS, test "x$enable_tools" = "xyes")
 
 dnl Checks for libraries.
 AC_CHECK_LIB(posix4,sem_open,[EXOSIP_LIB="$EXOSIP_LIB -lposix4 -mt"])

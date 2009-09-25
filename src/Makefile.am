@@ -47,7 +47,7 @@ eXrefer_api.c           jpublish.c         \
 sdp_offans.c
 endif
 
-libeXosip2_la_LDFLAGS = -version-info $(LIBEXOSIP_SO_VERSION)
+libeXosip2_la_LDFLAGS = -version-info $(LIBEXOSIP_SO_VERSION) -no-undefined
 libeXosip2_la_LIBADD = @EXOSIP_LIB@ @PTHREAD_LIBS@ $(OSIP_LIBS)
 
 INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/include $(OSIP_CFLAGS)
