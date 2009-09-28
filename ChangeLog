@@ -1,4 +1,5 @@
 eXosip2 (3.4.0)
+	* fix tag issue with application where tag is missing.
 	* fix compilation for mingw
 	* fix Contact header in request within dialog for non-udp protocol.
 	* fix some DNS issue with vista?
