@@ -877,7 +877,7 @@ cb_rcv2xx_4invite (osip_transaction_t * tr, osip_message_t * sip)
       i = osip_to_get_tag (sip->to, &tag);
       i = 1;                    /* default is the same dialog */
 
-      if (jd->d_dialog == NULL || jd->d_dialog->remote_tag == NULL)
+      if (jd->d_dialog == NULL)
         {
           /* There are real use-case where a BYE is received/processed before
              the 200ok of the previous INVITE. In this case, jd->d_dialog is
