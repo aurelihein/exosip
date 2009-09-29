@@ -54,7 +54,6 @@ dnl Checks for programs.
 
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_CXX
 AC_PROG_INSTALL
 
 dnl enable --enable-shared and --disable-shared options
@@ -216,102 +215,102 @@ OSIP_LIBS='-L$(libdir) -L$(prefix)/lib -losip2 -losipparser2'
 
 EXOSIP_FLAGS="$EXOSIP_FLAGS"
 
-AC_CACHE_CHECK([whether -Wall works], Wall_flag, [
+AC_CACHE_CHECK([whether -Wall works], Wall_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wall"
-  AC_TRY_COMPILE(, , Wall_flag=yes, Wall_flag=no)
+  AC_TRY_COMPILE(, , Wall_cv_flag=yes, Wall_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wall_flag" = xyes; then
+if test "x$Wall_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wall"
 fi
 
-AC_CACHE_CHECK([whether -Wcast-align works], Wcast_align_flag, [
+AC_CACHE_CHECK([whether -Wcast-align works], Wcast_align_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wcast-align"
-  AC_TRY_COMPILE(, , Wcast_align_flag=yes, Wcast_align_flag=no)
+  AC_TRY_COMPILE(, , Wcast_align_cv_flag=yes, Wcast_align_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wcast_align_flag" = xyes; then
+if test "x$Wcast_align_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wcast-align"
 fi
 
-AC_CACHE_CHECK([whether -Wchar-subscripts works], Wchar_subscripts_flag, [
+AC_CACHE_CHECK([whether -Wchar-subscripts works], Wchar_subscripts_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wchar-subscripts"
-  AC_TRY_COMPILE(, , Wchar_subscripts_flag=yes, Wchar_subscripts_flag=no)
+  AC_TRY_COMPILE(, , Wchar_subscripts_cv_flag=yes, Wchar_subscripts_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wchar_subscripts_flag" = xyes; then
+if test "x$Wchar_subscripts_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wchar-subscripts"
 fi
 
-AC_CACHE_CHECK([whether -Wformat works], Wformat_flag, [
+AC_CACHE_CHECK([whether -Wformat works], Wformat_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wformat"
-  AC_TRY_COMPILE(, , Wformat_flag=yes, Wformat_flag=no)
+  AC_TRY_COMPILE(, , Wformat_cv_flag=yes, Wformat_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wformat_flag" = xyes; then
+if test "x$Wformat_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wformat"
 fi
 
-AC_CACHE_CHECK([whether -Winline works], Winline_flag, [
+AC_CACHE_CHECK([whether -Winline works], Winline_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Winline"
-  AC_TRY_COMPILE(, , Winline_flag=yes, Winline_flag=no)
+  AC_TRY_COMPILE(, , Winline_cv_flag=yes, Winline_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Winline_flag" = xyes; then
+if test "x$Winline_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Winline"
 fi
 
-AC_CACHE_CHECK([whether -Wmissing-declarations works], Wmissing_declarations_flag, [
+AC_CACHE_CHECK([whether -Wmissing-declarations works], Wmissing_declarations_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wmissing-declarations"
-  AC_TRY_COMPILE(, , Wmissing_declarations_flag=yes, Wmissing_declarations_flag=no)
+  AC_TRY_COMPILE(, , Wmissing_declarations_cv_flag=yes, Wmissing_declarations_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wmissing_declarations_flag" = xyes; then
+if test "x$Wmissing_declarations_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wmissing-declarations"
 fi
 
-AC_CACHE_CHECK([whether -Wmissing-prototypes works], Wmissing_prototypes_flag, [
+AC_CACHE_CHECK([whether -Wmissing-prototypes works], Wmissing_prototypes_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wmissing-prototypes"
-  AC_TRY_COMPILE(, , Wmissing_prototypes_flag=yes, Wmissing_prototypes_flag=no)
+  AC_TRY_COMPILE(, , Wmissing_prototypes_cv_flag=yes, Wmissing_prototypes_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wmissing_prototypes_flag" = xyes; then
+if test "x$Wmissing_prototypes_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wmissing-prototypes"
 fi
 
-AC_CACHE_CHECK([whether -Wnested-externs works], Wnested_externs_flag, [
+AC_CACHE_CHECK([whether -Wnested-externs works], Wnested_externs_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wnested-externs"
-  AC_TRY_COMPILE(, , Wnested_externs_flag=yes, Wnested_externs_flag=no)
+  AC_TRY_COMPILE(, , Wnested_externs_cv_flag=yes, Wnested_externs_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wnested_externs_flag" = xyes; then
+if test "x$Wnested_externs_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wnested-externs"
 fi
 
-AC_CACHE_CHECK([whether -Wpointer-arith works], Wpointer_arith_flag, [
+AC_CACHE_CHECK([whether -Wpointer-arith works], Wpointer_arith_cv_flag, [
   saved_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="-Wpointer-arith"
-  AC_TRY_COMPILE(, , Wpointer_arith_flag=yes, Wpointer_arith_flag=no)
+  AC_TRY_COMPILE(, , Wpointer_arith_cv_flag=yes, Wpointer_arith_cv_flag=no)
   CPPFLAGS=$saved_CPPFLAGS
 ])
 
-if test "x$Wpointer_arith_flag" = xyes; then
+if test "x$Wpointer_arith_cv_flag" = xyes; then
   CPPFLAGS="$CPPFLAGS -Wpointer-arith"
 fi
 
@@ -345,7 +344,7 @@ AC_CHECK_HEADERS(sys/soundcard.h)
 AC_CHECK_HEADERS(arpa/inet.h)
 AC_CHECK_HEADERS(arpa/nameser.h)
 AC_CHECK_HEADERS(netdb.h)
-AC_CHECK_HEADERS(resolv8_compat.h)
+AC_CHECK_HEADERS(nameser8_compat.h)
 
 AC_CHECK_HEADERS([resolv.h], [], [],
 [#if HAVE_SYS_TYPES_H

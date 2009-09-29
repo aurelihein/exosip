@@ -30,6 +30,9 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
+/* Define to 1 if you have the <nameser8_compat.h> header file. */
+#undef HAVE_NAMESER8_COMPAT_H
+
 /* Define to 1 if you have the <netdb.h> header file. */
 #undef HAVE_NETDB_H
 
@@ -38,9 +41,6 @@
 
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
-
-/* Define to 1 if you have the <resolv8_compat.h> header file. */
-#undef HAVE_RESOLV8_COMPAT_H
 
 /* Define to 1 if you have the <resolv.h> header file. */
 #undef HAVE_RESOLV_H
@@ -114,6 +114,9 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION

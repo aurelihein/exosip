@@ -37,7 +37,7 @@
 #include <arpa/nameser.h>
 #endif
 
-#ifdef HAVE_RESOLV8_COMPAT_H
+#ifdef HAVE_NAMESER8_COMPAT_H
 #include <nameser8_compat.h>
 #include <resolv8_compat.h>
 #elif defined(HAVE_RESOLV_H) || defined(OpenBSD) || defined(FreeBSD) || defined(NetBSD)
