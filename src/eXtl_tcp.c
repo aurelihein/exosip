@@ -648,13 +648,13 @@ _tcp_tl_connect_socket (char *host, int port)
 #if !defined(OSIP_MT) || defined(_WIN32_WCE)
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "eXosip: Cannot bind socket node:%s family:%d\n",
+                         "eXosip: Cannot connect socket node:%s family:%d\n",
                        host, curinfo->ai_family));
 #else
           OSIP_TRACE (osip_trace
                       (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "eXosip: Cannot bind socket node:%s family:%d %s\n",
-                       host, curinfo->ai_family, strerror (errno)));
+                         "eXosip: Cannot connect socket node:%s family:%d %s[%d]\n",
+                         host, curinfo->ai_family, strerror (errno), errno));
 #endif
           close (sock);
           sock = -1;
