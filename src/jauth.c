@@ -694,6 +694,13 @@ __eXosip_create_authorization_header (osip_www_authenticate_t * wa,
   osip_authorization_set_realm (aut,
                                 osip_strdup (osip_www_authenticate_get_realm
                                              (wa)));
+  if (aut->realm==NULL)
+  {
+	  aut->realm = (char *)osip_malloc(3);
+	  aut->realm[0] = '"';
+	  aut->realm[1] = '"';
+	  aut->realm[2] = '\0';
+  }
   osip_authorization_set_nonce (aut,
                                 osip_strdup (osip_www_authenticate_get_nonce
                                              (wa)));
@@ -965,6 +972,13 @@ __eXosip_create_proxy_authorization_header (osip_proxy_authenticate_t * wa,
   osip_proxy_authorization_set_realm (aut,
                                       osip_strdup
                                       (osip_proxy_authenticate_get_realm (wa)));
+  if (aut->realm==NULL)
+  {
+	  aut->realm = (char *)osip_malloc(3);
+	  aut->realm[0] = '"';
+	  aut->realm[1] = '"';
+	  aut->realm[2] = '\0';
+  }
   osip_proxy_authorization_set_nonce (aut,
                                       osip_strdup
                                       (osip_proxy_authenticate_get_nonce (wa)));
