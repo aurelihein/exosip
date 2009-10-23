@@ -363,6 +363,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                 {
               } else if (osip_strcasecmp (u_header->gname, "contact") == 0)
                 {
+              } else if (osip_strcasecmp (u_header->gname, "route") == 0)
+                {
+					osip_message_set_route(request, u_header->gvalue);
               } else if (osip_strcasecmp (u_header->gname, "content-type") == 0)
                 {
 					osip_message_set_content_type(request, u_header->gvalue);
@@ -412,6 +415,9 @@ generating_request_out_of_dialog (osip_message_t ** dest, const char *method,
                 {
               } else if (osip_strcasecmp (u_header->gname, "contact") == 0)
                 {
+              } else if (osip_strcasecmp (u_header->gname, "route") == 0)
+                {
+					osip_message_set_route(request, u_header->gvalue);
               } else if (osip_strcasecmp (u_header->gname, "content-type") == 0)
                 {
 					osip_message_set_content_type(request, u_header->gvalue);
