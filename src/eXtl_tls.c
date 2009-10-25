@@ -21,12 +21,13 @@
 #ifdef ENABLE_MPATROL
 #include <mpatrol.h>
 #endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
 
 #include "eXosip2.h"
 #include "eXtransport.h"
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
 #ifdef WIN32
 #include <Mstcpip.h>
@@ -712,315 +713,6 @@ print_ssl_error (int err)
   return OSIP_SUCCESS;
 }
 
-static int
-tls_tl_read_message (fd_set * osip_fdset)
-{
-  int pos = 0;
-  char *buf;
-
-  if (FD_ISSET (tls_socket, osip_fdset))
-    {
-      /* accept incoming connection */
-      char src6host[NI_MAXHOST];
-      int recvport = 0;
-      struct sockaddr_storage sa;
-      int sock;
-      int i;
-
-#ifdef __linux
-      socklen_t slen;
-#else
-      int slen;
-#endif
-
-      SSL *ssl = NULL;
-      BIO *sbio;
-
-
-      if (eXtl_tls.proto_family == AF_INET)
-        slen = sizeof (struct sockaddr_in);
-      else
-        slen = sizeof (struct sockaddr_in6);
-
-      for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
-        {
-          if (tls_socket_tab[pos].socket <= 0)
-            break;
-        }
-      if (pos < 0)
-        {
-          /* delete an old one! */
-          pos = 0;
-          if (tls_socket_tab[pos].socket > 0)
-            {
-              if (tls_socket_tab[pos].ssl_conn != NULL)
-                {
-                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
-                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
-                  SSL_free (tls_socket_tab[pos].ssl_conn);
-                  SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
-                }
-              close (tls_socket_tab[pos].socket);
-            }
-          memset (&tls_socket_tab[pos], 0, sizeof (struct socket_tab));
-        }
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
-                              "creating TLS socket at index: %i\n", pos));
-
-      sock = accept (tls_socket, (struct sockaddr *) &sa, &slen);
-      if (sock < 0)
-        {
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                  "Error accepting TLS socket\n"));
-      } else
-        {
-          if (ssl_ctx == NULL)
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                      "TLS connection rejected\n"));
-              close (sock);
-              return -1;
-            }
-
-          if (!SSL_CTX_check_private_key (ssl_ctx))
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                      "SSL CTX private key check error\n"));
-            }
-
-          ssl = SSL_new (ssl_ctx);
-          if (ssl == NULL)
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                      "Cannot create ssl connection context\n"));
-              return -1;
-            }
-
-          if (!SSL_check_private_key (ssl))
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                      "SSL private key check error\n"));
-            }
-
-          sbio = BIO_new_socket (sock, BIO_NOCLOSE);
-          if (sbio == NULL)
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                      "BIO_new_socket error\n"));
-            }
-
-          SSL_set_bio (ssl, sbio, sbio);        /* cannot fail */
-
-          i = SSL_accept (ssl);
-          if (i <= 0)
-            {
-              i = SSL_get_error (ssl, i);
-              print_ssl_error (i);
-
-
-              SSL_shutdown (ssl);
-              close (sock);
-              SSL_free (ssl);
-              if (tls_socket_tab[pos].ssl_ctx != NULL)
-                SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
-
-              tls_socket_tab[pos].ssl_conn = NULL;
-              tls_socket_tab[pos].ssl_ctx = NULL;
-              tls_socket_tab[pos].socket = 0;
-
-              return -1;
-            }
-
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                                  "New TLS connection accepted\n"));
-
-          tls_socket_tab[pos].socket = sock;
-          tls_socket_tab[pos].ssl_conn = ssl;
-          tls_socket_tab[pos].ssl_state = 2;
-
-
-          memset (src6host, 0, sizeof (src6host));
-
-          if (eXtl_tls.proto_family == AF_INET)
-            recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
-          else
-            recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
-
-#if defined(__arc__)
-          {
-            struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
-            char *tmp;
-            tmp = inet_ntoa (fromsa->sin_addr);
-            if (tmp == NULL)
-              {
-                OSIP_TRACE (osip_trace
-                            (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                             "Message received from: NULL:%i inet_ntoa failure\n",
-                             recvport));
-            } else
-              {
-                snprintf (src6host, sizeof (src6host), "%s", tmp);
-                OSIP_TRACE (osip_trace
-                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                             "Message received from: %s:%i\n", src6host,
-                             recvport));
-                osip_strncpy (tls_socket_tab[pos].remote_ip, src6host,
-                              sizeof (tls_socket_tab[pos].remote_ip) - 1);
-                tls_socket_tab[pos].remote_port = recvport;
-              }
-          }
-#else
-          i = getnameinfo ((struct sockaddr *) &sa, slen,
-                           src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-
-          if (i != 0)
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                           "Message received from: NULL:%i getnameinfo failure\n",
-                           recvport));
-              snprintf (src6host, sizeof (src6host), "127.0.0.1");
-          } else
-            {
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                           "Message received from: %s:%i\n", src6host, recvport));
-              osip_strncpy (tls_socket_tab[pos].remote_ip, src6host,
-                            sizeof (tls_socket_tab[pos].remote_ip) - 1);
-              tls_socket_tab[pos].remote_port = recvport;
-            }
-#endif
-        }
-    }
-
-
-
-  buf = NULL;
-
-  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
-    {
-      if (tls_socket_tab[pos].socket > 0
-          && FD_ISSET (tls_socket_tab[pos].socket, osip_fdset))
-        {
-          int i;
-          int rlen, err;
-
-          if (buf == NULL)
-            buf =
-              (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
-          if (buf == NULL)
-            return OSIP_NOMEM;
-
-          /* do TLS handshake? */
-          if (tls_socket_tab[pos].ssl_state == 2)
-            {
-              i = SSL_do_handshake (tls_socket_tab[pos].ssl_conn);
-              if (i <= 0)
-                {
-                  i = SSL_get_error (tls_socket_tab[pos].ssl_conn, i);
-                  print_ssl_error (i);
-
-                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
-                  close (tls_socket_tab[pos].socket);
-                  SSL_free (tls_socket_tab[pos].ssl_conn);
-                  if (tls_socket_tab[pos].ssl_ctx != NULL)
-                    SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
-
-                  memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
-                  continue;
-                }
-              tls_socket_tab[pos].ssl_state = 3;
-
-            }
-
-          if (tls_socket_tab[pos].ssl_state != 3)
-            continue;
-
-          i = 0;
-          rlen = 0;
-
-          do
-            {
-              i = SSL_read (tls_socket_tab[pos].ssl_conn, buf + rlen,
-                            SIP_MESSAGE_MAX_LENGTH - rlen);
-              if (i <= 0) {
-              	err = SSL_get_error (tls_socket_tab[pos].ssl_conn, i);
-              	if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
-              		break;
-              	}
-				else if (err == SSL_ERROR_SYSCALL && errno != EAGAIN)
-				{
-					break;
-				}
-              	else {
-              		print_ssl_error (err);
-                  /*
-                     The TLS/SSL connection has been closed.  If the protocol version
-                     is SSL 3.0 or TLS 1.0, this result code is returned only if a
-                     closure alert has occurred in the protocol, i.e. if the
-                     connection has been closed cleanly. Note that in this case
-                     SSL_ERROR_ZERO_RETURN does not necessarily indicate that the
-                     underlying transport has been closed. */
-                  OSIP_TRACE (osip_trace
-                              (__FILE__, __LINE__, OSIP_WARNING,
-                               NULL, "TLS closed\n"));
-
-                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
-                  close (tls_socket_tab[pos].socket);
-                  SSL_free (tls_socket_tab[pos].ssl_conn);
-                  if (tls_socket_tab[pos].ssl_ctx != NULL)
-                    SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
-
-                  memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
-
-                  rlen = 0;     /* discard any remaining data ? */
-                  break;              		
-              	}
-              }
-              else {
-              	rlen += i;
-              }
-            }
-          while (SSL_pending (tls_socket_tab[pos].ssl_conn));
-
-          if (rlen > 5)
-            {
-              osip_strncpy (buf + rlen, "\0", 1);
-              OSIP_TRACE (osip_trace
-                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                           "Received TLS message: \n%s\n", buf));
-              _eXosip_handle_incoming_message (buf, i,
-                                               tls_socket_tab[pos].socket,
-                                               tls_socket_tab[pos].remote_ip,
-                                               tls_socket_tab[pos].remote_port);
-            }
-        }
-    }
-
-  if (buf != NULL)
-    osip_free (buf);
-
-  return OSIP_SUCCESS;
-}
-
-
-static int
-_tls_tl_find_socket (char *host, int port)
-{
-  int pos;
-
-  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
-    {
-      if (tls_socket_tab[pos].socket != 0)
-        {
-          if (0 == osip_strcasecmp (tls_socket_tab[pos].remote_ip, host)
-              && port == tls_socket_tab[pos].remote_port)
-            return pos;
-        }
-    }
-  return -1;
-}
-
 static void
 tls_dump_cert_info (char *s, X509 * cert)
 {
@@ -1316,22 +1008,6 @@ _tls_tl_ssl_connect_socket (int pos)
 			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
 				"SSL_is_init_finished failed\n"));
 	}
-	//res = SSL_connect (tls_socket_tab[pos].ssl_conn);
-	//res = SSL_get_error (tls_socket_tab[pos].ssl_conn, res);
-	//if (res != SSL_ERROR_WANT_READ && res != SSL_ERROR_WANT_WRITE
-	//	&& res != SSL_ERROR_NONE )
-	//{
-	//	print_ssl_error (res);
-	//	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-	//		"SSL_connect error\n"));
-	//	return -1;
-	//}
-	//else if (res == SSL_ERROR_WANT_READ || res == SSL_ERROR_WANT_WRITE)
-	//{
-	//	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
-	//		"SSL_connect still not connected (%d ms)\n", SOCKET_TIMEOUT));
-	//	return 1;
-	//}
 
 	cert = SSL_get_peer_certificate (tls_socket_tab[pos].ssl_conn);
 	if (cert != 0)
@@ -1377,6 +1053,365 @@ _tls_tl_ssl_connect_socket (int pos)
 	tls_socket_tab[pos].ssl_state = 3;
 	return 0;
 }
+
+static int
+tls_tl_read_message (fd_set * osip_fdset)
+{
+  int pos = 0;
+  char *buf;
+
+  if (FD_ISSET (tls_socket, osip_fdset))
+    {
+      /* accept incoming connection */
+      char src6host[NI_MAXHOST];
+      int recvport = 0;
+      struct sockaddr_storage sa;
+      int sock;
+      int i;
+
+#ifdef __linux
+      socklen_t slen;
+#else
+      int slen;
+#endif
+
+      SSL *ssl = NULL;
+      BIO *sbio;
+
+
+      if (eXtl_tls.proto_family == AF_INET)
+        slen = sizeof (struct sockaddr_in);
+      else
+        slen = sizeof (struct sockaddr_in6);
+
+      for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+        {
+          if (tls_socket_tab[pos].socket <= 0)
+            break;
+        }
+      if (pos < 0)
+        {
+          /* delete an old one! */
+          pos = 0;
+          if (tls_socket_tab[pos].socket > 0)
+            {
+              if (tls_socket_tab[pos].ssl_conn != NULL)
+                {
+                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+                  SSL_free (tls_socket_tab[pos].ssl_conn);
+                  SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+                }
+              close (tls_socket_tab[pos].socket);
+            }
+          memset (&tls_socket_tab[pos], 0, sizeof (struct socket_tab));
+        }
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO3, NULL,
+                              "creating TLS socket at index: %i\n", pos));
+
+      sock = accept (tls_socket, (struct sockaddr *) &sa, &slen);
+      if (sock < 0)
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "Error accepting TLS socket\n"));
+      } else
+        {
+          if (ssl_ctx == NULL)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                      "TLS connection rejected\n"));
+              close (sock);
+              return -1;
+            }
+
+          if (!SSL_CTX_check_private_key (ssl_ctx))
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                      "SSL CTX private key check error\n"));
+            }
+
+          ssl = SSL_new (ssl_ctx);
+          if (ssl == NULL)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                      "Cannot create ssl connection context\n"));
+              return -1;
+            }
+
+          if (!SSL_check_private_key (ssl))
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                      "SSL private key check error\n"));
+            }
+
+          sbio = BIO_new_socket (sock, BIO_NOCLOSE);
+          if (sbio == NULL)
+            {
+              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                      "BIO_new_socket error\n"));
+            }
+
+          SSL_set_bio (ssl, sbio, sbio);        /* cannot fail */
+
+          i = SSL_accept (ssl);
+          if (i <= 0)
+            {
+              i = SSL_get_error (ssl, i);
+              print_ssl_error (i);
+
+
+              SSL_shutdown (ssl);
+              close (sock);
+              SSL_free (ssl);
+              if (tls_socket_tab[pos].ssl_ctx != NULL)
+                SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+
+              tls_socket_tab[pos].ssl_conn = NULL;
+              tls_socket_tab[pos].ssl_ctx = NULL;
+              tls_socket_tab[pos].socket = 0;
+
+              return -1;
+            }
+
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                                  "New TLS connection accepted\n"));
+
+          tls_socket_tab[pos].socket = sock;
+          tls_socket_tab[pos].ssl_conn = ssl;
+          tls_socket_tab[pos].ssl_state = 2;
+
+
+          memset (src6host, 0, sizeof (src6host));
+
+          if (eXtl_tls.proto_family == AF_INET)
+            recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
+          else
+            recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
+
+#if defined(__arc__)
+          {
+            struct sockaddr_in *fromsa = (struct sockaddr_in *) &sa;
+            char *tmp;
+            tmp = inet_ntoa (fromsa->sin_addr);
+            if (tmp == NULL)
+              {
+                OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                             "Message received from: NULL:%i inet_ntoa failure\n",
+                             recvport));
+            } else
+              {
+                snprintf (src6host, sizeof (src6host), "%s", tmp);
+                OSIP_TRACE (osip_trace
+                            (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                             "Message received from: %s:%i\n", src6host,
+                             recvport));
+                osip_strncpy (tls_socket_tab[pos].remote_ip, src6host,
+                              sizeof (tls_socket_tab[pos].remote_ip) - 1);
+                tls_socket_tab[pos].remote_port = recvport;
+              }
+          }
+#else
+          i = getnameinfo ((struct sockaddr *) &sa, slen,
+                           src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
+          if (i != 0)
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                           "Message received from: NULL:%i getnameinfo failure\n",
+                           recvport));
+              snprintf (src6host, sizeof (src6host), "127.0.0.1");
+          } else
+            {
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "Message received from: %s:%i\n", src6host, recvport));
+              osip_strncpy (tls_socket_tab[pos].remote_ip, src6host,
+                            sizeof (tls_socket_tab[pos].remote_ip) - 1);
+              tls_socket_tab[pos].remote_port = recvport;
+            }
+#endif
+        }
+    }
+
+
+
+  buf = NULL;
+
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+    {
+      if (tls_socket_tab[pos].socket > 0
+          && FD_ISSET (tls_socket_tab[pos].socket, osip_fdset))
+        {
+          int i;
+          int rlen, err;
+
+          if (buf == NULL)
+            buf =
+              (char *) osip_malloc (SIP_MESSAGE_MAX_LENGTH * sizeof (char) + 1);
+          if (buf == NULL)
+            return OSIP_NOMEM;
+
+          /* do TLS handshake? */
+
+		  if (tls_socket_tab[pos].ssl_state == 0)
+			  {
+				  i = _tls_tl_is_connected(tls_socket_tab[pos].socket);
+				  if (i>0)
+					  {
+						  continue;
+					  }
+				  else if (i==0)
+					  {
+						  OSIP_TRACE (osip_trace
+									  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+									   "socket node:%s , socket %d [pos=%d], connected\n",
+									   tls_socket_tab[pos].remote_ip, tls_socket_tab[pos].socket, pos));
+						  tls_socket_tab[pos].ssl_state = 1;
+					  }
+				  else
+					  {
+						  OSIP_TRACE (osip_trace
+									  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+									   "socket node:%s, socket %d [pos=%d], socket error\n",
+									   tls_socket_tab[pos].remote_ip, tls_socket_tab[pos].socket, pos));
+						  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+						  close (tls_socket_tab[pos].socket);
+						  SSL_free (tls_socket_tab[pos].ssl_conn);
+						  if (tls_socket_tab[pos].ssl_ctx != NULL)
+							  SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+						  
+						  memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
+						  continue;
+					  }
+			  }
+		  
+		  if (tls_socket_tab[pos].ssl_state == 1)
+			  {
+				  i = _tls_tl_ssl_connect_socket(pos);
+				  if (i<0)
+					  {
+						  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+						  close (tls_socket_tab[pos].socket);
+						  SSL_free (tls_socket_tab[pos].ssl_conn);
+						  if (tls_socket_tab[pos].ssl_ctx != NULL)
+							  SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+						  
+						  memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
+						  continue;
+					  }
+			  }
+
+          if (tls_socket_tab[pos].ssl_state == 2)
+            {
+              i = SSL_do_handshake (tls_socket_tab[pos].ssl_conn);
+              if (i <= 0)
+                {
+                  i = SSL_get_error (tls_socket_tab[pos].ssl_conn, i);
+                  print_ssl_error (i);
+
+                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+                  close (tls_socket_tab[pos].socket);
+                  SSL_free (tls_socket_tab[pos].ssl_conn);
+                  if (tls_socket_tab[pos].ssl_ctx != NULL)
+                    SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+
+                  memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
+                  continue;
+                }
+              tls_socket_tab[pos].ssl_state = 3;
+
+            }
+
+          if (tls_socket_tab[pos].ssl_state != 3)
+            continue;
+
+          i = 0;
+          rlen = 0;
+
+          do
+            {
+              i = SSL_read (tls_socket_tab[pos].ssl_conn, buf + rlen,
+                            SIP_MESSAGE_MAX_LENGTH - rlen);
+              if (i <= 0) {
+              	err = SSL_get_error (tls_socket_tab[pos].ssl_conn, i);
+              	if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
+              		break;
+              	}
+				else if (err == SSL_ERROR_SYSCALL && errno != EAGAIN)
+				{
+					break;
+				}
+              	else {
+              		print_ssl_error (err);
+                  /*
+                     The TLS/SSL connection has been closed.  If the protocol version
+                     is SSL 3.0 or TLS 1.0, this result code is returned only if a
+                     closure alert has occurred in the protocol, i.e. if the
+                     connection has been closed cleanly. Note that in this case
+                     SSL_ERROR_ZERO_RETURN does not necessarily indicate that the
+                     underlying transport has been closed. */
+                  OSIP_TRACE (osip_trace
+                              (__FILE__, __LINE__, OSIP_WARNING,
+                               NULL, "TLS closed\n"));
+
+                  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+                  close (tls_socket_tab[pos].socket);
+                  SSL_free (tls_socket_tab[pos].ssl_conn);
+                  if (tls_socket_tab[pos].ssl_ctx != NULL)
+                    SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+
+                  memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
+
+                  rlen = 0;     /* discard any remaining data ? */
+                  break;              		
+              	}
+              }
+              else {
+              	rlen += i;
+              }
+            }
+          while (SSL_pending (tls_socket_tab[pos].ssl_conn));
+
+          if (rlen > 5)
+            {
+              osip_strncpy (buf + rlen, "\0", 1);
+              OSIP_TRACE (osip_trace
+                          (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                           "Received TLS message: \n%s\n", buf));
+              _eXosip_handle_incoming_message (buf, i,
+                                               tls_socket_tab[pos].socket,
+                                               tls_socket_tab[pos].remote_ip,
+                                               tls_socket_tab[pos].remote_port);
+            }
+        }
+    }
+
+  if (buf != NULL)
+    osip_free (buf);
+
+  return OSIP_SUCCESS;
+}
+
+
+static int
+_tls_tl_find_socket (char *host, int port)
+{
+  int pos;
+
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+    {
+      if (tls_socket_tab[pos].socket != 0)
+        {
+          if (0 == osip_strcasecmp (tls_socket_tab[pos].remote_ip, host)
+              && port == tls_socket_tab[pos].remote_port)
+            return pos;
+        }
+    }
+  return -1;
+}
+
 
 static int
 _tls_tl_connect_socket (char *host, int port)
@@ -1495,8 +1530,8 @@ _tls_tl_connect_socket (char *host, int port)
 			struct tcp_keepalive kalive = {0};
 			struct tcp_keepalive kaliveOut = {0} ;
 			kalive.onoff = 1 ;
-			kalive.keepalivetime = 30000 ; // Keep Alive in 5.5 sec.
-			kalive.keepaliveinterval = 3000 ; // Resend if No-Reply
+				kalive.keepalivetime = 30000 ; /* Keep Alive in 5.5 sec. */
+				kalive.keepaliveinterval = 3000 ; /* Resend if No-Reply */
 			err = WSAIoctl(sock, SIO_KEEPALIVE_VALS, &kalive,
 				sizeof(kalive), &kaliveOut, sizeof(kaliveOut), &dwBytes,
 				NULL, NULL);
@@ -1532,6 +1567,7 @@ _tls_tl_connect_socket (char *host, int port)
                          "Cannot set socket flag!\n"));
             continue;
           }
+#if 0
 		val=1;
 		if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) == -1)
 		val = 30; /* 30 sec before starting probes */
@@ -1539,7 +1575,8 @@ _tls_tl_connect_socket (char *host, int port)
 		val = 2; /* 2 probes max */
 		setsockopt (sock, SOL_TCP, TCP_KEEPCNT, &val, sizeof (val));
 		val = 10; /* 10 seconds between each probe */
-		setsockopt (sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof (val));
+			setsockopt (sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof (val));
+#endif
 		}
 #endif
           
@@ -1553,7 +1590,6 @@ _tls_tl_connect_socket (char *host, int port)
 #ifdef WIN32
             int status = WSAGetLastError ();
 			if (status != WSAEWOULDBLOCK) {
-			//if (status != WSAEINPROGRESS) {
 #else
             if (errno != EINPROGRESS) {
 #endif

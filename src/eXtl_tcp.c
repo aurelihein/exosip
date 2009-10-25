@@ -21,12 +21,13 @@
 #ifdef ENABLE_MPATROL
 #include <mpatrol.h>
 #endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
 
 #include "eXosip2.h"
 #include "eXtransport.h"
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
 #ifdef WIN32
 #include <Mstcpip.h>
@@ -722,8 +723,8 @@ _tcp_tl_connect_socket (char *host, int port)
 			struct tcp_keepalive kalive = {0};
 			struct tcp_keepalive kaliveOut = {0} ;
 			kalive.onoff = 1 ;
-			kalive.keepalivetime = 30000 ; // Keep Alive in 5.5 sec.
-			kalive.keepaliveinterval = 3000 ; // Resend if No-Reply
+				kalive.keepalivetime = 30000 ; /* Keep Alive in 5.5 sec. */
+				kalive.keepaliveinterval = 3000 ; /* Resend if No-Reply */
 			err = WSAIoctl(sock, SIO_KEEPALIVE_VALS, &kalive,
 				sizeof(kalive), &kaliveOut, sizeof(kaliveOut), &dwBytes,
 				NULL, NULL);
@@ -759,6 +760,7 @@ _tcp_tl_connect_socket (char *host, int port)
                          "Cannot set socket flag!\n"));
             continue;
           }
+#if 0
 		val=1;
 		if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) == -1)
 		val = 30; /* 30 sec before starting probes */
@@ -766,7 +768,8 @@ _tcp_tl_connect_socket (char *host, int port)
 		val = 2; /* 2 probes max */
 		setsockopt (sock, SOL_TCP, TCP_KEEPCNT, &val, sizeof (val));
 		val = 10; /* 10 seconds between each probe */
-		setsockopt (sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof (val));
+			setsockopt (sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof (val));
+#endif
 		}
 #endif
 
@@ -780,7 +783,6 @@ _tcp_tl_connect_socket (char *host, int port)
 #ifdef WIN32
             int status = WSAGetLastError ();
 			if (status != WSAEWOULDBLOCK) {
-			//if (status != WSAEINPROGRESS) {
 #else
             if (errno != EINPROGRESS) {
 #endif
@@ -1055,10 +1057,10 @@ tcp_tl_get_masquerade_contact (char *ip, int ip_size, char *port, int port_size)
   memset (ip, 0, ip_size);
   memset (port, 0, port_size);
 
-  if (tcp_firewall_ip != '\0')
+  if (tcp_firewall_ip[0] != '\0')
     snprintf (ip, ip_size, "%s", tcp_firewall_ip);
 
-  if (tcp_firewall_port != '\0')
+  if (tcp_firewall_port[0] != '\0')
     snprintf (port, port_size, "%s", tcp_firewall_port);
   return OSIP_SUCCESS;
 }
