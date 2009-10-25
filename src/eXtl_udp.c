@@ -37,6 +37,8 @@ extern eXosip_t eXosip;
 #define strerror(X) "-1"
 #endif
 
+void udp_tl_learn_port_from_via (osip_message_t * sip);
+
 static int udp_socket;
 static struct sockaddr_storage ai_addr;
 
@@ -396,7 +398,7 @@ eXtl_update_local_target (osip_message_t * req)
         }
     }
 
-  if (udp_firewall_ip != '\0')
+  if (udp_firewall_ip[0] != '\0')
     {
 
       while (!osip_list_eol (&req->contacts, pos))
@@ -671,10 +673,10 @@ udp_tl_get_masquerade_contact (char *ip, int ip_size, char *port, int port_size)
   memset (ip, 0, ip_size);
   memset (port, 0, port_size);
 
-  if (udp_firewall_ip != '\0')
+  if (udp_firewall_ip[0] != '\0')
     snprintf (ip, ip_size, "%s", udp_firewall_ip);
 
-  if (udp_firewall_port != '\0')
+  if (udp_firewall_port[0] != '\0')
     snprintf (port, port_size, "%s", udp_firewall_port);
   return OSIP_SUCCESS;
 }
