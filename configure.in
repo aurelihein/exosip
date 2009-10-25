@@ -12,10 +12,10 @@ AC_MSG_NOTICE([Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009 Aymeric MOI
 dnl *********************************************************************
 dnl Source packaging numbers
 EXOSIP_MAJOR_VERSION=3
-EXOSIP_MINOR_VERSION=3
+EXOSIP_MINOR_VERSION=4
 EXOSIP_MICRO_VERSION=0
 
-SONAME_MAJOR_VERSION=6
+SONAME_MAJOR_VERSION=8
 SONAME_MINOR_VERSION=0
 SONAME_MICRO_VERSION=2
 
@@ -207,7 +207,7 @@ case $OS in
      ;;
 esac
 
-PKG_CHECK_MODULES(OSIP, libosip2 >= 3.1, [], [
+PKG_CHECK_MODULES(OSIP, libosip2 >= 3.4, [], [
 AC_MSG_WARN([assuming osip can be found in -I$includedir and -L$libdir])
 OSIP_CFLAGS='-I$(includedir) -I$(prefix)/include'
 OSIP_LIBS='-L$(libdir) -L$(prefix)/lib -losip2 -losipparser2'
