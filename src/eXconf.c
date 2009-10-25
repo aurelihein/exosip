@@ -785,8 +785,8 @@ eXosip_execute (void)
     {
       /*  add a small amount of time on windows to avoid
          waking up too early. (probably a bad time precision) */
-      if (lower_tv.tv_usec < 900000)
-        lower_tv.tv_usec = 100000;      /* add 10ms */
+      if (lower_tv.tv_usec < 990000)
+        lower_tv.tv_usec += 10000;      /* add 10ms */
       else
         {
           lower_tv.tv_usec = 10000;     /* add 10ms */
@@ -1049,7 +1049,7 @@ eXosip_set_option (int opt, const void *value)
                      eXosip.event_package));
         break;
 #endif
-	  case EXOSIP_OPT_DNS_CAPABILITIES: //EXOSIP_OPT_SRV_WITH_NAPTR:
+	case EXOSIP_OPT_DNS_CAPABILITIES: /*EXOSIP_OPT_SRV_WITH_NAPTR: */
         val = *((int *) value);
 		/* 0: A request, 1: SRV support, 2: NAPTR+SRV support */
         eXosip.dns_capabilities=val;
