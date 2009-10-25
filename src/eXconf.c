@@ -1090,6 +1090,9 @@ _eXosip_keep_alive (void)
   add_gettimeofday (&mtimer, eXosip.keep_alive);
 
   eXtl_udp.tl_keepalive ();
+  eXtl_tcp.tl_keepalive ();
+  eXtl_dtls.tl_keepalive ();
+  eXtl_tls.tl_keepalive ();
 }
 
 #ifdef OSIP_MT

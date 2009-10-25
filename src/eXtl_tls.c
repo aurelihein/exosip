@@ -21,9 +21,16 @@
 #ifdef ENABLE_MPATROL
 #include <mpatrol.h>
 #endif
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 
 #include "eXosip2.h"
 #include "eXtransport.h"
+
+#ifdef WIN32
+#include <Mstcpip.h>
+#endif
 
 #ifdef HAVE_OPENSSL_SSL_H
 
@@ -76,6 +83,8 @@ struct socket_tab
   int ssl_state;
 
 };
+
+#define SOCKET_TIMEOUT 0
 
 #ifndef EXOSIP_MAX_SOCKETS
 #define EXOSIP_MAX_SOCKETS 100
@@ -934,17 +943,17 @@ tls_tl_read_message (fd_set * osip_fdset)
             {
               i = SSL_read (tls_socket_tab[pos].ssl_conn, buf + rlen,
                             SIP_MESSAGE_MAX_LENGTH - rlen);
-              err = SSL_get_error (tls_socket_tab[pos].ssl_conn, i);
-              print_ssl_error (err);
-              switch (err)
-                {
-                  case SSL_ERROR_NONE:
-                    rlen += i;
-                    break;
-                }
-              if (err == SSL_ERROR_SSL
-                  || err == SSL_ERROR_SYSCALL || err == SSL_ERROR_ZERO_RETURN)
-                {
+              if (i <= 0) {
+              	err = SSL_get_error (tls_socket_tab[pos].ssl_conn, i);
+              	if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
+              		break;
+              	}
+				else if (err == SSL_ERROR_SYSCALL && errno != EAGAIN)
+				{
+					break;
+				}
+              	else {
+              		print_ssl_error (err);
                   /*
                      The TLS/SSL connection has been closed.  If the protocol version
                      is SSL 3.0 or TLS 1.0, this result code is returned only if a
@@ -965,8 +974,12 @@ tls_tl_read_message (fd_set * osip_fdset)
                   memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
 
                   rlen = 0;     /* discard any remaining data ? */
-                  break;
-                }
+                  break;              		
+              	}
+              }
+              else {
+              	rlen += i;
+              }
             }
           while (SSL_pending (tls_socket_tab[pos].ssl_conn));
 
@@ -1144,22 +1157,236 @@ tls_dump_verification_failure (long verification_result)
                "verification failure: %s\n", tmp));
 }
 
+static int
+_tls_tl_is_connected(int sock)
+{
+	int res;
+	struct timeval tv;
+	fd_set wrset;
+	int valopt;
+	socklen_t sock_len;
+	tv.tv_sec = SOCKET_TIMEOUT / 1000;
+	tv.tv_usec = (SOCKET_TIMEOUT % 1000) * 1000;
 
+	FD_ZERO(&wrset);
+	FD_SET(sock, &wrset);
+
+	res = select(sock+1, NULL, &wrset, NULL, &tv);
+	if (res > 0) 
+	{
+		sock_len = sizeof(int); 
+		if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &sock_len) == 0)
+		{
+			if (valopt) 
+			{
+				OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_INFO2, NULL,
+					"Cannot connect socket node / %s[%d]\n",
+					strerror (errno), valopt));
+				return -1;
+			}
+			else {
+				return 0;
+			}
+		}
+		else {
+			OSIP_TRACE (osip_trace
+				(__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"Cannot connect socket node / error in getsockopt %s[%d]\n",
+				strerror (errno), errno));
+			return -1;
+		}
+	}
+	else if (res < 0) {
+		OSIP_TRACE (osip_trace
+			(__FILE__, __LINE__, OSIP_INFO2, NULL,
+			"Cannot connect socket node / error in select %s[%d]\n",
+			strerror (errno), errno));
+		return -1;
+	}
+	else {
+		OSIP_TRACE (osip_trace
+			(__FILE__, __LINE__, OSIP_INFO2, NULL,
+			"Cannot connect socket node / select timeout (%d ms)\n",
+			SOCKET_TIMEOUT));
+		return 1;
+	}
+}
+
+static int
+_tls_tl_ssl_connect_socket (int pos)
+{
+	X509 *cert;
+	BIO *sbio;
+	int res;
+
+	if (tls_socket_tab[pos].ssl_ctx==NULL)
+	{
+      tls_socket_tab[pos].ssl_ctx = initialize_client_ctx (eXosip_tls_ctx_params.client.priv_key,
+                                   eXosip_tls_ctx_params.client.cert,
+                                   eXosip_tls_ctx_params.server.priv_key_pw,
+                                   IPPROTO_TCP);
+
+      /* FIXME: changed parameter from ctx to client_ctx -> works now */
+      tls_socket_tab[pos].ssl_conn = SSL_new (tls_socket_tab[pos].ssl_ctx);
+      if (tls_socket_tab[pos].ssl_conn == NULL)
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "SSL_new error\n"));
+          return -1;
+        }
+	  sbio = BIO_new_socket (tls_socket_tab[pos].socket, BIO_NOCLOSE);
+
+      if (sbio == NULL)
+        {
+          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+                                  "BIO_new_socket error\n"));
+          return -1;
+        }
+      SSL_set_bio (tls_socket_tab[pos].ssl_conn, sbio, sbio);
+
+	}
+
+	if (SSL_is_init_finished (tls_socket_tab[pos].ssl_conn))
+	{
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_is_init_finished already done\n"));
+	}
+	else
+	{
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_is_init_finished not already done\n"));
+	}
+
+	do 
+	{
+		struct timeval tv;
+		int fd;
+		fd_set readfds;
+
+		res = SSL_connect (tls_socket_tab[pos].ssl_conn);
+		res = SSL_get_error (tls_socket_tab[pos].ssl_conn, res);
+		if (res == SSL_ERROR_NONE)
+		{
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_connect succeeded\n"));
+			break;
+		}
+
+		if (res != SSL_ERROR_WANT_READ && res != SSL_ERROR_WANT_WRITE)
+		{
+			print_ssl_error (res);
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				"SSL_connect error\n"));
+			return -1;
+		}
+
+		tv.tv_sec = SOCKET_TIMEOUT / 1000;
+		tv.tv_usec = (SOCKET_TIMEOUT % 1000) * 1000;
+		OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+			"SSL_connect retry\n"));
+
+		fd=SSL_get_fd(tls_socket_tab[pos].ssl_conn);
+		FD_ZERO(&readfds);
+		FD_SET(fd,&readfds);
+		res  = select(fd+1,&readfds,NULL,NULL,&tv);
+		if (res < 0) {
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_connect select(read) error (%s)\n", strerror(errno)));
+			return -1;
+		}
+		else if (res > 0) {
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_connect (read done)\n"));
+		}
+		else {
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_connect (timeout not data to read) (%d ms)\n", SOCKET_TIMEOUT));
+			return 1;
+		}
+	} while (!SSL_is_init_finished (tls_socket_tab[pos].ssl_conn));
+
+	if (SSL_is_init_finished (tls_socket_tab[pos].ssl_conn))
+	{
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_is_init_finished done\n"));
+	}
+	else
+	{
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"SSL_is_init_finished failed\n"));
+	}
+	//res = SSL_connect (tls_socket_tab[pos].ssl_conn);
+	//res = SSL_get_error (tls_socket_tab[pos].ssl_conn, res);
+	//if (res != SSL_ERROR_WANT_READ && res != SSL_ERROR_WANT_WRITE
+	//	&& res != SSL_ERROR_NONE )
+	//{
+	//	print_ssl_error (res);
+	//	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+	//		"SSL_connect error\n"));
+	//	return -1;
+	//}
+	//else if (res == SSL_ERROR_WANT_READ || res == SSL_ERROR_WANT_WRITE)
+	//{
+	//	OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL,
+	//		"SSL_connect still not connected (%d ms)\n", SOCKET_TIMEOUT));
+	//	return 1;
+	//}
+
+	cert = SSL_get_peer_certificate (tls_socket_tab[pos].ssl_conn);
+	if (cert != 0)
+	{
+		int cert_err;
+		tls_dump_cert_info ("tls_connect: remote certificate: ", cert);
+
+		cert_err = SSL_get_verify_result (tls_socket_tab[pos].ssl_conn);
+		if (cert_err != X509_V_OK)
+		{
+			OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				"Failed to verify remote certificate\n"));
+			tls_dump_verification_failure (cert_err);
+
+			if (eXosip_tls_ctx_params.server.cert[0] != '\0')
+			{
+				X509_free(cert);
+				return -1;
+			}
+			else if (cert_err != X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+				&& cert_err != X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN
+				&& cert_err != X509_V_ERR_CRL_HAS_EXPIRED
+				&& cert_err != X509_V_ERR_CERT_HAS_EXPIRED
+				&& cert_err != X509_V_ERR_CERT_REVOKED
+				&& cert_err != X509_V_ERR_CERT_UNTRUSTED
+				&& cert_err != X509_V_ERR_CERT_REJECTED)
+			{
+				X509_free (cert);
+				return -1;
+			}
+			/*else -> I want to keep going ONLY when API didn't specified
+			any SSL server certificate */
+		}
+		X509_free (cert);
+	} else
+	{
+		OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			"No certificate received\n"));
+		/* X509_free is not necessary because no cert-object was created -> cert == NULL */
+		return -1;
+	}
+
+	tls_socket_tab[pos].ssl_state = 3;
+	return 0;
+}
 
 static int
 _tls_tl_connect_socket (char *host, int port)
 {
   int pos;
-
   int res;
   struct addrinfo *addrinfo = NULL;
   struct addrinfo *curinfo;
   int sock = -1;
-
-  BIO *sbio;
-  SSL *ssl;
-  SSL_CTX *ctx;
-  X509 *cert;
+  int ssl_state = 0;
 
   char src6host[NI_MAXHOST];
   memset (src6host, 0, sizeof (src6host));
@@ -1243,24 +1470,125 @@ _tls_tl_connect_socket (char *host, int port)
             }
 #endif /* IPV6_V6ONLY */
         }
+#if defined(_WIN32_WCE) || defined(WIN32)
+		{
+		unsigned long nonBlock = 1;
+		int val;
+		
+		ioctlsocket(sock, FIONBIO , &nonBlock);
 
+		val=1;
+		if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (char*)&val, sizeof(val)) == -1)
+          {
+            close (sock);
+            sock = -1;
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                         "Cannot get socket flag!\n"));
+            continue;
+          }
+		}
+#if !defined(_WIN32_WCE)
+		{
+			DWORD err = 0L ;
+			DWORD dwBytes = 0L ;
+			struct tcp_keepalive kalive = {0};
+			struct tcp_keepalive kaliveOut = {0} ;
+			kalive.onoff = 1 ;
+			kalive.keepalivetime = 30000 ; // Keep Alive in 5.5 sec.
+			kalive.keepaliveinterval = 3000 ; // Resend if No-Reply
+			err = WSAIoctl(sock, SIO_KEEPALIVE_VALS, &kalive,
+				sizeof(kalive), &kaliveOut, sizeof(kaliveOut), &dwBytes,
+				NULL, NULL);
+			if (err !=0)
+			{
+				OSIP_TRACE (osip_trace
+					(__FILE__, __LINE__, OSIP_WARNING, NULL,
+					"Cannot set keepalive interval!\n"));
+			}
+		}
+#endif
+#else
+		{
+        int val;
+
+        val = fcntl(sock, F_GETFL);
+        if (val < 0)
+          {
+            close (sock);
+            sock = -1;
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                         "Cannot get socket flag!\n"));
+            continue;
+          }
+        val |= O_NONBLOCK;
+        if (fcntl(sock, F_SETFL, val) < 0)
+          {
+            close (sock);
+            sock = -1;
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                         "Cannot set socket flag!\n"));
+            continue;
+          }
+		val=1;
+		if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) == -1)
+		val = 30; /* 30 sec before starting probes */
+		setsockopt (sock, SOL_TCP, TCP_KEEPIDLE, &val, sizeof (val));
+		val = 2; /* 2 probes max */
+		setsockopt (sock, SOL_TCP, TCP_KEEPCNT, &val, sizeof (val));
+		val = 10; /* 10 seconds between each probe */
+		setsockopt (sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof (val));
+		}
+#endif
+          
+        OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                         "eXosip: socket node:%s , socket %d, family:%d set to non blocking mode\n",
+                         host, sock, curinfo->ai_family));     
       res = connect (sock, curinfo->ai_addr, curinfo->ai_addrlen);
       if (res < 0)
         {
-#if !defined(OSIP_MT) || defined(_WIN32_WCE)
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "eXosip: Cannot bind socket node:%s family:%d\n",
-                       host, curinfo->ai_family));
+#ifdef WIN32
+            int status = WSAGetLastError ();
+			if (status != WSAEWOULDBLOCK) {
+			//if (status != WSAEINPROGRESS) {
 #else
-          OSIP_TRACE (osip_trace
-                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
-                       "eXosip: Cannot bind socket node:%s family:%d %s\n",
-                       host, curinfo->ai_family, strerror (errno)));
+            if (errno != EINPROGRESS) {
 #endif
+            OSIP_TRACE (osip_trace
+                        (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                         "Cannot connect socket node:%s family:%d %s[%d]\n",
+                         host, curinfo->ai_family, strerror (errno), errno));
+ 
           close (sock);
           sock = -1;
           continue;
+            }
+            else 
+            {
+				res = _tls_tl_is_connected(sock);
+				if (res>0)
+				{
+					OSIP_TRACE (osip_trace
+						(__FILE__, __LINE__, OSIP_INFO2, NULL,
+						"socket node:%s, socket %d [pos=%d], family:%d, in progress\n",
+						host, sock, pos, curinfo->ai_family));
+					break;
+				} else if (res==0) {
+					OSIP_TRACE (osip_trace
+						(__FILE__, __LINE__, OSIP_INFO2, NULL,
+						"socket node:%s , socket %d [pos=%d], family:%d, connected\n",
+						host, sock, pos, curinfo->ai_family));
+				    ssl_state = 1;
+					break;
+				} else {
+					close(sock);
+					sock=-1;
+					continue;
+				}
+            }
         }
 
       break;
@@ -1270,93 +1598,6 @@ _tls_tl_connect_socket (char *host, int port)
 
   if (sock > 0)
     {
-      ctx = initialize_client_ctx (eXosip_tls_ctx_params.client.priv_key,
-                                   eXosip_tls_ctx_params.client.cert,
-                                   eXosip_tls_ctx_params.server.priv_key_pw,
-                                   IPPROTO_TCP);
-
-      /* FIXME: changed parameter from ctx to client_ctx -> works now */
-      ssl = SSL_new (ctx);
-      if (ssl == NULL)
-        {
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                  "SSL_new error\n"));
-          close (sock);
-          if (ctx != NULL)
-            SSL_CTX_free (ctx);
-          return -1;
-        }
-      sbio = BIO_new_socket (sock, BIO_NOCLOSE);
-
-      if (sbio == NULL)
-        {
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                  "BIO_new_socket error\n"));
-          SSL_shutdown (ssl);
-          close (sock);
-          SSL_free (ssl);
-          if (ctx != NULL)
-            SSL_CTX_free (ctx);
-          return -1;
-        }
-      SSL_set_bio (ssl, sbio, sbio);
-      res = SSL_connect (ssl);
-      if (res < 1)
-        {
-          res = SSL_get_error (ssl, res);
-          print_ssl_error (res);
-
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                  "SSL_connect error\n"));
-          SSL_shutdown (ssl);
-          close (sock);
-          SSL_free (ssl);
-          if (ctx != NULL)
-            SSL_CTX_free (ctx);
-          return -1;
-        }
-
-      cert = SSL_get_peer_certificate (ssl);
-      if (cert != 0)
-        {
-          int cert_err;
-          tls_dump_cert_info ("tls_connect: remote certificate: ", cert);
-
-          cert_err = SSL_get_verify_result (ssl);
-          if (cert_err != X509_V_OK)
-            {
-              OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                      "Failed to verify remote certificate\n"));
-              tls_dump_verification_failure (cert_err);
-
-              if (eXosip_tls_ctx_params.server.cert[0] != '\0')
-                {
-                  X509_free(cert);
-                  return -1;
-                }
-              else if (cert_err != X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
-                      && cert_err != X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN
-                      && cert_err != X509_V_ERR_CRL_HAS_EXPIRED
-                      && cert_err != X509_V_ERR_CERT_HAS_EXPIRED
-                      && cert_err != X509_V_ERR_CERT_REVOKED
-                      && cert_err != X509_V_ERR_CERT_UNTRUSTED
-                      && cert_err != X509_V_ERR_CERT_REJECTED)
-                {
-                  X509_free (cert);
-                  return -1;
-                }
-              /*else -> I want to keep going ONLY when API didn't specified
-              any SSL server certificate */
-            }
-          X509_free (cert);
-      } else
-        {
-          OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL,
-                                  "No certificate received\n"));
-          /* X509_free is not necessary because no cert-object was created -> cert == NULL */
-          return -1;
-        }
-
       tls_socket_tab[pos].socket = sock;
 
       if (src6host[0] == '\0')
@@ -1367,11 +1608,27 @@ _tls_tl_connect_socket (char *host, int port)
                       sizeof (tls_socket_tab[pos].remote_ip) - 1);
 
       tls_socket_tab[pos].remote_port = port;
-      tls_socket_tab[pos].ssl_conn = ssl;
-      tls_socket_tab[pos].ssl_state = 3;
+      tls_socket_tab[pos].ssl_conn = NULL;
+      tls_socket_tab[pos].ssl_state = ssl_state;
+	  tls_socket_tab[pos].ssl_ctx = NULL;
 
-      return pos;
-    }
+	  if (tls_socket_tab[pos].ssl_state == 1) /* TCP connected but not TLS connected */
+	  {
+		res = _tls_tl_ssl_connect_socket(pos);
+		if (res<0)
+		{
+			SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+			close (tls_socket_tab[pos].socket);
+			SSL_free (tls_socket_tab[pos].ssl_conn);
+			if (tls_socket_tab[pos].ssl_ctx != NULL)
+				SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+
+			memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
+			return -1;
+		}
+	  }
+      return pos;	  
+  }
 
   return -1;
 }
@@ -1383,6 +1640,8 @@ tls_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   size_t length = 0;
   char *message;
   int i;
+
+  int pos;
 
   SSL *ssl = NULL;
 
@@ -1424,7 +1683,6 @@ tls_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 
   if (out_socket > 0)
     {
-      int pos;
       for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
         {
           if (tls_socket_tab[pos].socket != 0)
@@ -1447,7 +1705,7 @@ tls_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
   /* Step 1: find existing socket to send message */
   if (out_socket <= 0)
     {
-      int pos = _tls_tl_find_socket (host, port);
+      pos = _tls_tl_find_socket (host, port);
 
       /* Step 2: create new socket with host:port */
       if (pos < 0)
@@ -1459,16 +1717,79 @@ tls_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
           out_socket = tls_socket_tab[pos].socket;
           ssl = tls_socket_tab[pos].ssl_conn;
         }
-
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
-                              "Message sent: \n%s (to dest=%s:%i)\n",
-                              message, host, port));
     }
 
-  if (out_socket <= 0 || ssl == NULL)
+  if (out_socket <= 0)
     {
+      osip_free (message);
       return -1;
     }
+
+  if (tls_socket_tab[pos].ssl_state==0)
+  {
+	  i = _tls_tl_is_connected(out_socket);
+	  if (i>0)
+	  {
+		  time_t now;
+		  now = time (NULL);
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+			  "socket node:%s, socket %d [pos=%d], in progress\n",
+			  host, out_socket, -1));
+		  osip_free (message);
+		  if (tr!=NULL && now - tr->birth_time > 10)
+			  return -1;
+		  return 1;
+	  } else if (i==0) {
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+			  "socket node:%s , socket %d [pos=%d], connected\n",
+			  host, out_socket, -1));
+		  tls_socket_tab[pos].ssl_state = 1;
+	  } else {
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			  "socket node:%s, socket %d [pos=%d], socket error\n",
+			  host, out_socket, -1));
+		  osip_free (message);
+		  return -1;
+	  }
+  }
+
+  if (tls_socket_tab[pos].ssl_state == 1) /* TCP connected but not TLS connected */
+  {
+	  i = _tls_tl_ssl_connect_socket(pos);
+	  if (i<0)
+	  {
+		  SSL_shutdown (tls_socket_tab[pos].ssl_conn);
+		  close (tls_socket_tab[pos].socket);
+		  SSL_free (tls_socket_tab[pos].ssl_conn);
+		  if (tls_socket_tab[pos].ssl_ctx != NULL)
+			  SSL_CTX_free (tls_socket_tab[pos].ssl_ctx);
+
+		  memset (&(tls_socket_tab[pos]), 0, sizeof (tls_socket_tab[pos]));
+		  return -1;
+	  }
+	  else if (i>0)
+	  {
+		  OSIP_TRACE (osip_trace
+			  (__FILE__, __LINE__, OSIP_INFO2, NULL,
+			  "socket node:%s, socket %d [pos=%d], connected (ssl in progress)\n",
+			  host, out_socket, pos));
+		  return 1;
+	  }
+	  ssl = tls_socket_tab[pos].ssl_conn;
+  }
+
+  if (ssl == NULL)
+    {
+      osip_free (message);
+      return -1;
+    }
+
+  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL,
+                          "Message sent: (to dest=%s:%i) \n%s\n",
+                          host, port, message));
 
   SSL_set_mode (ssl, SSL_MODE_AUTO_RETRY);
 
@@ -1479,9 +1800,9 @@ tls_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       if (i <= 0)
         {
           i = SSL_get_error (ssl, i);
+          if (i == SSL_ERROR_WANT_READ || i == SSL_ERROR_WANT_WRITE)
+            continue;        
           print_ssl_error (i);
-          if (i == SSL_ERROR_WANT_READ)
-            continue;
 
           osip_free (message);
           return -1;
@@ -1496,6 +1817,34 @@ tls_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 static int
 tls_tl_keepalive (void)
 {
+	char buf[4] = "\r\n\r\n";
+	int pos;
+	int i;
+
+	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++)
+	{
+		if (tls_socket_tab[pos].socket > 0
+			&& tls_socket_tab[pos].ssl_state > 2)
+		{
+		  SSL_set_mode (tls_socket_tab[pos].ssl_conn, SSL_MODE_AUTO_RETRY);
+
+		  while (1)
+			{
+			  i = SSL_write (tls_socket_tab[pos].ssl_conn, (const void *) buf, 4);
+
+			  if (i <= 0)
+				{
+				  i = SSL_get_error (tls_socket_tab[pos].ssl_conn, i);
+				  if (i == SSL_ERROR_WANT_READ || i == SSL_ERROR_WANT_WRITE)
+					continue;        
+				  print_ssl_error (i);
+
+				  return -1;
+				}
+			  break;
+			}
+		}
+	}
   return OSIP_SUCCESS;
 }
 

@@ -581,24 +581,6 @@ udp_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
       sendto (udp_socket, (const void *) message, length, 0,
               (struct sockaddr *) &addr, len))
     {
-#ifdef WIN32
-      if (WSAECONNREFUSED == WSAGetLastError ())
-#else
-      if (ECONNREFUSED == errno)
-#endif
-        {
-          /* This can be considered as an error, but for the moment,
-             I prefer that the application continue to try sending
-             message again and again... so we are not in a error case.
-             Nevertheless, this error should be announced!
-             ALSO, UAS may not have any other options than retry always
-             on the same port.
-           */
-          osip_free (message);
-          return 1;
-      } else
-        {
-
 #ifndef MINISIZE
           /* delete first SRV entry that is not reachable */
           if (tr != NULL && tr->record.name[0] != '\0'
@@ -608,13 +590,12 @@ udp_tl_send_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
                        9 * sizeof (osip_srv_entry_t));
               memset (&tr->record.srventry[9], 0, sizeof (osip_srv_entry_t));
               osip_free (message);
-              return OSIP_SUCCESS;      /* retry for next retransmission! */
+              return OSIP_SUCCESS+1;      /* retry for next retransmission! */
             }
 #endif
           /* SIP_NETWORK_ERROR; */
           osip_free (message);
           return -1;
-        }
     }
 
   if (eXosip.keep_alive > 0)

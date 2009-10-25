@@ -222,7 +222,7 @@ cb_snd_message (osip_transaction_t * tr, osip_message_t * sip, char *host,
 #endif
   if (i != 0)
     {
-      return -1;
+      return i;
     }
 
   return OSIP_SUCCESS;
