@@ -9,25 +9,22 @@
  *  Wrapper for linphone Codec class by Simon Morlat <simon.morlat@free.fr>
  */
 
-int
-val_seg (int val)
+int val_seg(int val)
 {
-  int r = 0;
+	int r = 0;
 
-  val >>= 7;
-  if (val & 0xf0)
-    {
-      val >>= 4;
-      r += 4;
-    }
-  if (val & 0x0c)
-    {
-      val >>= 2;
-      r += 2;
-    }
-  if (val & 0x02)
-    r += 1;
-  return r;
+	val >>= 7;
+	if (val & 0xf0) {
+		val >>= 4;
+		r += 4;
+	}
+	if (val & 0x0c) {
+		val >>= 2;
+		r += 2;
+	}
+	if (val & 0x02)
+		r += 1;
+	return r;
 }
 
 /*
@@ -50,56 +47,50 @@ val_seg (int val)
  * John Wiley & Sons, pps 98-111 and 472-476.
  */
 
-unsigned char
-s16_to_alaw (int pcm_val)
+unsigned char s16_to_alaw(int pcm_val)
 {
-  int mask;
-  int seg;
-  unsigned char aval;
+	int mask;
+	int seg;
+	unsigned char aval;
 
-  if (pcm_val >= 0)
-    {
-      mask = 0xD5;
-  } else
-    {
-      mask = 0x55;
-      pcm_val = -pcm_val;
-      if (pcm_val > 0x7fff)
-        pcm_val = 0x7fff;
-    }
+	if (pcm_val >= 0) {
+		mask = 0xD5;
+	} else {
+		mask = 0x55;
+		pcm_val = -pcm_val;
+		if (pcm_val > 0x7fff)
+			pcm_val = 0x7fff;
+	}
 
-  if (pcm_val < 256)
-    aval = pcm_val >> 4;
-  else
-    {
-      /* Convert the scaled magnitude to segment number. */
-      seg = val_seg (pcm_val);
-      aval = (seg << 4) | ((pcm_val >> (seg + 3)) & 0x0f);
-    }
-  return aval ^ mask;
+	if (pcm_val < 256)
+		aval = pcm_val >> 4;
+	else {
+		/* Convert the scaled magnitude to segment number. */
+		seg = val_seg(pcm_val);
+		aval = (seg << 4) | ((pcm_val >> (seg + 3)) & 0x0f);
+	}
+	return aval ^ mask;
 }
 
 /*
  * alaw_to_s16() - Convert an A-law value to 16-bit linear PCM
  *
  */
-int
-alaw_to_s16 (unsigned char a_val)
+int alaw_to_s16(unsigned char a_val)
 {
-  int t;
-  int seg;
+	int t;
+	int seg;
 
-  a_val ^= 0x55;
-  t = a_val & 0x7f;
-  if (t < 16)
-    t = (t << 4) + 8;
-  else
-    {
-      seg = (t >> 4) & 0x07;
-      t = ((t & 0x0f) << 4) + 0x108;
-      t <<= seg - 1;
-    }
-  return ((a_val & 0x80) ? t : -t);
+	a_val ^= 0x55;
+	t = a_val & 0x7f;
+	if (t < 16)
+		t = (t << 4) + 8;
+	else {
+		seg = (t >> 4) & 0x07;
+		t = ((t & 0x0f) << 4) + 0x108;
+		t <<= seg - 1;
+	}
+	return ((a_val & 0x80) ? t : -t);
 }
 
 /*
@@ -132,34 +123,31 @@ alaw_to_s16 (unsigned char a_val)
  * John Wiley & Sons, pps 98-111 and 472-476.
  */
 
-unsigned char
-s16_to_ulaw (int pcm_val)       /* 2's complement (16-bit range) */
-{
-  int mask;
-  int seg;
-  unsigned char uval;
+unsigned char s16_to_ulaw(int pcm_val)
+{								/* 2's complement (16-bit range) */
+	int mask;
+	int seg;
+	unsigned char uval;
 
-  if (pcm_val < 0)
-    {
-      pcm_val = 0x84 - pcm_val;
-      mask = 0x7f;
-  } else
-    {
-      pcm_val += 0x84;
-      mask = 0xff;
-    }
-  if (pcm_val > 0x7fff)
-    pcm_val = 0x7fff;
+	if (pcm_val < 0) {
+		pcm_val = 0x84 - pcm_val;
+		mask = 0x7f;
+	} else {
+		pcm_val += 0x84;
+		mask = 0xff;
+	}
+	if (pcm_val > 0x7fff)
+		pcm_val = 0x7fff;
 
-  /* Convert the scaled magnitude to segment number. */
-  seg = val_seg (pcm_val);
+	/* Convert the scaled magnitude to segment number. */
+	seg = val_seg(pcm_val);
 
-  /*
-   * Combine the sign, segment, quantization bits;
-   * and complement the code word.
-   */
-  uval = (seg << 4) | ((pcm_val >> (seg + 3)) & 0x0f);
-  return uval ^ mask;
+	/*
+	 * Combine the sign, segment, quantization bits;
+	 * and complement the code word.
+	 */
+	uval = (seg << 4) | ((pcm_val >> (seg + 3)) & 0x0f);
+	return uval ^ mask;
 }
 
 /*
@@ -171,82 +159,73 @@ s16_to_ulaw (int pcm_val)       /* 2's complement (16-bit range) */
  * Note that this function expects to be passed the complement of the
  * original code word. This is in keeping with ISDN conventions.
  */
-int
-ulaw_to_s16 (unsigned char u_val)
+int ulaw_to_s16(unsigned char u_val)
 {
-  int t;
+	int t;
 
-  /* Complement to obtain normal u-law value. */
-  u_val = ~u_val;
+	/* Complement to obtain normal u-law value. */
+	u_val = ~u_val;
 
-  /*
-   * Extract and bias the quantization bits. Then
-   * shift up by the segment number and subtract out the bias.
-   */
-  t = ((u_val & 0x0f) << 3) + 0x84;
-  t <<= (u_val & 0x70) >> 4;
+	/*
+	 * Extract and bias the quantization bits. Then
+	 * shift up by the segment number and subtract out the bias.
+	 */
+	t = ((u_val & 0x0f) << 3) + 0x84;
+	t <<= (u_val & 0x70) >> 4;
 
-  return ((u_val & 0x80) ? (0x84 - t) : (t - 0x84));
+	return ((u_val & 0x80) ? (0x84 - t) : (t - 0x84));
 }
 
 
 
 
-void
-mulaw_dec (char *mulaw_data /* contains size char */ ,
-           char *s16_data /* contains size*2 char */ ,
-           int size)
+void mulaw_dec(char *mulaw_data /* contains size char */ ,
+			   char *s16_data /* contains size*2 char */ ,
+			   int size)
 {
-  int i;
+	int i;
 
-  for (i = 0; i < size; i++)
-    {
-      *((signed short *) s16_data) = ulaw_to_s16 ((unsigned char) mulaw_data[i]);
-      s16_data += 2;
-    }
+	for (i = 0; i < size; i++) {
+		*((signed short *) s16_data) = ulaw_to_s16((unsigned char) mulaw_data[i]);
+		s16_data += 2;
+	}
 }
 
-void
-mulaw_enc (char *s16_data /* contains pcm_size char */ ,
-           char *mulaw_data /* contains pcm_size/2 char */ ,
-           int pcm_size)
+void mulaw_enc(char *s16_data /* contains pcm_size char */ ,
+			   char *mulaw_data /* contains pcm_size/2 char */ ,
+			   int pcm_size)
 {
-  int i;
-  int limit = pcm_size / 2;
+	int i;
+	int limit = pcm_size / 2;
 
-  for (i = 0; i < limit; i++)
-    {
-      mulaw_data[i] = s16_to_ulaw (*((signed short *) s16_data));
-      s16_data += 2;
-    }
+	for (i = 0; i < limit; i++) {
+		mulaw_data[i] = s16_to_ulaw(*((signed short *) s16_data));
+		s16_data += 2;
+	}
 }
 
-void
-alaw_dec (char *alaw_data /* contains size char */ ,
-          char *s16_data /* contains size*2 char */ ,
-          int size)
+void alaw_dec(char *alaw_data /* contains size char */ ,
+			  char *s16_data /* contains size*2 char */ ,
+			  int size)
 {
-  int i;
+	int i;
 
-  for (i = 0; i < size; i++)
-    {
-      ((signed short *) s16_data)[i] = alaw_to_s16 ((unsigned char) alaw_data[i]);
-    }
+	for (i = 0; i < size; i++) {
+		((signed short *) s16_data)[i] = alaw_to_s16((unsigned char) alaw_data[i]);
+	}
 }
 
-void
-alaw_enc (char *s16_data /* contains 320 char */ ,
-          char *alaw_data /* contains 160 char */ ,
-          int pcm_size)
+void alaw_enc(char *s16_data /* contains 320 char */ ,
+			  char *alaw_data /* contains 160 char */ ,
+			  int pcm_size)
 {
-  int i;
-  int limit = pcm_size / 2;
+	int i;
+	int limit = pcm_size / 2;
 
-  for (i = 0; i < limit; i++)
-    {
-      alaw_data[i] = s16_to_alaw (*((signed short *) s16_data));
-      s16_data += 2;
-    }
+	for (i = 0; i < limit; i++) {
+		alaw_data[i] = s16_to_alaw(*((signed short *) s16_data));
+		s16_data += 2;
+	}
 }
 
 #endif

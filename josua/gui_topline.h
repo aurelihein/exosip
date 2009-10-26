@@ -24,7 +24,7 @@
 
 #include "gui.h"
 
-int window_topline_print (void);
+int window_topline_print(void);
 
 extern gui_t gui_window_topline;
 

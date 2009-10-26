@@ -27,95 +27,87 @@
 
 extern eXosip_t eXosip;
 
-int
-eXosip_call_find (int cid, eXosip_call_t ** jc)
+int eXosip_call_find(int cid, eXosip_call_t ** jc)
 {
-  if (cid <= 0)
-    return OSIP_BADPARAMETER;
+	if (cid <= 0)
+		return OSIP_BADPARAMETER;
 
-  for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next)
-    {
-      if ((*jc)->c_id == cid)
-        {
-          return OSIP_SUCCESS;
-        }
-    }
-  *jc = NULL;
-  return OSIP_NOTFOUND;
+	for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next) {
+		if ((*jc)->c_id == cid) {
+			return OSIP_SUCCESS;
+		}
+	}
+	*jc = NULL;
+	return OSIP_NOTFOUND;
 }
 
-int
-eXosip_call_init (eXosip_call_t ** jc)
+int eXosip_call_init(eXosip_call_t ** jc)
 {
-  *jc = (eXosip_call_t *) osip_malloc (sizeof (eXosip_call_t));
-  if (*jc == NULL)
-    return OSIP_NOMEM;
-  memset (*jc, 0, sizeof (eXosip_call_t));
+	*jc = (eXosip_call_t *) osip_malloc(sizeof(eXosip_call_t));
+	if (*jc == NULL)
+		return OSIP_NOMEM;
+	memset(*jc, 0, sizeof(eXosip_call_t));
 
-  (*jc)->c_id = -1;             /* make sure the eXosip_update will assign a valid id to the call */
-  return OSIP_SUCCESS;
+	(*jc)->c_id = -1;			/* make sure the eXosip_update will assign a valid id to the call */
+	return OSIP_SUCCESS;
 }
 
 void
-__eXosip_call_remove_dialog_reference_in_call (eXosip_call_t * jc,
-                                               eXosip_dialog_t * jd)
+__eXosip_call_remove_dialog_reference_in_call(eXosip_call_t * jc,
+											  eXosip_dialog_t * jd)
 {
-  eXosip_dialog_t *_jd;
-  jinfo_t *ji;
+	eXosip_dialog_t *_jd;
+	jinfo_t *ji;
 
-  if (jc == NULL)
-    return;
-  if (jd == NULL)
-    return;
+	if (jc == NULL)
+		return;
+	if (jd == NULL)
+		return;
 
 
-  for (_jd = jc->c_dialogs; _jd != NULL; _jd = _jd->next)
-    {
-      if (jd == _jd)
-        break;
-    }
-  if (_jd == NULL)
-    {
-      /* dialog not found??? */
-    }
+	for (_jd = jc->c_dialogs; _jd != NULL; _jd = _jd->next) {
+		if (jd == _jd)
+			break;
+	}
+	if (_jd == NULL) {
+		/* dialog not found??? */
+	}
 
-  ji = osip_transaction_get_your_instance (jc->c_inc_tr);
-  if (ji != NULL && ji->jd == jd)
-    ji->jd = NULL;
-  ji = osip_transaction_get_your_instance (jc->c_out_tr);
-  if (ji != NULL && ji->jd == jd)
-    ji->jd = NULL;
+	ji = osip_transaction_get_your_instance(jc->c_inc_tr);
+	if (ji != NULL && ji->jd == jd)
+		ji->jd = NULL;
+	ji = osip_transaction_get_your_instance(jc->c_out_tr);
+	if (ji != NULL && ji->jd == jd)
+		ji->jd = NULL;
 }
 
-void
-eXosip_call_free (eXosip_call_t * jc)
+void eXosip_call_free(eXosip_call_t * jc)
 {
-  /* ... */
+	/* ... */
 
-  eXosip_dialog_t *jd;
+	eXosip_dialog_t *jd;
 
-  if (jc->c_inc_tr != NULL && jc->c_inc_tr->orig_request != NULL
-      && jc->c_inc_tr->orig_request->call_id != NULL
-      && jc->c_inc_tr->orig_request->call_id->number != NULL)
-    _eXosip_delete_nonce (jc->c_inc_tr->orig_request->call_id->number);
-  else if (jc->c_out_tr != NULL && jc->c_out_tr->orig_request != NULL
-           && jc->c_out_tr->orig_request->call_id != NULL
-           && jc->c_out_tr->orig_request->call_id->number != NULL)
-    _eXosip_delete_nonce (jc->c_out_tr->orig_request->call_id->number);
+	if (jc->c_inc_tr != NULL && jc->c_inc_tr->orig_request != NULL
+		&& jc->c_inc_tr->orig_request->call_id != NULL
+		&& jc->c_inc_tr->orig_request->call_id->number != NULL)
+		_eXosip_delete_nonce(jc->c_inc_tr->orig_request->call_id->number);
+	else if (jc->c_out_tr != NULL && jc->c_out_tr->orig_request != NULL
+			 && jc->c_out_tr->orig_request->call_id != NULL
+			 && jc->c_out_tr->orig_request->call_id->number != NULL)
+		_eXosip_delete_nonce(jc->c_out_tr->orig_request->call_id->number);
 
-  for (jd = jc->c_dialogs; jd != NULL; jd = jc->c_dialogs)
-    {
-      REMOVE_ELEMENT (jc->c_dialogs, jd);
-      eXosip_dialog_free (jd);
-    }
+	for (jd = jc->c_dialogs; jd != NULL; jd = jc->c_dialogs) {
+		REMOVE_ELEMENT(jc->c_dialogs, jd);
+		eXosip_dialog_free(jd);
+	}
 
-  __eXosip_delete_jinfo (jc->c_inc_tr);
-  __eXosip_delete_jinfo (jc->c_out_tr);
-  if (jc->c_inc_tr != NULL)
-    osip_list_add (&eXosip.j_transactions, jc->c_inc_tr, 0);
-  if (jc->c_out_tr != NULL)
-    osip_list_add (&eXosip.j_transactions, jc->c_out_tr, 0);
+	__eXosip_delete_jinfo(jc->c_inc_tr);
+	__eXosip_delete_jinfo(jc->c_out_tr);
+	if (jc->c_inc_tr != NULL)
+		osip_list_add(&eXosip.j_transactions, jc->c_inc_tr, 0);
+	if (jc->c_out_tr != NULL)
+		osip_list_add(&eXosip.j_transactions, jc->c_out_tr, 0);
 
-  osip_free (jc);
+	osip_free(jc);
 
 }

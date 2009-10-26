@@ -26,24 +26,23 @@
 
 typedef struct jfriend_t jfriend_t;
 
-struct jfriend_t
-{
-  int f_id;
-  char *f_nick;
-  char *f_home;
-  char *f_work;
-  char *f_email;
-  char *f_e164;
+struct jfriend_t {
+	int f_id;
+	char *f_nick;
+	char *f_home;
+	char *f_work;
+	char *f_email;
+	char *f_e164;
 
-  jfriend_t *next;
-  jfriend_t *parent;
+	jfriend_t *next;
+	jfriend_t *parent;
 };
 
-int jfriend_load (void);
-void jfriend_add (char *nickname, char *home, char *work, char *email, char *e164);
-void jfriend_unload (void);
-char *jfriend_get_home (int fid);
-jfriend_t *jfriend_get (void);
-void jfriend_remove (jfriend_t * fr);
+int jfriend_load(void);
+void jfriend_add(char *nickname, char *home, char *work, char *email, char *e164);
+void jfriend_unload(void);
+char *jfriend_get_home(int fid);
+jfriend_t *jfriend_get(void);
+void jfriend_remove(jfriend_t * fr);
 
 #endif

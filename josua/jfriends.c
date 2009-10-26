@@ -37,303 +37,292 @@ jfriend_t *jfriends = NULL;
 #define EXOSIP_ADDFRIENDS_SH "eXosip_addfriend.sh"
 #endif
 
-static int jfriend_init (jfriend_t ** fr, char *ch);
-static int jfriend_get_and_set_next_token (char **dest, char *buf, char **next);
-void __jfriend_remove (char *nickname, char *home);
+static int jfriend_init(jfriend_t ** fr, char *ch);
+static int jfriend_get_and_set_next_token(char **dest, char *buf, char **next);
+void __jfriend_remove(char *nickname, char *home);
 
-static int
-jfriend_init (jfriend_t ** fr, char *ch)
+static int jfriend_init(jfriend_t ** fr, char *ch)
 {
-  char *next;
-  int i;
+	char *next;
+	int i;
 
-  *fr = (jfriend_t *) osip_malloc (sizeof (jfriend_t));
-  if (*fr == NULL)
-    return -1;
+	*fr = (jfriend_t *) osip_malloc(sizeof(jfriend_t));
+	if (*fr == NULL)
+		return -1;
 
-  i = jfriend_get_and_set_next_token (&((*fr)->f_nick), ch, &next);
-  if (i != 0)
-    goto jf_error1;
-  osip_clrspace ((*fr)->f_nick);
-  ch = next;
+	i = jfriend_get_and_set_next_token(&((*fr)->f_nick), ch, &next);
+	if (i != 0)
+		goto jf_error1;
+	osip_clrspace((*fr)->f_nick);
+	ch = next;
 
-  i = jfriend_get_and_set_next_token (&((*fr)->f_home), next, &next);
-  if (i != 0)
-    goto jf_error2;
-  osip_clrspace ((*fr)->f_home);
-  ch = next;
+	i = jfriend_get_and_set_next_token(&((*fr)->f_home), next, &next);
+	if (i != 0)
+		goto jf_error2;
+	osip_clrspace((*fr)->f_home);
+	ch = next;
 
-  i = jfriend_get_and_set_next_token (&((*fr)->f_work), ch, &next);
-  if (i != 0)
-    goto jf_error3;
-  osip_clrspace ((*fr)->f_work);
-  ch = next;
+	i = jfriend_get_and_set_next_token(&((*fr)->f_work), ch, &next);
+	if (i != 0)
+		goto jf_error3;
+	osip_clrspace((*fr)->f_work);
+	ch = next;
 
-  i = jfriend_get_and_set_next_token (&((*fr)->f_email), ch, &next);
-  if (i != 0)
-    goto jf_error4;
-  osip_clrspace ((*fr)->f_email);
+	i = jfriend_get_and_set_next_token(&((*fr)->f_email), ch, &next);
+	if (i != 0)
+		goto jf_error4;
+	osip_clrspace((*fr)->f_email);
 
-  (*fr)->f_e164 = osip_strdup (next);
-  osip_clrspace ((*fr)->f_e164);
+	(*fr)->f_e164 = osip_strdup(next);
+	osip_clrspace((*fr)->f_e164);
 
-  return 0;
+	return 0;
 
-jf_error4:
-  osip_free ((*fr)->f_work);
-jf_error3:
-  osip_free ((*fr)->f_home);
-jf_error2:
-  osip_free ((*fr)->f_nick);
-jf_error1:
-  osip_free (*fr);
-  *fr = NULL;
-  return -1;
+  jf_error4:
+	osip_free((*fr)->f_work);
+  jf_error3:
+	osip_free((*fr)->f_home);
+  jf_error2:
+	osip_free((*fr)->f_nick);
+  jf_error1:
+	osip_free(*fr);
+	*fr = NULL;
+	return -1;
 }
 
-static int
-jfriend_get_and_set_next_token (char **dest, char *buf, char **next)
+static int jfriend_get_and_set_next_token(char **dest, char *buf, char **next)
 {
-  char *end;
-  char *start;
+	char *end;
+	char *start;
 
-  *next = NULL;
+	*next = NULL;
 
-  /* find first non space and tab element */
-  start = buf;
-  while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
-         && (*start != '\r') && (*start != '\n'))
-    start++;
-  end = start + 1;
-  while ((*end != '\0') && (*end != '\r') && (*end != '\n')
-         && (*end != '\t') && (*end != '|'))
-    end++;
+	/* find first non space and tab element */
+	start = buf;
+	while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
+		   && (*start != '\r') && (*start != '\n'))
+		start++;
+	end = start + 1;
+	while ((*end != '\0') && (*end != '\r') && (*end != '\n')
+		   && (*end != '\t') && (*end != '|'))
+		end++;
 
-  if ((*end == '\r') || (*end == '\n'))
-    /* we should continue normally only if this is the separator asked! */
-    return -1;
-  if (end == start)
-    return -1;                  /* empty value (or several space!) */
+	if ((*end == '\r') || (*end == '\n'))
+		/* we should continue normally only if this is the separator asked! */
+		return -1;
+	if (end == start)
+		return -1;				/* empty value (or several space!) */
 
-  *dest = osip_malloc (end - (start) + 1);
-  osip_strncpy (*dest, start, end - start);
+	*dest = osip_malloc(end - (start) + 1);
+	osip_strncpy(*dest, start, end - start);
 
-  *next = end + 1;              /* return the position right after the separator
-                                 */
-  return 0;
+	*next = end + 1;			/* return the position right after the separator
+								 */
+	return 0;
 }
 
-void
-__jfriend_remove (char *nickname, char *home)
+void __jfriend_remove(char *nickname, char *home)
 {
-  char *Home;
-  char command[256];
-  char *tmp = command;
-  int length = 0;
+	char *Home;
+	char command[256];
+	char *tmp = command;
+	int length = 0;
 
-  if (nickname != NULL)
-    length = strlen (nickname);
+	if (nickname != NULL)
+		length = strlen(nickname);
 
-  Home = getenv ("HOME");
-  if (Home == NULL)
-    return;
-  length = length + strlen (Home);
-  osip_clrspace (nickname);
-  osip_clrspace (home);
+	Home = getenv("HOME");
+	if (Home == NULL)
+		return;
+	length = length + strlen(Home);
+	osip_clrspace(nickname);
+	osip_clrspace(home);
 
-  if (home != NULL)
-    length = length + strlen (home);
-  else
-    return;                     /* MUST be set */
-  length = length + strlen (EXOSIP_ETC_DIR);
+	if (home != NULL)
+		length = length + strlen(home);
+	else
+		return;					/* MUST be set */
+	length = length + strlen(EXOSIP_ETC_DIR);
 
-  length = length + strlen ("/jm_contact");
-  if (length > 235)             /* leave some room for SPACEs and \r\n */
-    return;
+	length = length + strlen("/jm_contact");
+	if (length > 235)			/* leave some room for SPACEs and \r\n */
+		return;
 
-  sprintf (tmp, "%s %s/%s/jm_contact", EXOSIP_ADDFRIENDS_SH, Home, EXOSIP_ETC_DIR);
+	sprintf(tmp, "%s %s/%s/jm_contact", EXOSIP_ADDFRIENDS_SH, Home,
+			EXOSIP_ETC_DIR);
 
-  tmp = tmp + strlen (tmp);
-  if (nickname != NULL)
-    sprintf (tmp, " %s", nickname);
-  else
-    sprintf (tmp, " \"\"");
+	tmp = tmp + strlen(tmp);
+	if (nickname != NULL)
+		sprintf(tmp, " %s", nickname);
+	else
+		sprintf(tmp, " \"\"");
 
-  tmp = tmp + strlen (tmp);
-  if (home != NULL)
-    sprintf (tmp, " %s", home);
-  else
-    sprintf (tmp, " \"\"");
+	tmp = tmp + strlen(tmp);
+	if (home != NULL)
+		sprintf(tmp, " %s", home);
+	else
+		sprintf(tmp, " \"\"");
 
-  sprintf (tmp, "delete");
+	sprintf(tmp, "delete");
 
-  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "%s", command));
-  system (command);
+	OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL, "%s", command));
+	system(command);
 }
 
-void
-jfriend_add (char *nickname, char *home, char *work, char *email, char *e164)
+void jfriend_add(char *nickname, char *home, char *work, char *email, char *e164)
 {
-  char *Home;
-  char command[256];
-  char *tmp = command;
-  int length = 0;
+	char *Home;
+	char command[256];
+	char *tmp = command;
+	int length = 0;
 
-  if (nickname != NULL)
-    length = strlen (nickname);
+	if (nickname != NULL)
+		length = strlen(nickname);
 
-  Home = getenv ("HOME");
-  if (Home == NULL)
-    return;
-  length = length + strlen (Home);
+	Home = getenv("HOME");
+	if (Home == NULL)
+		return;
+	length = length + strlen(Home);
 
-  osip_clrspace (nickname);
-  osip_clrspace (home);
-  osip_clrspace (work);
-  osip_clrspace (email);
-  osip_clrspace (e164);
+	osip_clrspace(nickname);
+	osip_clrspace(home);
+	osip_clrspace(work);
+	osip_clrspace(email);
+	osip_clrspace(e164);
 
-  if (home != NULL)
-    length = length + strlen (home);
-  else
-    return;                     /* MUST be set */
-  if (work != NULL)
-    length = length + strlen (work);
-  if (email != NULL)
-    length = length + strlen (email);
-  if (e164 != NULL)
-    length = length + strlen (e164);
-  length = length + strlen (EXOSIP_ETC_DIR);
+	if (home != NULL)
+		length = length + strlen(home);
+	else
+		return;					/* MUST be set */
+	if (work != NULL)
+		length = length + strlen(work);
+	if (email != NULL)
+		length = length + strlen(email);
+	if (e164 != NULL)
+		length = length + strlen(e164);
+	length = length + strlen(EXOSIP_ETC_DIR);
 
-  length = length + strlen ("/jm_contact");
-  if (length > 235)             /* leave some room for SPACEs and \r\n */
-    return;
+	length = length + strlen("/jm_contact");
+	if (length > 235)			/* leave some room for SPACEs and \r\n */
+		return;
 
-  sprintf (tmp, "%s %s/%s/jm_contact", EXOSIP_ADDFRIENDS_SH, Home, EXOSIP_ETC_DIR);
+	sprintf(tmp, "%s %s/%s/jm_contact", EXOSIP_ADDFRIENDS_SH, Home,
+			EXOSIP_ETC_DIR);
 
-  tmp = tmp + strlen (tmp);
-  if (nickname != NULL)
-    sprintf (tmp, " %s", nickname);
-  else
-    sprintf (tmp, " \"\"");
+	tmp = tmp + strlen(tmp);
+	if (nickname != NULL)
+		sprintf(tmp, " %s", nickname);
+	else
+		sprintf(tmp, " \"\"");
 
-  tmp = tmp + strlen (tmp);
-  if (home != NULL)
-    sprintf (tmp, " %s", home);
-  else
-    sprintf (tmp, " \"\"");
+	tmp = tmp + strlen(tmp);
+	if (home != NULL)
+		sprintf(tmp, " %s", home);
+	else
+		sprintf(tmp, " \"\"");
 
-  tmp = tmp + strlen (tmp);
-  if (work != NULL)
-    sprintf (tmp, " %s", work);
-  else
-    sprintf (tmp, " \"\"");
+	tmp = tmp + strlen(tmp);
+	if (work != NULL)
+		sprintf(tmp, " %s", work);
+	else
+		sprintf(tmp, " \"\"");
 
-  tmp = tmp + strlen (tmp);
-  if (email != NULL)
-    sprintf (tmp, " %s", email);
-  else
-    sprintf (tmp, " \"\"");
+	tmp = tmp + strlen(tmp);
+	if (email != NULL)
+		sprintf(tmp, " %s", email);
+	else
+		sprintf(tmp, " \"\"");
 
-  tmp = tmp + strlen (tmp);
-  if (e164 != NULL)
-    sprintf (tmp, " %s", e164);
-  else
-    sprintf (tmp, " \"\"");
+	tmp = tmp + strlen(tmp);
+	if (e164 != NULL)
+		sprintf(tmp, " %s", e164);
+	else
+		sprintf(tmp, " \"\"");
 
-  /*  fprintf(stderr, "%s", command); */
-  system (command);
+	/*  fprintf(stderr, "%s", command); */
+	system(command);
 }
 
-void
-jfriend_unload ()
+void jfriend_unload()
 {
-  jfriend_t *fr;
+	jfriend_t *fr;
 
-  if (jfriends == NULL)
-    return;
-  for (fr = jfriends; fr != NULL; fr = jfriends)
-    {
-      REMOVE_ELEMENT (jfriends, fr);
-      osip_free (fr->f_nick);
-      osip_free (fr->f_home);
-      osip_free (fr->f_work);
-      osip_free (fr->f_email);
-      osip_free (fr->f_e164);
-      osip_free (fr);
-    }
+	if (jfriends == NULL)
+		return;
+	for (fr = jfriends; fr != NULL; fr = jfriends) {
+		REMOVE_ELEMENT(jfriends, fr);
+		osip_free(fr->f_nick);
+		osip_free(fr->f_home);
+		osip_free(fr->f_work);
+		osip_free(fr->f_email);
+		osip_free(fr->f_e164);
+		osip_free(fr);
+	}
 
-  osip_free (jfriends);
-  jfriends = NULL;
-  return;
+	osip_free(jfriends);
+	jfriends = NULL;
+	return;
 }
 
-int
-jfriend_load (void)
+int jfriend_load(void)
 {
-  FILE *file;
-  char *s;
-  jfriend_t *fr;
-  int pos;
-  char *home;
-  char filename[255];
+	FILE *file;
+	char *s;
+	jfriend_t *fr;
+	int pos;
+	char *home;
+	char filename[255];
 
-  jfriend_unload ();
-  home = getenv ("HOME");
-  sprintf (filename, "%s/%s/%s", home, EXOSIP_ETC_DIR, "jm_contact");
+	jfriend_unload();
+	home = getenv("HOME");
+	sprintf(filename, "%s/%s/%s", home, EXOSIP_ETC_DIR, "jm_contact");
 
-  file = fopen (filename, "r");
-  if (file == NULL)
-    return -1;
-  s = (char *) osip_malloc (255 * sizeof (char));
-  pos = 0;
-  while (NULL != fgets (s, 254, file))
-    {
-      char *tmp = s;
+	file = fopen(filename, "r");
+	if (file == NULL)
+		return -1;
+	s = (char *) osip_malloc(255 * sizeof(char));
+	pos = 0;
+	while (NULL != fgets(s, 254, file)) {
+		char *tmp = s;
 
-      while (*tmp != '\0' && *tmp != ' ')
-        tmp++;
-      while (*tmp != '\0' && *tmp == ' ')
-        tmp++;
-      while (*tmp != '\0' && *tmp != ' ')
-        tmp++;
-      tmp++;                    /* first usefull characters */
-      pos++;
+		while (*tmp != '\0' && *tmp != ' ')
+			tmp++;
+		while (*tmp != '\0' && *tmp == ' ')
+			tmp++;
+		while (*tmp != '\0' && *tmp != ' ')
+			tmp++;
+		tmp++;					/* first usefull characters */
+		pos++;
 
-      jfriend_init (&fr, tmp);
-      if (fr != NULL)
-        {
-          ADD_ELEMENT (jfriends, fr);
-        }
-    }
-  osip_free (s);
-  fclose (file);
+		jfriend_init(&fr, tmp);
+		if (fr != NULL) {
+			ADD_ELEMENT(jfriends, fr);
+		}
+	}
+	osip_free(s);
+	fclose(file);
 
-  return 0;                     /* ok */
+	return 0;					/* ok */
 }
 
-char *
-jfriend_get_home (int fid)
+char *jfriend_get_home(int fid)
 {
-  jfriend_t *fr;
+	jfriend_t *fr;
 
-  for (fr = jfriends; fr != NULL; fr = fr->next)
-    {
-      if (fid == 0)
-        return fr->f_home;
-      fid--;
-    }
-  return NULL;
+	for (fr = jfriends; fr != NULL; fr = fr->next) {
+		if (fid == 0)
+			return fr->f_home;
+		fid--;
+	}
+	return NULL;
 }
 
-jfriend_t *
-jfriend_get (void)
+jfriend_t *jfriend_get(void)
 {
-  return jfriends;
+	return jfriends;
 }
 
-void
-jfriend_remove (jfriend_t * fr)
+void jfriend_remove(jfriend_t * fr)
 {
-  REMOVE_ELEMENT (jfriends, fr);
+	REMOVE_ELEMENT(jfriends, fr);
 }

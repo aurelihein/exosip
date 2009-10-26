@@ -23,7 +23,7 @@
 
 #include "gui.h"
 
-int window_icon_print (void);
+int window_icon_print(void);
 
 extern gui_t gui_window_icon;
 

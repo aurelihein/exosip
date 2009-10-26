@@ -23,29 +23,28 @@
 
 #include "gui.h"
 
-int window_menu_print (void);
-int window_menu_run_command (int c);
-void window_menu_draw_commands (void);
+int window_menu_print(void);
+int window_menu_run_command(int c);
+void window_menu_draw_commands(void);
 
 extern gui_t gui_window_menu;
 
-typedef struct menu_t
-{
-  const char *key;
-  const char *text;
-  void (*fn) ();
+typedef struct menu_t {
+	const char *key;
+	const char *text;
+	void (*fn) ();
 } menu_t;
 
 
 /* some external methods */
 
 
-void __show_address_book_browse (void);
-void __show_initiate_session (void);
-void __show_sessions_list (void);
-void __show_subscriptions_list (void);
-void __show_registrations_list (void);
-void __show_setup (void);
-void __josua_quit (void);
+void __show_address_book_browse(void);
+void __show_initiate_session(void);
+void __show_sessions_list(void);
+void __show_subscriptions_list(void);
+void __show_registrations_list(void);
+void __show_setup(void);
+void __josua_quit(void);
 
 #endif

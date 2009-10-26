@@ -23,12 +23,12 @@
 
 #include "gui.h"
 
-void window_new_call_with_to (char *_to);
+void window_new_call_with_to(char *_to);
 
-int window_new_call_print (void);
-int window_new_call_run_command (int c);
-int window_new_call_key_pressed (void);
-void window_new_call_draw_commands (void);
+int window_new_call_print(void);
+int window_new_call_run_command(int c);
+int window_new_call_key_pressed(void);
+void window_new_call_draw_commands(void);
 
 extern gui_t gui_window_new_call;
 

@@ -35,30 +35,29 @@
 #  include <sys/select.h>
 #endif
 
-struct eXtl_protocol
-{
-  int enabled;
+struct eXtl_protocol {
+	int enabled;
 
-  int proto_port;
-  char proto_name[10];
-  char proto_ifs[20];
-  int proto_num;
-  int proto_family;
-  int proto_secure;
-  int proto_reliable;
+	int proto_port;
+	char proto_name[10];
+	char proto_ifs[20];
+	int proto_num;
+	int proto_family;
+	int proto_secure;
+	int proto_reliable;
 
-  int (*tl_init) (void);
-  int (*tl_free) (void);
-  int (*tl_open) (void);
-  int (*tl_set_fdset) (fd_set * osip_fdset, int *fd_max);
-  int (*tl_read_message) (fd_set * osip_fdset);
-  int (*tl_send_message) (osip_transaction_t * tr, osip_message_t * sip,
-                          char *host, int port, int out_socket);
-  int (*tl_keepalive) (void);
-  int (*tl_set_socket) (int socket);
-  int (*tl_masquerade_contact) (const char *ip, int port);
-  int (*tl_get_masquerade_contact) (char *ip, int ip_size, char *port,
-                                    int port_size);
+	int (*tl_init) (void);
+	int (*tl_free) (void);
+	int (*tl_open) (void);
+	int (*tl_set_fdset) (fd_set * osip_fdset, int *fd_max);
+	int (*tl_read_message) (fd_set * osip_fdset);
+	int (*tl_send_message) (osip_transaction_t * tr, osip_message_t * sip,
+							char *host, int port, int out_socket);
+	int (*tl_keepalive) (void);
+	int (*tl_set_socket) (int socket);
+	int (*tl_masquerade_contact) (const char *ip, int port);
+	int (*tl_get_masquerade_contact) (char *ip, int ip_size, char *port,
+									  int port_size);
 };
 
 extern struct eXtl_protocol eXtl_udp;

@@ -23,26 +23,25 @@
 
 #include <eXosip2/eXosip.h>
 
-struct jinsubscription
-{
-  int nid;
-  int did;
-  int tid;
+struct jinsubscription {
+	int nid;
+	int did;
+	int tid;
 
-  char reason_phrase[50];
-  int status_code;
+	char reason_phrase[50];
+	int status_code;
 
-  char textinfo[256];
-  char req_uri[256];
-  char local_uri[256];
-  char remote_uri[256];
+	char textinfo[256];
+	char req_uri[256];
+	char local_uri[256];
+	char remote_uri[256];
 
-  int online_status;
-  int ss_status;
-  int ss_reason;
+	int online_status;
+	int ss_status;
+	int ss_reason;
 
 #define NOT_USED      0
-  int state;
+	int state;
 
 };
 
@@ -54,21 +53,21 @@ extern jinsubscription_t jinsubscriptions[];
 #define MAX_NUMBER_OF_INSUBSCRIPTIONS 100
 #endif
 
-jinsubscription_t *jinsubscription_find_insubscription (int pos);
-int jinsubscription_get_number_of_pending_insubscriptions (void);
-int __jinsubscription_send_notify (int did, int ss_status,
-                                   int ss_reason, int online_status);
+jinsubscription_t *jinsubscription_find_insubscription(int pos);
+int jinsubscription_get_number_of_pending_insubscriptions(void);
+int __jinsubscription_send_notify(int did, int ss_status,
+								  int ss_reason, int online_status);
 
-int jinsubscription_new (eXosip_event_t * je);
-int jinsubscription_answered (eXosip_event_t * je);
-int jinsubscription_proceeding (eXosip_event_t * je);
-int jinsubscription_redirected (eXosip_event_t * je);
-int jinsubscription_requestfailure (eXosip_event_t * je);
-int jinsubscription_serverfailure (eXosip_event_t * je);
-int jinsubscription_globalfailure (eXosip_event_t * je);
+int jinsubscription_new(eXosip_event_t * je);
+int jinsubscription_answered(eXosip_event_t * je);
+int jinsubscription_proceeding(eXosip_event_t * je);
+int jinsubscription_redirected(eXosip_event_t * je);
+int jinsubscription_requestfailure(eXosip_event_t * je);
+int jinsubscription_serverfailure(eXosip_event_t * je);
+int jinsubscription_globalfailure(eXosip_event_t * je);
 
-int jinsubscription_closed (eXosip_event_t * je);
+int jinsubscription_closed(eXosip_event_t * je);
 
-int jinsubscription_remove (jinsubscription_t * ca);
+int jinsubscription_remove(jinsubscription_t * ca);
 
 #endif

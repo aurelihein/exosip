@@ -35,114 +35,109 @@
 extern struct osip_mutex *log_mutex;
 
 gui_t gui_window_menu = {
-  GUI_OFF,
-  20,
-  -999,
-  2,
-  9,
-  NULL,
-  &window_menu_print,
-  &window_menu_run_command,
-  NULL,
-  &window_menu_draw_commands,
-  -1,
-  -1,
-  -1,
-  NULL
+	GUI_OFF,
+	20,
+	-999,
+	2,
+	9,
+	NULL,
+	&window_menu_print,
+	&window_menu_run_command,
+	NULL,
+	&window_menu_draw_commands,
+	-1,
+	-1,
+	-1,
+	NULL
 };
 
 static const menu_t josua_menu[] = {
-  {"a", " ADDRESS BOOK       -    Update address book",
-   &__show_address_book_browse},
-  {"i", " INITIATE SESSION   -    Initiate a session",
-   &__show_initiate_session},
-  {"u", " SUBSCRIPTIONS LIST -    View pending subscriptions",
-   &__show_subscriptions_list},
-  {"l", " SESSIONS LIST      -    View pending sessions",
-   &__show_sessions_list},
-  {"r", " REGISTRATIONS LIST -    View pending registrations",
-   &__show_registrations_list},
-  {"s", " SETUP              -    Configure Josua options",
-   &__show_setup},
-  {"q", " QUIT               -    Quit the Josua program",
-   &__josua_quit},
-  {0}
+	{"a", " ADDRESS BOOK       -    Update address book",
+	 &__show_address_book_browse},
+	{"i", " INITIATE SESSION   -    Initiate a session",
+	 &__show_initiate_session},
+	{"u", " SUBSCRIPTIONS LIST -    View pending subscriptions",
+	 &__show_subscriptions_list},
+	{"l", " SESSIONS LIST      -    View pending sessions",
+	 &__show_sessions_list},
+	{"r", " REGISTRATIONS LIST -    View pending registrations",
+	 &__show_registrations_list},
+	{"s", " SETUP              -    Configure Josua options",
+	 &__show_setup},
+	{"q", " QUIT               -    Quit the Josua program",
+	 &__josua_quit},
+	{0}
 };
 
 static int cursor_menu = 0;
 
-int
-window_menu_print ()
+int window_menu_print()
 {
-  int y, x, x1;
-  char buf[250];
-  int i;
-  int pos;
+	int y, x, x1;
+	char buf[250];
+	int i;
+	int pos;
 
-  curseson ();
-  cbreak ();
-  noecho ();
-  nonl ();
-  keypad (stdscr, TRUE);
+	curseson();
+	cbreak();
+	noecho();
+	nonl();
+	keypad(stdscr, TRUE);
 
-  getmaxyx (stdscr, y, x);
-  if (gui_window_menu.x1 <= 0)
-    x1 = x;
-  else
-    x1 = gui_window_menu.x1;
+	getmaxyx(stdscr, y, x);
+	if (gui_window_menu.x1 <= 0)
+		x1 = x;
+	else
+		x1 = gui_window_menu.x1;
 
-  pos = 0;
-  for (i = gui_window_menu.y0; i < gui_window_menu.y1; i++)
-    {
-      snprintf (buf, x1 - gui_window_menu.x0,
-                "%c%c [%s] %s ",
-                (cursor_menu == pos) ? '-' : ' ',
-                (cursor_menu == pos) ? '>' : ' ',
-                josua_menu[i - gui_window_menu.y0].key,
-                josua_menu[i - gui_window_menu.y0].text);
+	pos = 0;
+	for (i = gui_window_menu.y0; i < gui_window_menu.y1; i++) {
+		snprintf(buf, x1 - gui_window_menu.x0,
+				 "%c%c [%s] %s ",
+				 (cursor_menu == pos) ? '-' : ' ',
+				 (cursor_menu == pos) ? '>' : ' ',
+				 josua_menu[i - gui_window_menu.y0].key,
+				 josua_menu[i - gui_window_menu.y0].text);
 
-      attrset (COLOR_PAIR (5));
-      attrset ((pos == cursor_menu) ? A_REVERSE : A_NORMAL);
-      mvaddnstr (i, gui_window_menu.x0, buf, x - gui_window_menu.x0 - 1);
-      pos++;
-    }
-  return 0;
+		attrset(COLOR_PAIR(5));
+		attrset((pos == cursor_menu) ? A_REVERSE : A_NORMAL);
+		mvaddnstr(i, gui_window_menu.x0, buf, x - gui_window_menu.x0 - 1);
+		pos++;
+	}
+	return 0;
 }
 
-void
-window_menu_draw_commands ()
+void window_menu_draw_commands()
 {
-  int x, y;
-  char *menu_commands[] = {
-    "<-", "PrevWindow",
-    "->", "NextWindow",
-    "^o", "online",
-    "^b", "busy",
-    "^a", "away",
-    "^e", "berightback",
-    "^p", "onthephone",
-    "^l", "outtolunch",
-    "^x", "offline",
-    "8", "mp start",
-    "9", "mp stop",
-    NULL
-  };
-  getmaxyx (stdscr, y, x);
-  josua_print_command (menu_commands, y - 5, 0);
+	int x, y;
+	char *menu_commands[] = {
+		"<-", "PrevWindow",
+		"->", "NextWindow",
+		"^o", "online",
+		"^b", "busy",
+		"^a", "away",
+		"^e", "berightback",
+		"^p", "onthephone",
+		"^l", "outtolunch",
+		"^x", "offline",
+		"8", "mp start",
+		"9", "mp stop",
+		NULL
+	};
+	getmaxyx(stdscr, y, x);
+	josua_print_command(menu_commands, y - 5, 0);
 }
 
-int
-window_menu_run_command (int c)
+int window_menu_run_command(int c)
 {
-  char buf[5000];
-  int max = 7;
+	char buf[5000];
+	int max = 7;
 
-  switch (c)
-    {
-      case 15:                 /* o */
-        josua_online_status = EXOSIP_NOTIFY_ONLINE;
-        josua_printf ("Moving to online status");
-        sprintf (buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+	switch (c) {
+	case 15:					/* o */
+		josua_online_status = EXOSIP_NOTIFY_ONLINE;
+		josua_printf("Moving to online status");
+		sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
           entity=\"%s\">\n\
 <tuple id=\"sg89ae\">\n\
@@ -153,11 +148,11 @@ window_menu_run_command (int c)
 <note>online</note\n\
 </tuple>\n\
 </presence>", cfg.identity, cfg.identity);
-        break;
-      case 2:                  /* b */
-        josua_online_status = EXOSIP_NOTIFY_BUSY;
-        josua_printf ("I'm busy now");
-        sprintf (buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+		break;
+	case 2:					/* b */
+		josua_online_status = EXOSIP_NOTIFY_BUSY;
+		josua_printf("I'm busy now");
+		sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
           xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
           entity=\"%s\">\n\
@@ -172,11 +167,11 @@ window_menu_run_command (int c)
 <note>busy</note\n\
 </tuple>\n\
 </presence>", cfg.identity, cfg.identity);
-        break;
-      case 5:                  /* e */
-        josua_online_status = EXOSIP_NOTIFY_BERIGHTBACK;
-        josua_printf ("I'll be back soon");
-        sprintf (buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+		break;
+	case 5:					/* e */
+		josua_online_status = EXOSIP_NOTIFY_BERIGHTBACK;
+		josua_printf("I'll be back soon");
+		sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
           xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
           entity=\"%s\">\n\
@@ -191,11 +186,11 @@ window_menu_run_command (int c)
 <note>be right back</note\n\
 </tuple>\n\
 </presence>", cfg.identity, cfg.identity);
-        break;
-      case 1:                  /* a */
-        josua_online_status = EXOSIP_NOTIFY_AWAY;
-        josua_printf ("I'm away");
-        sprintf (buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+		break;
+	case 1:					/* a */
+		josua_online_status = EXOSIP_NOTIFY_AWAY;
+		josua_printf("I'm away");
+		sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
           xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
           entity=\"%s\">\n\
@@ -210,11 +205,11 @@ window_menu_run_command (int c)
 <note>away</note\n\
 </tuple>\n\
 </presence>", cfg.identity, cfg.identity);
-        break;
-      case 16:                 /* p */
-        josua_online_status = EXOSIP_NOTIFY_ONTHEPHONE;
-        josua_printf ("I'm on the phone");
-        sprintf (buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+		break;
+	case 16:					/* p */
+		josua_online_status = EXOSIP_NOTIFY_ONTHEPHONE;
+		josua_printf("I'm on the phone");
+		sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
           xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
           entity=\"%s\">\n\
@@ -229,11 +224,11 @@ window_menu_run_command (int c)
 <note>on the phone</note\n\
 </tuple>\n\
 </presence>", cfg.identity, cfg.identity);
-        break;
-      case 12:                 /* l */
-        josua_online_status = EXOSIP_NOTIFY_OUTTOLUNCH;
-        josua_printf ("I'm out to lunch");
-        sprintf (buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+		break;
+	case 12:					/* l */
+		josua_online_status = EXOSIP_NOTIFY_OUTTOLUNCH;
+		josua_printf("I'm out to lunch");
+		sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
           xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
           entity=\"%s\">\n\
@@ -248,11 +243,11 @@ window_menu_run_command (int c)
 <note>out to lunch</note\n\
 </tuple>\n\
 </presence>", cfg.identity, cfg.identity);
-        break;
-      case 22:                 /* x */
-        josua_online_status = EXOSIP_NOTIFY_CLOSED;
-        josua_printf ("I'm offline");
-        sprintf (buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+		break;
+	case 22:					/* x */
+		josua_online_status = EXOSIP_NOTIFY_CLOSED;
+		josua_printf("I'm offline");
+		sprintf(buf, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
 xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
 entity=\"%s\">\n%s", cfg.identity, "<tuple id=\"sg89ae\">\n\
@@ -264,265 +259,245 @@ entity=\"%s\">\n%s", cfg.identity, "<tuple id=\"sg89ae\">\n\
 </status>\n\
 </tuple>\n\
 \n</presence>\n");
-        break;
-      case KEY_DOWN:
-        cursor_menu++;
-        cursor_menu %= max;
-        break;
-      case KEY_UP:
-        cursor_menu += max - 1;
-        cursor_menu %= max;
-        break;
-      case 'a':
-        cursor_menu = 0;
-        break;
-      case 'i':
-        cursor_menu = 1;
-        break;
-      case 'u':
-        cursor_menu = 2;
-        break;
-      case 'l':
-        cursor_menu = 3;
-        break;
-      case 'r':
-        cursor_menu = 4;
-        break;
-      case 's':
-        cursor_menu = 5;
-        break;
-      case 'q':
-        cursor_menu = 6;
-        break;
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-        cursor_menu = c - 48;
-        break;
-      case '\n':
-      case '\r':
-      case KEY_ENTER:
-        /* menu selected! */
-        josua_menu[cursor_menu].fn ();
-        break;
+		break;
+	case KEY_DOWN:
+		cursor_menu++;
+		cursor_menu %= max;
+		break;
+	case KEY_UP:
+		cursor_menu += max - 1;
+		cursor_menu %= max;
+		break;
+	case 'a':
+		cursor_menu = 0;
+		break;
+	case 'i':
+		cursor_menu = 1;
+		break;
+	case 'u':
+		cursor_menu = 2;
+		break;
+	case 'l':
+		cursor_menu = 3;
+		break;
+	case 'r':
+		cursor_menu = 4;
+		break;
+	case 's':
+		cursor_menu = 5;
+		break;
+	case 'q':
+		cursor_menu = 6;
+		break;
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+		cursor_menu = c - 48;
+		break;
+	case '\n':
+	case '\r':
+	case KEY_ENTER:
+		/* menu selected! */
+		josua_menu[cursor_menu].fn();
+		break;
 
-      case '8':
+	case '8':
 #ifdef ENABLE_MPATROL
-        __mp_clearleaktable ();
-        __mp_startleaktable ();
+		__mp_clearleaktable();
+		__mp_startleaktable();
 #endif
-        break;
-      case '9':
+		break;
+	case '9':
 #ifdef ENABLE_MPATROL
-        __mp_stopleaktable ();
-        __mp_leaktable (0, MP_LT_ALLOCATED, MP_LT_BOTTOM);
-        __mp_printf ("\n");
-        __mp_leaktable (0, MP_LT_FREED, MP_LT_COUNTS);
-        __mp_printf ("\n");
-        __mp_leaktable (0, MP_LT_UNFREED, 0);
-        __mp_printf ("\n");
-        /* __mp_snapshot(); */
-        __mp_summary ();
-        __mp_memorymap (1);
+		__mp_stopleaktable();
+		__mp_leaktable(0, MP_LT_ALLOCATED, MP_LT_BOTTOM);
+		__mp_printf("\n");
+		__mp_leaktable(0, MP_LT_FREED, MP_LT_COUNTS);
+		__mp_printf("\n");
+		__mp_leaktable(0, MP_LT_UNFREED, 0);
+		__mp_printf("\n");
+		/* __mp_snapshot(); */
+		__mp_summary();
+		__mp_memorymap(1);
 
 #endif
-        break;
-      default:
-        beep ();
-        return -1;
-    }
+		break;
+	default:
+		beep();
+		return -1;
+	}
 
-  /* apply IM change status */
-  switch (c)
-    {
-      case 1:
-      case 2:
-      case 22:
-      case 5:
-      case 12:
-      case 15:
-      case 16:
-        {
-          int i;
-          int k;
-          osip_message_t *pub;
+	/* apply IM change status */
+	switch (c) {
+	case 1:
+	case 2:
+	case 22:
+	case 5:
+	case 12:
+	case 15:
+	case 16:
+		{
+			int i;
+			int k;
+			osip_message_t *pub;
 
-          i =
-            eXosip_build_publish (&pub, cfg.identity, cfg.identity, NULL,
-                                  "presence", "1800", "application/pidf+xml", buf);
-          /* build a publish request to a presence server */
-          if (i < 0)
-            beep ();
-          if (i >= 0)
-            {
-              eXosip_lock ();
-              i = eXosip_publish (pub, cfg.identity);
-              eXosip_unlock ();
-              if (i != 0)
-                {
-                  beep ();
-                }
-            }
+			i = eXosip_build_publish(&pub, cfg.identity, cfg.identity, NULL,
+									 "presence", "1800", "application/pidf+xml",
+									 buf);
+			/* build a publish request to a presence server */
+			if (i < 0)
+				beep();
+			if (i >= 0) {
+				eXosip_lock();
+				i = eXosip_publish(pub, cfg.identity);
+				eXosip_unlock();
+				if (i != 0) {
+					beep();
+				}
+			}
 
-          for (k = 0; k < MAX_NUMBER_OF_INSUBSCRIPTIONS; k++)
-            {
-              if (jinsubscriptions[k].state != NOT_USED)
-                {
-                  i = __jinsubscription_send_notify (jinsubscriptions[k].did,
-                                                     EXOSIP_SUBCRSTATE_ACTIVE,
-                                                     DEACTIVATED,
-                                                     josua_online_status);
-                  if (i != 0)
-                    beep ();
-                }
-            }
-        }
-    }
+			for (k = 0; k < MAX_NUMBER_OF_INSUBSCRIPTIONS; k++) {
+				if (jinsubscriptions[k].state != NOT_USED) {
+					i = __jinsubscription_send_notify(jinsubscriptions[k].did,
+													  EXOSIP_SUBCRSTATE_ACTIVE,
+													  DEACTIVATED,
+													  josua_online_status);
+					if (i != 0)
+						beep();
+				}
+			}
+		}
+	}
 
-  if (gui_window_menu.on_off == GUI_ON)
-    window_menu_print ();
-  return 0;
+	if (gui_window_menu.on_off == GUI_ON)
+		window_menu_print();
+	return 0;
 }
 
-void
-__show_address_book_browse ()
+void __show_address_book_browse()
 {
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI] == NULL)
-    gui_windows[EXTRAGUI] = &gui_window_address_book_browse;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands (gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI] = &gui_window_address_book_browse;
-    }
+	active_gui->on_off = GUI_OFF;
+	if (gui_windows[EXTRAGUI] == NULL)
+		gui_windows[EXTRAGUI] = &gui_window_address_book_browse;
+	else {
+		gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+		josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+		gui_windows[EXTRAGUI] = &gui_window_address_book_browse;
+	}
 
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
+	active_gui = gui_windows[EXTRAGUI];
+	active_gui->on_off = GUI_ON;
 
-  window_address_book_browse_print ();
+	window_address_book_browse_print();
 }
 
-void
-__show_initiate_session ()
+void __show_initiate_session()
 {
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI] == NULL)
-    gui_windows[EXTRAGUI] = &gui_window_new_call;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands (gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI] = &gui_window_new_call;
-    }
+	active_gui->on_off = GUI_OFF;
+	if (gui_windows[EXTRAGUI] == NULL)
+		gui_windows[EXTRAGUI] = &gui_window_new_call;
+	else {
+		gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+		josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+		gui_windows[EXTRAGUI] = &gui_window_new_call;
+	}
 
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
+	active_gui = gui_windows[EXTRAGUI];
+	active_gui->on_off = GUI_ON;
 
-  window_new_call_print ();
+	window_new_call_print();
 }
 
-void
-__show_sessions_list ()
+void __show_sessions_list()
 {
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI] == NULL)
-    gui_windows[EXTRAGUI] = &gui_window_sessions_list;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands (gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI] = &gui_window_sessions_list;
-    }
+	active_gui->on_off = GUI_OFF;
+	if (gui_windows[EXTRAGUI] == NULL)
+		gui_windows[EXTRAGUI] = &gui_window_sessions_list;
+	else {
+		gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+		josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+		gui_windows[EXTRAGUI] = &gui_window_sessions_list;
+	}
 
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
+	active_gui = gui_windows[EXTRAGUI];
+	active_gui->on_off = GUI_ON;
 
-  window_sessions_list_print ();
+	window_sessions_list_print();
 }
 
-void
-__show_subscriptions_list ()
+void __show_subscriptions_list()
 {
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI] == NULL)
-    gui_windows[EXTRAGUI] = &gui_window_subscriptions_list;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands (gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI] = &gui_window_subscriptions_list;
-    }
+	active_gui->on_off = GUI_OFF;
+	if (gui_windows[EXTRAGUI] == NULL)
+		gui_windows[EXTRAGUI] = &gui_window_subscriptions_list;
+	else {
+		gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+		josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+		gui_windows[EXTRAGUI] = &gui_window_subscriptions_list;
+	}
 
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
+	active_gui = gui_windows[EXTRAGUI];
+	active_gui->on_off = GUI_ON;
 
-  window_subscriptions_list_print ();
+	window_subscriptions_list_print();
 }
 
-void
-__show_registrations_list ()
+void __show_registrations_list()
 {
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI] == NULL)
-    gui_windows[EXTRAGUI] = &gui_window_registrations_list;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands (gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI] = &gui_window_registrations_list;
-    }
+	active_gui->on_off = GUI_OFF;
+	if (gui_windows[EXTRAGUI] == NULL)
+		gui_windows[EXTRAGUI] = &gui_window_registrations_list;
+	else {
+		gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+		josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+		gui_windows[EXTRAGUI] = &gui_window_registrations_list;
+	}
 
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
+	active_gui = gui_windows[EXTRAGUI];
+	active_gui->on_off = GUI_ON;
 
-  window_registrations_list_print ();
+	window_registrations_list_print();
 }
 
-void
-__show_setup ()
+void __show_setup()
 {
-  active_gui->on_off = GUI_OFF;
-  if (gui_windows[EXTRAGUI] == NULL)
-    gui_windows[EXTRAGUI] = &gui_window_setup;
-  else
-    {
-      gui_windows[EXTRAGUI]->on_off = GUI_OFF;
-      josua_clear_box_and_commands (gui_windows[EXTRAGUI]);
-      gui_windows[EXTRAGUI] = &gui_window_setup;
-    }
+	active_gui->on_off = GUI_OFF;
+	if (gui_windows[EXTRAGUI] == NULL)
+		gui_windows[EXTRAGUI] = &gui_window_setup;
+	else {
+		gui_windows[EXTRAGUI]->on_off = GUI_OFF;
+		josua_clear_box_and_commands(gui_windows[EXTRAGUI]);
+		gui_windows[EXTRAGUI] = &gui_window_setup;
+	}
 
-  active_gui = gui_windows[EXTRAGUI];
-  active_gui->on_off = GUI_ON;
+	active_gui = gui_windows[EXTRAGUI];
+	active_gui->on_off = GUI_ON;
 
-  window_setup_print ();
+	window_setup_print();
 }
 
-void
-__josua_quit ()
+void __josua_quit()
 {
-  int i;
+	int i;
 
-  eXosip_quit ();
+	eXosip_quit();
 
-  jfriend_unload ();
-  jidentity_unload ();
+	jfriend_unload();
+	jidentity_unload();
 
-  osip_mutex_destroy (log_mutex);
+	osip_mutex_destroy(log_mutex);
 
-  for (i = 0; i < 10; i++)
-    {
-      if (gui_windows[i] != NULL && gui_windows[i]->win != NULL)
-        {
-          fprintf (stderr, "delete windows %i\n", i);
-          delwin (gui_windows[i]->win);
-        }
-    }
+	for (i = 0; i < 10; i++) {
+		if (gui_windows[i] != NULL && gui_windows[i]->win != NULL) {
+			fprintf(stderr, "delete windows %i\n", i);
+			delwin(gui_windows[i]->win);
+		}
+	}
 
-  cursesoff ();
-  exit (1);
+	cursesoff();
+	exit(1);
 }

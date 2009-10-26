@@ -1,10 +1,8 @@
---gnu-style
+-kr
+--use-tabs
+--tab-size4
 --cuddle-else
---space-special-semicolon
---no-blank-before-sizeof
 --line-length83
 --comment-line-length80
---case-indentation 2
---no-tabs
 -TPPL_DECLARE
 -TPSP_PLUGIN_DECLARE

@@ -24,38 +24,36 @@
 
 typedef struct josua_realm_t josua_realm_t;
 
-struct josua_realm_t
-{
+struct josua_realm_t {
 
-  char realm[100];
-  char username[100];
-  char password[100];
+	char realm[100];
+	char username[100];
+	char password[100];
 
-  josua_realm_t *next;
-  josua_realm_t *parent;
+	josua_realm_t *next;
+	josua_realm_t *parent;
 
 };
 
 typedef struct josua_config_t josua_config_t;
 
-struct josua_config_t
-{
+struct josua_config_t {
 
-  int id;
-  char identity[100];
-  char proxy[100];
-  char registrar[100];
+	int id;
+	char identity[100];
+	char proxy[100];
+	char registrar[100];
 
-  josua_realm_t *realms;
+	josua_realm_t *realms;
 
-  josua_config_t *next;
-  josua_config_t *parent;
+	josua_config_t *next;
+	josua_config_t *parent;
 
 };
 
-int josua_config_select (int i);
-int josua_config_create (char *identity, char *proxy, char *registrar);
+int josua_config_select(int i);
+int josua_config_create(char *identity, char *proxy, char *registrar);
 
-int josua_config_addrealm (char *realm, char *username, char *password);
+int josua_config_addrealm(char *realm, char *username, char *password);
 
 #endif

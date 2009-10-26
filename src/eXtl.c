@@ -21,7 +21,7 @@
 #include "eXtransport.h"
 
 struct eXtl_protocol *eXtl_protos[] = {
-  &eXtl_udp,
-  &eXtl_tcp,
-  NULL
+	&eXtl_udp,
+	&eXtl_tcp,
+	NULL
 };

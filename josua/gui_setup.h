@@ -24,9 +24,9 @@
 
 #include "gui.h"
 
-int window_setup_print (void);
-int window_setup_run_command (int c);
-void window_setup_draw_commands (void);
+int window_setup_print(void);
+int window_setup_run_command(int c);
+void window_setup_draw_commands(void);
 
 extern gui_t gui_window_setup;
 

@@ -26,30 +26,29 @@
 
 typedef struct jidentity_t jidentity_t;
 
-struct jidentity_t
-{
-  int i_id;
-  char *i_identity;
-  char *i_registrar;
-  char *i_route;
-  char *i_realm;
-  char *i_userid;
-  char *i_pwd;
+struct jidentity_t {
+	int i_id;
+	char *i_identity;
+	char *i_registrar;
+	char *i_route;
+	char *i_realm;
+	char *i_userid;
+	char *i_pwd;
 
-  jidentity_t *next;
-  jidentity_t *parent;
+	jidentity_t *next;
+	jidentity_t *parent;
 };
 
-char *jidentity_get_identity (int fid);
-char *jidentity_get_registrar (int fid);
-char *jidentity_get_route (int fid);
+char *jidentity_get_identity(int fid);
+char *jidentity_get_registrar(int fid);
+char *jidentity_get_route(int fid);
 
-int jidentity_load (void);
-void jidentity_add (char *nickname, char *home,
-                    char *work, char *email, char *e164);
-void jidentity_unload (void);
-char *jidentity_get_home (int fid);
-jidentity_t *jidentity_get (void);
+int jidentity_load(void);
+void jidentity_add(char *nickname, char *home,
+				   char *work, char *email, char *e164);
+void jidentity_unload(void);
+char *jidentity_get_home(int fid);
+jidentity_t *jidentity_get(void);
 
 /* void jidentity_remove(jidentity_t *fr); */
 

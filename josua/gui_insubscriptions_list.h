@@ -24,9 +24,9 @@
 
 #include "gui.h"
 
-int window_insubscriptions_list_print (void);
-int window_insubscriptions_list_run_command (int c);
-void window_insubscriptions_list_draw_commands (void);
+int window_insubscriptions_list_print(void);
+int window_insubscriptions_list_run_command(int c);
+void window_insubscriptions_list_draw_commands(void);
 
 extern gui_t gui_window_insubscriptions_list;
 

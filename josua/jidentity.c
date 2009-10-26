@@ -39,284 +39,265 @@ jidentity_t *jidentities = NULL;
 #define EXOSIP_ADDIDENTITYS_SH "eXosip_addidentity.sh"
 #endif
 
-static int
-jidentity_get_and_set_next_token (char **dest, char *buf, char **next)
+static int jidentity_get_and_set_next_token(char **dest, char *buf, char **next)
 {
-  char *end;
-  char *start;
+	char *end;
+	char *start;
 
-  *next = NULL;
+	*next = NULL;
 
-  /* find first non space and tab element */
-  start = buf;
-  while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
-         && (*start != '\r') && (*start != '\n'))
-    start++;
-  end = start + 1;
-  while ((*end != '\0') && (*end != '\r') && (*end != '\n')
-         && (*end != '\t') && (*end != '|'))
-    end++;
+	/* find first non space and tab element */
+	start = buf;
+	while (((*start == ' ') || (*start == '\t')) && (*start != '\0')
+		   && (*start != '\r') && (*start != '\n'))
+		start++;
+	end = start + 1;
+	while ((*end != '\0') && (*end != '\r') && (*end != '\n')
+		   && (*end != '\t') && (*end != '|'))
+		end++;
 
-  if ((*end == '\r') || (*end == '\n'))
-    /* we should continue normally only if this is the separator asked! */
-    return -1;
-  if (end == start)
-    return -1;                  /* empty value (or several space!) */
+	if ((*end == '\r') || (*end == '\n'))
+		/* we should continue normally only if this is the separator asked! */
+		return -1;
+	if (end == start)
+		return -1;				/* empty value (or several space!) */
 
-  *dest = osip_malloc (end - (start) + 1);
-  osip_strncpy (*dest, start, end - start);
+	*dest = osip_malloc(end - (start) + 1);
+	osip_strncpy(*dest, start, end - start);
 
-  *next = end + 1;              /* return the position right after the separator
-                                 */
-  return 0;
+	*next = end + 1;			/* return the position right after the separator
+								 */
+	return 0;
 }
 
-static int
-jidentity_init (jidentity_t ** fr, char *ch)
+static int jidentity_init(jidentity_t ** fr, char *ch)
 {
-  char *next;
-  int i;
+	char *next;
+	int i;
 
-  *fr = (jidentity_t *) osip_malloc (sizeof (jidentity_t));
-  if (*fr == NULL)
-    return -1;
-  memset (*fr, 0, sizeof (jidentity_t));
+	*fr = (jidentity_t *) osip_malloc(sizeof(jidentity_t));
+	if (*fr == NULL)
+		return -1;
+	memset(*fr, 0, sizeof(jidentity_t));
 
-  i = jidentity_get_and_set_next_token (&((*fr)->i_identity), ch, &next);
-  if (i != 0)
-    goto ji_error1;
-  osip_clrspace ((*fr)->i_identity);
-  ch = next;
+	i = jidentity_get_and_set_next_token(&((*fr)->i_identity), ch, &next);
+	if (i != 0)
+		goto ji_error1;
+	osip_clrspace((*fr)->i_identity);
+	ch = next;
 
-  i = jidentity_get_and_set_next_token (&((*fr)->i_registrar), next, &next);
-  if (i != 0)
-    goto ji_error2;
-  osip_clrspace ((*fr)->i_registrar);
-  ch = next;
+	i = jidentity_get_and_set_next_token(&((*fr)->i_registrar), next, &next);
+	if (i != 0)
+		goto ji_error2;
+	osip_clrspace((*fr)->i_registrar);
+	ch = next;
 
-  i = jidentity_get_and_set_next_token (&((*fr)->i_route), next, &next);
-  if (i != 0)
-    goto ji_error3;
-  osip_clrspace ((*fr)->i_route);
-  ch = next;
+	i = jidentity_get_and_set_next_token(&((*fr)->i_route), next, &next);
+	if (i != 0)
+		goto ji_error3;
+	osip_clrspace((*fr)->i_route);
+	ch = next;
 
-  i = jidentity_get_and_set_next_token (&((*fr)->i_realm), ch, &next);
-  if (i != 0)
-    goto ji_error4;
-  osip_clrspace ((*fr)->i_realm);
-  ch = next;
+	i = jidentity_get_and_set_next_token(&((*fr)->i_realm), ch, &next);
+	if (i != 0)
+		goto ji_error4;
+	osip_clrspace((*fr)->i_realm);
+	ch = next;
 
-  i = jidentity_get_and_set_next_token (&((*fr)->i_userid), ch, &next);
-  if (i != 0)
-    goto ji_error5;
-  osip_clrspace ((*fr)->i_userid);
+	i = jidentity_get_and_set_next_token(&((*fr)->i_userid), ch, &next);
+	if (i != 0)
+		goto ji_error5;
+	osip_clrspace((*fr)->i_userid);
 
-  (*fr)->i_pwd = osip_strdup (next);
-  osip_clrspace ((*fr)->i_pwd);
+	(*fr)->i_pwd = osip_strdup(next);
+	osip_clrspace((*fr)->i_pwd);
 
-  if ((*fr)->i_pwd != NULL && (*fr)->i_pwd[0] != '\0')
-    {
-      eXosip_add_authentication_info ((*fr)->i_userid, (*fr)->i_userid,
-                                      (*fr)->i_pwd, NULL, (*fr)->i_realm);
-    }
-  return 0;
+	if ((*fr)->i_pwd != NULL && (*fr)->i_pwd[0] != '\0') {
+		eXosip_add_authentication_info((*fr)->i_userid, (*fr)->i_userid,
+									   (*fr)->i_pwd, NULL, (*fr)->i_realm);
+	}
+	return 0;
 
-ji_error5:
-  osip_free ((*fr)->i_realm);
-ji_error4:
-  osip_free ((*fr)->i_route);
-ji_error3:
-  osip_free ((*fr)->i_registrar);
-ji_error2:
-  osip_free ((*fr)->i_identity);
-ji_error1:
-  osip_free (*fr);
-  *fr = NULL;
-  return -1;
+  ji_error5:
+	osip_free((*fr)->i_realm);
+  ji_error4:
+	osip_free((*fr)->i_route);
+  ji_error3:
+	osip_free((*fr)->i_registrar);
+  ji_error2:
+	osip_free((*fr)->i_identity);
+  ji_error1:
+	osip_free(*fr);
+	*fr = NULL;
+	return -1;
 }
 
 void
-jidentity_add (char *identity, char *registrar,
-               char *realm, char *userid, char *pwd)
+jidentity_add(char *identity, char *registrar,
+			  char *realm, char *userid, char *pwd)
 {
-  char command[256];
-  char *tmp = command;
-  char *home;
+	char command[256];
+	char *tmp = command;
+	char *home;
 
-  int length = 0;
+	int length = 0;
 
-  if (identity == NULL)
-    return;
-  if (registrar == NULL)
-    return;
+	if (identity == NULL)
+		return;
+	if (registrar == NULL)
+		return;
 
-  if (realm != NULL && *realm == '\0')
-    realm = NULL;
-  if (userid != NULL && *userid == '\0')
-    userid = NULL;
-  if (pwd != NULL && *pwd == '\0')
-    pwd = NULL;
+	if (realm != NULL && *realm == '\0')
+		realm = NULL;
+	if (userid != NULL && *userid == '\0')
+		userid = NULL;
+	if (pwd != NULL && *pwd == '\0')
+		pwd = NULL;
 
-  length = strlen (identity) + 3;
-  length = length + strlen (registrar) + 3;
+	length = strlen(identity) + 3;
+	length = length + strlen(registrar) + 3;
 
-  if (realm != NULL && userid != NULL && pwd != NULL)
-    {
-      length = length + strlen (realm) + 3;
-      length = length + strlen (userid) + 3;
-      length = length + strlen (pwd) + 3;
-  } else if (realm == NULL && userid == NULL && pwd == NULL)
-    {
-  } else
-    return;
+	if (realm != NULL && userid != NULL && pwd != NULL) {
+		length = length + strlen(realm) + 3;
+		length = length + strlen(userid) + 3;
+		length = length + strlen(pwd) + 3;
+	} else if (realm == NULL && userid == NULL && pwd == NULL) {
+	} else
+		return;
 
-  home = getenv ("HOME");
-  length = length + strlen (home);
-  length = length + strlen (EXOSIP_ETC_DIR) + 3;
-  length = length + strlen ("/jm_identity") + 1;
+	home = getenv("HOME");
+	length = length + strlen(home);
+	length = length + strlen(EXOSIP_ETC_DIR) + 3;
+	length = length + strlen("/jm_identity") + 1;
 
-  if (length > 235)             /* leave some room for SPACEs and \r\n */
-    return;
+	if (length > 235)			/* leave some room for SPACEs and \r\n */
+		return;
 
-  sprintf (tmp, "%s \"%s/%s/jm_identity\"", EXOSIP_ADDIDENTITYS_SH,
-           home, EXOSIP_ETC_DIR);
-  tmp = tmp + strlen (tmp);
-  sprintf (tmp, " \"%s\"", identity);
-  tmp = tmp + strlen (tmp);
-  sprintf (tmp, " \"%s\"", registrar);
-  tmp = tmp + strlen (tmp);
+	sprintf(tmp, "%s \"%s/%s/jm_identity\"", EXOSIP_ADDIDENTITYS_SH,
+			home, EXOSIP_ETC_DIR);
+	tmp = tmp + strlen(tmp);
+	sprintf(tmp, " \"%s\"", identity);
+	tmp = tmp + strlen(tmp);
+	sprintf(tmp, " \"%s\"", registrar);
+	tmp = tmp + strlen(tmp);
 
-  if (realm != NULL && userid != NULL && pwd != NULL)
-    {
-      sprintf (tmp, " \"%s\"", realm);
-      tmp = tmp + strlen (tmp);
-      sprintf (tmp, " \"%s\"", userid);
-      tmp = tmp + strlen (tmp);
-      sprintf (tmp, " \"%s\"", pwd);
-  } else if (realm == NULL && userid == NULL && pwd == NULL)
-    {
-      sprintf (tmp, " \"\"");
-      tmp = tmp + strlen (tmp);
-      sprintf (tmp, " \"\"");
-      tmp = tmp + strlen (tmp);
-      sprintf (tmp, " \"\"");
-    }
+	if (realm != NULL && userid != NULL && pwd != NULL) {
+		sprintf(tmp, " \"%s\"", realm);
+		tmp = tmp + strlen(tmp);
+		sprintf(tmp, " \"%s\"", userid);
+		tmp = tmp + strlen(tmp);
+		sprintf(tmp, " \"%s\"", pwd);
+	} else if (realm == NULL && userid == NULL && pwd == NULL) {
+		sprintf(tmp, " \"\"");
+		tmp = tmp + strlen(tmp);
+		sprintf(tmp, " \"\"");
+		tmp = tmp + strlen(tmp);
+		sprintf(tmp, " \"\"");
+	}
 
-  system (command);
+	system(command);
 }
 
-void
-jidentity_unload ()
+void jidentity_unload()
 {
-  jidentity_t *fr;
+	jidentity_t *fr;
 
-  if (jidentities == NULL)
-    return;
-  for (fr = jidentities; fr != NULL; fr = jidentities)
-    {
-      REMOVE_ELEMENT (jidentities, fr);
-      osip_free (fr->i_identity);
-      osip_free (fr->i_registrar);
-      osip_free (fr->i_realm);
-      osip_free (fr->i_userid);
-      osip_free (fr->i_pwd);
-      osip_free (fr);
-    }
+	if (jidentities == NULL)
+		return;
+	for (fr = jidentities; fr != NULL; fr = jidentities) {
+		REMOVE_ELEMENT(jidentities, fr);
+		osip_free(fr->i_identity);
+		osip_free(fr->i_registrar);
+		osip_free(fr->i_realm);
+		osip_free(fr->i_userid);
+		osip_free(fr->i_pwd);
+		osip_free(fr);
+	}
 
-  osip_free (jidentities);
-  jidentities = NULL;
-  return;
+	osip_free(jidentities);
+	jidentities = NULL;
+	return;
 }
 
-int
-jidentity_load ()
+int jidentity_load()
 {
-  FILE *file;
-  char *s;
-  jidentity_t *fr;
-  int pos;
-  char *home;
-  char filename[255];
+	FILE *file;
+	char *s;
+	jidentity_t *fr;
+	int pos;
+	char *home;
+	char filename[255];
 
-  jidentity_unload ();
+	jidentity_unload();
 
-  home = getenv ("HOME");
-  sprintf (filename, "%s/%s/%s", home, EXOSIP_ETC_DIR, "jm_identity");
+	home = getenv("HOME");
+	sprintf(filename, "%s/%s/%s", home, EXOSIP_ETC_DIR, "jm_identity");
 
-  file = fopen (filename, "r");
-  if (file == NULL)
-    return -1;
-  s = (char *) osip_malloc (255 * sizeof (char));
-  pos = 0;
-  while (NULL != fgets (s, 254, file))
-    {
-      char *tmp = s;
+	file = fopen(filename, "r");
+	if (file == NULL)
+		return -1;
+	s = (char *) osip_malloc(255 * sizeof(char));
+	pos = 0;
+	while (NULL != fgets(s, 254, file)) {
+		char *tmp = s;
 
-      while (*tmp != '\0' && *tmp != ' ')
-        tmp++;
-      while (*tmp != '\0' && *tmp == ' ')
-        tmp++;
-      while (*tmp != '\0' && *tmp != ' ')
-        tmp++;
-      tmp++;                    /* first usefull characters */
-      pos++;
+		while (*tmp != '\0' && *tmp != ' ')
+			tmp++;
+		while (*tmp != '\0' && *tmp == ' ')
+			tmp++;
+		while (*tmp != '\0' && *tmp != ' ')
+			tmp++;
+		tmp++;					/* first usefull characters */
+		pos++;
 
-      jidentity_init (&fr, tmp);
-      if (fr != NULL)
-        {
-          ADD_ELEMENT (jidentities, fr);
-        }
-    }
-  osip_free (s);
-  fclose (file);
+		jidentity_init(&fr, tmp);
+		if (fr != NULL) {
+			ADD_ELEMENT(jidentities, fr);
+		}
+	}
+	osip_free(s);
+	fclose(file);
 
-  return 0;                     /* ok */
+	return 0;					/* ok */
 }
 
-char *
-jidentity_get_registrar (int fid)
+char *jidentity_get_registrar(int fid)
 {
-  jidentity_t *fr;
+	jidentity_t *fr;
 
-  for (fr = jidentities; fr != NULL; fr = fr->next)
-    {
-      if (fid == 0)
-        return fr->i_registrar;
-      fid--;
-    }
-  return NULL;
+	for (fr = jidentities; fr != NULL; fr = fr->next) {
+		if (fid == 0)
+			return fr->i_registrar;
+		fid--;
+	}
+	return NULL;
 }
 
-char *
-jidentity_get_identity (int fid)
+char *jidentity_get_identity(int fid)
 {
-  jidentity_t *fr;
+	jidentity_t *fr;
 
-  for (fr = jidentities; fr != NULL; fr = fr->next)
-    {
-      if (fid == 0)
-        return fr->i_identity;
-      fid--;
-    }
-  return NULL;
+	for (fr = jidentities; fr != NULL; fr = fr->next) {
+		if (fid == 0)
+			return fr->i_identity;
+		fid--;
+	}
+	return NULL;
 }
 
-char *
-jidentity_get_route (int fid)
+char *jidentity_get_route(int fid)
 {
-  jidentity_t *fr;
+	jidentity_t *fr;
 
-  for (fr = jidentities; fr != NULL; fr = fr->next)
-    {
-      if (fid == 0)
-        return fr->i_route;
-      fid--;
-    }
-  return NULL;
+	for (fr = jidentities; fr != NULL; fr = fr->next) {
+		if (fid == 0)
+			return fr->i_route;
+		fid--;
+	}
+	return NULL;
 }
 
-jidentity_t *
-jidentity_get (void)
+jidentity_t *jidentity_get(void)
 {
-  return jidentities;
+	return jidentities;
 }

@@ -60,8 +60,7 @@
  */
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #ifndef WIN32
@@ -70,12 +69,11 @@ extern "C"
  * Structure for storing a pipe descriptor
  * @defvar jpipe_t
  */
-  typedef struct jpipe_t jpipe_t;
+	typedef struct jpipe_t jpipe_t;
 
-  struct jpipe_t
-  {
-    int pipes[2];
-  };
+	struct jpipe_t {
+		int pipes[2];
+	};
 
 #else
 
@@ -83,45 +81,42 @@ extern "C"
  * Structure for storing a pipe descriptor
  * @defvar ppl_pipe_t
  */
-  typedef struct jpipe_t jpipe_t;
+	typedef struct jpipe_t jpipe_t;
 
-  struct jpipe_t
-  {
-    int pipes[2];
-  };
+	struct jpipe_t {
+		int pipes[2];
+	};
 
 #endif
 
 /**
  * Get New pipe pair.
  */
-  jpipe_t *jpipe (void);
+	jpipe_t *jpipe(void);
 
 /**
  * Close pipe
  */
-  int jpipe_close (jpipe_t * apipe);
+	int jpipe_close(jpipe_t * apipe);
 
 /**
  * Write in a pipe.
  */
-  int jpipe_write (jpipe_t * pipe, const void *buf, int count);
+	int jpipe_write(jpipe_t * pipe, const void *buf, int count);
 
 /**
  * Read in a pipe.
  */
-  int jpipe_read (jpipe_t * pipe, void *buf, int count);
+	int jpipe_read(jpipe_t * pipe, void *buf, int count);
 
 /**
  * Get descriptor of reading pipe.
  */
-  int jpipe_get_read_descr (jpipe_t * pipe);
+	int jpipe_get_read_descr(jpipe_t * pipe);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-
 /** @} */
 #endif

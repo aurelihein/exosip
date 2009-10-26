@@ -23,7 +23,7 @@
 
 #include "gui.h"
 
-int window_online_print (void);
+int window_online_print(void);
 
 extern int josua_online_status;
 extern int josua_registration_status;
