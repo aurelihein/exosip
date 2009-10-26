@@ -341,8 +341,8 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 					/* concat old data with new data */
 					tcp_socket_tab[pos].previous_content =
 						(char *) osip_realloc(tcp_socket_tab[pos].previous_content,
-											  tcp_socket_tab[pos].
-											  previous_content_len + i + 1);
+											  tcp_socket_tab
+											  [pos].previous_content_len + i + 1);
 					if (tcp_socket_tab[pos].previous_content == NULL) {
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -402,11 +402,10 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 																		[pos].
 																		previous_content);
 
-						tcp_socket_tab[pos].previous_content =
-							(char *) osip_realloc(tcp_socket_tab[pos].
-												  previous_content,
-												  tcp_socket_tab[pos].
-												  previous_content_len + 1);
+						tcp_socket_tab[pos].previous_content = (char *)
+							osip_realloc(tcp_socket_tab[pos].previous_content,
+										 tcp_socket_tab[pos].previous_content_len +
+										 1);
 						if (tcp_socket_tab[pos].previous_content == NULL) {
 							OSIP_TRACE(osip_trace
 									   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -431,16 +430,16 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 						tcp_socket_tab[pos].previous_content +
 						tcp_socket_tab[pos].previous_content_len) {
 						/* we have beg_sip & end_sip */
-						_eXosip_handle_incoming_message(tcp_socket_tab[pos].
-														previous_content,
+						_eXosip_handle_incoming_message(tcp_socket_tab
+														[pos].previous_content,
 														end_sip + 4 + cl_size -
-														tcp_socket_tab[pos].
-														previous_content,
+														tcp_socket_tab
+														[pos].previous_content,
 														tcp_socket_tab[pos].socket,
-														tcp_socket_tab[pos].
-														remote_ip,
-														tcp_socket_tab[pos].
-														remote_port);
+														tcp_socket_tab
+														[pos].remote_ip,
+														tcp_socket_tab
+														[pos].remote_port);
 						if (tcp_socket_tab[pos].previous_content_len -
 							(end_sip + 4 + cl_size -
 							 tcp_socket_tab[pos].previous_content) == 0) {
@@ -469,11 +468,10 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 																		[pos].
 																		previous_content);
 
-						tcp_socket_tab[pos].previous_content =
-							(char *) osip_realloc(tcp_socket_tab[pos].
-												  previous_content,
-												  tcp_socket_tab[pos].
-												  previous_content_len + 1);
+						tcp_socket_tab[pos].previous_content = (char *)
+							osip_realloc(tcp_socket_tab[pos].previous_content,
+										 tcp_socket_tab[pos].previous_content_len +
+										 1);
 						if (tcp_socket_tab[pos].previous_content == NULL) {
 							OSIP_TRACE(osip_trace
 									   (__FILE__, __LINE__, OSIP_ERROR, NULL,
