@@ -406,8 +406,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 							tcp_socket_tab[pos].previous_content_len - (end_sip +
 																		4 -
 																		tcp_socket_tab
-																		[pos].
-																		previous_content);
+																		[pos].previous_content);
 
 						tcp_socket_tab[pos].previous_content = (char *)
 							osip_realloc(tcp_socket_tab[pos].previous_content,
@@ -472,8 +471,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 																		4 +
 																		cl_size -
 																		tcp_socket_tab
-																		[pos].
-																		previous_content);
+																		[pos].previous_content);
 
 						tcp_socket_tab[pos].previous_content = (char *)
 							osip_realloc(tcp_socket_tab[pos].previous_content,
