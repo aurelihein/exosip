@@ -1060,7 +1060,7 @@ eXosip_get_naptr(char *domain, char *protocol, char *srv_record, int max_length)
 
 		int len;
 		OSVERSIONINFOEX ovi;
-		typedef struct {
+		typedef struct {
 			unsigned short order;
 			unsigned short pref;
 			char flag[256];
@@ -1075,23 +1075,22 @@ eXosip_get_naptr(char *domain, char *protocol, char *srv_record, int max_length)
 			continue;
 
 		memset(&anaptr, 0, sizeof(osip_naptr_t));
-		memset(&ovi, 0, sizeof(ovi));
-		ovi.dwOSVersionInfoSize = sizeof(ovi);
-		GetVersionEx((LPOSVERSIONINFO) & ovi);
-		
-			/* Minimum: client: Windows 2000 Professional */ 
-			/* Minimum: server: Windows 2000 Server */ 
-			OSIP_TRACE(osip_trace
-					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-						"check OS support for NAPTR: %i %i %i\n",
-						ovi.dwMajorVersion, ovi.dwMinorVersion,
-						ovi.dwBuildNumber));
+		memset(&ovi, 0, sizeof(ovi));
+		ovi.dwOSVersionInfoSize = sizeof(ovi);
+		GetVersionEx((LPOSVERSIONINFO) & ovi);
+
+		/* Minimum: client: Windows 2000 Professional */
+		/* Minimum: server: Windows 2000 Server */
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+					"check OS support for NAPTR: %i %i %i\n",
+					ovi.dwMajorVersion, ovi.dwMinorVersion, ovi.dwBuildNumber));
 		if (ovi.dwMajorVersion > 5) {
-			
+
 #if (_WIN32_WINNT >= 0x0600)
-				/* RUN only on Vista? */
-				/* compile starting from SDK 6.0A? even on XP... */
-				anaptr.order = tmp->Data.NAPTR.wOrder;
+			/* RUN only on Vista? */
+			/* compile starting from SDK 6.0A? even on XP... */
+			anaptr.order = tmp->Data.NAPTR.wOrder;
 			anaptr.pref = tmp->Data.NAPTR.wPreference;
 			strncpy(anaptr.flag, tmp->Data.NAPTR.pFlags, sizeof(anaptr.flag) - 1);
 			strncpy(anaptr.service, tmp->Data.NAPTR.pService,
@@ -1100,13 +1099,12 @@ eXosip_get_naptr(char *domain, char *protocol, char *srv_record, int max_length)
 					sizeof(anaptr.regexp) - 1);
 			strncpy(anaptr.replacement, tmp->Data.NAPTR.pReplacement,
 					sizeof(anaptr.replacement) - 1);
-			
-#endif							/*  */
+
+#endif
 		}
-		
-		else
-			 {
-			memcpy((void *) &anaptr.order, buf, 2);
+
+		else {
+			memcpy((void *) &anaptr.order, buf, 2);
 			anaptr.order = ntohs(anaptr.order);	/* ((unsigned short)buf[0] << 8) | ((unsigned short)buf[1]); */
 			buf += sizeof(unsigned short);
 			memcpy((void *) &anaptr.pref, buf, 2);
@@ -1145,7 +1143,7 @@ eXosip_get_naptr(char *domain, char *protocol, char *srv_record, int max_length)
 			if (len < 0)
 				break;
 			buf += len;
-			}
+		}
 
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
