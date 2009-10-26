@@ -35,6 +35,13 @@
 
 #if defined(_WIN32_WCE)
 #define strerror(X) "-1"
+#define errno WSAGetLastError()
+#ifndef EAGAIN
+#define EAGAIN WSAEWOULDBLOCK
+#endif
+#ifndef EWOULDBLOCK
+#define EWOULDBLOCK WSAEWOULDBLOCK
+#endif
 #endif
 
 static int tcp_socket;
@@ -511,6 +518,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 												tcp_socket_tab[pos].remote_port);
 #endif
 			} else if (i < 0) {
+				int status;
 				if (errno != EAGAIN) {
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -759,8 +767,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 		res = connect(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
 #ifdef WIN32
-			int status = WSAGetLastError();
-			if (status != WSAEWOULDBLOCK) {
+			if (errno != WSAEWOULDBLOCK) {
 #else
 			if (errno != EINPROGRESS) {
 #endif
@@ -904,11 +911,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	while (1) {
 		i = send(out_socket, (const void *) message, length, 0);
 		if (i < 0) {
-#ifdef WIN32
-			if (EAGAIN == errno || WSAECONNREFUSED == WSAGetLastError()) {
-#else
 			if (EAGAIN == errno || EWOULDBLOCK == errno) {
-#endif
 				struct timeval tv;
 				fd_set wrset;
 				tv.tv_sec = SOCKET_TIMEOUT / 1000;
