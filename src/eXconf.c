@@ -1005,8 +1005,12 @@ static void _eXosip_keep_alive(void)
 
 	eXtl_udp.tl_keepalive();
 	eXtl_tcp.tl_keepalive();
-	eXtl_dtls.tl_keepalive();
+#ifdef HAVE_OPENSSL_SSL_H
 	eXtl_tls.tl_keepalive();
+#if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
+	eXtl_dtls.tl_keepalive();
+#endif
+#endif
 }
 
 #ifdef OSIP_MT
