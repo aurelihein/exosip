@@ -1298,22 +1298,17 @@ eXosip_add_authentication_information(osip_message_t * req,
 															 authinfo->ha1, &aut,
 															 req->sip_method,
 															 http_auth->pszCNonce,
-															 http_auth->
-															 iNonceCount);
+															 http_auth->iNonceCount);
 				else
 					i = __eXosip_create_proxy_authorization_header(http_auth->wa,
 																   uri,
-																   authinfo->
-																   userid,
-																   authinfo->
-																   passwd,
+																   authinfo->userid,
+																   authinfo->passwd,
 																   authinfo->ha1,
 																   &aut,
 																   req->sip_method,
-																   http_auth->
-																   pszCNonce,
-																   http_auth->
-																   iNonceCount);
+																   http_auth->pszCNonce,
+																   http_auth->iNonceCount);
 
 				osip_free(uri);
 				if (i != 0)
