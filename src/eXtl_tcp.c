@@ -33,10 +33,13 @@
 #include <Mstcpip.h>
 #endif
 
-#if defined(_WIN32_WCE)
+#if defined(_WIN32_WCE) || defined(WIN32)
 #define strerror(X) "-1"
-#define errno WSAGetLastError()
+#define ex_errno WSAGetLastError()
+#else
+#define ex_errno errno
 #endif
+
 #ifndef EAGAIN
 #define EAGAIN WSAEWOULDBLOCK
 #endif
@@ -127,7 +130,7 @@ static int tcp_tl_open(void)
 		if (sock < 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"Cannot create socket %s!\n", strerror(errno)));
+						"Cannot create socket %s!\n", strerror(ex_errno)));
 			continue;
 		}
 
@@ -138,7 +141,7 @@ static int tcp_tl_open(void)
 				sock = -1;
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-							"Cannot set socket option %s!\n", strerror(errno)));
+							"Cannot set socket option %s!\n", strerror(ex_errno)));
 				continue;
 			}
 #endif							/* IPV6_V6ONLY */
@@ -149,7 +152,7 @@ static int tcp_tl_open(void)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"Cannot bind socket node:%s family:%d %s\n",
-						eXtl_tcp.proto_ifs, curinfo->ai_family, strerror(errno)));
+						eXtl_tcp.proto_ifs, curinfo->ai_family, strerror(ex_errno)));
 			close(sock);
 			sock = -1;
 			continue;
@@ -159,7 +162,7 @@ static int tcp_tl_open(void)
 		if (res != 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"Cannot get socket name (%s)\n", strerror(errno)));
+						"Cannot get socket name (%s)\n", strerror(ex_errno)));
 			memcpy(&ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
 		}
 
@@ -170,7 +173,7 @@ static int tcp_tl_open(void)
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 							"Cannot bind socket node:%s family:%d %s\n",
 							eXtl_tcp.proto_ifs, curinfo->ai_family,
-							strerror(errno)));
+							strerror(ex_errno)));
 				close(sock);
 				sock = -1;
 				continue;
@@ -518,11 +521,12 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 												tcp_socket_tab[pos].remote_port);
 #endif
 			} else if (i < 0) {
-				if (errno != EAGAIN) {
+				int status = ex_errno;
+				if (status != EAGAIN) {
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 								"Could not read socket (%s)- close it\n",
-								strerror(errno)));
+								strerror(status)));
 					close(tcp_socket_tab[pos].socket);
 					memset(&(tcp_socket_tab[pos]), 0, sizeof(tcp_socket_tab[pos]));
 				}
@@ -588,7 +592,7 @@ static int _tcp_tl_is_connected(int sock)
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"Cannot connect socket node / %s[%d]\n",
-							strerror(errno), valopt));
+							strerror(ex_errno), ex_errno));
 				return -1;
 			} else {
 				return 0;
@@ -597,14 +601,14 @@ static int _tcp_tl_is_connected(int sock)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"Cannot connect socket node / error in getsockopt %s[%d]\n",
-						strerror(errno), errno));
+						strerror(ex_errno), ex_errno));
 			return -1;
 		}
 	} else if (res < 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 					"Cannot connect socket node / error in select %s[%d]\n",
-					strerror(errno), errno));
+					strerror(ex_errno), ex_errno));
 		return -1;
 	} else {
 		OSIP_TRACE(osip_trace
@@ -668,7 +672,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 		if (sock < 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-						"Cannot create socket %s!\n", strerror(errno)));
+						"Cannot create socket %s!\n", strerror(ex_errno)));
 			continue;
 		}
 
@@ -679,7 +683,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 				sock = -1;
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-							"Cannot set socket option %s!\n", strerror(errno)));
+							"Cannot set socket option %s!\n", strerror(ex_errno)));
 				continue;
 			}
 #endif							/* IPV6_V6ONLY */
@@ -765,15 +769,15 @@ static int _tcp_tl_connect_socket(char *host, int port)
 					host, sock, curinfo->ai_family));
 		res = connect(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
-#ifdef WIN32
-			if (errno != WSAEWOULDBLOCK) {
+#if defined(_WIN32_WCE) || defined(WIN32)
+			if (ex_errno != WSAEWOULDBLOCK) {
 #else
-			if (errno != EINPROGRESS) {
+			if (ex_errno != EINPROGRESS) {
 #endif
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"Cannot connect socket node:%s family:%d %s[%d]\n",
-							host, curinfo->ai_family, strerror(errno), errno));
+							host, curinfo->ai_family, strerror(ex_errno), ex_errno));
 				close(sock);
 				sock = -1;
 				continue;
@@ -910,7 +914,8 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	while (1) {
 		i = send(out_socket, (const void *) message, length, 0);
 		if (i < 0) {
-			if (EAGAIN == errno || EWOULDBLOCK == errno) {
+			int status = ex_errno;
+			if (EAGAIN == status || EWOULDBLOCK == status) {
 				struct timeval tv;
 				fd_set wrset;
 				tv.tv_sec = SOCKET_TIMEOUT / 1000;
@@ -925,7 +930,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 				} else if (i < 0) {
 					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 										  "TCP select error: %s\n",
-										  strerror(errno)));
+										  strerror(ex_errno)));
 					osip_free(message);
 					return -1;
 				} else {
@@ -937,7 +942,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 			} else {
 				/* SIP_NETWORK_ERROR; */
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-									  "TCP error: %s\n", strerror(errno)));
+									  "TCP error: %s\n", strerror(status)));
 				osip_free(message);
 				return -1;
 			}
