@@ -2047,7 +2047,7 @@ void eXosip_release_terminated_registrations(void)
 	for (jr = eXosip.j_reg; jr != NULL;) {
 		jrnext = jr->next;
 		if (jr->r_reg_period == 0 && jr->r_last_tr != NULL) {
-			if (now - jr->r_last_tr->birth_time > 60) {
+			if (now - jr->r_last_tr->birth_time > 75) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 									  "Release a terminated registration\n"));
 				REMOVE_ELEMENT(eXosip.j_reg, jr);
@@ -2077,7 +2077,7 @@ void eXosip_release_terminated_publications(void)
 	for (jpub = eXosip.j_pub; jpub != NULL;) {
 		jpubnext = jpub->next;
 		if (jpub->p_period == 0 && jpub->p_last_tr != NULL) {
-			if (now - jpub->p_last_tr->birth_time > 60) {
+			if (now - jpub->p_last_tr->birth_time > 75) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 									  "Release a terminated publication\n"));
 				REMOVE_ELEMENT(eXosip.j_pub, jpub);

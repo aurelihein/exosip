@@ -603,7 +603,7 @@ void eXosip_automatic_refresh(void)
 					out_tr = js->s_out_tr;
 
 				if (js->s_reg_period == 0 || out_tr == NULL) {
-				} else if (now - out_tr->birth_time > js->s_reg_period - 60) {	/* will expires in 60 sec: send refresh! */
+				} else if (now - out_tr->birth_time > js->s_reg_period - 75) {	/* will expires in 75 sec: send refresh! */
 					int i;
 
 					i = _eXosip_subscribe_automatic_refresh(js, jd, out_tr);
@@ -624,7 +624,7 @@ void eXosip_automatic_refresh(void)
 			} else if (now - jr->r_last_tr->birth_time > 900) {
 				/* automatic refresh */
 				eXosip_register_send_register(jr->r_id, NULL);
-			} else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - 60) {
+			} else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - 75) {
 				/* automatic refresh */
 				eXosip_register_send_register(jr->r_id, NULL);
 			} else if (now - jr->r_last_tr->birth_time > 120 &&
@@ -948,7 +948,7 @@ void eXosip_automatic_action(void)
 							jd->d_retry++;
 						}
 					} else if (js->s_reg_period == 0 || out_tr == NULL) {
-					} else if (now - out_tr->birth_time > js->s_reg_period - 60) {	/* will expires in 60 sec: send refresh! */
+					} else if (now - out_tr->birth_time > js->s_reg_period - 75) {	/* will expires in 75 sec: send refresh! */
 						int i;
 
 						i = _eXosip_subscribe_automatic_refresh(js, jd, out_tr);
@@ -1008,7 +1008,7 @@ void eXosip_automatic_action(void)
 				/* automatic refresh */
 				eXosip_register_send_register(jr->r_id, NULL);
 			} else if (jr->r_reg_period != 0
-					   && now - jr->r_last_tr->birth_time > jr->r_reg_period - 60)
+					   && now - jr->r_last_tr->birth_time > jr->r_reg_period - 75)
 			{
 				/* automatic refresh */
 				eXosip_register_send_register(jr->r_id, NULL);
@@ -1043,7 +1043,7 @@ void eXosip_automatic_action(void)
 				/* automatic refresh */
 				_eXosip_publish_refresh(NULL, &jpub->p_last_tr, NULL);
 			} else if (jpub->p_period != 0
-					   && now - jpub->p_last_tr->birth_time > jpub->p_period - 60)
+					   && now - jpub->p_last_tr->birth_time > jpub->p_period - 75)
 			{
 				/* automatic refresh */
 				_eXosip_publish_refresh(NULL, &jpub->p_last_tr, NULL);

@@ -144,7 +144,7 @@ eXosip_subscribe_need_refresh(eXosip_subscribe_t * js, eXosip_dialog_t * jd,
 	if (out_tr == NULL)
 		out_tr = js->s_out_tr;
 
-	if (now - out_tr->birth_time > js->s_reg_period - 60)
+	if (now - out_tr->birth_time > js->s_reg_period - 75)
 		return OSIP_SUCCESS;
 	return OSIP_UNDEFINED_ERROR;
 }
