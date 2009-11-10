@@ -955,6 +955,9 @@ static int tcp_tl_keepalive(void)
 	int pos;
 	int i;
 
+	if (tcp_socket<=0)
+		return OSIP_UNDEFINED_ERROR;
+
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (tcp_socket_tab[pos].socket > 0) {
 			i = _tcp_tl_is_connected(tcp_socket_tab[pos].socket);
