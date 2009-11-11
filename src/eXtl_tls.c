@@ -31,10 +31,12 @@
 
 #ifdef WIN32
 #include <Mstcpip.h>
+#include <wincrypt.h>
 #endif
 
 #ifdef HAVE_OPENSSL_SSL_H
 
+#define verify_depth 10
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
@@ -69,7 +71,7 @@ static struct sockaddr_storage ai_addr;
 static char tls_firewall_ip[64];
 static char tls_firewall_port[10];
 
-static SSL_CTX *ssl_ctx;
+static SSL_CTX *server_ctx;
 static SSL_CTX *client_ctx;
 static eXosip_tls_ctx_t eXosip_tls_ctx_params;
 
@@ -95,7 +97,7 @@ static struct socket_tab tls_socket_tab[EXOSIP_MAX_SOCKETS];
 static int tls_tl_init(void)
 {
 	tls_socket = 0;
-	ssl_ctx = NULL;
+	server_ctx = NULL;
 	client_ctx = NULL;
 	memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
 	memset(&tls_socket_tab, 0, sizeof(struct socket_tab) * EXOSIP_MAX_SOCKETS);
@@ -107,11 +109,13 @@ static int tls_tl_init(void)
 static int tls_tl_free(void)
 {
 	int pos;
-	if (ssl_ctx != NULL)
-		SSL_CTX_free(ssl_ctx);
+	if (server_ctx != NULL)
+		SSL_CTX_free(server_ctx);
+	server_ctx=NULL;
 
 	if (client_ctx != NULL)
 		SSL_CTX_free(client_ctx);
+	client_ctx=NULL;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (tls_socket_tab[pos].socket > 0) {
@@ -143,6 +147,121 @@ static int tls_tl_free(void)
 
 	memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
 	return OSIP_SUCCESS;
+}
+
+static void tls_dump_cert_info(const char *s, X509 * cert)
+{
+	char *subj;
+	char *issuer;
+
+	subj = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
+	issuer = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
+
+	OSIP_TRACE(osip_trace
+			   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"%s subject:%s\n", s ? s : "", subj));
+	OSIP_TRACE(osip_trace
+			   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"%s issuer: %s\n", s ? s : "", issuer));
+	OPENSSL_free(subj);
+	OPENSSL_free(issuer);
+}
+
+int _tls_add_windows_certificates(SSL_CTX *ctx, const char *store)
+{
+	int count=0;
+	PCCERT_CONTEXT pCertCtx;
+	X509 *cert = NULL;
+	HCERTSTORE hStore = CertOpenSystemStore(0, store);
+
+	for ( pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
+		pCertCtx != NULL;
+		pCertCtx = CertEnumCertificatesInStore(hStore, pCertCtx) )
+	{
+		cert = d2i_X509(NULL, (const unsigned char **) &pCertCtx->pbCertEncoded,
+			pCertCtx->cbCertEncoded);
+		if (cert == NULL) {
+			SSLerr(SSL_F_SSL_CTX_USE_CERTIFICATE_FILE, ERR_R_ASN1_LIB);
+			continue;
+		}
+		tls_dump_cert_info(store, cert);
+
+		if (!X509_STORE_add_cert(ctx->cert_store, cert)) {
+			continue;
+		}
+		count++;
+		X509_free(cert);
+	}
+
+	CertCloseStore(hStore, 0);
+	return count;
+}
+
+
+int verify_cb(int preverify_ok, X509_STORE_CTX *store)
+{
+	char    buf[256];
+    X509   *err_cert;
+    int     err, depth;
+    SSL    *ssl;
+
+    err_cert = X509_STORE_CTX_get_current_cert(store);
+    err = X509_STORE_CTX_get_error(store);
+    depth = X509_STORE_CTX_get_error_depth(store);
+
+	ssl = X509_STORE_CTX_get_ex_data(store, SSL_get_ex_data_X509_STORE_CTX_idx());
+    X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
+
+	if (depth > verify_depth /* depth -1 */) {
+        preverify_ok = 0;
+        err = X509_V_ERR_CERT_CHAIN_TOO_LONG;
+        X509_STORE_CTX_set_error(store, err);
+    }
+    if (!preverify_ok) {
+		OSIP_TRACE(osip_trace
+		   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "verify error:num=%d:%s:depth=%d:%s\n", err,
+		   X509_verify_cert_error_string(err), depth, buf));
+    }
+    else
+    {
+		OSIP_TRACE(osip_trace
+		   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "depth=%d:%s\n", depth, buf));
+    }
+    /*
+     * At this point, err contains the last verification error. We can use
+     * it for something special
+     */
+    if (!preverify_ok && (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT))
+    {
+      X509_NAME_oneline(X509_get_issuer_name(store->current_cert), buf, 256);
+		OSIP_TRACE(osip_trace
+		   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "issuer= %s\n", buf));
+    }
+
+    if (!preverify_ok && (err == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN))
+    {
+      X509_NAME_oneline(X509_get_issuer_name(store->current_cert), buf, 256);
+		OSIP_TRACE(osip_trace
+		   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "issuer= %s\n", buf));
+		preverify_ok=1;
+		X509_STORE_CTX_set_error(store,X509_V_OK);
+    }
+
+    if (!preverify_ok && (err == X509_V_ERR_CERT_HAS_EXPIRED))
+    {
+      X509_NAME_oneline(X509_get_issuer_name(store->current_cert), buf, 256);
+		OSIP_TRACE(osip_trace
+		   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		   "issuer= %s\n", buf));
+		preverify_ok=1;
+		X509_STORE_CTX_set_error(store,X509_V_OK);
+    }
+	
+	return preverify_ok;
 }
 
 static int password_cb(char *buf, int num, int rwflag, void *userdata)
@@ -302,7 +421,6 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 					"eXosip: Couldn't create SSL_CTX!\n"));
 		return NULL;
 	}
-	/* SSL_CTX_set_read_ahead(ctx, 1); */
 
 	SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) password);
 	SSL_CTX_set_default_passwd_cb(ctx, password_cb);
@@ -338,17 +456,31 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 
 	{
 		int verify_mode = SSL_VERIFY_NONE;
-#if 0
 		verify_mode = SSL_VERIFY_PEER;
-#endif
 
-		SSL_CTX_set_verify(ctx, verify_mode, NULL);
-		SSL_CTX_set_verify_depth(ctx, 3);
+		SSL_CTX_set_verify(ctx, verify_mode, &verify_cb);
+		SSL_CTX_set_verify_depth(ctx, verify_depth+1);
 	}
 
 	SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
 						SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
 						SSL_OP_CIPHER_SERVER_PREFERENCE);
+
+	if (_tls_add_windows_certificates(ctx, "CA")<=0) {
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "Cannot load CA certificates from Microsoft Certificate Store"));
+	}
+	if (_tls_add_windows_certificates(ctx, "ROOT")<=0) {
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "Cannot load Root certificates from Microsoft Certificate Store"));
+	}
+	if (_tls_add_windows_certificates(ctx, "MY")<=0) {
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+				   "Cannot load Root certificates from Microsoft Certificate Store"));
+	}
 
 	return ctx;
 }
@@ -384,57 +516,77 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 		return NULL;
 	}
 
-	SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) password);
-	SSL_CTX_set_default_passwd_cb(ctx, password_cb);
-
 	if (transport == IPPROTO_UDP) {
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
 							  "DTLS read ahead\n"));
 		SSL_CTX_set_read_ahead(ctx, 1);
 	}
 
-	/* Load our keys and certificates */
-	if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Couldn't read certificate file!\n"));
+	if (certfile[0] != '\0') {
+		SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) password);
+		SSL_CTX_set_default_passwd_cb(ctx, password_cb);
+
+		/* Load our keys and certificates */
+		if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"eXosip: Couldn't read certificate file!\n"));
+		}
+
+		/* Load the CAs we trust */
+		if (!
+			(SSL_CTX_load_verify_locations
+			 (ctx, eXosip_tls_ctx_params.root_ca_cert, 0))) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"eXosip: Couldn't read CA list\n"));
+		}
+		SSL_CTX_set_verify_depth(ctx, verify_depth+1);
+
+		SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
+							SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
+							SSL_OP_CIPHER_SERVER_PREFERENCE);
+
+		if (!(SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM))) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"eXosip: Couldn't read key file: %s\n", keyfile));
+			return OSIP_SUCCESS;
+		}
+
+		if (!SSL_CTX_check_private_key(ctx)) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"check_private_key: Key '%s' does not match the public key of the certificate\n",
+						SSL_FILETYPE_PEM));
+			return NULL;
+		}
+
+		load_dh_params(ctx, eXosip_tls_ctx_params.dh_param);
+
+		generate_eph_rsa_key(ctx);
+
+		SSL_CTX_set_session_id_context(ctx, (void *) &s_server_session_id_context,
+									   sizeof s_server_session_id_context);
 	}
+	else
+	{
+		if (_tls_add_windows_certificates(ctx, "CA")<=0) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					   "Cannot load CA certificates from Microsoft Certificate Store"));
+		}
+		if (_tls_add_windows_certificates(ctx, "ROOT")<=0) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					   "Cannot load Root certificates from Microsoft Certificate Store"));
+		}
 
-	/* Load the CAs we trust */
-	if (!
-		(SSL_CTX_load_verify_locations
-		 (ctx, eXosip_tls_ctx_params.root_ca_cert, 0))) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Couldn't read CA list\n"));
+		generate_eph_rsa_key(ctx);
+
+		SSL_CTX_set_session_id_context(ctx, (void *) &s_server_session_id_context,
+									   sizeof s_server_session_id_context);
 	}
-	SSL_CTX_set_verify_depth(ctx, 5);
-
-	SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
-						SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
-						SSL_OP_CIPHER_SERVER_PREFERENCE);
-
-	if (!(SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM))) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Couldn't read key file: %s\n", keyfile));
-		return OSIP_SUCCESS;
-	}
-
-	if (!SSL_CTX_check_private_key(ctx)) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"check_private_key: Key '%s' does not match the public key of the certificate\n",
-					SSL_FILETYPE_PEM));
-		return NULL;
-	}
-
-	load_dh_params(ctx, eXosip_tls_ctx_params.dh_param);
-
-	generate_eph_rsa_key(ctx);
-
-	SSL_CTX_set_session_id_context(ctx, (void *) &s_server_session_id_context,
-								   sizeof s_server_session_id_context);
 
 	return ctx;
 }
@@ -471,7 +623,7 @@ static int tls_tl_open(void)
 	SSL_load_error_strings();
 
 	if (eXosip_tls_ctx_params.server.cert[0] != '\0') {
-		ssl_ctx = initialize_server_ctx(eXosip_tls_ctx_params.server.priv_key,
+		server_ctx = initialize_server_ctx(eXosip_tls_ctx_params.server.priv_key,
 										eXosip_tls_ctx_params.server.cert,
 										eXosip_tls_ctx_params.server.priv_key_pw,
 										IPPROTO_TCP);
@@ -661,23 +813,6 @@ int static print_ssl_error(int err)
 	return OSIP_SUCCESS;
 }
 
-static void tls_dump_cert_info(char *s, X509 * cert)
-{
-	char *subj;
-	char *issuer;
-
-	subj = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
-	issuer = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
-
-	OSIP_TRACE(osip_trace
-			   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				"%s subject:%s\n", s ? s : "", subj));
-	OSIP_TRACE(osip_trace
-			   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				"%s issuer: %s\n", s ? s : "", issuer));
-	OPENSSL_free(subj);
-	OPENSSL_free(issuer);
-}
 
 static void tls_dump_verification_failure(long verification_result)
 {
@@ -959,6 +1094,18 @@ static int _tls_tl_ssl_connect_socket(int pos)
 			/*else -> I want to keep going ONLY when API didn't specified
 			   any SSL server certificate */
 		}
+#if 0
+		{
+			char peer_CN[65];
+			memset(peer_CN, 0, sizeof(peer_CN));
+			X509_NAME_get_text_by_NID(X509_get_subject_name(cert), NID_commonName, peer_CN, sizeof(peer_CN));
+			if(osip_strcasecmp(tls_socket_tab[pos].remote_ip, peer_CN) != 0)
+			{
+				SSL_set_verify_result(m_pSSL, X509_V_ERR_APPLICATION_VERIFICATION+1);
+			}
+		}
+#endif
+
 		X509_free(cert);
 	} else {
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -1025,19 +1172,19 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 								  "Error accepting TLS socket\n"));
 		} else {
-			if (ssl_ctx == NULL) {
+			if (server_ctx == NULL) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 									  "TLS connection rejected\n"));
 				close(sock);
 				return -1;
 			}
 
-			if (!SSL_CTX_check_private_key(ssl_ctx)) {
+			if (!SSL_CTX_check_private_key(server_ctx)) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 									  "SSL CTX private key check error\n"));
 			}
 
-			ssl = SSL_new(ssl_ctx);
+			ssl = SSL_new(server_ctx);
 			if (ssl == NULL) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 									  "Cannot create ssl connection context\n"));
@@ -1699,6 +1846,9 @@ static int tls_tl_keepalive(void)
 	char buf[4] = "\r\n\r\n";
 	int pos;
 	int i;
+
+	if (tls_socket<=0)
+		return OSIP_UNDEFINED_ERROR;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (tls_socket_tab[pos].socket > 0 && tls_socket_tab[pos].ssl_state > 2) {
