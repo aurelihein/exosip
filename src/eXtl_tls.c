@@ -65,6 +65,8 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 							   const char *password, int transport);
 
+int verify_cb(int preverify_ok, X509_STORE_CTX *store);
+
 static int tls_socket;
 static struct sockaddr_storage ai_addr;
 
@@ -74,6 +76,7 @@ static char tls_firewall_port[10];
 static SSL_CTX *server_ctx;
 static SSL_CTX *client_ctx;
 static eXosip_tls_ctx_t eXosip_tls_ctx_params;
+static char tls_local_cn_name[128];
 
 /* persistent connection */
 struct socket_tab {
@@ -146,6 +149,7 @@ static int tls_tl_free(void)
 		close(tls_socket);
 
 	memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
+	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
 	return OSIP_SUCCESS;
 }
 
@@ -167,9 +171,10 @@ static void tls_dump_cert_info(const char *s, X509 * cert)
 	OPENSSL_free(issuer);
 }
 
-int _tls_add_windows_certificates(SSL_CTX *ctx, const char *store)
+int _tls_add_certificates(SSL_CTX *ctx, const char *store)
 {
 	int count=0;
+#ifdef WIN32
 	PCCERT_CONTEXT pCertCtx;
 	X509 *cert = NULL;
 	HCERTSTORE hStore = CertOpenSystemStore(0, store);
@@ -194,6 +199,7 @@ int _tls_add_windows_certificates(SSL_CTX *ctx, const char *store)
 	}
 
 	CertCloseStore(hStore, 0);
+#endif
 	return count;
 }
 
@@ -397,6 +403,15 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 	return TLS_OK;
 }
 
+eXosip_tls_ctx_error eXosip_user_tls_store (const char *local_certificate_cn)
+{
+	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
+	if (local_certificate_cn==NULL)
+		return TLS_OK;
+	memcpy(tls_local_cn_name, local_certificate_cn, sizeof(tls_local_cn_name)-1);
+	return TLS_OK;
+}
+
 SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 							   const char *password, int transport)
 {
@@ -466,17 +481,17 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 						SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
 						SSL_OP_CIPHER_SERVER_PREFERENCE);
 
-	if (_tls_add_windows_certificates(ctx, "CA")<=0) {
+	if (_tls_add_certificates(ctx, "CA")<=0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 				   "Cannot load CA certificates from Microsoft Certificate Store"));
 	}
-	if (_tls_add_windows_certificates(ctx, "ROOT")<=0) {
+	if (_tls_add_certificates(ctx, "ROOT")<=0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 				   "Cannot load Root certificates from Microsoft Certificate Store"));
 	}
-	if (_tls_add_windows_certificates(ctx, "MY")<=0) {
+	if (_tls_add_certificates(ctx, "MY")<=0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 				   "Cannot load Root certificates from Microsoft Certificate Store"));
@@ -571,12 +586,12 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 	}
 	else
 	{
-		if (_tls_add_windows_certificates(ctx, "CA")<=0) {
+		if (_tls_add_certificates(ctx, "CA")<=0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					   "Cannot load CA certificates from Microsoft Certificate Store"));
 		}
-		if (_tls_add_windows_certificates(ctx, "ROOT")<=0) {
+		if (_tls_add_certificates(ctx, "ROOT")<=0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					   "Cannot load Root certificates from Microsoft Certificate Store"));

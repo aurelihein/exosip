@@ -440,6 +440,17 @@ extern "C"
   */
   eXosip_tls_ctx_error eXosip_set_tls_ctx (eXosip_tls_ctx_t * ctx);
 
+/**
+  *	Use the OS certificate store.
+  *
+  *	12/11/2009 -> implemented only for "Windows Certificate Store"
+  *
+  *	@param local_certificate_cn  certificate to send when accepting incoming connection
+  *
+  *	@return  the eXosip_tls_ctx_error code
+  */
+  eXosip_tls_ctx_error eXosip_user_tls_store (const char *local_certificate_cn);
+
 /** @} */
 
 #ifdef __cplusplus
