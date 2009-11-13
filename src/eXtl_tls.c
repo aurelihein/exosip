@@ -177,7 +177,7 @@ static void tls_dump_cert_info(const char *s, X509 * cert)
 	OPENSSL_free(issuer);
 }
 
-int _tls_add_certificates(SSL_CTX *ctx)
+static int _tls_add_certificates(SSL_CTX *ctx)
 {
 	int count=0;
 #ifdef WIN32
@@ -421,7 +421,7 @@ static int rsa_finish(RSA *rsa)
 
 #endif
 
-X509 *_tls_set_certificate(SSL_CTX *ctx, const char *cn)
+static X509 *_tls_set_certificate(SSL_CTX *ctx, const char *cn)
 {
 #ifdef WIN32
 	PCCERT_CONTEXT pCertCtx;
