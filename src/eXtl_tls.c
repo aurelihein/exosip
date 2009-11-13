@@ -252,6 +252,8 @@ int _tls_add_certificates(SSL_CTX *ctx)
 	return count;
 }
 
+#ifdef WIN32
+
 struct rsa_ctx {
 	const CERT_CONTEXT *cert;
 	HCRYPTPROV crypt_prov;
@@ -416,6 +418,8 @@ static int rsa_finish(RSA *rsa)
 	rsa->meth = NULL;
 	return 1;
 }
+
+#endif
 
 X509 *_tls_set_certificate(SSL_CTX *ctx, const char *cn)
 {
