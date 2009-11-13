@@ -914,7 +914,6 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 	SSL_METHOD *meth = NULL;
 	SSL_CTX *ctx;
 	X509 *cert=NULL;
-	RSA *pkey=NULL;
 
 	int s_server_session_id_context = 1;
 
@@ -950,9 +949,7 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 
 	if (tls_local_cn_name[0]!='\0')
 	{
-#ifdef WIN32
 		cert = _tls_set_certificate(ctx, tls_local_cn_name);
-#endif
 	}
 	if (cert==NULL && certfile[0] != '\0') {
 		if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
