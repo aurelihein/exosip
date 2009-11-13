@@ -130,7 +130,7 @@ int eXosip_dialog_init_as_uac(eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 	}
 
 	jd->d_count = 0;
-	jd->d_session_timer_start = NULL;
+	jd->d_session_timer_start = 0;
 	jd->d_session_timer_length = 0;
 	jd->d_refresher = -1;		/* 0 -> me / 1 -> remote */
 	jd->d_timer = time(NULL);
@@ -179,7 +179,7 @@ eXosip_dialog_init_as_uas(eXosip_dialog_t ** _jd, osip_message_t * _invite,
 	}
 
 	jd->d_count = 0;
-	jd->d_session_timer_start = NULL;
+	jd->d_session_timer_start = 0;
 	jd->d_session_timer_length = 0;
 	jd->d_refresher = -1;		/* 0 -> me / 1 -> remote */
 	jd->d_timer = time(NULL);
