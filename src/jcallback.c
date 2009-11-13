@@ -57,6 +57,7 @@
 
 extern eXosip_t eXosip;
 
+void udp_tl_learn_port_from_via(osip_message_t * sip);
 
 /* Private functions */
 static void rcvregister_failure(osip_transaction_t * tr, osip_message_t * sip);
