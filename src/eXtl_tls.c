@@ -1754,9 +1754,11 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 								"socket node:%s, socket %d [pos=%d], socket error\n",
 								tls_socket_tab[pos].remote_ip,
 								tls_socket_tab[pos].socket, pos));
-					SSL_shutdown(tls_socket_tab[pos].ssl_conn);
+					if (tls_socket_tab[pos].ssl_conn!=NULL)
+						SSL_shutdown(tls_socket_tab[pos].ssl_conn);
 					close(tls_socket_tab[pos].socket);
-					SSL_free(tls_socket_tab[pos].ssl_conn);
+					if (tls_socket_tab[pos].ssl_conn!=NULL)
+						SSL_free(tls_socket_tab[pos].ssl_conn);
 					if (tls_socket_tab[pos].ssl_ctx != NULL)
 						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
 
@@ -1768,9 +1770,11 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 			if (tls_socket_tab[pos].ssl_state == 1) {
 				i = _tls_tl_ssl_connect_socket(pos);
 				if (i < 0) {
-					SSL_shutdown(tls_socket_tab[pos].ssl_conn);
+					if (tls_socket_tab[pos].ssl_conn!=NULL)
+						SSL_shutdown(tls_socket_tab[pos].ssl_conn);
 					close(tls_socket_tab[pos].socket);
-					SSL_free(tls_socket_tab[pos].ssl_conn);
+					if (tls_socket_tab[pos].ssl_conn!=NULL)
+						SSL_free(tls_socket_tab[pos].ssl_conn);
 					if (tls_socket_tab[pos].ssl_ctx != NULL)
 						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
 
