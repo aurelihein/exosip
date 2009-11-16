@@ -1,4 +1,7 @@
 eXosip2 (3.4.0)
+	* modification to allow using "windows certificate store" for TLS.
+	* handle keep alive for TCP/TLS.
+	* fix when receiving additionnal CRLF on reliable transport.
 	* modification to allow non-blocking socket for reliable transport. (TLS/TCP)
 	* fix tag issue with application where tag is missing.
 	* fix compilation for mingw
