@@ -152,7 +152,8 @@ static int tcp_tl_open(void)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"Cannot bind socket node:%s family:%d %s\n",
-						eXtl_tcp.proto_ifs, curinfo->ai_family, strerror(ex_errno)));
+						eXtl_tcp.proto_ifs, curinfo->ai_family,
+						strerror(ex_errno)));
 			close(sock);
 			sock = -1;
 			continue;
@@ -777,7 +778,8 @@ static int _tcp_tl_connect_socket(char *host, int port)
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"Cannot connect socket node:%s family:%d %s[%d]\n",
-							host, curinfo->ai_family, strerror(ex_errno), ex_errno));
+							host, curinfo->ai_family, strerror(ex_errno),
+							ex_errno));
 				close(sock);
 				sock = -1;
 				continue;
@@ -960,7 +962,7 @@ static int tcp_tl_keepalive(void)
 	int pos;
 	int i;
 
-	if (tcp_socket<=0)
+	if (tcp_socket <= 0)
 		return OSIP_UNDEFINED_ERROR;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {

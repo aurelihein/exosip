@@ -945,7 +945,7 @@ static int dtls_tl_keepalive(void)
 	char buf[4] = "jaK";
 	eXosip_reg_t *jr;
 
-	if (dtls_socket<=0)
+	if (dtls_socket <= 0)
 		return OSIP_UNDEFINED_ERROR;
 
 	for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
