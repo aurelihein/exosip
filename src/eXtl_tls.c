@@ -984,8 +984,11 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 			return NULL;
 		}
 	}
-	X509_free(cert);
-	cert = NULL;
+	if (cert!=NULL)
+	{
+		X509_free(cert);
+		cert = NULL;
+	}
 
 	if (!SSL_CTX_check_private_key(ctx)) {
 		OSIP_TRACE(osip_trace
