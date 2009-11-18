@@ -2193,7 +2193,18 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 						host, out_socket, -1));
 			osip_free(message);
 			if (tr != NULL && now - tr->birth_time > 10)
+			{
+				if (tls_socket_tab[pos].ssl_conn != NULL)
+					SSL_shutdown(tls_socket_tab[pos].ssl_conn);
+				close(tls_socket_tab[pos].socket);
+				if (tls_socket_tab[pos].ssl_conn != NULL)
+					SSL_free(tls_socket_tab[pos].ssl_conn);
+				if (tls_socket_tab[pos].ssl_ctx != NULL)
+					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
+
+				memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 				return -1;
+			}
 			return 1;
 		} else if (i == 0) {
 			OSIP_TRACE(osip_trace
