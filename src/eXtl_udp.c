@@ -371,7 +371,10 @@ static int eXtl_update_local_target(osip_message_t * req)
 			co = (osip_contact_t *) osip_list_get(&req->contacts, pos);
 			pos++;
 			if (co != NULL && co->url != NULL && co->url->host != NULL
-				&& 0 == osip_strcasecmp(co->url->host, udp_firewall_ip)) {
+#if 0
+				&& 0 == osip_strcasecmp(co->url->host, udp_firewall_ip)
+#endif
+				) {
 				if (ainfo == NULL) {
 					if (co->url->port == NULL &&
 						0 != osip_strcasecmp(udp_firewall_port, "5060")) {
@@ -396,8 +399,15 @@ static int eXtl_update_local_target(osip_message_t * req)
 							return OSIP_NOMEM;
 						snprintf(co->url->port, 9, "%i", ainfo->nat_port);
 					}
+#if 1
+					if (ainfo->nat_ip[0] != '\0')
+					{
+						osip_free(co->url->host);
+						co->url->host = osip_strdup(ainfo->nat_ip);
+					}
 				}
 			}
+#endif
 		}
 	}
 
