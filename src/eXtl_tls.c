@@ -2232,12 +2232,14 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 				SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
 
 			memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
+			osip_free(message);
 			return -1;
 		} else if (i > 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"socket node:%s, socket %d [pos=%d], connected (ssl in progress)\n",
 						host, out_socket, pos));
+			osip_free(message);
 			return 1;
 		}
 		ssl = tls_socket_tab[pos].ssl_conn;
