@@ -245,6 +245,27 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 	}
 
 	CertCloseStore(hStore, 0);
+
+	hStore = CertOpenSystemStore(0, "Trustedpublisher");
+
+	for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
+		 pCertCtx != NULL;
+		 pCertCtx = CertEnumCertificatesInStore(hStore, pCertCtx)) {
+		cert = d2i_X509(NULL, (const unsigned char **) &pCertCtx->pbCertEncoded,
+						pCertCtx->cbCertEncoded);
+		if (cert == NULL) {
+			continue;
+		}
+		/*tls_dump_cert_info("Trustedpublisher", cert); */
+
+		if (!X509_STORE_add_cert(ctx->cert_store, cert)) {
+			continue;
+		}
+		count++;
+		X509_free(cert);
+	}
+
+	CertCloseStore(hStore, 0);
 #endif
 	return count;
 }
@@ -467,6 +488,33 @@ static X509 *_tls_set_certificate(SSL_CTX * ctx, const char *cn)
 
 	if (cert == NULL) {
 		hStore = CertOpenSystemStore(0, "MY");
+
+		for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
+			 pCertCtx != NULL;
+			 pCertCtx = CertEnumCertificatesInStore(hStore, pCertCtx)) {
+			char peer_CN[65];
+			cert =
+				d2i_X509(NULL, (const unsigned char **) &pCertCtx->pbCertEncoded,
+						 pCertCtx->cbCertEncoded);
+			if (cert == NULL) {
+				continue;
+			}
+
+			memset(peer_CN, 0, sizeof(peer_CN));
+			X509_NAME_get_text_by_NID(X509_get_subject_name(cert), NID_commonName,
+									  peer_CN, sizeof(peer_CN));
+			if (osip_strcasecmp(cn, peer_CN) == 0) {
+				break;
+			}
+			X509_free(cert);
+			cert = NULL;
+		}
+
+		CertCloseStore(hStore, 0);
+	}
+
+	if (cert == NULL) {
+		hStore = CertOpenSystemStore(0, "Trustedpublisher");
 
 		for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 			 pCertCtx != NULL;
