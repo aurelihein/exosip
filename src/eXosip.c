@@ -651,6 +651,7 @@ void eXosip_retransmit_lost200ok()
 			for (jd = jc->c_dialogs; jd != NULL; jd = jd->next) {
 				if (jd->d_id >= 1 && jd->d_dialog != NULL && jd->d_200Ok != NULL) {
 					if (jd->d_count == 9) {
+						int i;
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 									"eXosip: no ACK received during 20s: dropping call\n"));
@@ -658,7 +659,11 @@ void eXosip_retransmit_lost200ok()
 						jd->d_count = 0;
 						osip_message_free(jd->d_200Ok);
 						jd->d_200Ok = NULL;
-						eXosip_call_terminate(jc->c_id, jd->d_id);
+						i = eXosip_call_terminate(jc->c_id, jd->d_id);
+						if (i == OSIP_SUCCESS)
+						{
+							report_call_event(EXOSIP_CALL_CLOSED, jc, jd, NULL);
+						}
 					} else if (jd->d_timer < now) {
 						/* a dialog exist: retransmit lost 200ok */
 						jd->d_count++;
