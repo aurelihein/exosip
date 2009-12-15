@@ -401,7 +401,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 					if (cl_header == NULL || cl_header >= end_sip) {
 						/* remove data up to crlfcrlf and restart */
 						memmove(tcp_socket_tab[pos].previous_content,
-								end_sip,
+								end_sip+4,
 								tcp_socket_tab[pos].previous_content_len -
 								(end_sip + 4 -
 								 tcp_socket_tab[pos].previous_content) + 1);
