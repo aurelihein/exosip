@@ -1657,7 +1657,7 @@ eXosip_pendingosip_transaction_exist(eXosip_call_t * jc, eXosip_dialog_t * jd)
 
 	tr = eXosip_find_last_out_invite(jc, jd);
 	if (tr != NULL && tr->state != ICT_TERMINATED) {	/* Don't want to wait forever on broken transaction!! */
-		if (tr->birth_time + 180 < now) {	/* Wait a max of 2 minutes */
+		if (jc->expire_time < now) {
 			/* remove the transaction from oSIP: */
 			/* osip_remove_transaction(eXosip.j_osip, tr);
 			   eXosip_remove_transaction_from_call(tr, jc);

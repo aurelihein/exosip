@@ -41,6 +41,12 @@ int eXosip_call_find(int cid, eXosip_call_t ** jc)
 	return OSIP_NOTFOUND;
 }
 
+void eXosip_call_renew_expire_time(eXosip_call_t * jc)
+{
+	time_t now = time(NULL);
+	jc->expire_time = now + 180;
+}
+
 int eXosip_call_init(eXosip_call_t ** jc)
 {
 	*jc = (eXosip_call_t *) osip_malloc(sizeof(eXosip_call_t));

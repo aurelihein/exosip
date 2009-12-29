@@ -218,6 +218,8 @@ extern "C" {
 		int c_retry;			/* avoid too many unsuccessfull retry */
 		void *external_reference;
 
+		time_t expire_time;
+
 		eXosip_call_t *next;
 		eXosip_call_t *parent;
 	};
@@ -622,6 +624,7 @@ extern "C" {
 
 
 	int eXosip_call_init(eXosip_call_t ** jc);
+	void eXosip_call_renew_expire_time(eXosip_call_t * jc);
 	void eXosip_call_free(eXosip_call_t * jc);
 	void __eXosip_call_remove_dialog_reference_in_call(eXosip_call_t * jc,
 													   eXosip_dialog_t * jd);

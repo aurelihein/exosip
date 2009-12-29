@@ -740,6 +740,9 @@ static void cb_rcv1xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 		} else if (MSG_TEST_CODE(sip, 183) && jd != NULL) {
 			jd->d_STATE = JD_QUEUED;
 		}
+		if (MSG_IS_RESPONSE_FOR(sip, "INVITE")) {
+			eXosip_call_renew_expire_time(jc);
+        }
 	}
 }
 
