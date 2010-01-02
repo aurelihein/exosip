@@ -208,7 +208,7 @@ void udp_tl_learn_port_from_via(osip_message_t * sip)
 			if (br != NULL && br->gvalue != NULL) {
 				struct eXosip_account_info ainfo;
 				memset(&ainfo, 0, sizeof(struct eXosip_account_info));
-				snprintf(udp_firewall_port, 20, "%s", br->gvalue);
+				snprintf(udp_firewall_port, sizeof(udp_firewall_port), "%s", br->gvalue);
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 							"SIP port modified from rport in SIP answer\r\n"));
