@@ -1843,8 +1843,8 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 					err = SSL_get_error(tls_socket_tab[pos].ssl_conn, i);
 					if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
 						break;
-					} else if (err == SSL_ERROR_SYSCALL && errno != EAGAIN) {
-						break;
+					//} else if (err == SSL_ERROR_SYSCALL && errno != EAGAIN) {
+					//	break;
 					} else {
 						print_ssl_error(err);
 						/*
