@@ -2344,8 +2344,6 @@ static int tls_tl_keepalive(void)
 					if (i == SSL_ERROR_WANT_READ || i == SSL_ERROR_WANT_WRITE)
 						continue;
 					print_ssl_error(i);
-
-					return -1;
 				}
 				break;
 			}
