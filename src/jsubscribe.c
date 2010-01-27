@@ -125,9 +125,9 @@ _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t * js,
 
 	osip_message_get_expires(out_subscribe, 0, &exp);
 	if (exp != NULL && exp->hvalue != NULL) {
-		js->s_reg_period = osip_atoi(exp->hvalue);
-		if (js->s_reg_period < 0)
-			js->s_reg_period = 3600;
+		int val = osip_atoi(exp->hvalue);
+		if (val < js->s_reg_period - 75)
+			js->s_reg_period = val+75;
 	}
 
 	return OSIP_SUCCESS;
