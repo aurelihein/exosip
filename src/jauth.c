@@ -1121,7 +1121,7 @@ _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t * wa,
 	for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++) {
 		http_auth = &eXosip.http_auths[pos];
 		if (http_auth->pszCallId[0] == '\0') {
-			snprintf(http_auth->pszCallId, sizeof(http_auth->pszCallId), call_id);
+			snprintf(http_auth->pszCallId, sizeof(http_auth->pszCallId), "%s", call_id);
 			snprintf(http_auth->pszCNonce, sizeof(http_auth->pszCNonce),
 					 "0a4f113b");
 			http_auth->iNonceCount = 1;
