@@ -1288,7 +1288,7 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 		return;
 	}
 
-	if (!MSG_IS_RESPONSE_FOR(evt->sip, INVITE))
+	if (!MSG_IS_RESPONSE_FOR(evt->sip, "INVITE"))
 	{
 		osip_event_free(evt);
 		return;
