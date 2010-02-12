@@ -1280,9 +1280,16 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 
 	now = time(NULL);
 	if (evt->sip == NULL
+		|| evt->sip->sip_method == NULL
 		|| evt->sip->cseq == NULL
 		|| evt->sip->cseq->number == NULL
 		|| evt->sip->to == NULL || evt->sip->from == NULL) {
+		osip_event_free(evt);
+		return;
+	}
+
+	if (!MSG_IS_RESPONSE_FOR(evt->sip, "INVITE"))
+	{
 		osip_event_free(evt);
 		return;
 	}
