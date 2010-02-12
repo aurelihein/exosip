@@ -196,8 +196,6 @@ AC_CHECK_LIB(nsl,nis_add,[EXOSIP_LIB="$EXOSIP_LIB -lnsl"])
 AC_CHECK_LIB(socket,sendto,[EXOSIP_LIB="$EXOSIP_LIB -lsocket"])
 AC_CHECK_LIB(rt,clock_gettime,[EXOSIP_LIB="$EXOSIP_LIB -lrt"])
 
-AC_CHECK_LIB(ssl,SSL_CTX_new,[EXOSIP_LIB="$EXOSIP_LIB -lssl"])
-
 case $OS in
   openbsd*)
      ;;
@@ -367,6 +365,7 @@ AC_ARG_ENABLE(openssl,
 
 if test "$enable_openssl" = "yes" ; then
 	AC_CHECK_HEADERS(openssl/ssl.h)
+	AC_CHECK_LIB(ssl,SSL_CTX_new,[EXOSIP_LIB="$EXOSIP_LIB -lssl"])
 fi
 
 AC_ARG_ENABLE(srvrec,
