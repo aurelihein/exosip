@@ -855,9 +855,9 @@ void eXosip_automatic_action(void)
 							(jd->d_session_timer_start +
 							 jd->d_session_timer_length) > 0) {
 							/* means we tried hard... but certainly failed... */
-						} else if (now -
-								   (jd->d_session_timer_start +
-									jd->d_session_timer_length) > -10) {
+						} else if ((jd->d_session_timer_start +	
+							        jd->d_session_timer_length) - now < 
+									(jd->d_session_timer_length / 2)) {
 							osip_message_t *request = NULL;
 
 
