@@ -694,6 +694,14 @@ int verify_cb(int preverify_ok, X509_STORE_CTX * store)
 		X509_STORE_CTX_set_error(store, X509_V_OK);
 	}
 
+	if (!preverify_ok && (err == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT)) {
+		X509_NAME_oneline(X509_get_issuer_name(store->current_cert), buf, 256);
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL, "issuer= %s\n", buf));
+		preverify_ok = 1;
+		X509_STORE_CTX_set_error(store, X509_V_OK);
+	}
+
 	if (!preverify_ok && (err == X509_V_ERR_CERT_HAS_EXPIRED)) {
 		X509_NAME_oneline(X509_get_issuer_name(store->current_cert), buf, 256);
 		OSIP_TRACE(osip_trace
