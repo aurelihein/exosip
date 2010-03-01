@@ -36,7 +36,7 @@
 
 #ifdef HAVE_OPENSSL_SSL_H
 
-#define verify_depth 10
+#define ex_verify_depth 10
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
@@ -658,7 +658,7 @@ int verify_cb(int preverify_ok, X509_STORE_CTX * store)
 	ssl = X509_STORE_CTX_get_ex_data(store, SSL_get_ex_data_X509_STORE_CTX_idx());
 	X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
 
-	if (depth > verify_depth /* depth -1 */ ) {
+	if (depth > ex_verify_depth /* depth -1 */ ) {
 		preverify_ok = 0;
 		err = X509_V_ERR_CERT_CHAIN_TOO_LONG;
 		X509_STORE_CTX_set_error(store, err);
@@ -925,7 +925,7 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 		verify_mode = SSL_VERIFY_PEER;
 
 		SSL_CTX_set_verify(ctx, verify_mode, &verify_cb);
-		SSL_CTX_set_verify_depth(ctx, verify_depth + 1);
+		SSL_CTX_set_verify_depth(ctx, ex_verify_depth + 1);
 	}
 
 	SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
@@ -1024,7 +1024,7 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 		/*verify_mode = SSL_VERIFY_PEER; */
 
 		SSL_CTX_set_verify(ctx, verify_mode, &verify_cb);
-		SSL_CTX_set_verify_depth(ctx, verify_depth + 1);
+		SSL_CTX_set_verify_depth(ctx, ex_verify_depth + 1);
 	}
 
 	SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |
