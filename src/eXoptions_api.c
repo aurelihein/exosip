@@ -47,9 +47,6 @@ eXosip_options_build_request(osip_message_t ** options, const char *to,
 	if (i != 0)
 		return i;
 
-	/* after this delay, we should send a CANCEL */
-	osip_message_set_expires(*options, "120");
-
 	/* osip_message_set_organization(*invite, "Jack's Org"); */
 	return OSIP_SUCCESS;
 }
