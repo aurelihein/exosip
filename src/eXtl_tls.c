@@ -2420,4 +2420,23 @@ struct eXtl_protocol eXtl_tls = {
 	&tls_tl_get_masquerade_contact
 };
 
+#else
+
+eXosip_tls_ctx_error eXosip_tls_verify_certificate(int
+												   _tls_verify_client_certificate)
+{
+	return -1; //NOT IMPLEMENTED
+}
+
+eXosip_tls_ctx_error eXosip_tls_use_server_certificate(const char
+													   *local_certificate_cn)
+{
+	return -1; //NOT IMPLEMENTED
+}
+
+eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
+{
+	return -1; //NOT IMPLEMENTED
+}
+
 #endif
