@@ -331,6 +331,7 @@ generating_request_out_of_dialog(osip_message_t ** dest, const char *method,
 				} else if (osip_strcasecmp(u_header->gname, "cseq") == 0) {
 				} else if (osip_strcasecmp(u_header->gname, "via") == 0) {
 				} else if (osip_strcasecmp(u_header->gname, "contact") == 0) {
+					//osip_message_set_contact(request, u_header->gvalue);
 				} else if (osip_strcasecmp(u_header->gname, "route") == 0) {
 					osip_message_set_route(request, u_header->gvalue);
 				} else if (osip_strcasecmp(u_header->gname, "content-type") == 0) {
@@ -451,6 +452,72 @@ generating_request_out_of_dialog(osip_message_t ** dest, const char *method,
 
 			osip_list_remove(&url->url_headers, 0);
 			osip_uri_param_free(u_header);
+		}
+	}
+
+	if (request->to != NULL && request->to->url != NULL) {
+		int pos = 0;
+		size_t pname_len;
+		osip_uri_param_t *u_param;
+
+		pname_len = strlen("method");
+		while (!osip_list_eol(&request->to->url->url_params, pos)) {
+			size_t len;
+
+			u_param = (osip_uri_param_t *) osip_list_get(&request->to->url->url_params, pos);
+			len = strlen(u_param->gname);
+			if (pname_len == len
+				&& osip_strncasecmp(u_param->gname, "method", pname_len) == 0
+				&& u_param->gvalue!=NULL) {
+					osip_list_remove(&request->to->url->url_params, pos);
+					osip_uri_param_free(u_param);
+					break;
+			}
+			pos++;
+		}
+	}
+
+	if (request->from != NULL && request->from->url != NULL) {
+		int pos = 0;
+		size_t pname_len;
+		osip_uri_param_t *u_param;
+
+		pname_len = strlen("method");
+		while (!osip_list_eol(&request->from->url->url_params, pos)) {
+			size_t len;
+
+			u_param = (osip_uri_param_t *) osip_list_get(&request->from->url->url_params, pos);
+			len = strlen(u_param->gname);
+			if (pname_len == len
+				&& osip_strncasecmp(u_param->gname, "method", pname_len) == 0
+				&& u_param->gvalue!=NULL) {
+					osip_list_remove(&request->from->url->url_params, pos);
+					osip_uri_param_free(u_param);
+					break;
+			}
+			pos++;
+		}
+	}
+
+	if (request->req_uri) {
+		int pos = 0;
+		size_t pname_len;
+		osip_uri_param_t *u_param;
+
+		pname_len = strlen("method");
+		while (!osip_list_eol(&request->req_uri->url_params, pos)) {
+			size_t len;
+
+			u_param = (osip_uri_param_t *) osip_list_get(&request->req_uri->url_params, pos);
+			len = strlen(u_param->gname);
+			if (pname_len == len
+				&& osip_strncasecmp(u_param->gname, "method", pname_len) == 0
+				&& u_param->gvalue!=NULL) {
+					osip_list_remove(&request->req_uri->url_params, pos);
+					osip_uri_param_free(u_param);
+					break;
+			}
+			pos++;
 		}
 	}
 
