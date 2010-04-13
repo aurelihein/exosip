@@ -852,7 +852,7 @@ eXosip_tls_ctx_error eXosip_tls_use_server_certificate(const char
 	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
 	if (local_certificate_cn == NULL)
 		return TLS_OK;
-	memcpy(tls_local_cn_name, local_certificate_cn, sizeof(tls_local_cn_name) - 1);
+	osip_strncpy(tls_local_cn_name, local_certificate_cn, sizeof(tls_local_cn_name)-1);
 	return TLS_OK;
 }
 
