@@ -347,7 +347,8 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 				char *end_sip;
 				char *cl_header;
 				int cl_size;
-				osip_strncpy(buf + i, "\0", 1);
+
+				buf[i] = '\0';
 				if (tcp_socket_tab[pos].previous_content != NULL) {
 					/* concat old data with new data */
 					tcp_socket_tab[pos].previous_content =
@@ -412,6 +413,10 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 																		tcp_socket_tab
 																		[pos].
 																		previous_content);
+						//FIX HERE -> should search for start of a SIP message?
+						OSIP_TRACE(osip_trace
+							(__FILE__, __LINE__, OSIP_WARNING, NULL,
+							"possible fragmentation issue\n"));
 
 						tcp_socket_tab[pos].previous_content = (char *)
 							osip_realloc(tcp_socket_tab[pos].previous_content,
@@ -512,7 +517,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 				}
 #else
 			if (i > 5) {
-				osip_strncpy(buf + i, "\0", 1);
+				buf[i] = '\0';
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"Received TCP message: \n%s\n", buf));

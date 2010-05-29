@@ -455,7 +455,7 @@ static int dtls_tl_read_message(fd_set * osip_fdset)
 			struct socket_tab *socket_tab_used = NULL;
 			int pos;
 
-			osip_strncpy(enc_buf + enc_buf_len, "\0", 1);
+			enc_buf[enc_buf_len] = '\0';
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "Received message: \n%s\n", enc_buf));
 
@@ -608,7 +608,7 @@ static int dtls_tl_read_message(fd_set * osip_fdset)
 			dtls_socket_tab[pos].ssl_conn->rbio = BIO_new(BIO_s_mem());
 
 			if (i > 5) {
-				osip_strncpy(dec_buf + i, "\0", 1);
+				dec_buf[i] = '\0';
 
 				_eXosip_handle_incoming_message(dec_buf, i, dtls_socket, src6host,
 												recvport);

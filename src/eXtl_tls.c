@@ -1885,7 +1885,8 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 			while (SSL_pending(tls_socket_tab[pos].ssl_conn));
 
 			if (rlen > 5) {
-				osip_strncpy(buf + rlen, "\0", 1);
+
+				buf[rlen] = '\0';
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 							"Received TLS message: \n%s\n", buf));
