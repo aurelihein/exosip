@@ -479,7 +479,7 @@ int eXosip_guess_ip_for_via(int family, char *address, int size)
 
 	int local_addr_len;
 
-	struct addrinfo *addrf;
+	struct addrinfo *addrf=NULL;
 
 	address[0] = '\0';
 	sock = socket(family, SOCK_DGRAM, 0);
