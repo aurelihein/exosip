@@ -992,11 +992,12 @@ int eXosip_call_terminate(int cid, int did)
 			return i;
 		}
 		if (jd != NULL) {
-			osip_dialog_free(jd->d_dialog);
-			jd->d_dialog = NULL;
-			eXosip_update();	/* AMD 30/09/05 */
+			//Fix: keep dialog opened after the CANCEL.
+			//osip_dialog_free(jd->d_dialog);
+			//jd->d_dialog = NULL;
+			//eXosip_update();
 		}
-		return OSIP_SUCCESS;
+		return OSIP_SUCCESS+1;
 	}
 
 	if (jd == NULL || jd->d_dialog == NULL) {
