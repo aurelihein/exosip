@@ -446,6 +446,12 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 						tcp_socket_tab[pos].previous_content +
 						tcp_socket_tab[pos].previous_content_len) {
 						/* we have beg_sip & end_sip */
+						OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+											  "Message received: (from dest=%s:%i) \n%s\n",
+											  tcp_socket_tab[pos].remote_ip,
+											  tcp_socket_tab[pos].remote_port,
+											  tcp_socket_tab[pos].previous_content));
+						
 						_eXosip_handle_incoming_message(tcp_socket_tab
 														[pos].previous_content,
 														end_sip + 4 + cl_size -
