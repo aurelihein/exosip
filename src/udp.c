@@ -2030,9 +2030,12 @@ void eXosip_release_terminated_calls(void)
 	while (!osip_list_eol(&eXosip.j_transactions, pos)) {
 		osip_transaction_t *tr =
 			(osip_transaction_t *) osip_list_get(&eXosip.j_transactions, pos);
-		if (tr->state == IST_TERMINATED || tr->state == ICT_TERMINATED || tr->state == NICT_TERMINATED || tr->state == NIST_TERMINATED) {	/* free (transaction is already removed from the oSIP stack) */
-			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
-								  "Release a terminated transaction\n"));
+		if (tr->state == NICT_TERMINATED
+			&& tr->last_response!=NULL
+			&& tr->completed_time + 5 > now) {
+			/* keep transaction until authentication or ... */
+			pos++;
+		} else if (tr->state == IST_TERMINATED || tr->state == ICT_TERMINATED || tr->state == NICT_TERMINATED || tr->state == NIST_TERMINATED) {	/* free (transaction is already removed from the oSIP stack) */
 			osip_list_remove(&eXosip.j_transactions, pos);
 			__eXosip_delete_jinfo(tr);
 			osip_transaction_free(tr);
