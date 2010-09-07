@@ -445,8 +445,8 @@ _eXosip_subscribe_send_request_with_credential(eXosip_subscribe_t * js,
 	osip_list_special_free(&msg->proxy_authorizations,
 						   (void (*)(void *)) &osip_proxy_authorization_free);
 
-	if (last_response->status_code == 401
-		|| last_response->status_code == 407) {
+	if (out_tr->last_response->status_code == 401
+		|| out_tr->last_response->status_code == 407) {
 		eXosip_add_authentication_information(msg, out_tr->last_response);
 	} else
 		eXosip_add_authentication_information(msg, NULL);
