@@ -390,8 +390,11 @@ int eXosip_call_send_ack(int did, osip_message_t * ack)
 	int i;
 
 	osip_route_t *route;
-	char *host;
+	char *host=NULL;
 	int port;
+#ifdef SRV_RECORD
+	osip_srv_record_t record;
+#endif
 
 	if (did <= 0)
 		return OSIP_BADPARAMETER;
@@ -415,34 +418,51 @@ int eXosip_call_send_ack(int did, osip_message_t * ack)
 		}
 	}
 
-	osip_message_get_route(ack, 0, &route);
-	if (route != NULL) {
-		osip_uri_param_t *lr_param = NULL;
-
-		osip_uri_uparam_get_byname(route->url, "lr", &lr_param);
-		if (lr_param == NULL)
-			route = NULL;
+#ifdef SRV_RECORD
+	memset(&record, 0, sizeof(osip_srv_record_t));
+	i = _eXosip_srv_lookup(NULL, ack, &record);
+	if (i >= 0) {
+		if (record.name[0] != '\0'
+			&& record.srventry[0].srv[0] != '\0') {
+			/* TODO: failover for the ACK...
+			 */
+			osip_srv_entry_t *srv = &record.srventry[0];
+			host = srv->srv;
+			port = srv->port;
+		}
 	}
+#endif
+	if (host==NULL)
+	{
+		osip_message_get_route(ack, 0, &route);
+		if (route != NULL) {
+			osip_uri_param_t *lr_param = NULL;
 
-	if (route != NULL) {
-		port = 5060;
-		if (route->url->port != NULL)
-			port = osip_atoi(route->url->port);
-		host = route->url->host;
-	} else {
-		/* search for maddr parameter */
-		osip_uri_param_t *maddr_param = NULL;
-		osip_uri_uparam_get_byname(ack->req_uri, "maddr", &maddr_param);
-		host = NULL;
-		if (maddr_param != NULL && maddr_param->gvalue != NULL)
-			host = maddr_param->gvalue;
+			osip_uri_uparam_get_byname(route->url, "lr", &lr_param);
+			if (lr_param == NULL)
+				route = NULL;
+		}
 
-		port = 5060;
-		if (ack->req_uri->port != NULL)
-			port = osip_atoi(ack->req_uri->port);
+		if (route != NULL) {
+			port = 5060;
+			if (route->url->port != NULL)
+				port = osip_atoi(route->url->port);
+			host = route->url->host;
+		} else {
+			/* search for maddr parameter */
+			osip_uri_param_t *maddr_param = NULL;
+			osip_uri_uparam_get_byname(ack->req_uri, "maddr", &maddr_param);
+			host = NULL;
+			if (maddr_param != NULL && maddr_param->gvalue != NULL)
+				host = maddr_param->gvalue;
 
-		if (host == NULL)
-			host = ack->req_uri->host;
+			port = 5060;
+			if (ack->req_uri->port != NULL)
+				port = osip_atoi(ack->req_uri->port);
+
+			if (host == NULL)
+				host = ack->req_uri->host;
+		}
 	}
 
 	i = cb_snd_message(NULL, ack, host, port, -1);
