@@ -45,7 +45,6 @@
 #include <arpa/nameser_compat.h>
 #endif
 #include <resolv.h>
-#include <nameser.h>
 #endif
 
 #ifdef HAVE_NETDB_H
