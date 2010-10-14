@@ -41,7 +41,11 @@
 #include <nameser8_compat.h>
 #include <resolv8_compat.h>
 #elif defined(HAVE_RESOLV_H) || defined(OpenBSD) || defined(FreeBSD) || defined(NetBSD)
+#ifdef HAVE_NAMESER_COMPAT_H
+#include <arpa/nameser_compat.h>
+#endif
 #include <resolv.h>
+#include <nameser.h>
 #endif
 
 #ifdef HAVE_NETDB_H
@@ -1287,7 +1291,7 @@ eXosip_get_srv_record(struct osip_srv_record *record, char *domain, char *protoc
 	return OSIP_SUCCESS;
 }
 
-#elif defined(__linux)
+#elif defined(__linux) || defined(__APPLE_CC__)
 
 /* the biggest packet we'll send and receive */
 #if PACKETSZ > 1024
