@@ -524,7 +524,6 @@ extern "C" {
 						  osip_message_t * request_cancelled);
 	int generating_bye(osip_message_t ** bye, osip_dialog_t * dialog,
 					   char *transport);
-	int generating_ack_for_2xx(osip_message_t ** ack, osip_dialog_t * dialog);
 
 	int eXosip_update_top_via(osip_message_t * sip);
 	int _eXosip_request_add_via(osip_message_t * request, const char *transport,
