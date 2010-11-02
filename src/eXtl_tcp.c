@@ -262,6 +262,15 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 			if (tcp_socket_tab[pos].socket == 0)
 				break;
 		}
+		if (pos == EXOSIP_MAX_SOCKETS) {
+			/* delete an old one! */
+			pos = 0;
+			if (tcp_socket_tab[pos].socket > 0) {
+				close(tcp_socket_tab[pos].socket);
+			}
+			memset(&tcp_socket_tab[pos], 0, sizeof(tcp_socket_tab[pos]));
+		}
+
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
 							  "creating TCP socket at index: %i\n", pos));
 		sock = accept(tcp_socket, (struct sockaddr *) &sa, &slen);
