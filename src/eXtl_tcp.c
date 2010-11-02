@@ -657,8 +657,21 @@ static int _tcp_tl_connect_socket(char *host, int port)
 		}
 	}
 
-	if (pos == EXOSIP_MAX_SOCKETS)
-		return -1;
+	if (pos == EXOSIP_MAX_SOCKETS) {
+	  OSIP_TRACE(osip_trace
+		     (__FILE__, __LINE__, OSIP_ERROR, NULL,
+		      "tcp_socket_tab is full - cannot create new socket!\n"));
+#ifdef DELETE_OLD_SOCKETS
+	  /* delete an old one! */
+	  pos = 0;
+	  if (tcp_socket_tab[pos].socket > 0) {
+	    close(tcp_socket_tab[pos].socket);
+	  }
+	  memset(&tcp_socket_tab[pos], 0, sizeof(tcp_socket_tab[pos]));
+#else
+	  return -1;
+#endif
+	}
 
 	res = eXosip_get_addrinfo(&addrinfo, host, port, IPPROTO_TCP);
 	if (res)
