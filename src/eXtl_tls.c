@@ -1623,7 +1623,7 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 			if (tls_socket_tab[pos].socket <= 0)
 				break;
 		}
-		if (pos < 0) {
+		if (pos == EXOSIP_MAX_SOCKETS) {
 			/* delete an old one! */
 			pos = 0;
 			if (tls_socket_tab[pos].socket > 0) {
@@ -1686,13 +1686,6 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 				SSL_shutdown(ssl);
 				close(sock);
 				SSL_free(ssl);
-				if (tls_socket_tab[pos].ssl_ctx != NULL)
-					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
-				tls_socket_tab[pos].ssl_conn = NULL;
-				tls_socket_tab[pos].ssl_ctx = NULL;
-				tls_socket_tab[pos].socket = 0;
-
 				return -1;
 			}
 
