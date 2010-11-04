@@ -422,7 +422,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 																		tcp_socket_tab
 																		[pos].
 																		previous_content);
-						//FIX HERE -> should search for start of a SIP message?
+						/* FIX HERE -> should search for start of a SIP message? */
 						OSIP_TRACE(osip_trace
 							(__FILE__, __LINE__, OSIP_WARNING, NULL,
 							"possible fragmentation issue\n"));
