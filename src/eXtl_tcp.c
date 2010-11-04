@@ -1006,7 +1006,7 @@ static int tcp_tl_keepalive(void)
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"tcp_tl_keepalive socket node:%s:%i, socket %d [pos=%d], in progress\n",
 							tcp_socket_tab[pos].remote_ip,
-							tcp_socket_tab[pos].port,
+							tcp_socket_tab[pos].remote_port,
 							tcp_socket_tab[pos].socket, pos));
 				continue;
 			} else if (i == 0) {
@@ -1014,14 +1014,14 @@ static int tcp_tl_keepalive(void)
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"tcp_tl_keepalive socket node:%s:%i , socket %d [pos=%d], connected\n",
 							tcp_socket_tab[pos].remote_ip,
-							tcp_socket_tab[pos].port,
+							tcp_socket_tab[pos].remote_port,
 							tcp_socket_tab[pos].socket, pos));
 			} else {
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 							"tcp_tl_keepalive socket node:%s:%i, socket %d [pos=%d], socket error\n",
 							tcp_socket_tab[pos].remote_ip,
-							tcp_socket_tab[pos].port,
+							tcp_socket_tab[pos].remote_port,
 							tcp_socket_tab[pos].socket, pos));
 				close(tcp_socket_tab[pos].socket);
 				tcp_socket_tab[pos].socket = -1;
