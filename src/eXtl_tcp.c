@@ -676,7 +676,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 			}
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-						"New binding with %s\n", src6host));
+						"New binding with %s:%i\n", src6host, port));
 		}
 
 		sock = (int) socket(curinfo->ai_family, curinfo->ai_socktype,
@@ -982,21 +982,24 @@ static int tcp_tl_keepalive(void)
 			if (i > 0) {
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-							"tcp_tl_keepalive socket node:%s, socket %d [pos=%d], in progress\n",
+							"tcp_tl_keepalive socket node:%s:%i, socket %d [pos=%d], in progress\n",
 							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].port,
 							tcp_socket_tab[pos].socket, pos));
 				continue;
 			} else if (i == 0) {
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-							"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], connected\n",
+							"tcp_tl_keepalive socket node:%s:%i , socket %d [pos=%d], connected\n",
 							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].port,
 							tcp_socket_tab[pos].socket, pos));
 			} else {
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-							"tcp_tl_keepalive socket node:%s, socket %d [pos=%d], socket error\n",
+							"tcp_tl_keepalive socket node:%s:%i, socket %d [pos=%d], socket error\n",
 							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].port,
 							tcp_socket_tab[pos].socket, pos));
 				close(tcp_socket_tab[pos].socket);
 				tcp_socket_tab[pos].socket = -1;
