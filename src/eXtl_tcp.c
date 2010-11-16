@@ -47,6 +47,20 @@
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
 
+#ifdef __APPLE_CC__
+#include "TargetConditionals.h"
+#endif
+
+#if TARGET_OS_IPHONE
+#include <CoreFoundation/CFStream.h>
+#include <CFNetwork/CFSocketStream.h>
+#define MULTITASKING_ENABLED
+#endif
+
+#ifdef MULTITASKING_ENABLED
+CFReadStreamRef tcp_readStream;
+CFWriteStreamRef tcp_writeStream;
+#endif
 static int tcp_socket;
 static struct sockaddr_storage ai_addr;
 
@@ -60,6 +74,10 @@ struct _tcp_sockets {
 	int remote_port;
 	char *previous_content;
 	int previous_content_len;
+#ifdef MULTITASKING_ENABLED
+	CFReadStreamRef readStream;
+	CFWriteStreamRef writeStream;
+#endif
 };
 
 #define SOCKET_TIMEOUT 0
@@ -92,6 +110,18 @@ static int tcp_tl_free(void)
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (tcp_socket_tab[pos].socket > 0) {
 			close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+			if (tcp_socket_tab[pos].readStream!=NULL)
+			{
+				CFReadStreamClose(tcp_socket_tab[pos].readStream);
+				CFRelease(tcp_socket_tab[pos].readStream);						
+			}
+			if (tcp_socket_tab[pos].writeStream!=NULL)
+			{
+				CFWriteStreamClose(tcp_socket_tab[pos].writeStream);			
+				CFRelease(tcp_socket_tab[pos].writeStream);
+			}
+#endif
 		}
 	}
 	memset(&tcp_socket_tab, 0, sizeof(struct _tcp_sockets) * EXOSIP_MAX_SOCKETS);
@@ -146,6 +176,18 @@ static int tcp_tl_open(void)
 			}
 #endif							/* IPV6_V6ONLY */
 		}
+
+#if 0
+		tcp_readStream = NULL;
+		tcp_writeStream = NULL;
+		CFStreamCreatePairWithSocket(kCFAllocatorDefault, sock,
+									 &tcp_readStream, &tcp_writeStream);
+		if (tcp_readStream!=NULL)
+			CFReadStreamSetProperty(tcp_readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		if (tcp_writeStream!=NULL)
+			CFWriteStreamSetProperty(tcp_writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		
+#endif
 
 		res = bind(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
@@ -267,10 +309,22 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 			pos = 0;
 			if (tcp_socket_tab[pos].socket > 0) {
 				close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+				if (tcp_socket_tab[pos].readStream!=NULL)
+				{
+					CFReadStreamClose(tcp_socket_tab[pos].readStream);
+					CFRelease(tcp_socket_tab[pos].readStream);						
+				}
+				if (tcp_socket_tab[pos].writeStream!=NULL)
+				{
+					CFWriteStreamClose(tcp_socket_tab[pos].writeStream);			
+					CFRelease(tcp_socket_tab[pos].writeStream);
+				}
+#endif
 			}
 			memset(&tcp_socket_tab[pos], 0, sizeof(tcp_socket_tab[pos]));
 		}
-
+		
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
 							  "creating TCP socket at index: %i\n", pos));
 		sock = accept(tcp_socket, (struct sockaddr *) &sa, &slen);
@@ -422,7 +476,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 																		tcp_socket_tab
 																		[pos].
 																		previous_content);
-						/* FIX HERE -> should search for start of a SIP message? */
+						//FIX HERE -> should search for start of a SIP message?
 						OSIP_TRACE(osip_trace
 							(__FILE__, __LINE__, OSIP_WARNING, NULL,
 							"possible fragmentation issue\n"));
@@ -451,16 +505,15 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 					cl_size = osip_atoi(cl_header);
 
 					if (cl_size == 0
-						|| (cl_size >0 && (end_sip + 4 + cl_size <=
-										   tcp_socket_tab[pos].previous_content +
-										   tcp_socket_tab[pos].previous_content_len))) {
+						|| end_sip + 4 + cl_size <=
+						tcp_socket_tab[pos].previous_content +
+						tcp_socket_tab[pos].previous_content_len) {
 						/* we have beg_sip & end_sip */
 						OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 											  "Message received: (from dest=%s:%i) \n%s\n",
 											  tcp_socket_tab[pos].remote_ip,
-											  tcp_socket_tab[pos].remote_port,
-											  tcp_socket_tab[pos].previous_content));
-						
+											  tcp_socket_tab[pos].remote_port
+											  , tcp_socket_tab[pos].previous_content));
 						_eXosip_handle_incoming_message(tcp_socket_tab
 														[pos].previous_content,
 														end_sip + 4 + cl_size -
@@ -549,6 +602,18 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 								"Could not read socket (%s)- close it\n",
 								strerror(status)));
 					close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+					if (tcp_socket_tab[pos].readStream!=NULL)
+					{
+						CFReadStreamClose(tcp_socket_tab[pos].readStream);
+						CFRelease(tcp_socket_tab[pos].readStream);						
+					}
+					if (tcp_socket_tab[pos].writeStream!=NULL)
+					{
+						CFWriteStreamClose(tcp_socket_tab[pos].writeStream);			
+						CFRelease(tcp_socket_tab[pos].writeStream);
+					}
+#endif
 					memset(&(tcp_socket_tab[pos]), 0, sizeof(tcp_socket_tab[pos]));
 				}
 			} else if (i == 0) {
@@ -558,6 +623,18 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 							tcp_socket_tab[pos].remote_ip,
 							tcp_socket_tab[pos].remote_port));
 				close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+				if (tcp_socket_tab[pos].readStream!=NULL)
+				{
+					CFReadStreamClose(tcp_socket_tab[pos].readStream);
+					CFRelease(tcp_socket_tab[pos].readStream);						
+				}
+				if (tcp_socket_tab[pos].writeStream!=NULL)
+				{
+					CFWriteStreamClose(tcp_socket_tab[pos].writeStream);			
+					CFRelease(tcp_socket_tab[pos].writeStream);
+				}
+#endif
 				memset(&(tcp_socket_tab[pos]), 0, sizeof(tcp_socket_tab[pos]));
 			}
 #ifndef MINISIZE
@@ -585,7 +662,7 @@ static int _tcp_tl_find_socket(char *host, int port)
 		if (tcp_socket_tab[pos].socket != 0) {
 			if (0 == osip_strcasecmp(tcp_socket_tab[pos].remote_ip, host)
 				&& port == tcp_socket_tab[pos].remote_port)
-				return tcp_socket_tab[pos].socket;
+				return pos;
 		}
 	}
 	return -1;
@@ -666,6 +743,20 @@ static int _tcp_tl_connect_socket(char *host, int port)
 	  pos = 0;
 	  if (tcp_socket_tab[pos].socket > 0) {
 	    close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+	    if (tcp_socket_tab[pos].readStream!=NULL)
+	      {
+		CFReadStreamClose(tcp_socket_tab[pos].readStream);
+		CFRelease(tcp_socket_tab[pos].readStream);
+	      }
+	    if (tcp_socket_tab[pos].writeStream!=NULL)
+	      {
+		CFWriteStreamClose(tcp_socket_tab[pos].writeStream);
+		CFRelease(tcp_socket_tab[pos].writeStream);
+	      }
+	    tcp_socket_tab[pos].readStream=0;
+	    tcp_socket_tab[pos].writeStream=0;
+#endif
 	  }
 	  memset(&tcp_socket_tab[pos], 0, sizeof(tcp_socket_tab[pos]));
 #else
@@ -722,6 +813,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 			}
 #endif							/* IPV6_V6ONLY */
 		}
+		
 		/* set NON-BLOCKING MODE */
 #if defined(_WIN32_WCE) || defined(WIN32)
 		{
@@ -794,6 +886,8 @@ static int _tcp_tl_connect_socket(char *host, int port)
 			val = 10;			/* 10 seconds between each probe */
 			setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof(val));
 #endif
+			val = 1;
+			setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&val, sizeof(int));
 		}
 #endif
 
@@ -817,6 +911,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 				sock = -1;
 				continue;
 			} else {
+				//osip_usleep(1000000);
 				res = _tcp_tl_is_connected(sock);
 				if (res > 0) {
 					OSIP_TRACE(osip_trace
@@ -825,8 +920,26 @@ static int _tcp_tl_connect_socket(char *host, int port)
 								host, sock, pos, curinfo->ai_family));
 					break;
 				} else if (res == 0) {
+#ifdef MULTITASKING_ENABLED
+					tcp_socket_tab[pos].readStream = NULL;
+					tcp_socket_tab[pos].writeStream = NULL;
+					CFStreamCreatePairWithSocket(kCFAllocatorDefault, sock,
+												 &tcp_socket_tab[pos].readStream, &tcp_socket_tab[pos].writeStream);
+					if (tcp_socket_tab[pos].readStream!=NULL)
+						CFReadStreamSetProperty(tcp_socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+					if (tcp_socket_tab[pos].writeStream!=NULL)
+						CFWriteStreamSetProperty(tcp_socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+					if (CFReadStreamOpen (tcp_socket_tab[pos].readStream))
+					{ 
+						OSIP_TRACE(osip_trace
+								   (__FILE__, __LINE__, OSIP_INFO1, NULL,
+									"CFReadStreamOpen Succeeded!\n"));
+					}
+					
+					CFWriteStreamOpen (tcp_socket_tab[pos].writeStream) ;
+#endif		
 					OSIP_TRACE(osip_trace
-							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+							   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 								"socket node:%s , socket %d [pos=%d], family:%d, connected\n",
 								host, sock, pos, curinfo->ai_family));
 					break;
@@ -837,7 +950,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 				}
 			}
 		}
-
+	
 		break;
 	}
 
@@ -854,7 +967,9 @@ static int _tcp_tl_connect_socket(char *host, int port)
 						 sizeof(tcp_socket_tab[pos].remote_ip) - 1);
 
 		tcp_socket_tab[pos].remote_port = port;
-		return sock;
+
+
+		return pos;
 	}
 
 	return -1;
@@ -867,6 +982,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	size_t length = 0;
 	char *message;
 	int i;
+	int pos=-1;
 
 	if (host == NULL) {
 		host = sip->req_uri->host;
@@ -897,19 +1013,35 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		return -1;
 	}
 
+	if (out_socket > 0) {
+		for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
+			if (tcp_socket_tab[pos].socket != 0) {
+				if (tcp_socket_tab[pos].socket == out_socket) {
+					out_socket = tcp_socket_tab[pos].socket;
+					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+										  "reusing REQUEST connection (to dest=%s:%i)\n",
+										  tcp_socket_tab[pos].remote_ip,
+										  tcp_socket_tab[pos].remote_port));
+					break;
+				}
+			}
+		}
+		if (pos == EXOSIP_MAX_SOCKETS)
+			out_socket = 0;
+	}
+	
 	/* Step 1: find existing socket to send message */
 	if (out_socket <= 0) {
-		out_socket = _tcp_tl_find_socket(host, port);
-
+		pos = _tcp_tl_find_socket(host, port);
+		
 		/* Step 2: create new socket with host:port */
-		if (out_socket <= 0) {
-			out_socket = _tcp_tl_connect_socket(host, port);
+		if (pos < 0) {
+			pos = _tcp_tl_connect_socket(host, port);
 		}
-	} else {
-		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
-							  "reusing REQUEST connection (to dest=%s:%i)\n",
-							  host, port));
+		if (pos>=0)
+			out_socket = tcp_socket_tab[pos].socket;
 	}
+	
 
 	if (out_socket <= 0) {
 		osip_free(message);
@@ -923,7 +1055,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 					"socket node:%s, socket %d [pos=%d], in progress\n",
-					host, out_socket, -1));
+					host, out_socket, pos));
 		osip_free(message);
 		if (tr != NULL && now - tr->birth_time > 10)
 			return -1;
@@ -932,16 +1064,46 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 					"socket node:%s , socket %d [pos=%d], connected\n",
-					host, out_socket, -1));
+					host, out_socket, pos));
 	} else {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					"socket node:%s, socket %d [pos=%d], socket error\n",
-					host, out_socket, -1));
+					host, out_socket, pos));
 		osip_free(message);
 		return -1;
 	}
 
+	
+#ifdef MULTITASKING_ENABLED
+	
+	if (pos>=0 && tcp_socket_tab[pos].readStream==NULL)
+	{
+		tcp_socket_tab[pos].readStream = NULL;
+		tcp_socket_tab[pos].writeStream = NULL;
+		CFStreamCreatePairWithSocket(kCFAllocatorDefault, out_socket,
+									 &tcp_socket_tab[pos].readStream, &tcp_socket_tab[pos].writeStream);
+		if (tcp_socket_tab[pos].readStream!=NULL)
+			CFReadStreamSetProperty(tcp_socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		if (tcp_socket_tab[pos].writeStream!=NULL)
+			CFWriteStreamSetProperty(tcp_socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		if (CFReadStreamOpen (tcp_socket_tab[pos].readStream))
+		{ 
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_INFO1, NULL,
+						"CFReadStreamOpen Succeeded!\n"));
+		}
+		
+		CFWriteStreamOpen (tcp_socket_tab[pos].writeStream) ;
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
+					"socket node:%s:%i , socket %d [pos=%d], family:?, connected\n",
+					tcp_socket_tab[pos].remote_ip,
+					tcp_socket_tab[pos].remote_port,
+					tcp_socket_tab[pos].socket, pos));
+	}
+#endif
+	
 	OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 						  "Message sent: (to dest=%s:%i) \n%s\n",
 						  host, port, message));
@@ -1024,6 +1186,20 @@ static int tcp_tl_keepalive(void)
 							tcp_socket_tab[pos].remote_port,
 							tcp_socket_tab[pos].socket, pos));
 				close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+				if (tcp_socket_tab[pos].readStream!=NULL)
+				{
+					CFReadStreamClose(tcp_socket_tab[pos].readStream);
+					CFRelease(tcp_socket_tab[pos].readStream);						
+				}
+				if (tcp_socket_tab[pos].writeStream!=NULL)
+				{
+					CFWriteStreamClose(tcp_socket_tab[pos].writeStream);			
+					CFRelease(tcp_socket_tab[pos].writeStream);
+				}
+				tcp_socket_tab[pos].readStream=0;
+				tcp_socket_tab[pos].writeStream=0;
+#endif
 				tcp_socket_tab[pos].socket = -1;
 				continue;
 			}

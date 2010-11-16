@@ -59,6 +59,21 @@
 #define strerror(X) "-1"
 #endif
 
+#ifdef __APPLE_CC__
+#include "TargetConditionals.h"
+#endif
+
+#if TARGET_OS_IPHONE
+#include <CoreFoundation/CFStream.h>
+#include <CFNetwork/CFSocketStream.h>
+#define MULTITASKING_ENABLED
+#endif
+
+#ifdef MULTITASKING_ENABLED
+CFReadStreamRef tcp_readStream;
+CFWriteStreamRef tcp_writeStream;
+#endif
+
 SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 							   const char *password, int transport);
 
@@ -87,7 +102,10 @@ struct socket_tab {
 	SSL *ssl_conn;
 	SSL_CTX *ssl_ctx;
 	int ssl_state;
-
+#ifdef MULTITASKING_ENABLED
+	CFReadStreamRef readStream;
+	CFWriteStreamRef writeStream;
+#endif
 };
 
 #define SOCKET_TIMEOUT 0
@@ -134,6 +152,18 @@ static int tls_tl_free(void)
 			if (tls_socket_tab[pos].ssl_ctx != NULL)
 				SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
 			close(tls_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+			if (tls_socket_tab[pos].readStream!=NULL)
+			{
+				CFReadStreamClose(tls_socket_tab[pos].readStream);
+				CFRelease(tls_socket_tab[pos].readStream);						
+			}
+			if (tls_socket_tab[pos].writeStream!=NULL)
+			{
+				CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+				CFRelease(tls_socket_tab[pos].writeStream);
+			}
+#endif
 		}
 	}
 
@@ -1634,6 +1664,18 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
 				}
 				close(tls_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+				if (tls_socket_tab[pos].readStream!=NULL)
+				{
+					CFReadStreamClose(tls_socket_tab[pos].readStream);
+					CFRelease(tls_socket_tab[pos].readStream);						
+				}
+				if (tls_socket_tab[pos].writeStream!=NULL)
+				{
+					CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+					CFRelease(tls_socket_tab[pos].writeStream);
+				}
+#endif
 			}
 			memset(&tls_socket_tab[pos], 0, sizeof(struct socket_tab));
 		}
@@ -1790,7 +1832,18 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 						SSL_free(tls_socket_tab[pos].ssl_conn);
 					if (tls_socket_tab[pos].ssl_ctx != NULL)
 						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
+#ifdef MULTITASKING_ENABLED
+					if (tls_socket_tab[pos].readStream!=NULL)
+					{
+						CFReadStreamClose(tls_socket_tab[pos].readStream);
+						CFRelease(tls_socket_tab[pos].readStream);						
+					}
+					if (tls_socket_tab[pos].writeStream!=NULL)
+					{
+						CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+						CFRelease(tls_socket_tab[pos].writeStream);
+					}
+#endif
 					memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 					continue;
 				}
@@ -1806,7 +1859,18 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 						SSL_free(tls_socket_tab[pos].ssl_conn);
 					if (tls_socket_tab[pos].ssl_ctx != NULL)
 						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
+#ifdef MULTITASKING_ENABLED
+					if (tls_socket_tab[pos].readStream!=NULL)
+					{
+						CFReadStreamClose(tls_socket_tab[pos].readStream);
+						CFRelease(tls_socket_tab[pos].readStream);						
+					}
+					if (tls_socket_tab[pos].writeStream!=NULL)
+					{
+						CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+						CFRelease(tls_socket_tab[pos].writeStream);
+					}
+#endif
 					memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 					continue;
 				}
@@ -1823,7 +1887,18 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 					SSL_free(tls_socket_tab[pos].ssl_conn);
 					if (tls_socket_tab[pos].ssl_ctx != NULL)
 						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
+#ifdef MULTITASKING_ENABLED
+					if (tls_socket_tab[pos].readStream!=NULL)
+					{
+						CFReadStreamClose(tls_socket_tab[pos].readStream);
+						CFRelease(tls_socket_tab[pos].readStream);						
+					}
+					if (tls_socket_tab[pos].writeStream!=NULL)
+					{
+						CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+						CFRelease(tls_socket_tab[pos].writeStream);
+					}
+#endif
 					memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 					continue;
 				}
@@ -1864,7 +1939,18 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 						SSL_free(tls_socket_tab[pos].ssl_conn);
 						if (tls_socket_tab[pos].ssl_ctx != NULL)
 							SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
+#ifdef MULTITASKING_ENABLED
+						if (tls_socket_tab[pos].readStream!=NULL)
+						{
+							CFReadStreamClose(tls_socket_tab[pos].readStream);
+							CFRelease(tls_socket_tab[pos].readStream);						
+						}
+						if (tls_socket_tab[pos].writeStream!=NULL)
+						{
+							CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+							CFRelease(tls_socket_tab[pos].writeStream);
+						}
+#endif
 						memset(&(tls_socket_tab[pos]), 0,
 							   sizeof(tls_socket_tab[pos]));
 
@@ -2067,6 +2153,8 @@ static int _tls_tl_connect_socket(char *host, int port)
 			val = 10;			/* 10 seconds between each probe */
 			setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof(val));
 #endif
+			val = 1;
+			setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&val, sizeof(int));
 		}
 #endif
 
@@ -2091,6 +2179,7 @@ static int _tls_tl_connect_socket(char *host, int port)
 				sock = -1;
 				continue;
 			} else {
+				//osip_usleep(1000000);
 				res = _tls_tl_is_connected(sock);
 				if (res > 0) {
 					OSIP_TRACE(osip_trace
@@ -2099,6 +2188,24 @@ static int _tls_tl_connect_socket(char *host, int port)
 								host, sock, pos, curinfo->ai_family));
 					break;
 				} else if (res == 0) {
+#ifdef MULTITASKING_ENABLED
+					tls_socket_tab[pos].readStream = NULL;
+					tls_socket_tab[pos].writeStream = NULL;
+					CFStreamCreatePairWithSocket(kCFAllocatorDefault, sock,
+												 &tls_socket_tab[pos].readStream, &tls_socket_tab[pos].writeStream);
+					if (tls_socket_tab[pos].readStream!=NULL)
+						CFReadStreamSetProperty(tls_socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+					if (tls_socket_tab[pos].writeStream!=NULL)
+						CFWriteStreamSetProperty(tls_socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+					if (CFReadStreamOpen (tls_socket_tab[pos].readStream))
+					{ 
+						OSIP_TRACE(osip_trace
+								   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+									"CFReadStreamOpen Succeeded!\n"));
+					}
+					
+					CFWriteStreamOpen (tls_socket_tab[pos].writeStream) ;
+#endif
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 								"socket node:%s , socket %d [pos=%d], family:%d, connected\n",
@@ -2141,7 +2248,19 @@ static int _tls_tl_connect_socket(char *host, int port)
 				SSL_free(tls_socket_tab[pos].ssl_conn);
 				if (tls_socket_tab[pos].ssl_ctx != NULL)
 					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
+#ifdef MULTITASKING_ENABLED
+				if (tls_socket_tab[pos].readStream!=NULL)
+				{
+					CFReadStreamClose(tls_socket_tab[pos].readStream);
+					CFRelease(tls_socket_tab[pos].readStream);						
+				}
+				if (tls_socket_tab[pos].writeStream!=NULL)
+				{
+					CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+					CFRelease(tls_socket_tab[pos].writeStream);
+				}
+#endif
+				
 				memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 				return -1;
 			}
@@ -2203,8 +2322,9 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					out_socket = tls_socket_tab[pos].socket;
 					ssl = tls_socket_tab[pos].ssl_conn;
 					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
-										  "Message sent: \n%s (reusing REQUEST connection)\n",
-										  message));
+										  "reusing REQUEST connection (to dest=%s:%i)\n",
+										  tls_socket_tab[pos].remote_ip,
+										  tls_socket_tab[pos].remote_port));
 					break;
 				}
 			}
@@ -2251,7 +2371,19 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					SSL_free(tls_socket_tab[pos].ssl_conn);
 				if (tls_socket_tab[pos].ssl_ctx != NULL)
 					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
+#ifdef MULTITASKING_ENABLED
+				if (tls_socket_tab[pos].readStream!=NULL)
+				{
+					CFReadStreamClose(tls_socket_tab[pos].readStream);
+					CFRelease(tls_socket_tab[pos].readStream);						
+				}
+				if (tls_socket_tab[pos].writeStream!=NULL)
+				{
+					CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+					CFRelease(tls_socket_tab[pos].writeStream);
+				}
+#endif
+				
 				memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 				return -1;
 			}
@@ -2280,7 +2412,19 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 			SSL_free(tls_socket_tab[pos].ssl_conn);
 			if (tls_socket_tab[pos].ssl_ctx != NULL)
 				SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-
+#ifdef MULTITASKING_ENABLED
+			if (tls_socket_tab[pos].readStream!=NULL)
+			{
+				CFReadStreamClose(tls_socket_tab[pos].readStream);
+				CFRelease(tls_socket_tab[pos].readStream);						
+			}
+			if (tls_socket_tab[pos].writeStream!=NULL)
+			{
+				CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+				CFRelease(tls_socket_tab[pos].writeStream);
+			}
+#endif
+			
 			memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 			osip_free(message);
 			return -1;
@@ -2300,6 +2444,28 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		return -1;
 	}
 
+#ifdef MULTITASKING_ENABLED
+	if (tls_socket_tab[pos].readStream==NULL)
+	{
+		tls_socket_tab[pos].readStream = NULL;
+		tls_socket_tab[pos].writeStream = NULL;
+		CFStreamCreatePairWithSocket(kCFAllocatorDefault, tls_socket_tab[pos].socket,
+									 &tls_socket_tab[pos].readStream, &tls_socket_tab[pos].writeStream);
+		if (tls_socket_tab[pos].readStream!=NULL)
+			CFReadStreamSetProperty(tls_socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		if (tls_socket_tab[pos].writeStream!=NULL)
+			CFWriteStreamSetProperty(tls_socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		if (CFReadStreamOpen (tls_socket_tab[pos].readStream))
+		{ 
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+						"CFReadStreamOpen Succeeded!\n"));
+		}
+		
+		CFWriteStreamOpen (tls_socket_tab[pos].writeStream) ;
+	}
+#endif
+	
 	OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 						  "Message sent: (to dest=%s:%i) \n%s\n",
 						  host, port, message));
