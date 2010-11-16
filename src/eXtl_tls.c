@@ -1919,8 +1919,6 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 					err = SSL_get_error(tls_socket_tab[pos].ssl_conn, i);
 					if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
 						break;
-					//} else if (err == SSL_ERROR_SYSCALL && errno != EAGAIN) {
-					//	break;
 					} else {
 						print_ssl_error(err);
 						/*
@@ -2153,8 +2151,10 @@ static int _tls_tl_connect_socket(char *host, int port)
 			val = 10;			/* 10 seconds between each probe */
 			setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof(val));
 #endif
+#if SO_NOSIGPIPE
 			val = 1;
 			setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&val, sizeof(int));
+#endif
 		}
 #endif
 
@@ -2179,7 +2179,6 @@ static int _tls_tl_connect_socket(char *host, int port)
 				sock = -1;
 				continue;
 			} else {
-				//osip_usleep(1000000);
 				res = _tls_tl_is_connected(sock);
 				if (res > 0) {
 					OSIP_TRACE(osip_trace
@@ -2585,18 +2584,18 @@ struct eXtl_protocol eXtl_tls = {
 eXosip_tls_ctx_error eXosip_tls_verify_certificate(int
 												   _tls_verify_client_certificate)
 {
-	return -1; //NOT IMPLEMENTED
+	return -1; /* NOT IMPLEMENTED */
 }
 
 eXosip_tls_ctx_error eXosip_tls_use_server_certificate(const char
 													   *local_certificate_cn)
 {
-	return -1; //NOT IMPLEMENTED
+	return -1; /* NOT IMPLEMENTED */
 }
 
 eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 {
-	return -1; //NOT IMPLEMENTED
+	return -1; /* NOT IMPLEMENTED */
 }
 
 #endif

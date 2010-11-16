@@ -476,7 +476,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 																		tcp_socket_tab
 																		[pos].
 																		previous_content);
-						//FIX HERE -> should search for start of a SIP message?
+						/* FIX HERE -> should search for start of a SIP message? */
 						OSIP_TRACE(osip_trace
 							(__FILE__, __LINE__, OSIP_WARNING, NULL,
 							"possible fragmentation issue\n"));
@@ -886,8 +886,10 @@ static int _tcp_tl_connect_socket(char *host, int port)
 			val = 10;			/* 10 seconds between each probe */
 			setsockopt(sock, SOL_TCP, TCP_KEEPINTVL, &val, sizeof(val));
 #endif
+#if SO_NOSIGPIPE
 			val = 1;
 			setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&val, sizeof(int));
+#endif
 		}
 #endif
 
@@ -911,7 +913,6 @@ static int _tcp_tl_connect_socket(char *host, int port)
 				sock = -1;
 				continue;
 			} else {
-				//osip_usleep(1000000);
 				res = _tcp_tl_is_connected(sock);
 				if (res > 0) {
 					OSIP_TRACE(osip_trace
