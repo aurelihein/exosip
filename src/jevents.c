@@ -66,10 +66,10 @@ eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t * jc,
 {
 	eXosip_event_t *je;
 
+	if (jc == NULL)
+		return NULL;
 	eXosip_event_init(&je, type);
 	if (je == NULL)
-		return NULL;
-	if (jc == NULL)
 		return NULL;
 
 	je->cid = jc->c_id;
@@ -92,10 +92,10 @@ eXosip_event_t *eXosip_event_init_for_subscribe(int type, eXosip_subscribe_t * j
 {
 	eXosip_event_t *je;
 
+	if (js == NULL)
+		return NULL;
 	eXosip_event_init(&je, type);
 	if (je == NULL)
-		return NULL;
-	if (js == NULL)
 		return NULL;
 
 	je->sid = js->s_id;
@@ -120,10 +120,10 @@ eXosip_event_t *eXosip_event_init_for_notify(int type, eXosip_notify_t * jn,
 {
 	eXosip_event_t *je;
 
+	if (jn == NULL)
+		return NULL;
 	eXosip_event_init(&je, type);
 	if (je == NULL)
-		return NULL;
-	if (jn == NULL)
 		return NULL;
 
 	je->nid = jn->n_id;
@@ -149,10 +149,10 @@ eXosip_event_t *eXosip_event_init_for_reg(int type, eXosip_reg_t * jr,
 {
 	eXosip_event_t *je;
 
+	if (jr == NULL)
+		return NULL;
 	eXosip_event_init(&je, type);
 	if (je == NULL)
-		return NULL;
-	if (jr == NULL)
 		return NULL;
 	je->rid = jr->r_id;
 
