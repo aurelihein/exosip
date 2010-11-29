@@ -738,7 +738,7 @@ char *strdup_printf(const char *fmt, ...)
 			size = n + 1;		/* precisely what is needed */
 		else					/* glibc 2.0 */
 			size *= 2;			/* twice the old size */
-		if ((p = realloc(p, size)) == NULL)
+		if ((p = osip_realloc(p, size)) == NULL)
 			return NULL;
 	}
 }
