@@ -969,6 +969,7 @@ _eXosip_update_expires_according_to_contact(eXosip_reg_t * jreg,
 {
 	osip_contact_t *co_register;
 	int pos;
+	int maxval = 0;
 	if (jreg == NULL)
 		return OSIP_BADPARAMETER;
 
@@ -996,13 +997,9 @@ _eXosip_update_expires_according_to_contact(eXosip_reg_t * jreg,
 				osip_contact_param_get_byname(co_register, "expires", &exp_param);
 				if (exp_param != NULL && exp_param->gvalue != NULL) {
 					val = atoi(exp_param->gvalue);
-					/* update only if expires value has REALLY be
-					   decreased (more than one minutes):
-					   In many cases value is decreased because a few seconds has
-					   elapsed when server send the 200ok. */
-					if (val < jreg->r_reg_period - 75) {
-						jreg->r_reg_period = val + 95;
-						return OSIP_SUCCESS;
+					if (val>maxval)
+					{
+						maxval=val;
 					}
 				}
 				return OSIP_SUCCESS;
@@ -1013,9 +1010,22 @@ _eXosip_update_expires_according_to_contact(eXosip_reg_t * jreg,
 		co_register = (osip_contact_t *) osip_list_get(&sip->contacts, pos);
 	}
 
+    if (maxval==0)
+       return OSIP_NOTFOUND;
 
-
-	return OSIP_NOTFOUND;
+	/* update only if expires value has REALLY be
+	decreased (more than one minutes):
+	In many cases value is decreased because a few seconds has
+	elapsed when server send the 200ok. */
+	if (maxval < jreg->r_reg_period - 75)
+	{
+		jreg->r_reg_period = maxval + 95;
+	}
+	else if (maxval>jreg->r_reg_period) 
+	{
+		jreg->r_reg_period = maxval;
+	}
+	return OSIP_SUCCESS;
 }
 
 
