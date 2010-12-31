@@ -369,9 +369,22 @@ static void cb_rcvack2(int type, osip_transaction_t * tr, osip_message_t * sip)
 
 static void cb_rcvcancel(int type, osip_transaction_t * tr, osip_message_t * sip)
 {
+        jinfo_t* jinfo;
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL,
 				"cb_rcvcancel (id=%i)\r\n", tr->transactionid));
+
+	jinfo = (jinfo_t *) osip_transaction_get_your_instance (tr);
+	if (jinfo == NULL)
+	  {
+	    return;
+	  }
+
+	if ((jinfo->jd != NULL) && (jinfo->jc != NULL))
+	  {
+	    // do propagate CANCEL to the application
+	    report_call_event (EXOSIP_CALL_CANCELLED, jinfo->jc, jinfo->jd, tr);
+	  }
 }
 
 #endif
