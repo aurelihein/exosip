@@ -352,10 +352,10 @@ eXosip_process_cancel(osip_transaction_t * transaction, osip_event_t * evt)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: cannot cancel transaction.\n"));
-			//BUG fixed 32/12/2010
-			//osip_list_add(&eXosip.j_transactions, tr, 0);
-			//osip_transaction_set_your_instance(tr, NULL);
-			//replaced with 
+			/*BUG fixed 32/12/2010
+			  osip_list_add(&eXosip.j_transactions, tr, 0);
+			  osip_transaction_set_your_instance(tr, NULL);
+			  replaced with */
 			osip_list_add(&eXosip.j_transactions, transaction, 0);
 			osip_transaction_set_your_instance(transaction, NULL);
 			return;
@@ -386,10 +386,10 @@ eXosip_process_cancel(osip_transaction_t * transaction, osip_event_t * evt)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: cannot cancel transaction.\n"));
-			//BUG fixed 32/12/2010
-			//osip_list_add(&eXosip.j_transactions, tr, 0);
-			//osip_transaction_set_your_instance(tr, NULL);
-			//replaced with 
+			/*BUG fixed 32/12/2010
+			  osip_list_add(&eXosip.j_transactions, tr, 0);
+			  osip_transaction_set_your_instance(tr, NULL);
+			  replaced with */
 			osip_list_add(&eXosip.j_transactions, transaction, 0);
 			osip_transaction_set_your_instance(transaction, NULL);
 			return;
@@ -419,10 +419,10 @@ eXosip_process_cancel(osip_transaction_t * transaction, osip_event_t * evt)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: cannot cancel transaction.\n"));
-			//BUG fixed 32/12/2010
-			//osip_list_add(&eXosip.j_transactions, tr, 0);
-			//osip_transaction_set_your_instance(tr, NULL);
-			//replaced with 
+			/*BUG fixed 32/12/2010
+			  osip_list_add(&eXosip.j_transactions, tr, 0);
+			  osip_transaction_set_your_instance(tr, NULL);
+			  replaced with */
 			osip_list_add(&eXosip.j_transactions, transaction, 0);
 			osip_transaction_set_your_instance(transaction, NULL);
 			return;
@@ -457,9 +457,9 @@ eXosip_process_cancel(osip_transaction_t * transaction, osip_event_t * evt)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: cannot cancel transaction.\n"));
-			//BUG fixed 32/12/2010
-			//osip_list_add(&eXosip.j_transactions, tr, 0);
-			//osip_transaction_set_your_instance(tr, NULL);
+			/*BUG fixed 32/12/2010
+			  osip_list_add(&eXosip.j_transactions, tr, 0);
+			  osip_transaction_set_your_instance(tr, NULL); */
 			return;
 		}
 		osip_message_set_content_length(answer, "0");
@@ -1300,7 +1300,6 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 
 	now = time(NULL);
 	if (evt->sip == NULL
-		//|| evt->sip->sip_method == NULL
 		|| evt->sip->cseq == NULL
 		|| evt->sip->cseq->number == NULL
 		|| evt->sip->to == NULL || evt->sip->from == NULL) {

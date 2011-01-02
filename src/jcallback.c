@@ -382,8 +382,8 @@ static void cb_rcvcancel(int type, osip_transaction_t * tr, osip_message_t * sip
 
 	if ((jinfo->jd != NULL) && (jinfo->jc != NULL))
 	  {
-	    // do propagate CANCEL to the application
-	    report_call_event (EXOSIP_CALL_CANCELLED, jinfo->jc, jinfo->jd, tr);
+		  /* do propagate CANCEL to the application */
+		  report_call_event (EXOSIP_CALL_CANCELLED, jinfo->jc, jinfo->jd, tr);
 	  }
 }
 
