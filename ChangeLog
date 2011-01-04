@@ -1,3 +1,9 @@
+eXosip2 (3.5.0)
+	* iphone with TCP/TLS background support.
+	* android support.
+	* a lot of minor change/fix/improvments, sorry for not being
+	  able to have an history here...
+
 eXosip2 (3.4.0)
 	* modification to allow using "windows certificate store" for TLS.
 	* handle keep alive for TCP/TLS.
