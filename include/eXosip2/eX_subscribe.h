@@ -96,7 +96,7 @@ extern "C"
  * @param subscribe Pointer for the SIP request to build.
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
- * @param route     Route header for SUBSCRIBE. (optionnal)
+ * @param route     Route header for SUBSCRIBE. (optional)
  * @param event     Event header for SUBSCRIBE.
  * @param expires   Expires header for SUBSCRIBE.
  */
