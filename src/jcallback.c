@@ -543,7 +543,7 @@ cb_sndsubscribe(int type, osip_transaction_t * tr, osip_message_t * sip)
 {
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL,
-				"cb_sndsubscibe (id=%i)\r\n", tr->transactionid));
+				"cb_sndsubscribe (id=%i)\r\n", tr->transactionid));
 }
 
 static void

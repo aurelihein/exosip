@@ -36,6 +36,7 @@ extern "C"
 #endif
 
   struct osip_srv_record;
+  struct osip_naptr;
 
 /**
  * @file eX_setup.h
@@ -71,19 +72,21 @@ extern "C"
  */
   int eXosip_execute (void);
 
-#define EXOSIP_OPT_UDP_KEEP_ALIVE 1
-#define EXOSIP_OPT_UDP_LEARN_PORT 2
-#define EXOSIP_OPT_SET_HTTP_TUNNEL_PORT 3
-#define EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY 4
-#define EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY 5     /* used for http tunnel ONLY */
-#define EXOSIP_OPT_DONT_SEND_101 6
-#define EXOSIP_OPT_USE_RPORT 7
-#define EXOSIP_OPT_SET_IPV4_FOR_GATEWAY 8
-#define EXOSIP_OPT_ADD_DNS_CACHE 9
-#define EXOSIP_OPT_EVENT_PACKAGE 10
-#define EXOSIP_OPT_SET_IPV6_FOR_GATEWAY 11
-#define EXOSIP_OPT_ADD_ACCOUNT_INFO 12
-#define EXOSIP_OPT_DNS_CAPABILITIES 13
+#define EXOSIP_OPT_BASE_OPTION 0
+#define EXOSIP_OPT_UDP_KEEP_ALIVE (EXOSIP_OPT_BASE_OPTION+1)
+#define EXOSIP_OPT_UDP_LEARN_PORT (EXOSIP_OPT_BASE_OPTION+2)
+#define EXOSIP_OPT_SET_HTTP_TUNNEL_PORT (EXOSIP_OPT_BASE_OPTION+3) /* obsolete */
+#define EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY (EXOSIP_OPT_BASE_OPTION+4) /* obsolete */
+#define EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY (EXOSIP_OPT_BASE_OPTION+5) /* obsolete */
+#define EXOSIP_OPT_DONT_SEND_101 (EXOSIP_OPT_BASE_OPTION+6)
+#define EXOSIP_OPT_USE_RPORT (EXOSIP_OPT_BASE_OPTION+7)
+#define EXOSIP_OPT_SET_IPV4_FOR_GATEWAY (EXOSIP_OPT_BASE_OPTION+8)
+#define EXOSIP_OPT_ADD_DNS_CACHE (EXOSIP_OPT_BASE_OPTION+9)
+#define EXOSIP_OPT_DELETE_DNS_CACHE (EXOSIP_OPT_BASE_OPTION+10)
+#define EXOSIP_OPT_EVENT_PACKAGE (EXOSIP_OPT_BASE_OPTION+11)
+#define EXOSIP_OPT_SET_IPV6_FOR_GATEWAY (EXOSIP_OPT_BASE_OPTION+12)
+#define EXOSIP_OPT_ADD_ACCOUNT_INFO (EXOSIP_OPT_BASE_OPTION+13)
+#define EXOSIP_OPT_DNS_CAPABILITIES (EXOSIP_OPT_BASE_OPTION+14)
 
   /* obsolete: to be removed */
 #define EXOSIP_OPT_SRV_WITH_NAPTR EXOSIP_OPT_DNS_CAPABILITIES
@@ -143,25 +146,31 @@ extern "C"
 #endif
 
 /**
- * Ask for SRV record.
+ * Start and return osip_naptr context.
+ * Note that DNS results might not yet be available.
  * 
- * @param record      result structure.
- * @param domain      domain name for SRV record
- * @param protocol    protocol to use
+ * @param domain         domain name for NAPTR record
+ * @param protocol       protocol to use ("SIP")
+ * @param transport      transport to use ("UDP")
+ * @param keep_in_cache  keep result in cache if >0
  */
-  int eXosip_get_srv_record (struct osip_srv_record *record, char *domain,
-                             char *protocol);
+struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol,
+                                         const char *transport, int keep_in_cache);
 
 /**
- * Ask for NAPTR request.
+ * Continue to process asynchronous DNS request (if implemented).
  * 
- * @param domain        domain name for SRV record
- * @param protocol      protocol to use
- * @param srv_record  result structure.
- * @param max_length sizeof srv_record.
+ * @param output_record  result structure.
+ * @param force          force waiting for final answer if >0
  */
-  int eXosip_get_naptr (char *domain, char *protocol, char *srv_record,
-                        int max_length);
+int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
+
+/**
+ * Rotate first SRV entry to last SRV entry.
+ * 
+ * @param output_record  result structure.
+ */
+  int eXosip_dnsutils_rotate_srv(struct osip_srv_record *output_record);
 
 /**
  * Listen on a specified socket.

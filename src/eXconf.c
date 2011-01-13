@@ -119,6 +119,8 @@ void eXosip_kill_transaction(osip_list_t * transactions)
 		transaction = osip_list_get(transactions, 0);
 
 		__eXosip_delete_jinfo(transaction);
+		_eXosip_dnsutils_release(transaction->naptr_record);
+		transaction->naptr_record=NULL;
 		osip_transaction_free(transaction);
 	}
 }
@@ -210,10 +212,14 @@ void eXosip_quit(void)
 								  "Release a terminated transaction\n"));
 			osip_list_remove(&eXosip.j_transactions, 0);
 			__eXosip_delete_jinfo(tr);
+			_eXosip_dnsutils_release(tr->naptr_record);
+			tr->naptr_record=NULL;
 			osip_transaction_free(tr);
 		} else {
 			osip_list_remove(&eXosip.j_transactions, 0);
 			__eXosip_delete_jinfo(tr);
+			_eXosip_dnsutils_release(tr->naptr_record);
+			tr->naptr_record=NULL;
 			osip_transaction_free(tr);
 		}
 	}
@@ -766,10 +772,7 @@ int eXosip_execute(void)
 
 	eXosip_unlock();
 
-
-	if (eXosip.keep_alive > 0) {
-		_eXosip_keep_alive();
-	}
+	_eXosip_keep_alive();
 
 	return OSIP_SUCCESS;
 }
@@ -856,17 +859,47 @@ int eXosip_set_option(int opt, const void *value)
 									"eXosip option set: dns cache updated:%s -> %s\n",
 									entry->host, entry->ip));
 					} else {
-						eXosip.dns_entries[i].host[0] = '\0';
+						/* return previously added cache */
+						snprintf(entry->ip, sizeof(entry->ip), "%s", eXosip.dns_entries[i].ip);
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-									"eXosip option set: dns cache deleted :%s\n",
-									entry->host));
+									"eXosip option set: dns cache returned:%s ->%s\n",
+									entry->host, entry->ip));
 					}
 					return OSIP_SUCCESS;
 				}
 			}
 			if (entry->ip[0] == '\0') {
-				return OSIP_BADPARAMETER;
+				char ipbuf[INET6_ADDRSTRLEN];
+				struct __eXosip_sockaddr addr;
+				struct addrinfo *addrinfo;
+
+				/* create the A record */
+				i = eXosip_get_addrinfo(&addrinfo, entry->host, 0, IPPROTO_UDP);
+				if (i!=0)
+					return OSIP_BADPARAMETER;
+
+				memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
+
+				eXosip_freeaddrinfo(addrinfo);
+				switch (((struct sockaddr *) &addr)->sa_family) {
+				case AF_INET:
+					inet_ntop(((struct sockaddr *) &addr)->sa_family,
+							  &(((struct sockaddr_in *) &addr)->sin_addr), ipbuf,
+							  sizeof(ipbuf));
+					break;
+				case AF_INET6:
+					inet_ntop(((struct sockaddr *) &addr)->sa_family,
+							  &(((struct sockaddr_in6 *) &addr)->sin6_addr), ipbuf,
+							  sizeof(ipbuf));
+					break;
+				default:
+					return OSIP_BADPARAMETER;
+				}
+
+				if (osip_strcasecmp(ipbuf, entry->host)==0)
+					return OSIP_SUCCESS;
+				snprintf(entry->ip, sizeof(entry->ip), "%s", ipbuf);
 			}
 			/* not found case: */
 			for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
@@ -880,6 +913,29 @@ int eXosip_set_option(int opt, const void *value)
 							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 								"eXosip option set: dns cache added:%s -> %s\n",
 								entry->host, entry->ip));
+					return OSIP_SUCCESS;
+				}
+			}
+			return OSIP_UNDEFINED_ERROR;
+		}
+		break;
+	case EXOSIP_OPT_DELETE_DNS_CACHE:
+		{
+			struct eXosip_dns_cache *entry;
+			int i;
+			entry = (struct eXosip_dns_cache *) value;
+			if (entry == NULL || entry->host[0] == '\0') {
+				return OSIP_BADPARAMETER;
+			}
+			for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
+				if (eXosip.dns_entries[i].host[0] != '\0'
+					&& 0 == osip_strcasecmp(eXosip.dns_entries[i].host,
+											entry->host)) {
+					eXosip.dns_entries[i].host[0] = '\0';
+					OSIP_TRACE(osip_trace
+							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+								"eXosip option set: dns cache deleted :%s\n",
+								entry->host));
 					return OSIP_SUCCESS;
 				}
 			}

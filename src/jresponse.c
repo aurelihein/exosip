@@ -209,6 +209,7 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 				 locip, firewall_port);
 
 	if (firewall_ip[0] != '\0') {
+#ifdef USE_LOCALIP_WITH_LOCALPROXY /* disable this code for local testing because it adds an extra DNS */
 		osip_contact_t *con =
 			(osip_contact_t *) osip_list_get(&request->contacts, 0);
 		if (con != NULL && con->url != NULL && con->url->host != NULL) {
@@ -240,6 +241,15 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 							 firewall_port);
 			}
 		}
+#else
+		if (request->to->url->username == NULL)
+			snprintf(contact, 1000, "<sip:%s:%s>",
+					 firewall_ip, firewall_port);
+		else
+			snprintf(contact, 1000, "<sip:%s@%s:%s>",
+					 request->to->url->username, firewall_ip,
+					 firewall_port);
+#endif
 	}
 
 	{

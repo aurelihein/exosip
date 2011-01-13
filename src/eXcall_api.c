@@ -392,9 +392,6 @@ int eXosip_call_send_ack(int did, osip_message_t * ack)
 	osip_route_t *route;
 	char *host=NULL;
 	int port;
-#ifdef SRV_RECORD
-	osip_srv_record_t record;
-#endif
 
 	if (did <= 0)
 		return OSIP_BADPARAMETER;
@@ -418,20 +415,6 @@ int eXosip_call_send_ack(int did, osip_message_t * ack)
 		}
 	}
 
-#ifdef SRV_RECORD
-	memset(&record, 0, sizeof(osip_srv_record_t));
-	i = _eXosip_srv_lookup(NULL, ack, &record);
-	if (i >= 0) {
-		if (record.name[0] != '\0'
-			&& record.srventry[0].srv[0] != '\0') {
-			/* TODO: failover for the ACK...
-			 */
-			osip_srv_entry_t *srv = &record.srventry[0];
-			host = srv->srv;
-			port = srv->port;
-		}
-	}
-#endif
 	if (host==NULL)
 	{
 		osip_message_get_route(ack, 0, &route);

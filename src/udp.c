@@ -979,6 +979,8 @@ static void eXosip_process_newrequest(osip_event_t * evt, int socket)
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 							"eXosip: receive a request with same cseq??\n"));
+				_eXosip_dnsutils_release(transaction->naptr_record);
+				transaction->naptr_record=NULL;
 				osip_transaction_free(transaction);
 				return;
 			}
@@ -994,6 +996,8 @@ static void eXosip_process_newrequest(osip_event_t * evt, int socket)
 		i = _eXosip_build_response_default(&answer, NULL, 100, evt->sip);
 		if (i != 0) {
 			__eXosip_delete_jinfo(transaction);
+			_eXosip_dnsutils_release(transaction->naptr_record);
+			transaction->naptr_record=NULL;
 			osip_transaction_free(transaction);
 			return;
 		}
@@ -1093,7 +1097,6 @@ static void eXosip_process_newrequest(osip_event_t * evt, int socket)
 										   __LINE__);
 				return;
 			}
-			/* osip_transaction_free(old_trn); */
 			eXosip_process_bye(jc, jd, transaction, evt);
 		} else if (MSG_IS_ACK(evt->sip)) {
 			eXosip_process_ack(jc, jd, evt);
@@ -1674,10 +1677,6 @@ eXosip_pendingosip_transaction_exist(eXosip_call_t * jc, eXosip_dialog_t * jd)
 	tr = eXosip_find_last_inc_invite(jc, jd);
 	if (tr != NULL && tr->state != IST_TERMINATED) {	/* Don't want to wait forever on broken transaction!! */
 		if (tr->birth_time + 180 < now) {	/* Wait a max of 2 minutes */
-			/* remove the transaction from oSIP: */
-			/* osip_remove_transaction(eXosip.j_osip, tr);
-			   eXosip_remove_transaction_from_call(tr, jc);
-			   osip_transaction_free(tr); */
 		} else
 			return OSIP_SUCCESS;
 	}
@@ -1685,10 +1684,6 @@ eXosip_pendingosip_transaction_exist(eXosip_call_t * jc, eXosip_dialog_t * jd)
 	tr = eXosip_find_last_out_invite(jc, jd);
 	if (tr != NULL && tr->state != ICT_TERMINATED) {	/* Don't want to wait forever on broken transaction!! */
 		if (jc->expire_time < now) {
-			/* remove the transaction from oSIP: */
-			/* osip_remove_transaction(eXosip.j_osip, tr);
-			   eXosip_remove_transaction_from_call(tr, jc);
-			   osip_transaction_free(tr); */
 		} else
 			return OSIP_SUCCESS;
 	}
@@ -2058,10 +2053,14 @@ void eXosip_release_terminated_calls(void)
 		} else if (tr->state == IST_TERMINATED || tr->state == ICT_TERMINATED || tr->state == NICT_TERMINATED || tr->state == NIST_TERMINATED) {	/* free (transaction is already removed from the oSIP stack) */
 			osip_list_remove(&eXosip.j_transactions, pos);
 			__eXosip_delete_jinfo(tr);
+			_eXosip_dnsutils_release(tr->naptr_record);
+			tr->naptr_record=NULL;
 			osip_transaction_free(tr);
 		} else if (tr->birth_time + 180 < now) {	/* Wait a max of 2 minutes */
 			osip_list_remove(&eXosip.j_transactions, pos);
 			__eXosip_delete_jinfo(tr);
+			_eXosip_dnsutils_release(tr->naptr_record);
+			tr->naptr_record=NULL;
 			osip_transaction_free(tr);
 		} else
 			pos++;

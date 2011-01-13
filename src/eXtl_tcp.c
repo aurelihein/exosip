@@ -40,6 +40,8 @@
 #define ex_errno errno
 #endif
 
+extern eXosip_t eXosip;
+
 #ifndef EAGAIN
 #define EAGAIN WSAEWOULDBLOCK
 #endif
@@ -984,6 +986,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	char *message;
 	int i;
 	int pos=-1;
+	osip_naptr_t *naptr_record=NULL;
 
 	if (host == NULL) {
 		host = sip->req_uri->host;
@@ -992,6 +995,120 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		else
 			port = 5060;
 	}
+
+	i = -1;
+#ifndef MINISIZE
+	if (tr==NULL)
+	{
+		_eXosip_srv_lookup(sip, &naptr_record);
+
+		if (naptr_record!=NULL) {
+			eXosip_dnsutils_dns_process(naptr_record, 1);
+			if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NAPTRDONE
+				||naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVINPROGRESS)
+				eXosip_dnsutils_dns_process(naptr_record, 1);
+		}
+
+		if (naptr_record!=NULL && naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVDONE)
+		{
+			/* 4: check if we have the one we want... */
+			if (naptr_record->siptcp_record.name[0] != '\0'
+				&& naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index].srv[0] != '\0') {
+					/* always choose the first here.
+					if a network error occur, remove first entry and
+					replace with next entries.
+					*/
+					osip_srv_entry_t *srv;
+					int n = 0;
+					srv = &naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index];
+					if (srv->ipaddress[0]) {
+						host = srv->ipaddress;
+						port = srv->port;
+					}
+					else {
+						host = srv->srv;
+						port = srv->port;
+					}
+			}
+		}
+
+		if (naptr_record!=NULL && naptr_record->keep_in_cache==0)
+			osip_free(naptr_record);
+		naptr_record=NULL;
+	}
+	else
+	{
+		naptr_record = tr->naptr_record;
+	}
+
+
+	if (naptr_record!=NULL)
+	{
+		/* 1: make sure there is no pending DNS */
+		eXosip_dnsutils_dns_process(naptr_record, 0);
+		if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NAPTRDONE
+			||naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVINPROGRESS)
+			eXosip_dnsutils_dns_process(naptr_record, 0);
+
+		if (naptr_record->naptr_state==OSIP_NAPTR_STATE_UNKNOWN)
+		{
+			/* fallback to DNS A */
+			if (naptr_record->keep_in_cache==0)
+				osip_free(naptr_record);
+			naptr_record=NULL;
+			if (tr!=NULL)
+				tr->naptr_record=NULL;
+			/* must never happen? */
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_INPROGRESS)
+		{
+			/* 2: keep waiting (naptr answer not received) */
+			return OSIP_SUCCESS + 1;
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NAPTRDONE)
+		{
+			/* 3: keep waiting (naptr answer received/no srv answer received) */
+			return OSIP_SUCCESS + 1;
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVINPROGRESS)
+		{
+			/* 3: keep waiting (naptr answer received/no srv answer received) */
+			return OSIP_SUCCESS + 1;
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVDONE)
+		{
+			/* 4: check if we have the one we want... */
+			if (naptr_record->siptcp_record.name[0] != '\0'
+				&& naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index].srv[0] != '\0') {
+					/* always choose the first here.
+					if a network error occur, remove first entry and
+					replace with next entries.
+					*/
+					osip_srv_entry_t *srv;
+					int n = 0;
+					srv = &naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index];
+					if (srv->ipaddress[0]) {
+						host = srv->ipaddress;
+						port = srv->port;
+					}
+					else {
+						host = srv->srv;
+						port = srv->port;
+					}
+			}
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NOTSUPPORTED
+			||naptr_record->naptr_state==OSIP_NAPTR_STATE_RETRYLATER)
+		{
+			/* 5: fallback to DNS A */
+			if (naptr_record->keep_in_cache==0)
+				osip_free(naptr_record);
+			naptr_record=NULL;
+			if (tr!=NULL)
+				tr->naptr_record=NULL;
+		}
+	}
+#endif
 
 	/* remove preloaded route if there is no tag in the To header
 	 */
@@ -1058,8 +1175,24 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					"socket node:%s, socket %d [pos=%d], in progress\n",
 					host, out_socket, pos));
 		osip_free(message);
-		if (tr != NULL && now - tr->birth_time > 10)
+		if (tr != NULL && now - tr->birth_time > 10 && now - tr->birth_time < 13)
+		{
+			/* avoid doing this twice... */
+			if (naptr_record!=NULL && MSG_IS_REGISTER(sip))
+			{
+				if (eXosip_dnsutils_rotate_srv(&naptr_record->siptcp_record)>0)
+				{
+					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+						"Doing TCP failover: %s:%i->%s:%i\n",
+						host, port,
+						naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index].srv,
+						naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index].port));
+					return OSIP_SUCCESS + 1;	/* retry for next retransmission! */
+				}
+			}
+
 			return -1;
+		}
 		return 1;
 	} else if (i == 0) {
 		OSIP_TRACE(osip_trace
@@ -1204,7 +1337,9 @@ static int tcp_tl_keepalive(void)
 				tcp_socket_tab[pos].socket = -1;
 				continue;
 			}
-			i = send(tcp_socket_tab[pos].socket, (const void *) buf, 4, 0);
+			if (eXosip.keep_alive > 0) {
+				i = send(tcp_socket_tab[pos].socket, (const void *) buf, 4, 0);
+			}
 		}
 	}
 	return OSIP_SUCCESS;

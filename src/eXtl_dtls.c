@@ -149,7 +149,7 @@ static int shutdown_free_server_dtls(int pos)
 		if (dtls_socket_tab[pos].ssl_conn != NULL) {
 #ifdef SSLDEBUG
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
-								  "DTLS server SSL_shutdown\n"));
+								  "DTLS-UDP server SSL_shutdown\n"));
 #endif
 
 			i = SSL_shutdown(dtls_socket_tab[pos].ssl_conn);
@@ -160,12 +160,12 @@ static int shutdown_free_server_dtls(int pos)
 #ifdef SSLDEBUG
 
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-									  "DTLS server shutdown <= 0\n"));
+									  "DTLS-UDP server shutdown <= 0\n"));
 #endif
 			} else {
 #ifdef SSLDEBUG
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
-									  "DTLS server shutdown > 0\n"));
+									  "DTLS-UDP server shutdown > 0\n"));
 #endif
 
 			}
@@ -182,7 +182,7 @@ static int shutdown_free_server_dtls(int pos)
 			return OSIP_SUCCESS;
 		} else {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-								  "DTLS server shutdown: invalid SSL object!\n"));
+								  "DTLS-UDP server shutdown: invalid SSL object!\n"));
 			return -1;
 		}
 	}
@@ -223,14 +223,14 @@ static int shutdown_free_client_dtls(int pos)
 #ifdef SSLDEBUG
 
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-									  "DTLS client shutdown error %d <= 0\n", i));
+									  "DTLS-UDP client shutdown error %d <= 0\n", i));
 #endif
 
 				print_ssl_error(err);
 			} else {
 #ifdef SSLDEBUG
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
-									  "DTLS client shutdown > 0\n"));
+									  "DTLS-UDP client shutdown > 0\n"));
 #endif
 
 			}
@@ -247,7 +247,7 @@ static int shutdown_free_client_dtls(int pos)
 			return OSIP_SUCCESS;
 		} else {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-								  "DTLS client shutdown: invalid SSL object!\n"));
+								  "DTLS-UDP client shutdown: invalid SSL object!\n"));
 			return -1;
 		}
 	}
@@ -524,7 +524,7 @@ static int dtls_tl_read_message(fd_set * osip_fdset)
 				}
 
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
-									  "creating DTLS socket at index: %i\n", pos));
+									  "creating DTLS-UDP socket at index: %i\n", pos));
 				if (pos < 0) {
 					/* delete an old one! */
 					pos = 0;
@@ -583,7 +583,7 @@ static int dtls_tl_read_message(fd_set * osip_fdset)
 				dtls_socket_tab[pos].remote_port = recvport;
 
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
-									  "New DTLS connection accepted\n"));
+									  "New DTLS-UDP connection accepted\n"));
 
 			}
 
@@ -621,11 +621,11 @@ static int dtls_tl_read_message(fd_set * osip_fdset)
 				if (err == SSL_ERROR_SYSCALL) {
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_WARNING,
-								NULL, "DTLS SYSCALL on SSL_read\n"));
+								NULL, "DTLS-UDP SYSCALL on SSL_read\n"));
 				} else if (err == SSL_ERROR_SSL || err == SSL_ERROR_ZERO_RETURN) {
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_WARNING,
-								NULL, "DTLS closed\n"));
+								NULL, "DTLS-UDP closed\n"));
 
 					shutdown_free_client_dtls(pos);
 					shutdown_free_server_dtls(pos);
@@ -693,6 +693,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 	char ipbuf[INET6_ADDRSTRLEN];
 	int i;
+	osip_naptr_t *naptr_record=NULL;
 
 	int pos;
 	struct socket_tab *socket_tab_used = NULL;
@@ -720,34 +721,152 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 	i = -1;
 #ifndef MINISIZE
-	if (tr != NULL && tr->record.name[0] != '\0'
-		&& tr->record.srventry[0].srv[0] != '\0') {
-		/* always choose the first here.
-		   if a network error occur, remove first entry and
-		   replace with next entries.
-		 */
-		osip_srv_entry_t *srv;
-		int n = 0;
-		for (srv = &tr->record.srventry[0];
-			 n < 10 && tr->record.srventry[0].srv[0];
-			 srv = &tr->record.srventry[0]) {
-			i = eXosip_get_addrinfo(&addrinfo, srv->srv, srv->port, IPPROTO_UDP);
-			if (i == 0) {
-				host = srv->srv;
-				port = srv->port;
-				break;
+	if (tr==NULL)
+	{
+		_eXosip_srv_lookup(sip, &naptr_record);
+
+		if (naptr_record!=NULL) {
+			eXosip_dnsutils_dns_process(naptr_record, 1);
+			if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NAPTRDONE
+				||naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVINPROGRESS)
+				eXosip_dnsutils_dns_process(naptr_record, 1);
+		}
+
+		if (naptr_record!=NULL && naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVDONE)
+		{
+			/* 4: check if we have the one we want... */
+			if (naptr_record->sipdtls_record.name[0] != '\0'
+				&& naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index].srv[0] != '\0') {
+					/* always choose the first here.
+					if a network error occur, remove first entry and
+					replace with next entries.
+					*/
+					osip_srv_entry_t *srv;
+					int n = 0;
+					for (srv = &naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index];
+						n < 10 && naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index].srv[0];
+						srv = &naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index]) {
+							if (srv->ipaddress[0])
+								i = eXosip_get_addrinfo(&addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
+							else
+								i = eXosip_get_addrinfo(&addrinfo, srv->srv, srv->port, IPPROTO_UDP);
+							if (i == 0) {
+								host = srv->srv;
+								port = srv->port;
+								break;
+							}
+
+							i = eXosip_dnsutils_rotate_srv(&naptr_record->sipdtls_record);
+							if (i<=0)
+							{
+								return -1;
+							}
+							if (i>=n)
+							{
+								return -1;
+							}
+							i = -1;
+							/* copy next element */
+							n++;
+					}
 			}
-			memmove(&tr->record.srventry[0], &tr->record.srventry[1],
-					9 * sizeof(osip_srv_entry_t));
-			memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
-			i = -1;
-			/* copy next element */
-			n++;
+		}
+
+		if (naptr_record!=NULL && naptr_record->keep_in_cache==0)
+			osip_free(naptr_record);
+		naptr_record=NULL;
+	}
+	else
+	{
+		naptr_record = tr->naptr_record;
+	}
+
+	if (naptr_record!=NULL)
+	{
+		/* 1: make sure there is no pending DNS */
+		eXosip_dnsutils_dns_process(naptr_record, 0);
+		if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NAPTRDONE
+			||naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVINPROGRESS)
+			eXosip_dnsutils_dns_process(naptr_record, 0);
+
+		if (naptr_record->naptr_state==OSIP_NAPTR_STATE_UNKNOWN)
+		{
+			/* fallback to DNS A */
+			if (naptr_record->keep_in_cache==0)
+				osip_free(naptr_record);
+			naptr_record=NULL;
+			if (tr!=NULL)
+				tr->naptr_record=NULL;
+			/* must never happen? */
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_INPROGRESS)
+		{
+			/* 2: keep waiting (naptr answer not received) */
+			return OSIP_SUCCESS + 1;
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NAPTRDONE)
+		{
+			/* 3: keep waiting (naptr answer received/no srv answer received) */
+			return OSIP_SUCCESS + 1;
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVINPROGRESS)
+		{
+			/* 3: keep waiting (naptr answer received/no srv answer received) */
+			return OSIP_SUCCESS + 1;
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_SRVDONE)
+		{
+			/* 4: check if we have the one we want... */
+			if (naptr_record->sipdtls_record.name[0] != '\0'
+				&& naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index].srv[0] != '\0') {
+					/* always choose the first here.
+					if a network error occur, remove first entry and
+					replace with next entries.
+					*/
+					osip_srv_entry_t *srv;
+					int n = 0;
+					for (srv = &naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index];
+						n < 10 && naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index].srv[0];
+						srv = &naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index]) {
+							if (srv->ipaddress[0])
+								i = eXosip_get_addrinfo(&addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
+							else
+								i = eXosip_get_addrinfo(&addrinfo, srv->srv, srv->port, IPPROTO_UDP);
+							if (i == 0) {
+								host = srv->srv;
+								port = srv->port;
+								break;
+							}
+							
+							i = eXosip_dnsutils_rotate_srv(&naptr_record->sipdtls_record);
+							if (i<=0)
+							{
+								return -1;
+							}
+							if (i>=n)
+							{
+								return -1;
+							}
+							i = -1;
+							/* copy next element */
+							n++;
+					}
+			}
+		}
+		else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_NOTSUPPORTED
+			||naptr_record->naptr_state==OSIP_NAPTR_STATE_RETRYLATER)
+		{
+			/* 5: fallback to DNS A */
+			if (naptr_record->keep_in_cache==0)
+				osip_free(naptr_record);
+			naptr_record=NULL;
+			if (tr!=NULL)
+				tr->naptr_record=NULL;
 		}
 	}
 #endif
 
-	/* if SRV was used, distination may be already found */
+	/* if SRV was used, destination may be already found */
 	if (i != 0) {
 		i = eXosip_get_addrinfo(&addrinfo, host, port, IPPROTO_UDP);
 	}
@@ -802,6 +921,17 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 						  "Message sent: \n%s (to dest=%s:%i)\n",
 						  message, ipbuf, port));
 
+	if (osip_strcasecmp(host, ipbuf)!=0 && MSG_IS_REQUEST(sip)) {
+		if (MSG_IS_REGISTER(sip)) {
+			struct eXosip_dns_cache entry;
+
+			memset(&entry, 0, sizeof(struct eXosip_dns_cache));
+			snprintf(entry.host, sizeof(entry.host), "%s", host);
+			snprintf(entry.ip, sizeof(entry.ip), "%s", ipbuf);
+			eXosip_set_option(EXOSIP_OPT_ADD_DNS_CACHE, (void *) &entry);
+		}
+	}
+
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (dtls_socket_tab[pos].ssl_conn != NULL
 			&& dtls_socket_tab[pos].ssl_type == EXOSIP_AS_A_SERVER) {
@@ -851,7 +981,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 		if (dtls_socket_tab[pos].ssl_conn == NULL) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-								  "DTLS SSL_new error\n"));
+								  "DTLS-UDP SSL_new error\n"));
 
 			if (dtls_socket_tab[pos].ssl_conn != NULL) {
 				shutdown_free_client_dtls(pos);
@@ -866,7 +996,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 		if (connect(dtls_socket, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-								  "DTLS connect error\n"));
+								  "DTLS-UDP connect error\n"));
 			if (dtls_socket_tab[pos].ssl_conn != NULL) {
 				shutdown_free_client_dtls(pos);
 				shutdown_free_server_dtls(pos);
@@ -900,7 +1030,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		print_ssl_error(i);
 		if (i == SSL_ERROR_SSL || i == SSL_ERROR_SYSCALL) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-								  "DTLS SSL_write error\n"));
+								  "DTLS-UDP SSL_write error\n"));
 			if (dtls_socket_tab[pos].ssl_conn != NULL) {
 				shutdown_free_client_dtls(pos);
 				shutdown_free_server_dtls(pos);
@@ -910,14 +1040,14 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 		}
 #ifndef MINISIZE
-		/* delete first SRV entry that is not reachable */
-		if (tr != NULL && tr->record.name[0] != '\0'
-			&& tr->record.srventry[0].srv[0] != '\0') {
-			memmove(&tr->record.srventry[0], &tr->record.srventry[1],
-					9 * sizeof(osip_srv_entry_t));
-			memset(&tr->record.srventry[9], 0, sizeof(osip_srv_entry_t));
-			osip_free(message);
-			return OSIP_SUCCESS;	/* retry for next retransmission! */
+		if (naptr_record!=NULL)
+		{
+			/* rotate on failure! */
+			if (eXosip_dnsutils_rotate_srv(&naptr_record->sipdtls_record)>0)
+			{
+				osip_free(message);
+				return OSIP_SUCCESS;	/* retry for next retransmission! */
+			}
 		}
 #endif
 		/* SIP_NETWORK_ERROR; */
@@ -945,6 +1075,10 @@ static int dtls_tl_keepalive(void)
 	char buf[4] = "jaK";
 	eXosip_reg_t *jr;
 
+	if (eXosip.keep_alive <= 0) {
+		return 0;
+	}
+
 	if (dtls_socket <= 0)
 		return OSIP_UNDEFINED_ERROR;
 
@@ -954,7 +1088,7 @@ static int dtls_tl_keepalive(void)
 					   (struct sockaddr *) &(jr->addr), jr->len) > 0) {
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-							"eXosip: Keep Alive sent on DTLS!\n"));
+							"eXosip: Keep Alive sent on DTLS-UDP!\n"));
 			}
 		}
 	}
@@ -1002,7 +1136,7 @@ dtls_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
 struct eXtl_protocol eXtl_dtls = {
 	1,
 	5061,
-	"UDP-DTLS",
+	"DTLS-UDP",
 	"0.0.0.0",
 	IPPROTO_UDP,
 	AF_INET,

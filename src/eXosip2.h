@@ -673,8 +673,9 @@ extern "C" {
 								 osip_fsm_type_t ctx_type, osip_t * osip,
 								 osip_message_t * message);
 
-	int _eXosip_srv_lookup(osip_transaction_t * tr, osip_message_t * sip,
-						   struct osip_srv_record *record);
+	int _eXosip_srv_lookup(osip_message_t * sip, osip_naptr_t **naptr_record);
+
+	void _eXosip_dnsutils_release(osip_naptr_t *naptr_record);
 
 	int _eXosip_handle_incoming_message(char *buf, size_t len, int socket,
 										char *host, int port);

@@ -72,23 +72,20 @@ _eXosip_transaction_init(osip_transaction_t ** transaction,
 						 osip_fsm_type_t ctx_type, osip_t * osip,
 						 osip_message_t * message)
 {
-#ifdef SRV_RECORD
-	osip_srv_record_t record;
-#endif
 	int i;
 	i = osip_transaction_init(transaction, ctx_type, osip, message);
 	if (i != 0) {
 		return i;
 	}
-#ifdef SRV_RECORD
-	memset(&record, 0, sizeof(osip_srv_record_t));
-	i = _eXosip_srv_lookup(*transaction, message, &record);
-	if (i < 0) {
-		/* might be a simple DNS request or an IP */
-		return OSIP_SUCCESS;
+	{
+		osip_naptr_t *naptr_record=NULL;
+		i = _eXosip_srv_lookup(message, &naptr_record);
+		if (i < 0) {
+			/* might be a simple DNS request or an IP */
+			return OSIP_SUCCESS;
+		}
+		osip_transaction_set_naptr_record(*transaction, naptr_record);
 	}
-	osip_transaction_set_srv_record(*transaction, &record);
-#endif
 	return OSIP_SUCCESS;
 }
 

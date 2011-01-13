@@ -134,6 +134,7 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 	if (contact == NULL)
 		return OSIP_NOMEM;
 	if (firewall_ip[0] != '\0') {
+#ifdef USE_LOCALIP_WITH_LOCALPROXY /* disable this code for local testing because it adds an extra DNS */
 		char *c_address = request->req_uri->host;
 
 		struct addrinfo *addrinfo;
@@ -154,6 +155,9 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 		if (eXosip_is_public_address(c_address)) {
 			memcpy(locip, firewall_ip, sizeof(locip));
 		}
+#else
+		memcpy(locip, firewall_ip, sizeof(locip));
+#endif
 	}
 
 	if (locip[0] == '\0') {
@@ -635,6 +639,7 @@ generating_register(eXosip_reg_t * jreg, osip_message_t ** reg, char *transport,
 		if (i == 0 && (*reg)->from != NULL && (*reg)->from->url != NULL) {
 			/* serach for correct ip */
 			if (firewall_ip[0] != '\0' && (*reg)->req_uri->host != NULL) {
+#ifdef USE_LOCALIP_WITH_LOCALPROXY /* disable this code for local testing because it adds an extra DNS */
 				char *c_address = (*reg)->req_uri->host;
 
 				struct addrinfo *addrinfo;
@@ -660,6 +665,10 @@ generating_register(eXosip_reg_t * jreg, osip_message_t ** reg, char *transport,
 					new_contact_url->host = osip_strdup(locip);
 					new_contact_url->port = osip_strdup(firewall_port);
 				}
+#else
+				new_contact_url->host = osip_strdup(firewall_ip);
+				new_contact_url->port = osip_strdup(firewall_port);
+#endif
 			} else {
 				new_contact_url->host = osip_strdup(locip);
 				new_contact_url->port = osip_strdup(firewall_port);
