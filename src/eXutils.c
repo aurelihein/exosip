@@ -2880,7 +2880,6 @@ int eXosip_dnsutils_dns_process(osip_naptr_t *naptr_record, int force)
 
 void _eXosip_dnsutils_release(osip_naptr_t *naptr_record)
 {
-	ares_channel channel;
 	if (naptr_record==NULL)
 		return;
 	if (naptr_record->keep_in_cache>0)
@@ -2911,7 +2910,7 @@ typedef union {
 #define T_NAPTR	35
 #endif
 
-int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
+static int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
 {
 	querybuf answer;			/* answer buffer from nameserver */
 	int n;
@@ -2938,9 +2937,9 @@ int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
 
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				"About to ask for '%s IN SRV'\n", record->name));
+				"About to ask for '%s IN SRV'\n", output_srv->name));
 
-	n = res_query(record->name, C_IN, T_SRV, (unsigned char *) &answer, sizeof(answer));
+	n = res_query(output_srv->name, C_IN, T_SRV, (unsigned char *) &answer, sizeof(answer));
 
 	if (n < (int) sizeof(HEADER)) {
 		return OSIP_UNKNOWN_HOST;
@@ -3133,7 +3132,7 @@ int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain
 	querybuf answer;			/* answer buffer from nameserver */
 	int n;
 	int ancount, qdcount;		/* answer count and query count */
-	int nncount, arcount;		/* ns count and ar count */
+	int nscount, arcount;		/* ns count and ar count */
 	HEADER *hp;					/* answer buffer header */
 	char hostbuf[256];
 	unsigned char *msg, *eom, *cp;	/* answer buffer positions */
@@ -3183,6 +3182,7 @@ int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"Invalid SRV record answer for '%s': bad format\n", domain));
+			output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
 			return OSIP_UNDEFINED_ERROR;
 		}
 		cp += n + QFIXEDSZ;
@@ -3212,6 +3212,7 @@ int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"Invalid NAPTR answer for '%s': bad format\n", domain));
+			output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
 			return OSIP_UNDEFINED_ERROR;
 		}
 
@@ -3330,9 +3331,13 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 	{
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					"protocol: %s is not supported by domain %s\n", protocol, domain));
+					"No NAPTR for SIP for domain %s\n", domain));
+		output_record->naptr_state=OSIP_NAPTR_STATE_NOTSUPPORTED;
 		return OSIP_SUCCESS;
 	}
+
+	if (output_record->naptr_state!=OSIP_NAPTR_STATE_NAPTRDONE)
+		output_record->naptr_state=OSIP_NAPTR_STATE_NOTSUPPORTED;
 
 	return OSIP_SUCCESS;
 }
@@ -3486,7 +3491,6 @@ int eXosip_dnsutils_dns_process(osip_naptr_t *naptr_record, int force)
 
 void _eXosip_dnsutils_release(osip_naptr_t *naptr_record)
 {
-	ares_channel channel;
 	if (naptr_record==NULL)
 		return;
 	if (naptr_record->keep_in_cache>0)
