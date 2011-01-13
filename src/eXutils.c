@@ -2921,7 +2921,6 @@ static int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
 	int dlen, type, aclass, pref, weight, port;
 	long ttl;
 	int answerno;
-	char tr[100];
 
 	if (output_srv->name=='\0')
 	{
@@ -3094,7 +3093,7 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
+static int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
 {
 	if (output_record->naptr_state==OSIP_NAPTR_STATE_SRVDONE)
 		return OSIP_SUCCESS;
@@ -3127,7 +3126,7 @@ int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
 	return 0;
 }
 
-int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain)
+static int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain)
 {
 	querybuf answer;			/* answer buffer from nameserver */
 	int n;
@@ -3158,10 +3157,16 @@ int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain
 		"eXosip_dnsutils_naptr_lookup: About to ask for '%s NAPTR'\n", domain));
 
 	if (n < (int) sizeof(HEADER)) {
+		int hstatus = h_errno;
 		OSIP_TRACE(osip_trace
 			(__FILE__, __LINE__, OSIP_ERROR, NULL,
-			"eXosip_dnsutils_naptr_lookup: res_query failed ('%s NAPTR')\n", domain));
-		output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
+			 "eXosip_dnsutils_naptr_lookup: res_query failed ('%s NAPTR')\n", domain));
+		if (hstatus==NO_DATA)
+			output_record->naptr_state=OSIP_NAPTR_STATE_NOTSUPPORTED;
+		else if (hstatus==HOST_NOT_FOUND)
+			output_record->naptr_state=OSIP_NAPTR_STATE_NOTSUPPORTED;
+		else
+			output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
 		return OSIP_UNDEFINED_ERROR;
 	}
 
