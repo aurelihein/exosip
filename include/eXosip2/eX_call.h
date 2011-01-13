@@ -84,7 +84,7 @@ extern "C"
  * @param invite    Pointer for the SIP element to hold.
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
- * @param route     Route header for INVITE. (optionnal)
+ * @param route     Route header for INVITE. (optional)
  * @param subject   Subject for the call.
  */
   int eXosip_call_build_initial_invite (osip_message_t ** invite, const char *to,

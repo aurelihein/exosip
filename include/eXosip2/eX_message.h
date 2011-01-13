@@ -66,7 +66,7 @@ extern "C"
  * @param method    request method. (like "MESSAGE" or "PING"...)
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
- * @param route     Route header for request. (optionnal)
+ * @param route     Route header for request. (optional)
  */
   int eXosip_message_build_request (osip_message_t ** message, const char *method,
                                     const char *to, const char *from,

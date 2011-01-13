@@ -19,7 +19,7 @@ Nov 2005    : 2.2.2
   1: the media/session information must now be handled by the application.
       -> no negotiation issue any more
       -> eXosip provide a basic API to quickly extract SDP information,
-         but this is kept optionnal.
+         but this is kept optional.
       -> no limitation about the attachment or the media to be supported.
 
   2: the API has been refined to provide the flexibility you need. Thus,

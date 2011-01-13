@@ -62,7 +62,7 @@ extern "C"
  * @param refer_to  SIP url for transfer.
  * @param from      SIP url for caller.
  * @param to        SIP url for callee.
- * @param route     Route header for REFER. (optionnal)
+ * @param route     Route header for REFER. (optional)
  */
   int eXosip_refer_build_request (osip_message_t ** refer, const char *refer_to,
                                   const char *from, const char *to,

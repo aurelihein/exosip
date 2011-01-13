@@ -62,7 +62,7 @@ extern "C"
  * @param options   Pointer for the SIP request to build.
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
- * @param route     Route header for INVITE. (optionnal)
+ * @param route     Route header for INVITE. (optional)
  */
   int eXosip_options_build_request (osip_message_t ** options, const char *to,
                                     const char *from, const char *route);

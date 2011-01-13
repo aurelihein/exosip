@@ -16,7 +16,7 @@ code below is used to start a call:
 
   i = eXosip_call_build_initial_invite (&invite, "<sip:to@antisip.com>",
                                         "<sip:from@antisip.com>",
-                                        NULL, // optionnal route header
+                                        NULL, // optional route header
                                         "This is a call for a conversation");
   if (i != 0)
     {
