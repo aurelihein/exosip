@@ -995,10 +995,10 @@ int eXosip_call_terminate(int cid, int did)
 			return i;
 		}
 		if (jd != NULL) {
-			//Fix: keep dialog opened after the CANCEL.
-			//osip_dialog_free(jd->d_dialog);
-			//jd->d_dialog = NULL;
-			//eXosip_update();
+			/*Fix: keep dialog opened after the CANCEL.
+			  osip_dialog_free(jd->d_dialog);
+			  jd->d_dialog = NULL;
+			  eXosip_update(); */
 		}
 		return OSIP_SUCCESS+1;
 	}
@@ -1380,7 +1380,7 @@ _eXosip_call_retry_request(eXosip_call_t * jc,
 			exp->hvalue = NULL;
 			osip_content_disposition_to_str(exp_h, &exp->hvalue);
 
-			//add or update Min-SE in INVITE:
+			/* add or update Min-SE in INVITE: */
 			osip_message_header_get_byname(msg, "min-se", 0, &min_se_new);
 			if (min_se_new != NULL && min_se_new->hvalue != NULL) {
 				osip_free(min_se_new->hvalue);
@@ -1407,7 +1407,7 @@ _eXosip_call_retry_request(eXosip_call_t * jc,
 			osip_message_header_get_byname(msg, "x", 0, &exp);
 		}
 		if (exp == NULL) {
-			//add missing one?
+			/* add missing one? */
 		}
 	}
 
