@@ -1031,10 +1031,11 @@ static osip_list_t *dnsutils_list=NULL;
 #include <errno.h>
 
 #include <ares.h>
-#include "ares_dns.h"
+#include <ares_dns.h>
+#ifdef WIN32
 #include "inet_ntop.h"
-#include "inet_net_pton.h"
-
+#endif
+ 
 #ifdef USE_WINSOCK
 #define SOCKERRNO         ((int)WSAGetLastError())
 #define SET_SOCKERRNO(x)  (WSASetLastError((int)(x)))
@@ -1259,6 +1260,7 @@ static const unsigned char *save_SRV(osip_naptr_t *output_record,
 				rr_name, srventry->srv, srventry->port, srventry->priority,
 				srventry->weight, srventry->rweight));
 
+			osip_srv_record_sort(srvrecord, n+1);
 			ares_free_string(name.as_char);
 		}
 		break;
@@ -1649,8 +1651,8 @@ static void _naptr_callback(void *arg, int status, int timeouts,
 
 		OSIP_TRACE(osip_trace
 			(__FILE__, __LINE__, OSIP_ERROR, NULL, "_naptr_callback: %s %s\n", output_record->domain, ares_strerror(status)));
-		if (!abuf)
-			return;
+		/*if (!abuf) */
+		return;
 	}
 
 	/* pre-set all SRV record to unsupported? */
@@ -1678,7 +1680,7 @@ static void _naptr_callback(void *arg, int status, int timeouts,
 		output_record->naptr_state=OSIP_NAPTR_STATE_SRVDONE;
 }
 
-int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
+static int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
 {
 	ares_channel channel=NULL;
 	struct ares_options options;
@@ -1875,7 +1877,7 @@ int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain)
+static int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain)
 {
 	ares_channel channel=NULL;
 	struct ares_options options;
@@ -1967,9 +1969,11 @@ struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protoco
 	struct osip_naptr *naptr_record;
 	int pos;
 	int i;
+#if defined(WIN32) && !defined(_WIN32_WCE)
 	DNS_STATUS err;
 	DWORD buf_length=0;
 	IP4_ARRAY *dns_servers;
+#endif
 	int not_in_list=0;
 
 	if (dnsutils_list==NULL)
@@ -2222,7 +2226,7 @@ int eXosip_dnsutils_dns_process(osip_naptr_t *naptr_record, int force)
 			}
 			else if (naptr_record->naptr_state==OSIP_NAPTR_STATE_INPROGRESS) {
 				if (naptr_record->sipudp_record.srv_state == OSIP_SRV_STATE_COMPLETED)
-					naptr_record->naptr_state=OSIP_NAPTR_STATE_SRVDONE;
+						naptr_record->naptr_state=OSIP_NAPTR_STATE_SRVDONE;
 				else if (naptr_record->siptcp_record.srv_state == OSIP_SRV_STATE_COMPLETED)
 					naptr_record->naptr_state=OSIP_NAPTR_STATE_SRVDONE;
 				else if (naptr_record->siptls_record.srv_state == OSIP_SRV_STATE_COMPLETED)

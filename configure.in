@@ -205,7 +205,16 @@ case $OS in
      ;;
 esac
 
-PKG_CHECK_MODULES(OSIP, libosip2 >= 3.4, [], [
+AC_CHECK_LIB([cares], [ares_init],
+     [AC_CHECK_HEADER(ares.h,
+	[EXOSIP_LIB="$EXOSIP_LIB -lcares"
+        EXOSIP_FLAGS="$EXOSIP_FLAGS -DHAVE_CARES_H"],
+	[AC_MSG_WARN([c-ares header files are not installed])])
+     ],
+     [AC_MSG_WARN([c-ares library is not installed])]
+)
+
+PKG_CHECK_MODULES(OSIP, libosip2 >= 3.5, [], [
 AC_MSG_WARN([assuming osip can be found in -I$includedir and -L$libdir])
 OSIP_CFLAGS='-I$(includedir) -I$(prefix)/include'
 OSIP_LIBS='-L$(libdir) -L$(prefix)/lib -losip2 -losipparser2'
