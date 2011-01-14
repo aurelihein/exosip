@@ -2651,7 +2651,7 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 
 static int tls_tl_keepalive(void)
 {
-	char buf[4] = "\r\n\r\n";
+	char buf[5] = "\r\n\r\n";
 	int pos;
 	int i;
 
