@@ -701,6 +701,7 @@ int eXosip_init(void)
 	eXosip.use_rport = 1;
 	eXosip.dns_capabilities = 2;
 	eXosip.keep_alive = 17000;
+	eXosip.keep_alive_options = 0;
 
 	eXtl_udp.tl_init();
 	eXtl_tcp.tl_init();
@@ -946,6 +947,12 @@ int eXosip_set_option(int opt, const void *value)
 		val = *((int *) value);
 		eXosip.keep_alive = val;	/* value in ms */
 		break;
+#ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
+	case EXOSIP_OPT_KEEP_ALIVE_OPTIONS_METHOD:
+		val = *((int *) value);
+		eXosip.keep_alive_options = val;	/* value 0 or 1 */
+		break;
+#endif
 	case EXOSIP_OPT_UDP_LEARN_PORT:
 		val = *((int *) value);
 		eXosip.learn_port = val;	/* 1 to learn port */

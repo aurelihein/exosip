@@ -440,6 +440,7 @@ extern "C" {
 		jauthinfo_t *authinfos;
 
 		int keep_alive;
+		int keep_alive_options;
 		int learn_port;
 #ifndef MINISIZE
 		int http_port;

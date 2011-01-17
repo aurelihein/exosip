@@ -1285,6 +1285,36 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	return OSIP_SUCCESS;
 }
 
+#ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
+static int _tcp_tl_get_socket_info(int socket, char *host, int hostsize, int *port)
+{
+	struct sockaddr addr;
+	int nameLen = sizeof(addr);
+	int ret;
+	if(socket <= 0 || host== NULL || hostsize <= 0 || port == NULL)
+		return OSIP_BADPARAMETER;
+	ret = getsockname(socket, &addr, &nameLen);
+	if (ret != 0)
+	{
+		/* ret = ex_errno; */
+		return OSIP_UNDEFINED_ERROR;
+	} 
+	else 
+	{
+		ret = getnameinfo((struct sockaddr *) &addr, nameLen,
+						host, hostsize, NULL, 0, NI_NUMERICHOST);
+		if (ret!=0)
+			return OSIP_UNDEFINED_ERROR;
+
+		if (addr.sa_family == AF_INET)
+			(*port) = ntohs(((struct sockaddr_in *) &addr)->sin_port);
+		else
+			(*port) = ntohs(((struct sockaddr_in6 *) &addr)->sin6_port);
+	}
+	return OSIP_SUCCESS;
+}
+#endif
+
 static int tcp_tl_keepalive(void)
 {
 	char buf[5] = "\r\n\r\n";
@@ -1338,6 +1368,81 @@ static int tcp_tl_keepalive(void)
 				continue;
 			}
 			if (eXosip.keep_alive > 0) {
+#ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
+				if (eXosip.keep_alive_options != 0)
+				{
+					osip_message_t *options;
+					char from[NI_MAXHOST];
+					char to[NI_MAXHOST];
+					char locip[NI_MAXHOST];
+					int locport;
+					char *message;
+					size_t length;
+
+					options = NULL;
+					memset(to, '\0', sizeof(to));
+					memset(from, '\0', sizeof(from));
+					memset(locip, '\0', sizeof(locip));
+					locport = 0;
+
+					snprintf(to, sizeof(to), "<sip:%s:%d>", tcp_socket_tab[pos].remote_ip, tcp_socket_tab[pos].remote_port);
+					_tcp_tl_get_socket_info(tcp_socket_tab[pos].socket, locip, sizeof(locip), &locport);
+					if (locip[0] == '\0')
+					{
+						OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_WARNING, NULL,
+							"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], failed to create sip options message\n",
+							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].socket, 
+							pos));
+						continue;
+					}
+
+					snprintf(from, sizeof(from), "<sip:%s:%d>", locip, locport);
+
+					eXosip_lock();
+					/* Generate an options message */
+					if(eXosip_options_build_request(&options,to,from,NULL) == OSIP_SUCCESS)
+					{
+						message = NULL;
+						length = 0;
+						/* Convert message to str for direct sending over correct socket */
+						if(osip_message_to_str( options, &message, &length ) == OSIP_SUCCESS)
+						{
+							OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
+								"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], sending sip options\n\r%s",
+								tcp_socket_tab[pos].remote_ip,
+								tcp_socket_tab[pos].socket, 
+								pos,
+								message));
+							i = send(tcp_socket_tab[pos].socket, (const void *) message, length, 0);
+							osip_free(message);
+							if(i > 0) {
+								OSIP_TRACE(osip_trace
+									(__FILE__, __LINE__, OSIP_INFO1, NULL,
+									"eXosip: Keep Alive sent on TCP!\n"));
+							}
+						}
+						else
+						{
+							OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_WARNING, NULL,
+								"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], failed to convert sip options message\n",
+								tcp_socket_tab[pos].remote_ip,
+								tcp_socket_tab[pos].socket, 
+								pos));
+						}
+					}
+					else
+					{
+						OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_WARNING, NULL,
+							"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], failed to create sip options message\n",
+							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].socket, 
+							pos));
+					}
+					eXosip_unlock();
+					continue;
+				}
+#endif
 				i = send(tcp_socket_tab[pos].socket, (const void *) buf, 4, 0);
 			}
 		}
