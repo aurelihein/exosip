@@ -41,7 +41,7 @@
 #include <nameser8_compat.h>
 #include <resolv8_compat.h>
 #elif defined(HAVE_RESOLV_H) || defined(OpenBSD) || defined(FreeBSD) || defined(NetBSD)
-#ifdef HAVE_NAMESER_COMPAT_H
+#ifdef HAVE_ARPA_NAMESER_COMPAT_H
 #include <arpa/nameser_compat.h>
 #endif
 #include <resolv.h>
@@ -2278,7 +2278,7 @@ int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
 	PDNS_RECORD answer, tmp;	/* answer buffer from nameserver */
 	int n;
 
-	if (output_srv->name=='\0')
+	if (output_srv->name[0]=='\0')
 	{
 		return OSIP_SUCCESS;
 	}
@@ -2926,7 +2926,7 @@ static int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
 	long ttl;
 	int answerno;
 
-	if (output_srv->name=='\0')
+	if (output_srv->name[0]=='\0')
 	{
 		return OSIP_SUCCESS;
 	}

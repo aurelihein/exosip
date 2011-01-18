@@ -352,6 +352,7 @@ AC_CHECK_HEADERS(arpa/inet.h)
 AC_CHECK_HEADERS(arpa/nameser.h)
 AC_CHECK_HEADERS(netdb.h)
 AC_CHECK_HEADERS(nameser8_compat.h)
+AC_CHECK_HEADERS(arpa/nameser_compat.h)
 
 AC_CHECK_HEADERS([resolv.h], [], [],
 [#if HAVE_SYS_TYPES_H
