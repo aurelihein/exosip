@@ -3507,6 +3507,23 @@ void _eXosip_dnsutils_release(osip_naptr_t *naptr_record)
 	osip_free(naptr_record);
 }
 
+#else
+
+struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol, const char *transport, int keep_in_cache)
+{
+	return NULL;
+}
+
+int eXosip_dnsutils_dns_process(osip_naptr_t *naptr_record, int force)
+{
+	return OSIP_UNDEFINED_ERROR;
+}
+
+void _eXosip_dnsutils_release(osip_naptr_t *naptr_record)
+{
+	return;
+}
+
 #endif
 
 #else

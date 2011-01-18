@@ -27,6 +27,10 @@
 #include <osip2/osip_mt.h>
 #include <osip2/osip_condv.h>
 
+#if defined (_WIN32_WCE)
+#include "inet_ntop.h"
+#endif
+
 extern eXosip_t eXosip;
 
 int ipv6_enable = 0;
