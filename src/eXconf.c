@@ -328,14 +328,16 @@ int eXosip_find_free_port(int free_port, int transport)
 	int count;
 
 	for (count = 0; count < 8; count++) {
-		res1 =
-			eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", free_port + count * 2,
-								transport);
+		if (ipv6_enable == 0)
+			res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", free_port + count * 2, transport);
+		else
+			res1 = eXosip_get_addrinfo(&addrinfo_rtp, "::", free_port + count * 2, transport);
 		if (res1 != 0)
 			return res1;
-		res2 =
-			eXosip_get_addrinfo(&addrinfo_rtcp, "0.0.0.0",
-								free_port + count * 2 + 1, transport);
+		if (ipv6_enable == 0)
+			res2 = eXosip_get_addrinfo(&addrinfo_rtcp, "0.0.0.0", free_port + count * 2 + 1, transport);
+		else
+			res2 = eXosip_get_addrinfo(&addrinfo_rtcp, "::", free_port + count * 2 + 1, transport);
 		if (res2 != 0) {
 			eXosip_freeaddrinfo(addrinfo_rtp);
 			return res2;
@@ -454,7 +456,11 @@ int eXosip_find_free_port(int free_port, int transport)
 	}
 
 	/* just get a free port */
-	res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", 0, transport);
+	if (ipv6_enable == 0)
+		res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", 0, transport);
+	else
+		res1 = eXosip_get_addrinfo(&addrinfo_rtp, "::", 0, transport);
+
 	if (res1)
 		return res1;
 
@@ -517,7 +523,7 @@ int eXosip_find_free_port(int free_port, int transport)
 		sock = -1;
 		eXosip_freeaddrinfo(addrinfo_rtp);
 
-		if (ipv6_enable == 0)
+		if (curinfo_rtp->ai_family == AF_INET)
 			return ntohs(((struct sockaddr_in *) &ai_addr)->sin_port);
 		else
 			return ntohs(((struct sockaddr_in6 *) &ai_addr)->sin6_port);

@@ -38,8 +38,6 @@
 
 extern eXosip_t eXosip;
 
-extern int ipv6_enable;
-
 /* Private functions */
 static int dialog_fill_route_set(osip_dialog_t * dialog, osip_message_t * request);
 

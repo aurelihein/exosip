@@ -38,7 +38,6 @@
 #endif
 
 extern eXosip_t eXosip;
-extern int ipv6_enable;
 
 /* Private functions */
 static void eXosip_send_default_answer(eXosip_dialog_t * jd,
