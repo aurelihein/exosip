@@ -1158,7 +1158,6 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					replace with next entries.
 					*/
 					osip_srv_entry_t *srv;
-					int n = 0;
 					srv = &naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index];
 					if (srv->ipaddress[0]) {
 						host = srv->ipaddress;
@@ -1224,7 +1223,6 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					replace with next entries.
 					*/
 					osip_srv_entry_t *srv;
-					int n = 0;
 					srv = &naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index];
 					if (srv->ipaddress[0]) {
 						host = srv->ipaddress;
