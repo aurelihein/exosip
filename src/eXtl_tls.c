@@ -34,6 +34,13 @@
 #include <wincrypt.h>
 #endif
 
+#if defined(_WIN32_WCE) || defined(WIN32)
+#define strerror(X) "-1"
+#define ex_errno WSAGetLastError()
+#else
+#define ex_errno errno
+#endif
+
 #ifdef HAVE_OPENSSL_SSL_H
 
 #define ex_verify_depth 10
@@ -56,10 +63,6 @@
 #define DHFILE PATH"dh1024.pem"*/
 
 extern eXosip_t eXosip;
-
-#if defined(_WIN32_WCE)
-#define strerror(X) "-1"
-#endif
 
 #ifdef __APPLE_CC__
 #include "TargetConditionals.h"
@@ -99,6 +102,8 @@ static int tls_verify_client_certificate;
 /* persistent connection */
 struct socket_tab {
 	int socket;
+	struct sockaddr ai_addr;
+	size_t ai_addrlen;
 	char remote_ip[65];
 	int remote_port;
 	SSL *ssl_conn;
@@ -1208,7 +1213,7 @@ static int tls_tl_open(void)
 		if (sock < 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Cannot create socket %s!\n", strerror(errno)));
+						"eXosip: Cannot create socket %s!\n", strerror(ex_errno)));
 			continue;
 		}
 
@@ -1220,7 +1225,7 @@ static int tls_tl_open(void)
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 							"eXosip: Cannot set socket option %s!\n",
-							strerror(errno)));
+							strerror(ex_errno)));
 				continue;
 			}
 #endif							/* IPV6_V6ONLY */
@@ -1231,7 +1236,7 @@ static int tls_tl_open(void)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: Cannot bind socket node:%s family:%d %s\n",
-						eXtl_tls.proto_ifs, curinfo->ai_family, strerror(errno)));
+						eXtl_tls.proto_ifs, curinfo->ai_family, strerror(ex_errno)));
 			close(sock);
 			sock = -1;
 			continue;
@@ -1241,7 +1246,7 @@ static int tls_tl_open(void)
 		if (res != 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Cannot get socket name (%s)\n", strerror(errno)));
+						"eXosip: Cannot get socket name (%s)\n", strerror(ex_errno)));
 			memcpy(&ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
 		}
 
@@ -1252,7 +1257,7 @@ static int tls_tl_open(void)
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 							"eXosip: Cannot bind socket node:%s family:%d %s\n",
 							eXtl_tls.proto_ifs, curinfo->ai_family,
-							strerror(errno)));
+							strerror(ex_errno)));
 				close(sock);
 				sock = -1;
 				continue;
@@ -1484,7 +1489,7 @@ static int _tls_tl_is_connected(int sock)
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"Cannot connect socket node / %s[%d]\n",
-							strerror(errno), valopt));
+							strerror(ex_errno), valopt));
 				return -1;
 			} else {
 				return 0;
@@ -1493,14 +1498,14 @@ static int _tls_tl_is_connected(int sock)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"Cannot connect socket node / error in getsockopt %s[%d]\n",
-						strerror(errno), errno));
+						strerror(ex_errno), ex_errno));
 			return -1;
 		}
 	} else if (res < 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 					"Cannot connect socket node / error in select %s[%d]\n",
-					strerror(errno), errno));
+					strerror(ex_errno), ex_errno));
 		return -1;
 	} else {
 		OSIP_TRACE(osip_trace
@@ -1509,6 +1514,151 @@ static int _tls_tl_is_connected(int sock)
 					SOCKET_TIMEOUT));
 		return 1;
 	}
+}
+
+static int _tls_tl_check_connected()
+{
+	int pos;
+	int res;
+
+	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
+		if (tls_socket_tab[pos].socket > 0
+			&& tls_socket_tab[pos].ai_addrlen > 0) {
+				if (tls_socket_tab[pos].ssl_state>0)
+				{
+					/* already connected */
+					tls_socket_tab[pos].ai_addrlen = 0;
+					continue;
+				}
+
+				res = connect(tls_socket_tab[pos].socket, &tls_socket_tab[pos].ai_addr, tls_socket_tab[pos].ai_addrlen);
+				if (res < 0) {
+					int status = ex_errno;
+#if defined(_WIN32_WCE) || defined(WIN32)
+					if (status == WSAEISCONN) {
+						tls_socket_tab[pos].ai_addrlen=0; //already connected
+						continue;
+					}
+#else
+					if (status == EISCONN) {
+						tls_socket_tab[pos].ai_addrlen=0; //already connected
+						continue;
+					}
+#endif
+#if defined(_WIN32_WCE) || defined(WIN32)
+					if (status != WSAEWOULDBLOCK && status != WSAEALREADY && status != WSAEINVAL) {
+#else
+					if (status != EINPROGRESS && status != EALREADY) {
+#endif
+						OSIP_TRACE(osip_trace
+							(__FILE__, __LINE__, OSIP_INFO2, NULL,
+							"_tls_tl_check_connected: Cannot connect socket node:%s:%i, socket %d [pos=%d], family:%d, %s[%d]\n",
+							tls_socket_tab[pos].remote_ip,
+							tls_socket_tab[pos].remote_port,
+							tls_socket_tab[pos].socket,
+							pos,
+							tls_socket_tab[pos].ai_addr.sa_family,
+							strerror(status),
+							status));
+						if (tls_socket_tab[pos].ssl_conn != NULL)
+							SSL_shutdown(tls_socket_tab[pos].ssl_conn);
+						close(tls_socket_tab[pos].socket);
+						if (tls_socket_tab[pos].ssl_conn != NULL)
+							SSL_free(tls_socket_tab[pos].ssl_conn);
+						if (tls_socket_tab[pos].ssl_ctx != NULL)
+							SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
+#ifdef MULTITASKING_ENABLED
+						if (tls_socket_tab[pos].readStream!=NULL)
+						{
+							CFReadStreamClose(tls_socket_tab[pos].readStream);
+							CFRelease(tls_socket_tab[pos].readStream);						
+						}
+						if (tls_socket_tab[pos].writeStream!=NULL)
+						{
+							CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+							CFRelease(tls_socket_tab[pos].writeStream);
+						}
+						tls_socket_tab[pos].readStream=0;
+						tls_socket_tab[pos].writeStream=0;
+#endif
+						memset(&tls_socket_tab[pos], 0, sizeof(tls_socket_tab[pos]));
+						continue;
+					} else {
+						res = _tls_tl_is_connected(tls_socket_tab[pos].socket);
+						if (res > 0) {
+							OSIP_TRACE(osip_trace
+								(__FILE__, __LINE__, OSIP_INFO2, NULL,
+								"_tls_tl_check_connected: socket node:%s:%i, socket %d [pos=%d], family:%d, in progress\n",
+								tls_socket_tab[pos].remote_ip,
+								tls_socket_tab[pos].remote_port,
+								tls_socket_tab[pos].socket,
+								pos,
+								tls_socket_tab[pos].ai_addr.sa_family));
+							continue;
+						} else if (res == 0) {
+							OSIP_TRACE(osip_trace
+								(__FILE__, __LINE__, OSIP_INFO1, NULL,
+								"_tls_tl_check_connected: socket node:%s:%i , socket %d [pos=%d], family:%d, connected\n",
+								tls_socket_tab[pos].remote_ip,
+								tls_socket_tab[pos].remote_port,
+								tls_socket_tab[pos].socket,
+								pos,
+								tls_socket_tab[pos].ai_addr.sa_family));
+							/* stop calling "connect()" */
+							tls_socket_tab[pos].ai_addrlen=0;
+							tls_socket_tab[pos].ssl_state=1;
+							continue;
+						} else {
+							OSIP_TRACE(osip_trace
+								(__FILE__, __LINE__, OSIP_INFO2, NULL,
+								"_tls_tl_check_connected: socket node:%s:%i, socket %d [pos=%d], family:%d, error\n",
+								tls_socket_tab[pos].remote_ip,
+								tls_socket_tab[pos].remote_port,
+								tls_socket_tab[pos].socket,
+								pos,
+								tls_socket_tab[pos].ai_addr.sa_family));
+							if (tls_socket_tab[pos].ssl_conn != NULL)
+								SSL_shutdown(tls_socket_tab[pos].ssl_conn);
+							close(tls_socket_tab[pos].socket);
+							if (tls_socket_tab[pos].ssl_conn != NULL)
+								SSL_free(tls_socket_tab[pos].ssl_conn);
+							if (tls_socket_tab[pos].ssl_ctx != NULL)
+								SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
+#ifdef MULTITASKING_ENABLED
+							if (tls_socket_tab[pos].readStream!=NULL)
+							{
+								CFReadStreamClose(tls_socket_tab[pos].readStream);
+								CFRelease(tls_socket_tab[pos].readStream);						
+							}
+							if (tls_socket_tab[pos].writeStream!=NULL)
+							{
+								CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
+								CFRelease(tls_socket_tab[pos].writeStream);
+							}
+							tls_socket_tab[pos].readStream=0;
+							tls_socket_tab[pos].writeStream=0;
+#endif
+							memset(&tls_socket_tab[pos], 0, sizeof(tls_socket_tab[pos]));
+							continue;
+						}
+					}
+				}
+				else
+				{
+					OSIP_TRACE(osip_trace
+						(__FILE__, __LINE__, OSIP_INFO1, NULL,
+						"_tls_tl_check_connected: socket node:%s:%i , socket %d [pos=%d], family:%d, connected (with connect)\n",
+						tls_socket_tab[pos].remote_ip,
+						tls_socket_tab[pos].remote_port,
+						tls_socket_tab[pos].socket,
+						pos,
+						tls_socket_tab[pos].ai_addr.sa_family));
+					/* stop calling "connect()" */
+					tls_socket_tab[pos].ai_addrlen=0;
+				}
+		}
+	}
+	return 0;
 }
 
 static int _tls_tl_ssl_connect_socket(int pos)
@@ -1582,7 +1732,7 @@ static int _tls_tl_ssl_connect_socket(int pos)
 		if (res < 0) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
 								  "SSL_connect select(read) error (%s)\n",
-								  strerror(errno)));
+								  strerror(ex_errno)));
 			return -1;
 		} else if (res > 0) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
@@ -1853,6 +2003,7 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 								tls_socket_tab[pos].remote_ip,
 								tls_socket_tab[pos].socket, pos));
 					tls_socket_tab[pos].ssl_state = 1;
+					tls_socket_tab[pos].ai_addrlen = 0;
 				} else {
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -2039,9 +2190,14 @@ static int _tls_tl_connect_socket(char *host, int port)
 	struct addrinfo *curinfo;
 	int sock = -1;
 	int ssl_state = 0;
+	struct sockaddr selected_ai_addr;
+	size_t selected_ai_addrlen;
 
 	char src6host[NI_MAXHOST];
 	memset(src6host, 0, sizeof(src6host));
+
+	selected_ai_addrlen=0;
+	memset(&selected_ai_addr, 0, sizeof(struct sockaddr));
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (tls_socket_tab[pos].socket == 0) {
@@ -2090,7 +2246,7 @@ static int _tls_tl_connect_socket(char *host, int port)
 #else
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-						"eXosip: Cannot create socket %s!\n", strerror(errno)));
+						"eXosip: Cannot create socket %s!\n", strerror(ex_errno)));
 #endif
 			continue;
 		}
@@ -2108,7 +2264,7 @@ static int _tls_tl_connect_socket(char *host, int port)
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"eXosip: Cannot set socket option %s!\n",
-							strerror(errno)));
+							strerror(ex_errno)));
 #endif
 				continue;
 			}
@@ -2199,15 +2355,14 @@ static int _tls_tl_connect_socket(char *host, int port)
 		res = connect(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
 #ifdef WIN32
-			int status = WSAGetLastError();
-			if (status != WSAEWOULDBLOCK) {
+			if (ex_errno != WSAEWOULDBLOCK) {
 #else
-			if (errno != EINPROGRESS) {
+			if (ex_errno != EINPROGRESS) {
 #endif
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"Cannot connect socket node:%s family:%d %s[%d]\n",
-							host, curinfo->ai_family, strerror(errno), errno));
+							host, curinfo->ai_family, strerror(ex_errno), ex_errno));
 
 				close(sock);
 				sock = -1;
@@ -2219,6 +2374,8 @@ static int _tls_tl_connect_socket(char *host, int port)
 							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 								"socket node:%s, socket %d [pos=%d], family:%d, in progress\n",
 								host, sock, pos, curinfo->ai_family));
+					selected_ai_addrlen = curinfo->ai_addrlen;
+					memcpy(&selected_ai_addr, curinfo->ai_addr, sizeof(struct sockaddr));
 					break;
 				} else if (res == 0) {
 #ifdef MULTITASKING_ENABLED
@@ -2260,6 +2417,11 @@ static int _tls_tl_connect_socket(char *host, int port)
 
 	if (sock > 0) {
 		tls_socket_tab[pos].socket = sock;
+
+		tls_socket_tab[pos].ai_addrlen = selected_ai_addrlen;
+		memset(&tls_socket_tab[pos].ai_addr, 0, sizeof(struct sockaddr));
+		if (selected_ai_addrlen>0)
+			memcpy(&tls_socket_tab[pos].ai_addr, &selected_ai_addr, selected_ai_addrlen);
 
 		if (src6host[0] == '\0')
 			osip_strncpy(tls_socket_tab[pos].remote_ip, host,
@@ -2460,6 +2622,9 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		return -1;
 	}
 
+	/* verify all current connections */
+	_tls_tl_check_connected();
+
 	if (out_socket > 0) {
 		for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 			if (tls_socket_tab[pos].socket != 0) {
@@ -2505,31 +2670,10 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"socket node:%s, socket %d [pos=%d], in progress\n",
-						host, out_socket, -1));
+						host, out_socket, pos));
 			osip_free(message);
 			if (tr != NULL && now - tr->birth_time > 10 && now - tr->birth_time < 13)
 			{
-				if (tls_socket_tab[pos].ssl_conn != NULL)
-					SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-				close(tls_socket_tab[pos].socket);
-				if (tls_socket_tab[pos].ssl_conn != NULL)
-					SSL_free(tls_socket_tab[pos].ssl_conn);
-				if (tls_socket_tab[pos].ssl_ctx != NULL)
-					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-				if (tls_socket_tab[pos].readStream!=NULL)
-				{
-					CFReadStreamClose(tls_socket_tab[pos].readStream);
-					CFRelease(tls_socket_tab[pos].readStream);						
-				}
-				if (tls_socket_tab[pos].writeStream!=NULL)
-				{
-					CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-					CFRelease(tls_socket_tab[pos].writeStream);
-				}
-#endif
-				
-				memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
 				/* avoid doing this twice... */
 				if (naptr_record!=NULL && MSG_IS_REGISTER(sip))
 				{
@@ -2550,13 +2694,14 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"socket node:%s , socket %d [pos=%d], connected\n",
-						host, out_socket, -1));
+						host, out_socket, pos));
 			tls_socket_tab[pos].ssl_state = 1;
+			tls_socket_tab[pos].ai_addrlen = 0;
 		} else {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"socket node:%s, socket %d [pos=%d], socket error\n",
-						host, out_socket, -1));
+						host, out_socket, pos));
 			osip_free(message);
 			return -1;
 		}
