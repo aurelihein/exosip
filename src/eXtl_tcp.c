@@ -734,12 +734,12 @@ static int _tcp_tl_check_connected()
 					int status = ex_errno;
 #if defined(_WIN32_WCE) || defined(WIN32)
 					if (status == WSAEISCONN) {
-						tcp_socket_tab[pos].ai_addrlen=0; //already connected
+						tcp_socket_tab[pos].ai_addrlen=0; /* already connected */
 						continue;
 					}
 #else
 					if (status == EISCONN) {
-						tcp_socket_tab[pos].ai_addrlen=0; //already connected
+						tcp_socket_tab[pos].ai_addrlen=0; /* already connected */
 						continue;
 					}
 #endif

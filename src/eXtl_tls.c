@@ -1536,12 +1536,12 @@ static int _tls_tl_check_connected()
 					int status = ex_errno;
 #if defined(_WIN32_WCE) || defined(WIN32)
 					if (status == WSAEISCONN) {
-						tls_socket_tab[pos].ai_addrlen=0; //already connected
+						tls_socket_tab[pos].ai_addrlen=0; /* already connected */
 						continue;
 					}
 #else
 					if (status == EISCONN) {
-						tls_socket_tab[pos].ai_addrlen=0; //already connected
+						tls_socket_tab[pos].ai_addrlen=0; /* already connected */
 						continue;
 					}
 #endif
