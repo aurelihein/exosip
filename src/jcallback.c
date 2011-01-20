@@ -1015,7 +1015,6 @@ _eXosip_update_expires_according_to_contact(eXosip_reg_t * jreg,
 						maxval=val;
 					}
 				}
-				return OSIP_SUCCESS;
 			}
 		}
 
