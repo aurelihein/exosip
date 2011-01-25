@@ -1976,6 +1976,9 @@ struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protoco
 #endif
 	int not_in_list=0;
 
+	if (eXosip.dns_capabilities<=0)
+		return NULL;
+	
 	if (dnsutils_list==NULL)
 	{
 		dnsutils_list = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
