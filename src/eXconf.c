@@ -29,6 +29,8 @@
 
 #if defined (_WIN32_WCE)
 #include "inet_ntop.h"
+#elif WIN32
+#include "inet_ntop.h"
 #endif
 
 extern eXosip_t eXosip;

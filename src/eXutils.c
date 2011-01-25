@@ -1032,10 +1032,13 @@ static osip_list_t *dnsutils_list=NULL;
 
 #include <ares.h>
 #include <ares_dns.h>
-#ifdef WIN32
+
+#ifdef _WIN32_WCE
+#include "inet_ntop.h"
+#elif WIN32
 #include "inet_ntop.h"
 #endif
- 
+
 #ifdef USE_WINSOCK
 #define SOCKERRNO         ((int)WSAGetLastError())
 #define SET_SOCKERRNO(x)  (WSASetLastError((int)(x)))
