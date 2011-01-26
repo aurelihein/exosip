@@ -72,6 +72,8 @@ static char tcp_firewall_port[10];
 /* persistent connection */
 struct _tcp_sockets {
 	int socket;
+	struct sockaddr ai_addr;
+	size_t ai_addrlen;
 	char remote_ip[65];
 	int remote_port;
 	char *previous_content;
@@ -601,8 +603,8 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 				if (status != EAGAIN) {
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-								"Could not read socket (%s)- close it\n",
-								strerror(status)));
+								"Could not read socket (%s:%i)- close it\n",
+								strerror(status), status));
 					close(tcp_socket_tab[pos].socket);
 #ifdef MULTITASKING_ENABLED
 					if (tcp_socket_tab[pos].readStream!=NULL)
@@ -719,6 +721,131 @@ static int _tcp_tl_is_connected(int sock)
 	}
 }
 
+static int _tcp_tl_check_connected()
+{
+	int pos;
+	int res;
+
+	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
+		if (tcp_socket_tab[pos].socket > 0
+			&& tcp_socket_tab[pos].ai_addrlen > 0) {
+				res = connect(tcp_socket_tab[pos].socket, &tcp_socket_tab[pos].ai_addr, tcp_socket_tab[pos].ai_addrlen);
+				if (res < 0) {
+					int status = ex_errno;
+#if defined(_WIN32_WCE) || defined(WIN32)
+					if (status == WSAEISCONN) {
+						tcp_socket_tab[pos].ai_addrlen=0; /* already connected */
+						continue;
+					}
+#else
+					if (status == EISCONN) {
+						tcp_socket_tab[pos].ai_addrlen=0; /* already connected */
+						continue;
+					}
+#endif
+#if defined(_WIN32_WCE) || defined(WIN32)
+					if (status != WSAEWOULDBLOCK && status != WSAEALREADY && status != WSAEINVAL) {
+#else
+					if (status != EINPROGRESS && status != EALREADY) {
+#endif
+						OSIP_TRACE(osip_trace
+							(__FILE__, __LINE__, OSIP_INFO2, NULL,
+							"_tcp_tl_check_connected: Cannot connect socket node:%s:%i, socket %d [pos=%d], family:%d, %s[%d]\n",
+							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].remote_port,
+							tcp_socket_tab[pos].socket,
+							pos,
+							tcp_socket_tab[pos].ai_addr.sa_family,
+							strerror(status),
+							status));
+						close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+						if (tcp_socket_tab[pos].readStream!=NULL)
+						{
+							CFReadStreamClose(tcp_socket_tab[pos].readStream);
+							CFRelease(tcp_socket_tab[pos].readStream);						
+						}
+						if (tcp_socket_tab[pos].writeStream!=NULL)
+						{
+							CFWriteStreamClose(tcp_socket_tab[pos].writeStream);			
+							CFRelease(tcp_socket_tab[pos].writeStream);
+						}
+						tcp_socket_tab[pos].readStream=0;
+						tcp_socket_tab[pos].writeStream=0;
+#endif
+						memset(&tcp_socket_tab[pos], 0, sizeof(tcp_socket_tab[pos]));
+						continue;
+					} else {
+						res = _tcp_tl_is_connected(tcp_socket_tab[pos].socket);
+						if (res > 0) {
+							OSIP_TRACE(osip_trace
+								(__FILE__, __LINE__, OSIP_INFO2, NULL,
+								"_tcp_tl_check_connected: socket node:%s:%i, socket %d [pos=%d], family:%d, in progress\n",
+								tcp_socket_tab[pos].remote_ip,
+								tcp_socket_tab[pos].remote_port,
+								tcp_socket_tab[pos].socket,
+								pos,
+								tcp_socket_tab[pos].ai_addr.sa_family));
+							continue;
+						} else if (res == 0) {
+							OSIP_TRACE(osip_trace
+								(__FILE__, __LINE__, OSIP_INFO1, NULL,
+								"_tcp_tl_check_connected: socket node:%s:%i , socket %d [pos=%d], family:%d, connected\n",
+								tcp_socket_tab[pos].remote_ip,
+								tcp_socket_tab[pos].remote_port,
+								tcp_socket_tab[pos].socket,
+								pos,
+								tcp_socket_tab[pos].ai_addr.sa_family));
+							/* stop calling "connect()" */
+							tcp_socket_tab[pos].ai_addrlen=0;
+							continue;
+						} else {
+							OSIP_TRACE(osip_trace
+								(__FILE__, __LINE__, OSIP_INFO2, NULL,
+								"_tcp_tl_check_connected: socket node:%s:%i, socket %d [pos=%d], family:%d, error\n",
+								tcp_socket_tab[pos].remote_ip,
+								tcp_socket_tab[pos].remote_port,
+								tcp_socket_tab[pos].socket,
+								pos,
+								tcp_socket_tab[pos].ai_addr.sa_family));
+							close(tcp_socket_tab[pos].socket);
+#ifdef MULTITASKING_ENABLED
+							if (tcp_socket_tab[pos].readStream!=NULL)
+							{
+								CFReadStreamClose(tcp_socket_tab[pos].readStream);
+								CFRelease(tcp_socket_tab[pos].readStream);						
+							}
+							if (tcp_socket_tab[pos].writeStream!=NULL)
+							{
+								CFWriteStreamClose(tcp_socket_tab[pos].writeStream);			
+								CFRelease(tcp_socket_tab[pos].writeStream);
+							}
+							tcp_socket_tab[pos].readStream=0;
+							tcp_socket_tab[pos].writeStream=0;
+#endif
+							memset(&tcp_socket_tab[pos], 0, sizeof(tcp_socket_tab[pos]));
+							continue;
+						}
+					}
+				}
+				else
+				{
+					OSIP_TRACE(osip_trace
+						(__FILE__, __LINE__, OSIP_INFO1, NULL,
+						"_tcp_tl_check_connected: socket node:%s:%i , socket %d [pos=%d], family:%d, connected (with connect)\n",
+						tcp_socket_tab[pos].remote_ip,
+						tcp_socket_tab[pos].remote_port,
+						tcp_socket_tab[pos].socket,
+						pos,
+						tcp_socket_tab[pos].ai_addr.sa_family));
+					/* stop calling "connect()" */
+					tcp_socket_tab[pos].ai_addrlen=0;
+				}
+		}
+	}
+	return 0;
+}
+
 static int _tcp_tl_connect_socket(char *host, int port)
 {
 	int pos;
@@ -726,9 +853,14 @@ static int _tcp_tl_connect_socket(char *host, int port)
 	struct addrinfo *addrinfo = NULL;
 	struct addrinfo *curinfo;
 	int sock = -1;
+	struct sockaddr selected_ai_addr;
+	size_t selected_ai_addrlen;
 
 	char src6host[NI_MAXHOST];
 	memset(src6host, 0, sizeof(src6host));
+
+	selected_ai_addrlen=0;
+	memset(&selected_ai_addr, 0, sizeof(struct sockaddr));
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (tcp_socket_tab[pos].socket == 0) {
@@ -921,6 +1053,8 @@ static int _tcp_tl_connect_socket(char *host, int port)
 							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 								"socket node:%s, socket %d [pos=%d], family:%d, in progress\n",
 								host, sock, pos, curinfo->ai_family));
+					selected_ai_addrlen = curinfo->ai_addrlen;
+					memcpy(&selected_ai_addr, curinfo->ai_addr, sizeof(struct sockaddr));
 					break;
 				} else if (res == 0) {
 #ifdef MULTITASKING_ENABLED
@@ -961,6 +1095,11 @@ static int _tcp_tl_connect_socket(char *host, int port)
 
 	if (sock > 0) {
 		tcp_socket_tab[pos].socket = sock;
+
+		tcp_socket_tab[pos].ai_addrlen = selected_ai_addrlen;
+		memset(&tcp_socket_tab[pos].ai_addr, 0, sizeof(struct sockaddr));
+		if (selected_ai_addrlen>0)
+			memcpy(&tcp_socket_tab[pos].ai_addr, &selected_ai_addr, selected_ai_addrlen);
 
 		if (src6host[0] == '\0')
 			osip_strncpy(tcp_socket_tab[pos].remote_ip, host,
@@ -1019,7 +1158,6 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					replace with next entries.
 					*/
 					osip_srv_entry_t *srv;
-					int n = 0;
 					srv = &naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index];
 					if (srv->ipaddress[0]) {
 						host = srv->ipaddress;
@@ -1085,7 +1223,6 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					replace with next entries.
 					*/
 					osip_srv_entry_t *srv;
-					int n = 0;
 					srv = &naptr_record->siptcp_record.srventry[naptr_record->siptcp_record.index];
 					if (srv->ipaddress[0]) {
 						host = srv->ipaddress;
@@ -1130,6 +1267,9 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	if (i != 0 || length <= 0) {
 		return -1;
 	}
+
+	/* verify all current connections */
+	_tcp_tl_check_connected();
 
 	if (out_socket > 0) {
 		for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
@@ -1260,8 +1400,8 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					continue;
 				} else if (i < 0) {
 					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-										  "TCP select error: %s\n",
-										  strerror(ex_errno)));
+										  "TCP select error: %s:%i\n",
+										  strerror(ex_errno), ex_errno));
 					osip_free(message);
 					return -1;
 				} else {
@@ -1284,6 +1424,36 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	osip_free(message);
 	return OSIP_SUCCESS;
 }
+
+#ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
+static int _tcp_tl_get_socket_info(int socket, char *host, int hostsize, int *port)
+{
+	struct sockaddr addr;
+	int nameLen = sizeof(addr);
+	int ret;
+	if(socket <= 0 || host== NULL || hostsize <= 0 || port == NULL)
+		return OSIP_BADPARAMETER;
+	ret = getsockname(socket, &addr, &nameLen);
+	if (ret != 0)
+	{
+		/* ret = ex_errno; */
+		return OSIP_UNDEFINED_ERROR;
+	} 
+	else 
+	{
+		ret = getnameinfo((struct sockaddr *) &addr, nameLen,
+						host, hostsize, NULL, 0, NI_NUMERICHOST);
+		if (ret!=0)
+			return OSIP_UNDEFINED_ERROR;
+
+		if (addr.sa_family == AF_INET)
+			(*port) = ntohs(((struct sockaddr_in *) &addr)->sin_port);
+		else
+			(*port) = ntohs(((struct sockaddr_in6 *) &addr)->sin6_port);
+	}
+	return OSIP_SUCCESS;
+}
+#endif
 
 static int tcp_tl_keepalive(void)
 {
@@ -1334,10 +1504,85 @@ static int tcp_tl_keepalive(void)
 				tcp_socket_tab[pos].readStream=0;
 				tcp_socket_tab[pos].writeStream=0;
 #endif
-				tcp_socket_tab[pos].socket = -1;
+				memset(&tcp_socket_tab[pos], 0, sizeof(tcp_socket_tab[pos]));
 				continue;
 			}
 			if (eXosip.keep_alive > 0) {
+#ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
+				if (eXosip.keep_alive_options != 0)
+				{
+					osip_message_t *options;
+					char from[NI_MAXHOST];
+					char to[NI_MAXHOST];
+					char locip[NI_MAXHOST];
+					int locport;
+					char *message;
+					size_t length;
+
+					options = NULL;
+					memset(to, '\0', sizeof(to));
+					memset(from, '\0', sizeof(from));
+					memset(locip, '\0', sizeof(locip));
+					locport = 0;
+
+					snprintf(to, sizeof(to), "<sip:%s:%d>", tcp_socket_tab[pos].remote_ip, tcp_socket_tab[pos].remote_port);
+					_tcp_tl_get_socket_info(tcp_socket_tab[pos].socket, locip, sizeof(locip), &locport);
+					if (locip[0] == '\0')
+					{
+						OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_WARNING, NULL,
+							"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], failed to create sip options message\n",
+							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].socket, 
+							pos));
+						continue;
+					}
+
+					snprintf(from, sizeof(from), "<sip:%s:%d>", locip, locport);
+
+					eXosip_lock();
+					/* Generate an options message */
+					if(eXosip_options_build_request(&options,to,from,NULL) == OSIP_SUCCESS)
+					{
+						message = NULL;
+						length = 0;
+						/* Convert message to str for direct sending over correct socket */
+						if(osip_message_to_str( options, &message, &length ) == OSIP_SUCCESS)
+						{
+							OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
+								"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], sending sip options\n\r%s",
+								tcp_socket_tab[pos].remote_ip,
+								tcp_socket_tab[pos].socket, 
+								pos,
+								message));
+							i = send(tcp_socket_tab[pos].socket, (const void *) message, length, 0);
+							osip_free(message);
+							if(i > 0) {
+								OSIP_TRACE(osip_trace
+									(__FILE__, __LINE__, OSIP_INFO1, NULL,
+									"eXosip: Keep Alive sent on TCP!\n"));
+							}
+						}
+						else
+						{
+							OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_WARNING, NULL,
+								"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], failed to convert sip options message\n",
+								tcp_socket_tab[pos].remote_ip,
+								tcp_socket_tab[pos].socket, 
+								pos));
+						}
+					}
+					else
+					{
+						OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_WARNING, NULL,
+							"tcp_tl_keepalive socket node:%s , socket %d [pos=%d], failed to create sip options message\n",
+							tcp_socket_tab[pos].remote_ip,
+							tcp_socket_tab[pos].socket, 
+							pos));
+					}
+					eXosip_unlock();
+					continue;
+				}
+#endif
 				i = send(tcp_socket_tab[pos].socket, (const void *) buf, 4, 0);
 			}
 		}

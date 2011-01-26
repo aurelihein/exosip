@@ -88,8 +88,8 @@ extern "C"
 #define EXOSIP_OPT_ADD_ACCOUNT_INFO (EXOSIP_OPT_BASE_OPTION+13)
 #define EXOSIP_OPT_DNS_CAPABILITIES (EXOSIP_OPT_BASE_OPTION+14)
 
-  /* obsolete: to be removed */
-#define EXOSIP_OPT_SRV_WITH_NAPTR EXOSIP_OPT_DNS_CAPABILITIES
+  /* non standard option: need a compilation flag to activate */
+#define EXOSIP_OPT_KEEP_ALIVE_OPTIONS_METHOD (EXOSIP_OPT_BASE_OPTION+1000)
 
   struct eXosip_dns_cache
   {

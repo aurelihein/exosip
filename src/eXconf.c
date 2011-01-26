@@ -27,6 +27,12 @@
 #include <osip2/osip_mt.h>
 #include <osip2/osip_condv.h>
 
+#if defined (_WIN32_WCE)
+#include "inet_ntop.h"
+#elif WIN32
+#include "inet_ntop.h"
+#endif
+
 extern eXosip_t eXosip;
 
 int ipv6_enable = 0;
@@ -324,14 +330,16 @@ int eXosip_find_free_port(int free_port, int transport)
 	int count;
 
 	for (count = 0; count < 8; count++) {
-		res1 =
-			eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", free_port + count * 2,
-								transport);
+		if (ipv6_enable == 0)
+			res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", free_port + count * 2, transport);
+		else
+			res1 = eXosip_get_addrinfo(&addrinfo_rtp, "::", free_port + count * 2, transport);
 		if (res1 != 0)
 			return res1;
-		res2 =
-			eXosip_get_addrinfo(&addrinfo_rtcp, "0.0.0.0",
-								free_port + count * 2 + 1, transport);
+		if (ipv6_enable == 0)
+			res2 = eXosip_get_addrinfo(&addrinfo_rtcp, "0.0.0.0", free_port + count * 2 + 1, transport);
+		else
+			res2 = eXosip_get_addrinfo(&addrinfo_rtcp, "::", free_port + count * 2 + 1, transport);
 		if (res2 != 0) {
 			eXosip_freeaddrinfo(addrinfo_rtp);
 			return res2;
@@ -450,7 +458,11 @@ int eXosip_find_free_port(int free_port, int transport)
 	}
 
 	/* just get a free port */
-	res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", 0, transport);
+	if (ipv6_enable == 0)
+		res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", 0, transport);
+	else
+		res1 = eXosip_get_addrinfo(&addrinfo_rtp, "::", 0, transport);
+
 	if (res1)
 		return res1;
 
@@ -513,7 +525,7 @@ int eXosip_find_free_port(int free_port, int transport)
 		sock = -1;
 		eXosip_freeaddrinfo(addrinfo_rtp);
 
-		if (ipv6_enable == 0)
+		if (curinfo_rtp->ai_family == AF_INET)
 			return ntohs(((struct sockaddr_in *) &ai_addr)->sin_port);
 		else
 			return ntohs(((struct sockaddr_in6 *) &ai_addr)->sin6_port);
@@ -701,6 +713,7 @@ int eXosip_init(void)
 	eXosip.use_rport = 1;
 	eXosip.dns_capabilities = 2;
 	eXosip.keep_alive = 17000;
+	eXosip.keep_alive_options = 0;
 
 	eXtl_udp.tl_init();
 	eXtl_tcp.tl_init();
@@ -946,6 +959,12 @@ int eXosip_set_option(int opt, const void *value)
 		val = *((int *) value);
 		eXosip.keep_alive = val;	/* value in ms */
 		break;
+#ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
+	case EXOSIP_OPT_KEEP_ALIVE_OPTIONS_METHOD:
+		val = *((int *) value);
+		eXosip.keep_alive_options = val;	/* value 0 or 1 */
+		break;
+#endif
 	case EXOSIP_OPT_UDP_LEARN_PORT:
 		val = *((int *) value);
 		eXosip.learn_port = val;	/* 1 to learn port */

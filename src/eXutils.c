@@ -41,7 +41,7 @@
 #include <nameser8_compat.h>
 #include <resolv8_compat.h>
 #elif defined(HAVE_RESOLV_H) || defined(OpenBSD) || defined(FreeBSD) || defined(NetBSD)
-#ifdef HAVE_NAMESER_COMPAT_H
+#ifdef HAVE_ARPA_NAMESER_COMPAT_H
 #include <arpa/nameser_compat.h>
 #endif
 #include <resolv.h>
@@ -678,7 +678,7 @@ static int _eXosip_default_gateway_ipv6(char *address, int size)
 	memset(&iface_out, 0, sizeof(iface_out));
 	sock_rt = socket(AF_INET6, SOCK_DGRAM, 0);
 	/*default to ipv6 local loopback in case something goes wrong: */
-	strncpy(address, "::1", size);
+	snprintf(address, size, "::1");
 	if (setsockopt(sock_rt, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) == -1) {
 		perror("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
 		close(sock_rt);
@@ -1056,10 +1056,13 @@ static osip_list_t *dnsutils_list=NULL;
 
 #include <ares.h>
 #include <ares_dns.h>
-#ifdef WIN32
+
+#ifdef _WIN32_WCE
+#include "inet_ntop.h"
+#elif WIN32
 #include "inet_ntop.h"
 #endif
- 
+
 #ifdef USE_WINSOCK
 #define SOCKERRNO         ((int)WSAGetLastError())
 #define SET_SOCKERRNO(x)  (WSASetLastError((int)(x)))
@@ -2000,6 +2003,9 @@ struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protoco
 #endif
 	int not_in_list=0;
 
+	if (eXosip.dns_capabilities<=0)
+		return NULL;
+	
 	if (dnsutils_list==NULL)
 	{
 		dnsutils_list = (osip_list_t*) osip_malloc(sizeof(osip_list_t));
@@ -2302,7 +2308,7 @@ int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
 	PDNS_RECORD answer, tmp;	/* answer buffer from nameserver */
 	int n;
 
-	if (output_srv->name=='\0')
+	if (output_srv->name[0]=='\0')
 	{
 		return OSIP_SUCCESS;
 	}
@@ -2950,7 +2956,7 @@ static int _eXosip_dnsutils_srv_lookup(struct osip_srv_record *output_srv)
 	long ttl;
 	int answerno;
 
-	if (output_srv->name=='\0')
+	if (output_srv->name[0]=='\0')
 	{
 		return OSIP_SUCCESS;
 	}
@@ -3529,6 +3535,23 @@ void _eXosip_dnsutils_release(osip_naptr_t *naptr_record)
 	if (naptr_record->keep_in_cache>0)
 		return;
 	osip_free(naptr_record);
+}
+
+#else
+
+struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol, const char *transport, int keep_in_cache)
+{
+	return NULL;
+}
+
+int eXosip_dnsutils_dns_process(osip_naptr_t *naptr_record, int force)
+{
+	return OSIP_UNDEFINED_ERROR;
+}
+
+void _eXosip_dnsutils_release(osip_naptr_t *naptr_record)
+{
+	return;
 }
 
 #endif
