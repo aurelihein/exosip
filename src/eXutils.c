@@ -1014,6 +1014,30 @@ static osip_list_t *dnsutils_list=NULL;
 #  include <arpa/nameser_compat.h>
 #endif
 
+#define HFIXEDSZ 12
+#define QFIXEDSZ 4
+#define RRFIXEDSZ 10
+
+#ifndef T_A
+#define T_A 1
+#endif
+
+#ifndef T_AAAA
+#define T_AAAA 28
+#endif
+
+#ifndef T_SRV
+#define T_SRV 33
+#endif
+
+#ifndef T_NAPTR
+#define T_NAPTR 35
+#endif
+
+#ifndef C_IN
+#define C_IN 1
+#endif
+
 #ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 #endif
