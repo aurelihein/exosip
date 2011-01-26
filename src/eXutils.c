@@ -678,7 +678,7 @@ static int _eXosip_default_gateway_ipv6(char *address, int size)
 	memset(&iface_out, 0, sizeof(iface_out));
 	sock_rt = socket(AF_INET6, SOCK_DGRAM, 0);
 	/*default to ipv6 local loopback in case something goes wrong: */
-	strncpy(address, "::1", size);
+	snprintf(address, size, "::1");
 	if (setsockopt(sock_rt, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) == -1) {
 		perror("DEBUG: [get_output_if] setsockopt(SOL_SOCKET, SO_BROADCAST");
 		close(sock_rt);
