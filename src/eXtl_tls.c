@@ -1071,6 +1071,14 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 						SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
 						SSL_OP_CIPHER_SERVER_PREFERENCE);
 
+	if(!SSL_CTX_set_cipher_list(ctx,"ALL")) {
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"set_cipher_list: cannot set anonymous DH cipher\n"));
+		SSL_CTX_free(ctx);
+		return NULL;
+	}
+	
 	if (_tls_add_certificates(ctx) <= 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -1885,6 +1893,14 @@ static int _tls_tl_ssl_connect_socket(int pos)
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 							  "No certificate received\n"));
 		/* X509_free is not necessary because no cert-object was created -> cert == NULL */
+		if (eXosip_tls_ctx_params.server.cert[0] == '\0') {
+#ifdef ENABLE_ADH
+			/* how can we guess a user want ADH... specific APIs.. */
+			tls_socket_tab[pos].ssl_state = 3;
+			return 0;
+#endif
+		}
+		
 		return -1;
 	}
 
