@@ -97,6 +97,8 @@ static SSL_CTX *server_ctx;
 static SSL_CTX *client_ctx;
 static eXosip_tls_ctx_t eXosip_tls_ctx_params;
 static char tls_local_cn_name[128];
+static char tls_client_local_cn_name[128];
+
 static int tls_verify_client_certificate;
 
 /* persistent connection */
@@ -134,6 +136,7 @@ static int tls_tl_init(void)
 	memset(tls_firewall_port, 0, sizeof(tls_firewall_port));
 	memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
 	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
+	memset(&tls_client_local_cn_name, 0, sizeof(tls_client_local_cn_name));
 	tls_verify_client_certificate = 0;
 	return OSIP_SUCCESS;
 }
@@ -192,6 +195,8 @@ static int tls_tl_free(void)
 
 	memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
 	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
+	memset(&tls_client_local_cn_name, 0, sizeof(tls_client_local_cn_name));
+	
 	tls_verify_client_certificate = 0;
 	return OSIP_SUCCESS;
 }
@@ -780,6 +785,48 @@ static void load_dh_params(SSL_CTX * ctx, char *file)
 	}
 }
 
+static void build_dh_params(SSL_CTX * ctx)
+{
+	int codes = 0;
+	DH* dh = DH_new();
+	if (!dh)
+	{
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: DH_new failed!\n"));
+		return;
+	}
+	if (!DH_generate_parameters_ex(dh, 2, DH_GENERATOR_2, 0))
+	{
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: DH_generate_parameters_ex failed!\n"));
+		DH_free(dh);
+		return;
+	}
+
+	if (!DH_check(dh, &codes))
+	{
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: DH_check failed!\n"));
+		DH_free(dh);
+		return;
+	}
+	if (!DH_generate_key(dh))
+	{
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: DH_generate_key failed!\n"));
+		DH_free(dh);
+		return;
+	}
+	SSL_CTX_set_tmp_dh(ctx, dh);
+	DH_free(dh);
+
+	return;
+}
+
 #if (OPENSSL_VERSION_NUMBER < 0x00908000l || defined(ANDROID))
 RSA *RSA_generate_key(int bits, unsigned long e_value,
 		      void (*callback)(int,int,void *), void *cb_arg)
@@ -925,6 +972,16 @@ eXosip_tls_ctx_error eXosip_tls_use_server_certificate(const char
 	return TLS_OK;
 }
 
+eXosip_tls_ctx_error eXosip_tls_use_client_certificate(const char
+													   *local_certificate_cn)
+{
+	memset(&tls_client_local_cn_name, 0, sizeof(tls_client_local_cn_name));
+	if (tls_client_local_cn_name == NULL)
+		return TLS_OK;
+	osip_strncpy(tls_client_local_cn_name, local_certificate_cn, sizeof(tls_client_local_cn_name)-1);
+	return TLS_OK;
+}
+
 eXosip_tls_ctx_error eXosip_tls_verify_certificate(int
 												   _tls_verify_client_certificate)
 {
@@ -963,8 +1020,8 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 		SSL_CTX_set_default_passwd_cb(ctx, password_cb);
 	}
 
-	if (tls_local_cn_name[0] != '\0') {
-		cert = _tls_set_certificate(ctx, tls_local_cn_name);
+	if (tls_client_local_cn_name[0] != '\0') {
+		cert = _tls_set_certificate(ctx, tls_client_local_cn_name);
 	}
 
 	if (cert==NULL && certfile[0] != '\0') {
@@ -1123,21 +1180,37 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 			return NULL;
 		}
 	}
+
+	if (cert != NULL || certfile[0] != '\0') {
+		if (!SSL_CTX_check_private_key(ctx)) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"check_private_key: Key does not match the public key of the certificate\n"));
+			SSL_CTX_free(ctx);
+			return NULL;
+		}
+	}
+
+	if (cert == NULL && certfile[0] == '\0') {
+		if(!SSL_CTX_set_cipher_list(ctx,"ADH")) {
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"set_cipher_list: cannot set anonymous DH cipher\n"));
+			SSL_CTX_free(ctx);
+			return NULL;
+		}
+	}
+
 	if (cert!=NULL)
 	{
 		X509_free(cert);
 		cert = NULL;
 	}
 
-	if (!SSL_CTX_check_private_key(ctx)) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"check_private_key: Key does not match the public key of the certificate\n"));
-		SSL_CTX_free(ctx);
-		return NULL;
-	}
-
-	load_dh_params(ctx, eXosip_tls_ctx_params.dh_param);
+	if (cert == NULL && certfile[0] == '\0')
+		build_dh_params(ctx);
+	else
+		load_dh_params(ctx, eXosip_tls_ctx_params.dh_param);
 
 	generate_eph_rsa_key(ctx);
 
@@ -1186,7 +1259,7 @@ static int tls_tl_open(void)
 	/* always initialize the client */
 	client_ctx = initialize_client_ctx(eXosip_tls_ctx_params.client.priv_key,
 									   eXosip_tls_ctx_params.client.cert,
-									   eXosip_tls_ctx_params.server.priv_key_pw,
+									   eXosip_tls_ctx_params.client.priv_key_pw,
 									   IPPROTO_TCP);
 
 /*only necessary under Windows-based OS, unix-like systems use /dev/random or /dev/urandom */
@@ -1685,7 +1758,7 @@ static int _tls_tl_ssl_connect_socket(int pos)
 		tls_socket_tab[pos].ssl_ctx =
 			initialize_client_ctx(eXosip_tls_ctx_params.client.priv_key,
 								  eXosip_tls_ctx_params.client.cert,
-								  eXosip_tls_ctx_params.server.priv_key_pw,
+								  eXosip_tls_ctx_params.client.priv_key_pw,
 								  IPPROTO_TCP);
 
 		/* FIXME: changed parameter from ctx to client_ctx -> works now */
@@ -1919,6 +1992,9 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 
 			i = SSL_accept(ssl);
 			if (i <= 0) {
+				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
+									  "SSL_accept error: %s\n",
+									  ERR_error_string(ERR_get_error(),NULL)));
 				i = SSL_get_error(ssl, i);
 				print_ssl_error(i);
 
@@ -2914,6 +2990,13 @@ eXosip_tls_ctx_error eXosip_tls_use_server_certificate(const char
 {
 	return -1; /* NOT IMPLEMENTED */
 }
+
+eXosip_tls_ctx_error eXosip_tls_use_client_certificate(const char
+													   *local_certificate_cn)
+{
+	return -1; /* NOT IMPLEMENTED */
+}
+
 
 eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 {
