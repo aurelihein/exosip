@@ -936,6 +936,7 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 							   const char *password, int transport)
 {
 	SSL_METHOD *meth = NULL;
+	X509 *cert = NULL;
 	SSL_CTX *ctx;
 
 	if (transport == IPPROTO_UDP) {
@@ -957,11 +958,16 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 		return NULL;
 	}
 
-	SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) password);
-	SSL_CTX_set_default_passwd_cb(ctx, password_cb);
+	if (password[0] != '\0') {
+		SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) password);
+		SSL_CTX_set_default_passwd_cb(ctx, password_cb);
+	}
 
+	if (tls_local_cn_name[0] != '\0') {
+		cert = _tls_set_certificate(ctx, tls_local_cn_name);
+	}
 
-	if (certfile[0] != '\0') {
+	if (cert==NULL && certfile[0] != '\0') {
 		/* Load our keys and certificates */
 		if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
 			OSIP_TRACE(osip_trace
@@ -981,6 +987,13 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 						"eXosip: Couldn't read client RSA key file %s!\n",
 						keyfile));
 	}
+	
+	if (cert!=NULL)
+	{
+		X509_free(cert);
+		cert = NULL;
+	}
+
 	/* Load the CAs we trust */
 	if (!
 		(SSL_CTX_load_verify_locations
@@ -1060,8 +1073,9 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 			SSL_CTX_free(ctx);
 			return NULL;
 		}
-		SSL_CTX_free(ctx);
-		return NULL;
+		/* THIS CODE IS WRONG??? */
+		/* SSL_CTX_free(ctx); */
+		/* return NULL; */
 	}
 
 	if (_tls_add_certificates(ctx) <= 0) {
