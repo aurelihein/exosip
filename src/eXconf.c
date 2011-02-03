@@ -1071,7 +1071,7 @@ static void _eXosip_keep_alive(void)
 	}
 
 	OSIP_TRACE(osip_trace
-			   (__FILE__, __LINE__, OSIP_WARNING, NULL,
+			   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 				"keep alive: %i\n", now.tv_sec - mtimer.tv_sec));
 
 	/* reset timer */
