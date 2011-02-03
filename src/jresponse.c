@@ -205,9 +205,11 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 	if (request->to->url->username == NULL)
 		snprintf(contact, 1000, "<sip:%s:%s>", locip, firewall_port);
 	else
-		snprintf(contact, 1000, "<sip:%s@%s:%s>", request->to->url->username,
-				 locip, firewall_port);
-
+	{
+		char *tmp2 = __osip_uri_escape_userinfo(request->to->url->username);
+		snprintf(contact, 1000, "<sip:%s@%s:%s>", tmp2, locip, firewall_port);
+		osip_free(tmp2);
+	}
 	if (firewall_ip[0] != '\0') {
 #ifdef USE_LOCALIP_WITH_LOCALPROXY /* disable this code for local testing because it adds an extra DNS */
 		osip_contact_t *con =
@@ -233,22 +235,24 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 			   coming from the PUBLIC network. */
 			if (eXosip_is_public_address(c_address)) {
 				if (request->to->url->username == NULL)
-					snprintf(contact, 1000, "<sip:%s:%s>",
-							 firewall_ip, firewall_port);
+					snprintf(contact, 1000, "<sip:%s:%s>", firewall_ip, firewall_port);
 				else
-					snprintf(contact, 1000, "<sip:%s@%s:%s>",
-							 request->to->url->username, firewall_ip,
-							 firewall_port);
+				{
+					char *tmp2 = __osip_uri_escape_userinfo(request->to->url->username);
+					snprintf(contact, 1000, "<sip:%s@%s:%s>", tmp2, firewall_ip, firewall_port);
+					osip_free(tmp2);
+				}
 			}
 		}
 #else
 		if (request->to->url->username == NULL)
-			snprintf(contact, 1000, "<sip:%s:%s>",
-					 firewall_ip, firewall_port);
+			snprintf(contact, 1000, "<sip:%s:%s>", firewall_ip, firewall_port);
 		else
-			snprintf(contact, 1000, "<sip:%s@%s:%s>",
-					 request->to->url->username, firewall_ip,
-					 firewall_port);
+		{
+			char *tmp2 = __osip_uri_escape_userinfo(request->to->url->username);
+			snprintf(contact, 1000, "<sip:%s@%s:%s>", tmp2, firewall_ip, firewall_port);
+			osip_free(tmp2);
+		}
 #endif
 	}
 

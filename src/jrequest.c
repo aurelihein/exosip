@@ -123,7 +123,7 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 
 	if (a_from->url->username != NULL)
 		len =
-			2 + 4 + strlen(a_from->url->username) + 1 + 100 + 6 + 10 +
+			2 + 4 + (strlen(a_from->url->username)*3) + 1 + 100 + 6 + 10 +
 			strlen(eXosip.transport);
 	else
 		len = 2 + 4 + 100 + 6 + 10 + strlen(eXosip.transport);
@@ -170,15 +170,21 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 
 	if (eXosip.eXtl->proto_family == AF_INET6) {
 		if (a_from->url->username != NULL)
-			snprintf(contact, len, "<sip:%s@[%s]:%s>", a_from->url->username,
-					 locip, firewall_port);
+		{
+			char *tmp2 = __osip_uri_escape_userinfo(a_from->url->username);
+			snprintf(contact, len, "<sip:%s@[%s]:%s>", tmp2, locip, firewall_port);
+			osip_free(tmp2);
+		}
 		else
 			snprintf(contact, len - strlen(eXosip.transport) - 10, "<sip:[%s]:%s>",
 					 locip, firewall_port);
 	} else {
 		if (a_from->url->username != NULL)
-			snprintf(contact, len, "<sip:%s@%s:%s>", a_from->url->username,
-					 locip, firewall_port);
+		{
+			char *tmp2 = __osip_uri_escape_userinfo(a_from->url->username);
+			snprintf(contact, len, "<sip:%s@%s:%s>", tmp2, locip, firewall_port);
+			osip_free(tmp2);
+		}
 		else
 			snprintf(contact, len - strlen(eXosip.transport) - 10, "<sip:%s:%s>",
 					 locip, firewall_port);
