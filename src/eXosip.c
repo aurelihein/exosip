@@ -515,13 +515,23 @@ static int _eXosip_retry_notify_with_auth(eXosip_event_t * je)
 
 static int eXosip_retry_with_auth(eXosip_event_t * je)
 {
+	int res=OSIP_UNDEFINED_ERROR;
 	if (!je || !je->request || !je->response)
 		return OSIP_BADPARAMETER;
 
 	if (je->rid > 0) {
 		return _eXosip_retry_register_with_auth(je);
 	} else if (je->cid > 0) {
-		return _eXosip_retry_invite_with_auth(je);
+		res = _eXosip_retry_invite_with_auth(je);
+		if (res==OSIP_NOTFOUND)
+		{
+			osip_transaction_t *tr = NULL;
+			eXosip_transaction_find(je->tid, &tr);
+			if (tr != NULL) {
+				return _eXosip_retry_with_auth(NULL, &tr, NULL);
+			}
+		}
+		return res;
 	}
 #ifndef MINISIZE
 	else if (je->sid > 0) {
