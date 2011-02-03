@@ -101,7 +101,7 @@ size_t size;
 		return (_inet_ntop6(src, dst, size));
 	default:
 #ifndef _WIN32_WCE
-		errno = EAFNOSUPPORT;
+		errno = WSAEAFNOSUPPORT;
 #endif
 		return (NULL);
 	}
