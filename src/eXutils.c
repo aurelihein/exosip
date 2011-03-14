@@ -1725,6 +1725,7 @@ static int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
 		if (output_record->arg==NULL)
 			return OSIP_SUCCESS;
 
+		channel = output_record->arg;
 		{
 			fd_set read_fds, write_fds;
 			struct timeval *tvp, tv;
