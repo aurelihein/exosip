@@ -231,8 +231,8 @@ eXosip_register_build_initial_register(const char *from, const char *proxy,
 	jr->r_reg_period = expires;
 	if (jr->r_reg_period <= 0)	/* too low */
 		jr->r_reg_period = 0;
-	else if (jr->r_reg_period < 100)	/* too low */
-		jr->r_reg_period = 100;
+	else if (jr->r_reg_period < 30)	/* too low */
+		jr->r_reg_period = 30;
 
 	i = _eXosip_register_build_register(jr, reg);
 	if (i != 0) {
@@ -264,8 +264,8 @@ int eXosip_register_build_register(int rid, int expires, osip_message_t ** reg)
 	} /* unregistration */
 	else if (jr->r_reg_period > 3600)
 		jr->r_reg_period = 3600;
-	else if (jr->r_reg_period < 100)	/* too low */
-		jr->r_reg_period = 100;
+	else if (jr->r_reg_period < 30)	/* too low */
+		jr->r_reg_period = 30;
 
 	if (jr->r_last_tr != NULL) {
 		if (jr->r_last_tr->state != NICT_TERMINATED
