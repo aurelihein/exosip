@@ -128,8 +128,8 @@ _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t * js,
 		int val = osip_atoi(exp->hvalue);
 		if (val==0)
 			js->s_reg_period = 0;
-		else if (val < js->s_reg_period - 75)
-			js->s_reg_period = val+75;
+		else if (val < js->s_reg_period - 15)
+			js->s_reg_period = val;
 	}
 
 	return OSIP_SUCCESS;
@@ -146,7 +146,7 @@ eXosip_subscribe_need_refresh(eXosip_subscribe_t * js, eXosip_dialog_t * jd,
 	if (out_tr == NULL)
 		out_tr = js->s_out_tr;
 
-	if (now - out_tr->birth_time > js->s_reg_period - 75)
+	if (now - out_tr->birth_time > js->s_reg_period - 15)
 		return OSIP_SUCCESS;
 	return OSIP_UNDEFINED_ERROR;
 }

@@ -1029,9 +1029,9 @@ _eXosip_update_expires_according_to_contact(eXosip_reg_t * jreg,
 	decreased (more than one minutes):
 	In many cases value is decreased because a few seconds has
 	elapsed when server send the 200ok. */
-	if (maxval < jreg->r_reg_period - 75)
+	if (maxval < jreg->r_reg_period - 15)
 	{
-		jreg->r_reg_period = maxval + 95;
+		jreg->r_reg_period = maxval;
 	}
 	else if (maxval>jreg->r_reg_period) 
 	{
@@ -1082,8 +1082,8 @@ static void cb_rcv2xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 					   decreased (more than one minutes):
 					   In many cases value is decreased because a few seconds has
 					   elapsed when server send the 200ok. */
-					if (val < pub->p_period - 75) {
-						pub->p_period = val + 95;
+					if (val < pub->p_period - 15) {
+						pub->p_period = val;
 					}
 				}
 			}
@@ -1113,8 +1113,8 @@ static void cb_rcv2xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 					   decreased (more than one minutes):
 					   In many cases value is decreased because a few seconds has
 					   elapsed when server send the 200ok. */
-					if (val < jreg->r_reg_period - 75) {
-						jreg->r_reg_period = val + 75;
+					if (val < jreg->r_reg_period - 15) {
+						jreg->r_reg_period = val;
 					}
 				}
 			}

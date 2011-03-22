@@ -735,10 +735,37 @@ int eXosip_execute(void)
 #ifdef OSIP_MT
 	osip_timers_gettimeout(eXosip.j_osip, &lower_tv);
 	if (lower_tv.tv_sec > 10) {
+		eXosip_reg_t *jr;
+		time_t now;
+		now = time(NULL);
+
 		lower_tv.tv_sec = 10;
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					"eXosip: Reseting timer to 10s before waking up!\n"));
+
+		eXosip_lock();
+		for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
+			if (jr->r_id >= 1 && jr->r_last_tr != NULL) {
+				if (jr->r_reg_period == 0) {
+					/* skip refresh! */
+				} else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - (jr->r_reg_period/10)) {
+					/* automatic refresh at "timeout - 10%" */
+					lower_tv.tv_sec = 1;
+				}
+			}
+		}
+		eXosip_unlock();
+
+		if (lower_tv.tv_sec==1)
+		{
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+						"eXosip: Reseting timer to 1s before waking up!\n"));
+		}
+		else
+		{
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
+						"eXosip: Reseting timer to 10s before waking up!\n"));
+		}
 	} else {
 		/*  add a small amount of time on windows to avoid
 		   waking up too early. (probably a bad time precision) */
