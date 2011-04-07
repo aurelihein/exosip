@@ -976,7 +976,7 @@ eXosip_tls_ctx_error eXosip_tls_use_client_certificate(const char
 													   *local_certificate_cn)
 {
 	memset(&tls_client_local_cn_name, 0, sizeof(tls_client_local_cn_name));
-	if (tls_client_local_cn_name == NULL)
+	if (local_certificate_cn == NULL)
 		return TLS_OK;
 	osip_strncpy(tls_client_local_cn_name, local_certificate_cn, sizeof(tls_client_local_cn_name)-1);
 	return TLS_OK;
