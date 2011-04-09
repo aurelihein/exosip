@@ -117,7 +117,11 @@ struct socket_tab {
 #endif
 };
 
+#ifndef SOCKET_TIMEOUT
+/* when stream has sequence error: */
+/* having SOCKET_TIMEOUT > 0 helps the system to recover */
 #define SOCKET_TIMEOUT 0
+#endif
 
 #ifndef EXOSIP_MAX_SOCKETS
 #define EXOSIP_MAX_SOCKETS 100
