@@ -452,6 +452,17 @@ extern "C"
   eXosip_tls_ctx_error eXosip_tls_use_server_certificate (const char *local_certificate_cn);
 
 /**
+  *         Select by CN name the client certificate from OS store.
+  *
+  *         31/1/2011 -> implemented only for "Windows Certificate Store"
+  *
+  *         @param local_certificate_cn  CN name of the certificate to send on outgoing connection
+  *
+  *         @return  the eXosip_tls_ctx_error code
+  */
+  eXosip_tls_ctx_error eXosip_tls_use_client_certificate (const char *local_certificate_cn);
+
+/**
   *	Configure to accept/reject self signed and expired certificates.
   * NOTE: default is to accept (0)
   *
