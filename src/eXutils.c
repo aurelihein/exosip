@@ -1149,10 +1149,11 @@ static const unsigned char *save_A(osip_naptr_t *output_record,
 			if (dlen != 4)
 				return NULL;
 
+			inet_ntop(AF_INET,aptr,addr,sizeof(addr));
 			OSIP_TRACE(osip_trace
 				(__FILE__, __LINE__, OSIP_INFO2, NULL,
 				"save_A: A record %s -> %s\n",
-				rr_name, inet_ntop(AF_INET,aptr,addr,sizeof(addr))));
+				rr_name, addr));
 
 			for (n=0;n<10;n++)
 			{
@@ -1190,10 +1191,12 @@ static const unsigned char *save_A(osip_naptr_t *output_record,
 		/* The RR data is a 16-byte IPv6 address. */
 		if (dlen != 16)
 			return NULL;
+
+		inet_ntop(AF_INET6,aptr,addr,sizeof(addr));
 		OSIP_TRACE(osip_trace
 			(__FILE__, __LINE__, OSIP_INFO2, NULL,
 			"save_AAAA: A record %s -> %s\n",
-			rr_name, inet_ntop(AF_INET6,aptr,addr,sizeof(addr))));
+			rr_name, addr));
 		break;
 
 	default:
