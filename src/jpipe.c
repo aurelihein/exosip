@@ -95,6 +95,23 @@ int jpipe_get_read_descr(jpipe_t * apipe)
 
 #else
 
+int setNonBlocking(int fd)
+{
+    int flags;
+
+    /* If they have O_NONBLOCK, use the Posix way to do it */
+#if defined(O_NONBLOCK)
+    /* Fixme: O_NONBLOCK is defined but broken on SunOS 4.1.x and AIX 3.2.5. */
+    if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
+        flags = 0;
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#else
+    /* Otherwise, use the old way of doing it */
+    flags = 1;
+    return ioctlsocket(fd, FIONBIO, &flags);
+#endif
+}
+
 jpipe_t *jpipe()
 {
 	int s = 0;
@@ -211,6 +228,9 @@ jpipe_t *jpipe()
 		osip_free(my_pipe);
 		return NULL;
 	}
+
+	/* set the socket to non-blocking to avoid a deadly embrace problem. */
+	setNonBlocking(my_pipe->pipes[1]);
 
 	return my_pipe;
 }
