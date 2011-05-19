@@ -337,8 +337,22 @@ static int tcp_tl_read_message(fd_set * osip_fdset)
 							  "creating TCP socket at index: %i\n", pos));
 		sock = accept(tcp_socket, (struct sockaddr *) &sa, &slen);
 		if (sock < 0) {
+#if defined(EBADF)
+			int status = ex_errno;
+#endif
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 								  "Error accepting TCP socket\n"));
+#if defined(EBADF)
+			if (status==EBADF)
+			{
+				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
+									  "Error accepting TCP socket: EBADF\n"));
+				memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
+				if (tcp_socket > 0)
+					close(tcp_socket);
+				tcp_tl_open();
+			}
+#endif
 		} else {
 			tcp_socket_tab[pos].socket = sock;
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
