@@ -108,6 +108,8 @@ struct socket_tab {
 	size_t ai_addrlen;
 	char remote_ip[65];
 	int remote_port;
+	char *previous_content;
+	int previous_content_len;
 	SSL *ssl_conn;
 	SSL_CTX *ssl_ctx;
 	int ssl_state;
@@ -2256,6 +2258,187 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 			}
 			while (SSL_pending(tls_socket_tab[pos].ssl_conn));
 
+#define TEST_CODE_FOR_FRAGMENTATION
+#ifdef TEST_CODE_FOR_FRAGMENTATION
+			if (i > 0) {
+				char *end_sip;
+				char *cl_header;
+				int cl_size;
+
+				buf[i] = '\0';
+				if (tls_socket_tab[pos].previous_content != NULL) {
+					/* concat old data with new data */
+					tls_socket_tab[pos].previous_content =
+						(char *) osip_realloc(tls_socket_tab[pos].previous_content,
+						tls_socket_tab
+						[pos].previous_content_len + i + 1);
+					if (tls_socket_tab[pos].previous_content == NULL) {
+						OSIP_TRACE(osip_trace
+							(__FILE__, __LINE__, OSIP_ERROR, NULL,
+							"Reallocation error: (len=%i)",
+							tls_socket_tab[pos].previous_content_len + i +
+							1));
+						tls_socket_tab[pos].previous_content_len = 0;
+						continue;	/* give up: realloc issue */
+					}
+					osip_strncpy(tls_socket_tab[pos].previous_content +
+						tls_socket_tab[pos].previous_content_len, buf, i);
+					tls_socket_tab[pos].previous_content_len =
+						tls_socket_tab[pos].previous_content_len + i;
+				}
+				if (tls_socket_tab[pos].previous_content == NULL) {
+					tls_socket_tab[pos].previous_content =
+						(char *) osip_malloc(i + 1);
+					osip_strncpy(tls_socket_tab[pos].previous_content, buf, i);
+					tls_socket_tab[pos].previous_content_len = i;
+				}
+
+				end_sip = strstr(tls_socket_tab[pos].previous_content, "\r\n\r\n");
+				/* end_sip might be end of SIP headers */
+				while (end_sip != NULL) {
+					/* a content-legnth MUST exist before the CRLFCRLF */
+					cl_header =
+						osip_strcasestr(tls_socket_tab[pos].previous_content,
+						"\ncontent-length ");
+					if (cl_header == NULL || cl_header > end_sip)
+						cl_header =
+						osip_strcasestr(tls_socket_tab[pos].previous_content,
+						"\ncontent-length:");
+					if (cl_header == NULL || cl_header > end_sip)
+						cl_header =
+						osip_strcasestr(tls_socket_tab[pos].previous_content,
+						"\r\nl ");
+					if (cl_header == NULL || cl_header > end_sip)
+						cl_header =
+						osip_strcasestr(tls_socket_tab[pos].previous_content,
+						"\r\nl:");
+
+					if (cl_header != NULL && cl_header < end_sip)
+						cl_header = strchr(cl_header, ':');
+					/* broken data */
+					if (cl_header == NULL || cl_header >= end_sip) {
+						/* remove data up to crlfcrlf and restart */
+						memmove(tls_socket_tab[pos].previous_content,
+							end_sip+4,
+							tls_socket_tab[pos].previous_content_len -
+							(end_sip + 4 -
+							tls_socket_tab[pos].previous_content) + 1);
+
+						tls_socket_tab[pos].previous_content_len =
+							tls_socket_tab[pos].previous_content_len - (end_sip +
+							4 -
+							tls_socket_tab
+							[pos].
+							previous_content);
+						/* FIX HERE -> should search for start of a SIP message? */
+						OSIP_TRACE(osip_trace
+							(__FILE__, __LINE__, OSIP_WARNING, NULL,
+							"possible fragmentation issue\n"));
+
+						tls_socket_tab[pos].previous_content = (char *)
+							osip_realloc(tls_socket_tab[pos].previous_content,
+							tls_socket_tab[pos].previous_content_len +
+							1);
+						if (tls_socket_tab[pos].previous_content == NULL) {
+							OSIP_TRACE(osip_trace
+								(__FILE__, __LINE__, OSIP_ERROR, NULL,
+								"Reallocation error: (len=%i)",
+								tls_socket_tab[pos].previous_content_len +
+								1));
+							tls_socket_tab[pos].previous_content_len = 0;
+							break;
+						}
+						end_sip =
+							strstr(tls_socket_tab[pos].previous_content,
+							"\r\n\r\n");
+						continue;	/* and restart from new CRLFCRLF */
+					}
+
+					/* header content-length was found before CRLFCRLF -> all headers are available */
+					cl_header++;	/* after ':' char */
+					cl_size = osip_atoi(cl_header);
+
+					if (cl_size == 0
+						|| (cl_size >0 && (end_sip + 4 + cl_size <=
+						tls_socket_tab[pos].previous_content +
+						tls_socket_tab[pos].previous_content_len))) {
+							/* we have beg_sip & end_sip */
+							OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+								"Message received: (from dest=%s:%i) \n%s\n",
+								tls_socket_tab[pos].remote_ip,
+								tls_socket_tab[pos].remote_port,
+								tls_socket_tab[pos].previous_content));
+							_eXosip_handle_incoming_message(tls_socket_tab
+								[pos].previous_content,
+								end_sip + 4 + cl_size -
+								tls_socket_tab
+								[pos].previous_content,
+								tls_socket_tab[pos].socket,
+								tls_socket_tab
+								[pos].remote_ip,
+								tls_socket_tab
+								[pos].remote_port);
+							if (tls_socket_tab[pos].previous_content_len -
+								(end_sip + 4 + cl_size -
+								tls_socket_tab[pos].previous_content) == 0) {
+									end_sip = NULL;
+									OSIP_TRACE(osip_trace
+										(__FILE__, __LINE__, OSIP_INFO2, NULL,
+										"All TLS data consumed\n"));
+									tls_socket_tab[pos].previous_content_len = 0;
+									osip_free(tls_socket_tab[pos].previous_content);
+									tls_socket_tab[pos].previous_content = NULL;
+									continue;
+							}
+
+							/* any more content? */
+							memmove(tls_socket_tab[pos].previous_content,
+								end_sip + 4 + cl_size,
+								tls_socket_tab[pos].previous_content_len -
+								(end_sip + 4 + cl_size -
+								tls_socket_tab[pos].previous_content) + 1);
+
+							tls_socket_tab[pos].previous_content_len =
+								tls_socket_tab[pos].previous_content_len - (end_sip +
+								4 +
+								cl_size -
+								tls_socket_tab
+								[pos].
+								previous_content);
+
+							tls_socket_tab[pos].previous_content = (char *)
+								osip_realloc(tls_socket_tab[pos].previous_content,
+								tls_socket_tab[pos].previous_content_len +
+								1);
+							if (tls_socket_tab[pos].previous_content == NULL) {
+								OSIP_TRACE(osip_trace
+									(__FILE__, __LINE__, OSIP_ERROR, NULL,
+									"Reallocation error: (len=%i)",
+									tls_socket_tab[pos].previous_content_len +
+									1));
+								tls_socket_tab[pos].previous_content_len = 0;
+								break;
+							}
+							end_sip =
+								strstr(tls_socket_tab[pos].previous_content,
+								"\r\n\r\n");
+							continue;	/* and restart from new CRLFCRLF */
+					}
+
+					/* uncomplete SIP message */
+					end_sip = NULL;
+					OSIP_TRACE(osip_trace
+						(__FILE__, __LINE__, OSIP_INFO2, NULL,
+						"Uncomplete TLS data (%s)\n", buf));
+					continue;
+				}
+
+				if (tls_socket_tab[pos].previous_content_len == 0) {
+					/* all data consumed are reallocation error ? */
+					continue;
+				}
+			}
+#else
 			if (rlen > 5) {
 
 				buf[rlen] = '\0';
@@ -2267,6 +2450,7 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 												tls_socket_tab[pos].remote_ip,
 												tls_socket_tab[pos].remote_port);
 			}
+#endif
 		}
 	}
 
