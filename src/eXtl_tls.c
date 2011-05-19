@@ -2265,6 +2265,7 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 				char *cl_header;
 				int cl_size;
 
+				i=rlen;
 				buf[i] = '\0';
 				if (tls_socket_tab[pos].previous_content != NULL) {
 					/* concat old data with new data */
@@ -2439,9 +2440,10 @@ static int tls_tl_read_message(fd_set * osip_fdset)
 				}
 			}
 #else
-			if (rlen > 5) {
+			if (i > 5) {
 
-				buf[rlen] = '\0';
+				i=rlen;
+				buf[i] = '\0';
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 							"Received TLS message: \n%s\n", buf));
