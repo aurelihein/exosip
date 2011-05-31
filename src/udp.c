@@ -1318,9 +1318,8 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 	/* search for existing dialog: match branch & to tag */
 	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next) {
 		/* search for calls with only ONE outgoing transaction */
-		if (jc->c_id >= 1 && jc->c_dialogs != NULL && jc->c_out_tr != NULL) {
+		if (jc->c_id >= 1 && jc->c_dialogs != NULL) {
 			for (jd = jc->c_dialogs; jd != NULL; jd = jd->next) {
-				/* only initial request are concerned with this */
 				if (jd->d_id >= 1 && jd->d_dialog != NULL) {
 					/* match answer with dialog */
 					osip_generic_param_t *tag;
@@ -1339,7 +1338,8 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 				break;			/* found a matching dialog! */
 
 			/* check if the transaction match this from tag */
-			if (jc->c_out_tr->orig_request != NULL
+			if (jc->c_out_tr != NULL
+				&& jc->c_out_tr->orig_request != NULL
 				&& jc->c_out_tr->orig_request->from != NULL) {
 				osip_generic_param_t *tag_invite;
 				osip_generic_param_t *tag;
@@ -1423,6 +1423,7 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 				return;
 			}
 			/* copy all credentials from INVITE! */
+			/* TODO: this might not be last transaction... */
 			last_tr = jc->c_out_tr;
 			if (last_tr != NULL) {
 				int pos = 0;
