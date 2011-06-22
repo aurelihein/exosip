@@ -911,7 +911,8 @@ void eXosip_automatic_action(void)
 				out_tr->orig_request != NULL &&
 				out_tr->last_response != NULL &&
 				(out_tr->last_response->status_code == 401
-				 || out_tr->last_response->status_code == 407)) {
+				 || out_tr->last_response->status_code == 407
+				 || out_tr->last_response->status_code == 423)) {
 				/* retry with credential */
 				if (js->s_retry < 3) {
 					int i;

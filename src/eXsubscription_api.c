@@ -219,8 +219,6 @@ int eXosip_subscribe_build_refresh_request(int did, osip_message_t ** sub)
 	if (transaction != NULL && transaction->orig_request != NULL)
 		transport = _eXosip_transport_protocol(transaction->orig_request);
 
-	transaction = NULL;
-
 	if (transport == NULL)
 		i = _eXosip_build_request_within_dialog(sub, "SUBSCRIBE", jd->d_dialog,
 												"UDP");
@@ -231,6 +229,26 @@ int eXosip_subscribe_build_refresh_request(int did, osip_message_t ** sub)
 	if (i != 0)
 		return i;
 
+	if (transaction!=NULL && transaction->orig_request!=NULL) {
+		int pos = 0;
+		osip_header_t *_header = NULL;
+
+		pos = osip_message_get_supported(transaction->orig_request, pos, &_header);
+		while (pos >= 0 && _header != NULL) {
+			osip_header_t *_header2;
+
+			i = osip_header_clone(_header, &_header2);
+			if (i != 0) {
+				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
+									  "Error in Supported header\n"));
+				break;
+			}
+			osip_list_add(&(*sub)->headers, _header2, -1);
+			_header = NULL;
+			pos++;
+			pos = osip_message_get_supported(transaction->orig_request, pos, &_header);
+		}
+	}
 
 	eXosip_add_authentication_information(*sub, NULL);
 
@@ -451,6 +469,30 @@ _eXosip_subscribe_send_request_with_credential(eXosip_subscribe_t * js,
 	} else
 		eXosip_add_authentication_information(msg, NULL);
 	
+
+	if (out_tr != NULL && out_tr->last_response != NULL
+		&& out_tr->last_response->status_code == 423) {
+		/* increase expires value to "min-expires" value */
+		osip_header_t *exp;
+		osip_header_t *min_exp;
+
+		osip_message_header_get_byname(msg, "expires", 0, &exp);
+		osip_message_header_get_byname(out_tr->last_response, "min-expires", 0,
+									   &min_exp);
+		if (exp != NULL && exp->hvalue != NULL && min_exp != NULL
+			&& min_exp->hvalue != NULL) {
+			osip_free(exp->hvalue);
+			exp->hvalue = osip_strdup(min_exp->hvalue);
+		} else {
+			osip_message_free(msg);
+			OSIP_TRACE(osip_trace
+					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"eXosip: missing Min-Expires or Expires in PUBLISH\n"));
+			return OSIP_SYNTAXERROR;
+		}
+	}
+
+
 	osip_message_force_update(msg);
 
 	i = _eXosip_transaction_init(&tr, NICT, eXosip.j_osip, msg);
