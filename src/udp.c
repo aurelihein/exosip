@@ -2218,7 +2218,7 @@ void eXosip_release_terminated_subscriptions()
 			if (transaction != NULL
 				&& transaction->orig_request!=NULL
 				&& transaction->state == NICT_TERMINATED
-				&& js->s_out_tr->birth_time + 15 < now)
+				&& transaction->birth_time + 15 < now)
 			{
 				osip_header_t *expires;
 
@@ -2226,16 +2226,6 @@ void eXosip_release_terminated_subscriptions()
 				if (expires == NULL || expires->hvalue == NULL) {
 				} else if (0 == strcmp(expires->hvalue, "0")) {
 					/* In TCP mode, we don't have enough time to authenticate */
-					REMOVE_ELEMENT(eXosip.j_subscribes, js);
-					eXosip_subscribe_free(js);
-					__eXosip_wakeup();
-					return;
-				}
-			}
-
-			{
-				if (js->s_out_tr != NULL && js->s_out_tr->birth_time + 64 < now) {	/* Wait a max of 64 sec */
-					/* destroy after 15 sec: give a few delay for UNSUBSCRIBE authentication */
 					REMOVE_ELEMENT(eXosip.j_subscribes, js);
 					eXosip_subscribe_free(js);
 					__eXosip_wakeup();
