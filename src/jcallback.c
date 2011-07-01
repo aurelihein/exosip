@@ -328,13 +328,17 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 		}
 
 		/* detect SUBSCRIBE request that close the dialogs! */
-		if (MSG_IS_SUBSCRIBE(tr->orig_request)) {
+		if (MSG_IS_SUBSCRIBE(tr->orig_request)
+			&& tr->last_response != NULL
+			&& (tr->last_response->status_code == 401
+				|| tr->last_response->status_code == 407)) {
+				/* delete the dialog later because we need to authenticate */
+		} else if (MSG_IS_SUBSCRIBE(tr->orig_request)) {
 			osip_header_t *expires;
 
 			osip_message_get_expires(tr->orig_request, 0, &expires);
 			if (expires == NULL || expires->hvalue == NULL) {
 			} else if (0 == strcmp(expires->hvalue, "0")) {
-				/* delete the dialog! */
 				REMOVE_ELEMENT(eXosip.j_subscribes, js);
 				eXosip_subscribe_free(js);
 				return;

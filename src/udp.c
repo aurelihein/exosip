@@ -1318,9 +1318,8 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 	/* search for existing dialog: match branch & to tag */
 	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next) {
 		/* search for calls with only ONE outgoing transaction */
-		if (jc->c_id >= 1 && jc->c_dialogs != NULL && jc->c_out_tr != NULL) {
+		if (jc->c_id >= 1 && jc->c_dialogs != NULL) {
 			for (jd = jc->c_dialogs; jd != NULL; jd = jd->next) {
-				/* only initial request are concerned with this */
 				if (jd->d_id >= 1 && jd->d_dialog != NULL) {
 					/* match answer with dialog */
 					osip_generic_param_t *tag;
@@ -1339,7 +1338,8 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 				break;			/* found a matching dialog! */
 
 			/* check if the transaction match this from tag */
-			if (jc->c_out_tr->orig_request != NULL
+			if (jc->c_out_tr != NULL
+				&& jc->c_out_tr->orig_request != NULL
 				&& jc->c_out_tr->orig_request->from != NULL) {
 				osip_generic_param_t *tag_invite;
 				osip_generic_param_t *tag;
@@ -1423,6 +1423,7 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 				return;
 			}
 			/* copy all credentials from INVITE! */
+			/* TODO: this might not be last transaction... */
 			last_tr = jc->c_out_tr;
 			if (last_tr != NULL) {
 				int pos = 0;
@@ -2213,6 +2214,25 @@ void eXosip_release_terminated_subscriptions()
 				return;
 			}
 		} else {
+			osip_transaction_t *transaction = eXosip_find_last_out_subscribe(js, jd);
+			if (transaction != NULL
+				&& transaction->orig_request!=NULL
+				&& transaction->state == NICT_TERMINATED
+				&& transaction->birth_time + 15 < now)
+			{
+				osip_header_t *expires;
+
+				osip_message_get_expires(transaction->orig_request, 0, &expires);
+				if (expires == NULL || expires->hvalue == NULL) {
+				} else if (0 == strcmp(expires->hvalue, "0")) {
+					/* In TCP mode, we don't have enough time to authenticate */
+					REMOVE_ELEMENT(eXosip.j_subscribes, js);
+					eXosip_subscribe_free(js);
+					__eXosip_wakeup();
+					return;
+				}
+			}
+
 			for (jd = js->s_dialogs; jd != NULL;) {
 				jdnext = jd->next;
 				eXosip_release_finished_transactions_for_subscription(jd);
