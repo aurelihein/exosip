@@ -1671,6 +1671,53 @@ static void _naptr_callback(void *arg, int status, int timeouts,
 	if (status != ARES_SUCCESS)
 	{
 		if (status==ARES_ENODATA) /* no NAPTR record for this domain */
+		  {
+		    osip_srv_record_t srvrecord;
+		    OSIP_TRACE(osip_trace
+			       (__FILE__, __LINE__, OSIP_ERROR, NULL, "_naptr_callback: %s %s\n", output_record->domain, ares_strerror(status)));
+		    /* pre-set all SRV record to unsupported? */
+		    output_record->naptr_state=OSIP_NAPTR_STATE_NAPTRDONE;
+
+		    output_record->sipudp_record.srv_state = OSIP_SRV_STATE_NOTSUPPORTED;
+		    output_record->siptcp_record.srv_state = OSIP_SRV_STATE_NOTSUPPORTED;
+		    output_record->siptls_record.srv_state = OSIP_SRV_STATE_NOTSUPPORTED;
+		    output_record->sipdtls_record.srv_state = OSIP_SRV_STATE_NOTSUPPORTED;
+		    output_record->sipsctp_record.srv_state = OSIP_SRV_STATE_NOTSUPPORTED;
+
+		    memset(&srvrecord, 0, sizeof(osip_srv_record_t));
+		    
+		    srvrecord.order = 49;
+		    srvrecord.preference = 49;
+		    srvrecord.srv_state = OSIP_SRV_STATE_UNKNOWN;
+
+		    snprintf(srvrecord.protocol, sizeof(srvrecord.protocol), "%s", "SIP+D2U");
+		    snprintf(srvrecord.name, sizeof(srvrecord.name), "_sip._udp.%s", output_record->domain);
+		    memcpy(&output_record->sipudp_record, &srvrecord, sizeof(osip_srv_record_t));
+
+		    snprintf(srvrecord.protocol, sizeof(srvrecord.protocol), "%s", "SIP+D2T");
+		    snprintf(srvrecord.name, sizeof(srvrecord.name), "_sip._tcp.%s", output_record->domain);
+		    memcpy(&output_record->siptcp_record, &srvrecord, sizeof(osip_srv_record_t));
+
+		    snprintf(srvrecord.protocol, sizeof(srvrecord.protocol), "%s", "SIPS+D2T");
+		    snprintf(srvrecord.name, sizeof(srvrecord.name), "_sips._tcp.%s", output_record->domain);
+		    memcpy(&output_record->siptls_record, &srvrecord, sizeof(osip_srv_record_t));
+
+		    snprintf(srvrecord.protocol, sizeof(srvrecord.protocol), "%s", "SIPS+D2U");
+		    snprintf(srvrecord.name, sizeof(srvrecord.name), "_sips._udp.%s", output_record->domain);
+		    memcpy(&output_record->sipdtls_record, &srvrecord, sizeof(osip_srv_record_t));
+
+		    OSIP_TRACE(osip_trace
+			       (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				"_naptr_callback: NO NAPTR DNS // SRV record created manually ->%i/%i/%s\n",
+				srvrecord.order, srvrecord.preference, srvrecord.name));
+		    
+		    return;
+		  }
+	}
+
+	if (status != ARES_SUCCESS)
+	{
+		if (status==ARES_ENODATA) /* no NAPTR record for this domain */
 			output_record->naptr_state=OSIP_NAPTR_STATE_NOTSUPPORTED;
 		else if (status==ARES_ENOTFOUND) /* domain does not exist */
 			output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
@@ -1774,7 +1821,12 @@ static int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
 				else if (output_record->sipsctp_record.srv_state == OSIP_SRV_STATE_COMPLETED)
 					output_record->naptr_state=OSIP_NAPTR_STATE_SRVDONE;
 				else
-					output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
+				  {
+				    if (output_record->sipudp_record.order == 49 && output_record->sipudp_record.preference == 49)
+				      output_record->naptr_state=OSIP_NAPTR_STATE_NOTSUPPORTED;
+				    else
+				      output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
+				  }
 
 				output_record->arg=NULL;
 				ares_destroy(channel);
@@ -1902,9 +1954,12 @@ static int eXosip_dnsutils_srv_lookup(struct osip_naptr *output_record)
 				output_record->naptr_state=OSIP_NAPTR_STATE_SRVDONE;
 			else if (output_record->sipsctp_record.srv_state == OSIP_SRV_STATE_COMPLETED)
 				output_record->naptr_state=OSIP_NAPTR_STATE_SRVDONE;
-			else
-				output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
-
+			else {
+			  if (output_record->sipudp_record.order == 49 && output_record->sipudp_record.preference == 49)
+			    output_record->naptr_state=OSIP_NAPTR_STATE_NOTSUPPORTED;
+			  else
+			    output_record->naptr_state=OSIP_NAPTR_STATE_RETRYLATER;
+			}
 			output_record->arg=NULL;
 			ares_destroy(channel);
 			return OSIP_SUCCESS;
