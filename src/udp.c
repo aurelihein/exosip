@@ -2214,22 +2214,26 @@ void eXosip_release_terminated_subscriptions()
 				return;
 			}
 		} else {
-			osip_transaction_t *transaction = eXosip_find_last_out_subscribe(js, jd);
-			if (transaction != NULL
-				&& transaction->orig_request!=NULL
-				&& transaction->state == NICT_TERMINATED
-				&& transaction->birth_time + 15 < now)
-			{
-				osip_header_t *expires;
+			/* fix 14/07/11. NULL pointer */
+			jd = js->s_dialogs;
+			if (jd!= NULL) {
+				osip_transaction_t *transaction = eXosip_find_last_out_subscribe(js, jd);
+				if (transaction != NULL
+					&& transaction->orig_request!=NULL
+					&& transaction->state == NICT_TERMINATED
+					&& transaction->birth_time + 15 < now)
+				{
+					osip_header_t *expires;
 
-				osip_message_get_expires(transaction->orig_request, 0, &expires);
-				if (expires == NULL || expires->hvalue == NULL) {
-				} else if (0 == strcmp(expires->hvalue, "0")) {
-					/* In TCP mode, we don't have enough time to authenticate */
-					REMOVE_ELEMENT(eXosip.j_subscribes, js);
-					eXosip_subscribe_free(js);
-					__eXosip_wakeup();
-					return;
+					osip_message_get_expires(transaction->orig_request, 0, &expires);
+					if (expires == NULL || expires->hvalue == NULL) {
+					} else if (0 == strcmp(expires->hvalue, "0")) {
+						/* In TCP mode, we don't have enough time to authenticate */
+						REMOVE_ELEMENT(eXosip.j_subscribes, js);
+						eXosip_subscribe_free(js);
+						__eXosip_wakeup();
+						return;
+					}
 				}
 			}
 
