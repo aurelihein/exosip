@@ -621,6 +621,8 @@ int eXosip_init(void)
 
 	memset(&eXosip, 0, sizeof(eXosip));
 
+	eXosip.dscp = 0x1A;
+
 	snprintf(eXosip.ipv4_for_gateway, 256, "%s", "217.12.3.11");
 	snprintf(eXosip.ipv6_for_gateway, 256, "%s",
 			 "2001:638:500:101:2e0:81ff:fe24:37c6");
@@ -1072,6 +1074,11 @@ int eXosip_set_option(int opt, const void *value)
 		val = *((int *) value);
 		/* 0: A request, 1: SRV support, 2: NAPTR+SRV support */
 		eXosip.dns_capabilities = val;
+		break;
+	case EXOSIP_OPT_SET_DSCP:
+		val = *((int *) value);
+		/* 0x1A by default */
+		eXosip.dscp = val;
 		break;
 	default:
 		return OSIP_BADPARAMETER;

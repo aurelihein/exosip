@@ -450,6 +450,7 @@ extern "C" {
 #endif
 		int use_rport;
 		int dns_capabilities;
+		int dscp;
 		char ipv4_for_gateway[256];
 		char ipv6_for_gateway[256];
 #ifndef MINISIZE

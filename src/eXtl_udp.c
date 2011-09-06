@@ -65,6 +65,12 @@ static int udp_tl_free(void)
 	return OSIP_SUCCESS;
 }
 
+#if !defined(WIN32) && !defined(_WIN32_WCE)
+#define SOCKET_OPTION_VALUE	void *
+#else
+#define SOCKET_OPTION_VALUE char *
+#endif
+
 static int udp_tl_open(void)
 {
 	int res;
@@ -161,6 +167,21 @@ static int udp_tl_open(void)
 	}
 
 	udp_socket = sock;
+
+	if (eXtl_udp.proto_family == AF_INET)
+	{
+		int tos = (eXosip.dscp << 2) & 0xFC;
+		res = setsockopt(udp_socket, IPPROTO_IP, IP_TOS, (SOCKET_OPTION_VALUE)&tos, sizeof(tos));
+	} else {
+		int tos = (eXosip.dscp << 2) & 0xFC;
+#ifdef IPV6_TCLASS
+		res = setsockopt(udp_socket, IPPROTO_IPV6, IPV6_TCLASS,
+			(SOCKET_OPTION_VALUE)&tos, sizeof(tos));
+#else
+		retval = setsockopt(udp_socket, IPPROTO_IPV6, IP_TOS,
+			(SOCKET_OPTION_VALUE)&tos, sizeof(tos));
+#endif
+	}
 
 	if (eXtl_udp.proto_port == 0) {
 		/* get port number from socket */
