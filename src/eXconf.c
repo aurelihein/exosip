@@ -1010,7 +1010,7 @@ int eXosip_set_option(int opt, const void *value)
 		tmp = (char *) value;
 		memset(eXosip.http_proxy, '\0', sizeof(eXosip.http_proxy));
 		if (tmp != NULL && tmp[0] != '\0')
-			strncpy(eXosip.http_proxy, tmp, sizeof(eXosip.http_proxy));	/* value in proxy:port */
+			osip_strncpy(eXosip.http_proxy, tmp, sizeof(eXosip.http_proxy)-1);	/* value in proxy:port */
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: http_proxy:%s!\n", eXosip.http_proxy));
@@ -1020,7 +1020,7 @@ int eXosip_set_option(int opt, const void *value)
 		memset(eXosip.http_outbound_proxy, '\0',
 			   sizeof(eXosip.http_outbound_proxy));
 		if (tmp != NULL && tmp[0] != '\0')
-			strncpy(eXosip.http_outbound_proxy, tmp, sizeof(eXosip.http_outbound_proxy));	/* value in proxy:port */
+			osip_strncpy(eXosip.http_outbound_proxy, tmp, sizeof(eXosip.http_outbound_proxy)-1);	/* value in proxy:port */
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: http_outbound_proxy:%s!\n",
@@ -1042,7 +1042,7 @@ int eXosip_set_option(int opt, const void *value)
 		tmp = (char *) value;
 		memset(eXosip.ipv4_for_gateway, '\0', sizeof(eXosip.ipv4_for_gateway));
 		if (tmp != NULL && tmp[0] != '\0')
-			strncpy(eXosip.ipv4_for_gateway, tmp, sizeof(eXosip.ipv4_for_gateway));
+			osip_strncpy(eXosip.ipv4_for_gateway, tmp, sizeof(eXosip.ipv4_for_gateway)-1);
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: ipv4_for_gateway:%s!\n",
@@ -1053,7 +1053,7 @@ int eXosip_set_option(int opt, const void *value)
 		tmp = (char *) value;
 		memset(eXosip.ipv6_for_gateway, '\0', sizeof(eXosip.ipv6_for_gateway));
 		if (tmp != NULL && tmp[0] != '\0')
-			strncpy(eXosip.ipv6_for_gateway, tmp, sizeof(eXosip.ipv6_for_gateway));
+			osip_strncpy(eXosip.ipv6_for_gateway, tmp, sizeof(eXosip.ipv6_for_gateway)-1);
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: ipv6_for_gateway:%s!\n",
@@ -1063,7 +1063,7 @@ int eXosip_set_option(int opt, const void *value)
 		tmp = (char *) value;
 		memset(eXosip.event_package, '\0', sizeof(eXosip.event_package));
 		if (tmp != NULL && tmp[0] != '\0')
-			strncpy(eXosip.event_package, tmp, sizeof(eXosip.event_package));
+			osip_strncpy(eXosip.event_package, tmp, sizeof(eXosip.event_package)-1);
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: event_package:%s!\n",
