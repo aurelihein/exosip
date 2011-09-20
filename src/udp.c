@@ -340,6 +340,8 @@ eXosip_process_cancel(osip_transaction_t * transaction, osip_event_t * evt)
 				tr = NULL;
 				pos++;
 			}
+			if (tr!=NULL)
+				break;
 		}
 		if (jd != NULL)
 			break;				/* tr has just been found! */
@@ -1471,8 +1473,7 @@ static void eXosip_process_response_out_of_transaction(osip_event_t * evt)
 		return;
 	}
 
-	/* we don't match any existing dialog: send a ACK & send a BYE */
-	osip_event_free(evt);
+	/* ...code not reachable... */
 }
 
 int
