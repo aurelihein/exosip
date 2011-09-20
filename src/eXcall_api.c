@@ -681,8 +681,8 @@ eXosip_call_build_notify(int did, int subscription_status,
 	else if (subscription_status == EXOSIP_SUBCRSTATE_ACTIVE)
 		osip_strncpy(subscription_state, "active;expires=", 15);
 	else if (subscription_status == EXOSIP_SUBCRSTATE_TERMINATED) {
+#if 0
 		int reason = NORESOURCE;
-
 		if (reason == DEACTIVATED)
 			osip_strncpy(subscription_state, "terminated;reason=deactivated", 29);
 		else if (reason == PROBATION)
@@ -694,11 +694,12 @@ eXosip_call_build_notify(int did, int subscription_status,
 		else if (reason == GIVEUP)
 			osip_strncpy(subscription_state, "terminated;reason=giveup", 24);
 		else if (reason == NORESOURCE)
+#endif
 			osip_strncpy(subscription_state, "terminated;reason=noresource", 29);
 	}
 	tmp = subscription_state + strlen(subscription_state);
 	if (subscription_status != EXOSIP_SUBCRSTATE_TERMINATED)
-		sprintf(tmp, "%i", 180);
+		snprintf(tmp, 50 - (tmp - subscription_state), "%i", 180);
 	osip_message_set_header(*request, "Subscription-State", subscription_state);
 
 	return OSIP_SUCCESS;
@@ -735,11 +736,7 @@ int eXosip_call_build_answer(int tid, int status, osip_message_t ** answer)
 	if (0 == osip_strcasecmp(tr->orig_request->sip_method, "INVITE")) {
 		i = _eXosip_answer_invite_123456xx(jc, jd, status, answer, 0);
 	} else {
-		if (jd != NULL)
-			i = _eXosip_build_response_default(answer, jd->d_dialog, status,
-											   tr->orig_request);
-		else
-			i = _eXosip_build_response_default(answer, NULL, status,
+		i = _eXosip_build_response_default(answer, jd->d_dialog, status,
 											   tr->orig_request);
 		if (i != 0) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -874,13 +871,13 @@ int eXosip_call_send_answer(int tid, int status, osip_message_t * answer)
 						/* syntax of Session-Expires is equivalent to "Content-Disposition" */
 						osip_content_disposition_init(&exp_h);
 						if (exp_h == NULL) {
-							osip_content_disposition_free(exp_h);
 							osip_header_free(cp);
 						} else {
 							osip_content_disposition_parse(exp_h, se_exp->hvalue);
 							if (exp_h->element == NULL) {
 								osip_content_disposition_free(exp_h);
 								osip_header_free(cp);
+								exp_h = NULL;
 							} else {
 								osip_generic_param_t *param = NULL;
 								osip_generic_param_get_byname(&exp_h->gen_params,
@@ -908,7 +905,8 @@ int eXosip_call_send_answer(int tid, int status, osip_message_t * answer)
 								osip_list_add(&answer->headers, cp, 0);
 							}
 						}
-						osip_content_disposition_free(exp_h);
+						if (exp_h)
+							osip_content_disposition_free(exp_h);
 						exp_h = NULL;
 
 
@@ -1290,7 +1288,11 @@ _eXosip_call_retry_request(eXosip_call_t * jc,
 		/* replace request-uri with NEW contact address */
 		osip_uri_free(msg->req_uri);
 		msg->req_uri = NULL;
-		osip_uri_clone(co->url, &msg->req_uri);
+		i = osip_uri_clone(co->url, &msg->req_uri);
+		if (i != 0) {
+			osip_message_free(msg);
+			return i;
+		}
 
 		/* support for diversions headers/draft! */
 		{
@@ -1533,7 +1535,6 @@ int eXosip_call_find_by_replaces(char *replaces_str)
 		return OSIP_NOMEM;
 
 	/* parse replaces string */
-	strcpy(call_id, replaces_str);
 	to_tag = strstr(call_id, totag_str);
 	from_tag = strstr(call_id, fromtag_str);
 	early_flag = strstr(call_id, earlyonly_str);

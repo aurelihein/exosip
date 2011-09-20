@@ -127,11 +127,8 @@ eXosip_insubscription_build_answer(int tid, int status, osip_message_t ** answer
 		return OSIP_BADPARAMETER;
 	}
 
-	if (jd != NULL)
-		i = _eXosip_build_response_default(answer, jd->d_dialog, status,
+	i = _eXosip_build_response_default(answer, jd->d_dialog, status,
 										   tr->orig_request);
-	else
-		i = _eXosip_build_response_default(answer, NULL, status, tr->orig_request);
 
 	if (i != 0) {
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -230,10 +227,6 @@ int eXosip_insubscription_send_answer(int tid, int status, osip_message_t * answ
 			osip_message_free(answer);
 			return OSIP_BADPARAMETER;
 		}
-		if (i != 0) {
-			osip_message_free(answer);
-			return i;
-		}
 	}
 
 	evt_answer = osip_new_outgoing_sipmessage(answer);
@@ -303,7 +296,7 @@ eXosip_insubscription_build_notify(int did, int subscription_status,
 
 	tmp = subscription_state + strlen(subscription_state);
 	if (subscription_status != EXOSIP_SUBCRSTATE_TERMINATED)
-		sprintf(tmp, "%li", jn->n_ss_expires - now);
+		snprintf(tmp, 50 - (tmp - subscription_state), "%li", jn->n_ss_expires - now);
 	osip_message_set_header(*request, "Subscription-State", subscription_state);
 #endif
 
@@ -604,12 +597,14 @@ _eXosip_insubscription_auto_send_notify(int did,
 							 jd->d_dialog->local_tag,
 							 jd->d_dialog->remote_tag,
 							 direction, dlg_state, remote_uri);
-					strcat(xml, tmp_dialog);
+					if (strlen(xml) + strlen(tmp_dialog) < sizeof(xml))
+						strcat(xml, tmp_dialog);
 				}
 			}
 		}
 	}
-	strcat(xml, "</dialog-info>" "\r\n");
+	if (strlen(xml) + 16 < sizeof(xml))
+		strcat(xml, "</dialog-info>" "\r\n");
 	osip_message_set_content_type(notify, "application/dialog-info+xml");
 	osip_message_set_body(notify, xml, strlen(xml));
 

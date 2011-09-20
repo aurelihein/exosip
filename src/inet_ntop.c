@@ -128,7 +128,7 @@ size_t size;
 	char tmp[sizeof "255.255.255.255"];
 
 	sprintf(tmp, fmt, src[0], src[1], src[2], src[3]);
-	if ((size_t) strlen(tmp) > size) {
+	if ((size_t) strlen(tmp) >= size) {
 #ifndef _WIN32_WCE
 		errno = ENOSPC;
 #endif
@@ -171,8 +171,8 @@ size_t size;
 	memset(words, 0, sizeof words);
 	for (i = 0; i < IN6ADDRSZ; i++)
 		words[i / 2] |= (src[i] << ((1 - (i % 2)) << 3));
-	best.base = -1;
-	cur.base = -1;
+	best.base = -1; best.len = 0;
+	cur.base = -1; cur.len = 0;
 	for (i = 0; i < (IN6ADDRSZ / INT16SZ); i++) {
 		if (words[i] == 0) {
 			if (cur.base == -1)

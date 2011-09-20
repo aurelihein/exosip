@@ -125,7 +125,7 @@ _eXosip_register_build_register(eXosip_reg_t * jr, osip_message_t ** _reg)
 						osip_message_free(last_response);
 					return OSIP_NOMEM;
 				}
-				sprintf(reg->cseq->number, "%i", osip_cseq_num);
+				snprintf(reg->cseq->number, length + 2, "%i", osip_cseq_num);
 
 
 				if (last_response != NULL && last_response->status_code == 423) {

@@ -1490,7 +1490,7 @@ int eXosip_update_top_via(osip_message_t * sip)
 	osip_free(br->gvalue);
 	number = osip_build_random_number();
 
-	sprintf(tmp, "z9hG4bK%u", number);
+	snprintf(tmp, 40, "z9hG4bK%u", number);
 	br->gvalue = osip_strdup(tmp);
 	return OSIP_SUCCESS;
 }
