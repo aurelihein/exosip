@@ -65,6 +65,12 @@ static int udp_tl_free(void)
 	return OSIP_SUCCESS;
 }
 
+#if !defined(WIN32) && !defined(_WIN32_WCE)
+#define SOCKET_OPTION_VALUE	void *
+#else
+#define SOCKET_OPTION_VALUE char *
+#endif
+
 static int udp_tl_open(void)
 {
 	int res;
@@ -162,6 +168,21 @@ static int udp_tl_open(void)
 
 	udp_socket = sock;
 
+	if (eXtl_udp.proto_family == AF_INET)
+	{
+		int tos = (eXosip.dscp << 2) & 0xFC;
+		res = setsockopt(udp_socket, IPPROTO_IP, IP_TOS, (SOCKET_OPTION_VALUE)&tos, sizeof(tos));
+	} else {
+		int tos = (eXosip.dscp << 2) & 0xFC;
+#ifdef IPV6_TCLASS
+		res = setsockopt(udp_socket, IPPROTO_IPV6, IPV6_TCLASS,
+			(SOCKET_OPTION_VALUE)&tos, sizeof(tos));
+#else
+		retval = setsockopt(udp_socket, IPPROTO_IPV6, IP_TOS,
+			(SOCKET_OPTION_VALUE)&tos, sizeof(tos));
+#endif
+	}
+
 	if (eXtl_udp.proto_port == 0) {
 		/* get port number from socket */
 		if (eXtl_udp.proto_family == AF_INET)
@@ -199,9 +220,10 @@ void udp_tl_learn_port_from_via(osip_message_t * sip)
 	if (eXosip.learn_port > 0) {
 		osip_via_t *via = NULL;
 		osip_generic_param_t *br;
+		int i;
 
-		osip_message_get_via(sip, 0, &via);
-		if (via != NULL && via->protocol != NULL
+		i = osip_message_get_via(sip, 0, &via);
+		if (i >= 0 && via != NULL && via->protocol != NULL
 			&& (osip_strcasecmp(via->protocol, "udp") == 0
 				|| osip_strcasecmp(via->protocol, "dtls-udp") == 0)) {
 			osip_via_param_get_byname(via, "rport", &br);
@@ -426,7 +448,7 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	size_t length = 0;
 	struct addrinfo *addrinfo;
 	struct __eXosip_sockaddr addr;
-	char *message;
+	char *message = NULL;
 
 	char ipbuf[INET6_ADDRSTRLEN];
 	int i;
@@ -624,6 +646,7 @@ udp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	}
 
 	if (i != 0 || length <= 0) {
+		osip_free(message);
 		return -1;
 	}
 

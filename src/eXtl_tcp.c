@@ -1140,7 +1140,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 					int port, int out_socket)
 {
 	size_t length = 0;
-	char *message;
+	char *message = NULL;
 	int i;
 	int pos=-1;
 	osip_naptr_t *naptr_record=NULL;
@@ -1283,6 +1283,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	}
 
 	if (i != 0 || length <= 0) {
+		osip_free(message);
 		return -1;
 	}
 

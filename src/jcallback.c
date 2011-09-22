@@ -288,7 +288,7 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 			return;
 		}
 
-		if (MSG_IS_NOTIFY(tr->orig_request)
+		if (jn != NULL && MSG_IS_NOTIFY(tr->orig_request)
 			&& tr->last_response != NULL && tr->last_response->status_code > 299) {
 			/* delete the dialog! */
 			if (tr->last_response->status_code != 407
@@ -299,7 +299,7 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 			}
 		}
 
-		if (MSG_IS_NOTIFY(tr->orig_request)
+		if (jn != NULL && MSG_IS_NOTIFY(tr->orig_request)
 			&& tr->last_response != NULL
 			&& tr->last_response->status_code > 199
 			&& tr->last_response->status_code < 300) {
@@ -312,7 +312,7 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 		}
 
 		/* no answer to a SUBSCRIBE request! */
-		if (MSG_IS_SUBSCRIBE(tr->orig_request)
+		if (js != NULL && MSG_IS_SUBSCRIBE(tr->orig_request)
 			&& (tr->last_response == NULL
 				|| tr->last_response->status_code <= 199)) {
 			eXosip_event_t *je;
@@ -333,7 +333,7 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 			&& (tr->last_response->status_code == 401
 				|| tr->last_response->status_code == 407)) {
 				/* delete the dialog later because we need to authenticate */
-		} else if (MSG_IS_SUBSCRIBE(tr->orig_request)) {
+		} else if (js != NULL && MSG_IS_SUBSCRIBE(tr->orig_request)) {
 			osip_header_t *expires;
 
 			osip_message_get_expires(tr->orig_request, 0, &expires);
@@ -757,7 +757,7 @@ static void cb_rcv1xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 		} else if (MSG_TEST_CODE(sip, 183) && jd != NULL) {
 			jd->d_STATE = JD_QUEUED;
 		}
-		if (MSG_IS_RESPONSE_FOR(sip, "INVITE")) {
+		if (jc != NULL && MSG_IS_RESPONSE_FOR(sip, "INVITE")) {
 			eXosip_call_renew_expire_time(jc);
         }
 	}

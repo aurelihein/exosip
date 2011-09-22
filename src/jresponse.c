@@ -262,7 +262,7 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 		via = (osip_via_t *) osip_list_get(&response->vias, 0);
 		if (via == NULL || via->protocol == NULL)
 			return OSIP_SYNTAXERROR;
-		if (strlen(contact) + strlen(via->protocol) < 1024
+		if (strlen(contact) + strlen(via->protocol) + strlen(";transport=>")  < 1024
 			&& 0 != osip_strcasecmp(via->protocol, "UDP")) {
 			contact[strlen(contact) - 1] = '\0';
 			strcat(contact, ";transport=");

@@ -525,7 +525,8 @@ void DigestCalcResponseAka(IN const char *pszPassword, IN const char *pszNonce,	
 
 	/* Compute the AKA response */
 	resp_hex[0] = 0;
-	sprintf(tmp, "%s", pszNonce);
+	snprintf(tmp, MAX_HEADER_LEN-1,  "%s", pszNonce);
+	tmp[MAX_HEADER_LEN-1] = 0;
 	nonce64 = tmp;
 	nonce = base64_decode_string(nonce64, strlen(tmp), &noncelen);
 	if (nonce == NULL)
@@ -533,6 +534,7 @@ void DigestCalcResponseAka(IN const char *pszPassword, IN const char *pszNonce,	
 
 	if (noncelen < RANDLEN + AUTNLEN) {
 		/* Nonce is too short */
+		osip_free(nonce);
 		goto done;
 	}
 	memcpy(rnd, nonce, RANDLEN);
@@ -822,7 +824,8 @@ __eXosip_create_authorization_header(osip_www_authenticate_t * wa,
 				return OSIP_NOMEM;
 			}
 
-			sprintf(resp, "\"%s\"", Response);
+			snprintf(resp, 35, "\"%s\"", Response);
+			resp[34] = 0;
 			osip_authorization_set_response(aut, resp);
 		}
 		osip_free(pszNonce);
@@ -975,7 +978,11 @@ __eXosip_create_proxy_authorization_header(osip_proxy_authenticate_t * wa,
 		pszPass = passwd;
 
 		if (osip_www_authenticate_get_nonce(wa) == NULL)
+		{
+			osip_authorization_free(aut);
+			osip_free(pszRealm);
 			return OSIP_SYNTAXERROR;
+		}
 		pszNonce = osip_strdup_without_quote(osip_www_authenticate_get_nonce(wa));
 
 		if (qop != NULL) {
@@ -1076,7 +1083,8 @@ __eXosip_create_proxy_authorization_header(osip_proxy_authenticate_t * wa,
 				return OSIP_NOMEM;
 			}
 
-			sprintf(resp, "\"%s\"", Response);
+			snprintf(resp, 35, "\"%s\"", Response);
+			resp[34] = 0;
 			osip_proxy_authorization_set_response(aut, resp);
 		}
 		osip_free(pszNonce);
