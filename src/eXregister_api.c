@@ -206,6 +206,7 @@ eXosip_register_build_initial_register(const char *from, const char *proxy,
 	if (from == NULL || proxy == NULL)
 		return OSIP_BADPARAMETER;
 
+#ifdef REJECT_DOUBLE_REGISTRATION
 	/* Avoid adding the same registration info twice to prevent mem leaks */
 	for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
 		if (strcmp(jr->r_aor, from) == 0 && strcmp(jr->r_registrar, proxy) == 0) {
@@ -215,6 +216,8 @@ eXosip_register_build_initial_register(const char *from, const char *proxy,
 			break;
 		}
 	}
+#endif
+
 	if (jr == NULL) {
 		/* Add new registration info */
 		i = eXosip_reg_init(&jr, from, proxy, contact);
