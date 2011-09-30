@@ -17,6 +17,11 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#ifdef WIN32
+#ifndef UNICODE
+#define UNICODE
+#endif
+#endif
 
 #ifdef ENABLE_MPATROL
 #include <mpatrol.h>
@@ -24,6 +29,8 @@
 
 #include "eXosip2.h"
 #include "eXtransport.h"
+
+#include <sys/stat.h>
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -183,12 +190,14 @@ static int tls_tl_free(void)
 		}
 	}
 
+#if 0
+	/* this would break other ssl usage */
 	EVP_cleanup();
 	ERR_free_strings();
 	ERR_remove_state(0);
 
 	CRYPTO_cleanup_all_ex_data();
-
+#endif
 
 	memset(&tls_socket_tab, 0, sizeof(struct socket_tab) * EXOSIP_MAX_SOCKETS);
 
@@ -231,7 +240,7 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 #ifdef WIN32
 	PCCERT_CONTEXT pCertCtx;
 	X509 *cert = NULL;
-	HCERTSTORE hStore = CertOpenSystemStore(0, "CA");
+	HCERTSTORE hStore = CertOpenSystemStore(0, L"CA");
 
 	for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 		 pCertCtx != NULL;
@@ -252,7 +261,7 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 
 	CertCloseStore(hStore, 0);
 
-	hStore = CertOpenSystemStore(0, "ROOT");
+	hStore = CertOpenSystemStore(0, L"ROOT");
 
 	for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 		 pCertCtx != NULL;
@@ -273,7 +282,7 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 
 	CertCloseStore(hStore, 0);
 
-	hStore = CertOpenSystemStore(0, "MY");
+	hStore = CertOpenSystemStore(0, L"MY");
 
 	for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 		 pCertCtx != NULL;
@@ -294,7 +303,7 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 
 	CertCloseStore(hStore, 0);
 
-	hStore = CertOpenSystemStore(0, "Trustedpublisher");
+	hStore = CertOpenSystemStore(0, L"Trustedpublisher");
 
 	for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 		 pCertCtx != NULL;
@@ -484,7 +493,7 @@ static X509 *_tls_set_certificate(SSL_CTX * ctx, const char *cn)
 #ifdef WIN32
 	PCCERT_CONTEXT pCertCtx;
 	X509 *cert = NULL;
-	HCERTSTORE hStore = CertOpenSystemStore(0, "CA");
+	HCERTSTORE hStore = CertOpenSystemStore(0, L"CA");
 
 	for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 		 pCertCtx != NULL;
@@ -509,7 +518,7 @@ static X509 *_tls_set_certificate(SSL_CTX * ctx, const char *cn)
 	CertCloseStore(hStore, 0);
 
 	if (cert == NULL) {
-		hStore = CertOpenSystemStore(0, "ROOT");
+		hStore = CertOpenSystemStore(0, L"ROOT");
 		for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 			 pCertCtx != NULL;
 			 pCertCtx = CertEnumCertificatesInStore(hStore, pCertCtx)) {
@@ -535,7 +544,7 @@ static X509 *_tls_set_certificate(SSL_CTX * ctx, const char *cn)
 	}
 
 	if (cert == NULL) {
-		hStore = CertOpenSystemStore(0, "MY");
+		hStore = CertOpenSystemStore(0, L"MY");
 
 		for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 			 pCertCtx != NULL;
@@ -562,7 +571,7 @@ static X509 *_tls_set_certificate(SSL_CTX * ctx, const char *cn)
 	}
 
 	if (cert == NULL) {
-		hStore = CertOpenSystemStore(0, "Trustedpublisher");
+		hStore = CertOpenSystemStore(0, L"Trustedpublisher");
 
 		for (pCertCtx = CertEnumCertificatesInStore(hStore, NULL);
 			 pCertCtx != NULL;
@@ -1057,20 +1066,100 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 		cert = NULL;
 	}
 
-	/* Load the CAs we trust */
-	if (!
-		(SSL_CTX_load_verify_locations
-		 (ctx, eXosip_tls_ctx_params.root_ca_cert, 0)))
+#if 0
+ANDROID
+	BIO *bio = BIO_new_file("/system/etc/security/cacerts.bks", "r");
+
+	unsigned char* p = d2i_PKCS7_bio(NULL, bio, 
+
+	//BIO_from_keystore("/system/etc/security/cacerts.bks");
+	STACK_OF(X509_INFO) *stack = NULL;
+	int i;
+	if (bio) {
+		stack = PEM_X509_INFO_read_bio(bio, NULL, NULL, NULL);
+		BIO_free(bio);
+	}
+	if (!stack) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Couldn't read CA list\n"));
+					"eXosip: Couldn't keystore from /system/etc/security/cacerts.bks\n"));	
+	} else {
+		int count = sk_X509_INFO_num(stack);
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+					"eXosip: Loading %d X509 certificates\n", count));	
+		for (i = 0; i < count; ++i) {
+			X509_INFO *info = sk_X509_INFO_value(stack, i);
+			if (info->x509) {
+				X509_STORE_add_cert(ctx->cert_store, info->x509);
+			}
+			if (info->crl) {
+				X509_STORE_add_crl(ctx->cert_store, info->crl);
+			}
+			sk_X509_INFO_pop_free(stack, X509_INFO_free);
+		}
+	}
+#endif
 
+
+	/* Load the CAs we trust */
 	{
-		int verify_mode = SSL_VERIFY_NONE;
-		verify_mode = SSL_VERIFY_PEER;
+		char *caFile = 0, *caFolder = 0;
 
-		SSL_CTX_set_verify(ctx, verify_mode, &verify_cb);
-		SSL_CTX_set_verify_depth(ctx, ex_verify_depth + 1);
+#ifdef WIN32
+		WIN32_FIND_DATA FileData; 
+		HANDLE hSearch; 
+		char szDirPath[1024]; 
+		WCHAR wUnicodeDirPath[2048];
+		snprintf(szDirPath, sizeof(szDirPath), "%s", eXosip_tls_ctx_params.root_ca_cert);
+		
+		MultiByteToWideChar(CP_UTF8, 0, szDirPath, -1, wUnicodeDirPath, 2048);
+		hSearch = FindFirstFile(wUnicodeDirPath, &FileData);
+		if (hSearch != INVALID_HANDLE_VALUE)
+		{
+			if ((FileData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
+				caFolder = eXosip_tls_ctx_params.root_ca_cert;
+			else
+				caFile = eXosip_tls_ctx_params.root_ca_cert;
+		} else {
+				caFile = eXosip_tls_ctx_params.root_ca_cert;
+		}
+#else
+		int fd = open(eXosip_tls_ctx_params.root_ca_cert, O_RDONLY);
+		if (fd >= 0) {
+			struct stat fileStat;
+			if (fstat(fd, &fileStat) < 0) {
+				
+			} else {
+				if (S_ISDIR(fileStat.st_mode)) {
+					caFolder = eXosip_tls_ctx_params.root_ca_cert;
+				} else {
+					caFile = eXosip_tls_ctx_params.root_ca_cert;
+				}
+			}
+			close(fd);
+		}
+#endif
+
+
+		OSIP_TRACE(osip_trace
+				   (__FILE__, __LINE__, OSIP_INFO3, NULL,
+					"eXosip: Trusted CA %s : '%s'\n", caFolder?"folder":"file", eXosip_tls_ctx_params.root_ca_cert));
+
+		if (!
+			(SSL_CTX_load_verify_locations
+			 (ctx, caFile, caFolder)))
+			OSIP_TRACE(osip_trace
+						(__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"eXosip: Couldn't read CA list ('%s')\n", eXosip_tls_ctx_params.root_ca_cert));
+
+		{
+			int verify_mode = SSL_VERIFY_NONE;
+			verify_mode = SSL_VERIFY_PEER;
+
+			SSL_CTX_set_verify(ctx, verify_mode, &verify_cb);
+			SSL_CTX_set_verify_depth(ctx, ex_verify_depth + 1);
+		}
 	}
 
 	SSL_CTX_set_options(ctx, SSL_OP_ALL | SSL_OP_NO_SSLv2 |

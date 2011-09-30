@@ -76,6 +76,9 @@ eXosip_reg_init(eXosip_reg_t ** jr, const char *from, const char *proxy,
 		char localip[128];
 		char firewall_ip[65];
 		char firewall_port[10];
+		char somerandom[31];
+		memset(somerandom, 0, sizeof(somerandom));
+		eXosip_generate_random(somerandom, 16);
 
 		memset(localip, '\0', sizeof(localip));
 		memset(firewall_ip, '\0', sizeof(firewall_ip));
@@ -101,6 +104,14 @@ eXosip_reg_init(eXosip_reg_t ** jr, const char *from, const char *proxy,
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
 		osip_MD5Update(&Md5Ctx, (unsigned char *) firewall_port,
 					   strlen(firewall_port));
+
+		/* previously, "line" was common accross several identical restart. */
+		/* including random will help to read a correct "expires" parameter */
+		/* from 2xx REGISTER answers */
+		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
+		osip_MD5Update(&Md5Ctx, (unsigned char *) somerandom,
+					   strlen(somerandom));
+		
 		osip_MD5Final((unsigned char *) hval, &Md5Ctx);
 		CvtHex(hval, key_line);
 
