@@ -372,7 +372,8 @@ static int base64_val(char x)
 
 static char *base64_decode_string(const char *buf, unsigned int len, int *newlen)
 {
-	int i, j, x1, x2, x3, x4;
+	unsigned int i, j;
+	int x1, x2, x3, x4;
 	char *out;
 	out = (char *) osip_malloc((len * 3 / 4) + 8);
 	if (out == NULL)
