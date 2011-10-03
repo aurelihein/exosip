@@ -700,6 +700,8 @@ generating_register(eXosip_reg_t * jreg, osip_message_t ** reg, char *transport,
 				osip_uri_uparam_add(new_contact_url, osip_strdup("line"),
 									osip_strdup(jreg->r_line));
 			}
+			if(jreg->r_qvalue[0] != 0)
+				osip_contact_param_add(new_contact, osip_strdup("q"), osip_strdup(jreg->r_qvalue));
 
 			osip_list_add(&(*reg)->contacts, new_contact, -1);
 		}

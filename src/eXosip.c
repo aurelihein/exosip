@@ -22,6 +22,10 @@
 #include <mpatrol.h>
 #endif
 
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
+
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
@@ -631,6 +635,10 @@ void eXosip_automatic_refresh(void)
 			} else if (now - jr->r_last_tr->birth_time > 900) {
 				/* automatic refresh */
 				eXosip_register_send_register(jr->r_id, NULL);
+#if TARGET_OS_IPHONE
+			} else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - 630) {
+				eXosip_register_send_register(jr->r_id, NULL);
+#endif
 			} else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - (jr->r_reg_period/10)) {
 				/* automatic refresh at "timeout - 10%" */
 				eXosip_register_send_register(jr->r_id, NULL);

@@ -70,6 +70,21 @@ extern "C"
                                               osip_message_t ** reg);
 
 /**
+ * Build initial REGISTER request with qvalue for contact.
+ * 
+ * @param from      SIP url for caller.
+ * @param proxy     Proxy used for registration.
+ * @param contact   Contact address. (optional)
+ * @param expires   The expires value for registration.
+ * @param qvalue    The qvalue value for contact header.
+ * @param reg       The SIP request to build.
+ */
+  int eXosip_register_build_initial_register_withqvalue(const char *from, const char *proxy,
+									   const char *contact, int expires,
+									   const char *qvalue,
+									   osip_message_t ** reg);
+
+/**
  * Build a new REGISTER request for an existing registration.
  * 
  * @param rid       A unique identifier for the registration context

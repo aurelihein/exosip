@@ -237,7 +237,8 @@ extern "C" {
 		char *r_contact;		/* list of contacts string */
 
 		char r_line[16];		/* line identifier */
-
+		char r_qvalue[16];		/* the q value used for routing */
+		
 		osip_transaction_t *r_last_tr;
 		int r_retry;			/* avoid too many unsuccessfull retry */
 

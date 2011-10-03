@@ -194,8 +194,9 @@ _eXosip_register_build_register(eXosip_reg_t * jr, osip_message_t ** _reg)
 }
 
 int
-eXosip_register_build_initial_register(const char *from, const char *proxy,
+eXosip_register_build_initial_register_withqvalue(const char *from, const char *proxy,
 									   const char *contact, int expires,
+									   const char *qvalue,
 									   osip_message_t ** reg)
 {
 	eXosip_reg_t *jr = NULL;
@@ -237,6 +238,9 @@ eXosip_register_build_initial_register(const char *from, const char *proxy,
 	else if (jr->r_reg_period < 30)	/* too low */
 		jr->r_reg_period = 30;
 
+	if(qvalue)
+		osip_strncpy(jr->r_qvalue, qvalue, sizeof(jr->r_qvalue));
+
 	i = _eXosip_register_build_register(jr, reg);
 	if (i != 0) {
 		OSIP_TRACE(osip_trace
@@ -247,6 +251,14 @@ eXosip_register_build_initial_register(const char *from, const char *proxy,
 	}
 
 	return jr->r_id;
+}
+
+int
+eXosip_register_build_initial_register(const char *from, const char *proxy,
+									   const char *contact, int expires,
+									   osip_message_t ** reg)
+{
+	return eXosip_register_build_initial_register_withqvalue(from, proxy, contact, expires, NULL, reg);
 }
 
 int eXosip_register_build_register(int rid, int expires, osip_message_t ** reg)
