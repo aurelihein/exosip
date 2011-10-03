@@ -531,6 +531,8 @@ extern "C" {
 	int _eXosip_request_add_via(osip_message_t * request, const char *transport,
 								const char *locip);
 
+	void eXosip_mark_all_registrations_expired ();
+
 	int eXosip_add_authentication_information(osip_message_t * req,
 											  osip_message_t * last_response);
 	int _eXosip_reg_find(eXosip_reg_t ** reg, osip_transaction_t * tr);

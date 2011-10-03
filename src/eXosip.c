@@ -1494,3 +1494,20 @@ int eXosip_update_top_via(osip_message_t * sip)
 	br->gvalue = osip_strdup(tmp);
 	return OSIP_SUCCESS;
 }
+
+/* vivox: mark all registrations as needing refreshing */
+void eXosip_mark_all_registrations_expired()
+{
+	eXosip_reg_t *jr;
+	int wakeup = 0;
+
+	for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
+		if (jr->r_id >= 1 && jr->r_last_tr != NULL) {
+			jr->r_last_tr->birth_time -= jr->r_reg_period;
+			wakeup = 1;
+		}
+	}
+	if (wakeup) {
+		__eXosip_wakeup ();
+	}
+}

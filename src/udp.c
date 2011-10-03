@@ -1576,6 +1576,7 @@ _eXosip_handle_incoming_message(char *buf, size_t length, int socket,
 int eXosip_read_message(int max_message_nb, int sec_max, int usec_max)
 {
 	fd_set osip_fdset;
+	fd_set osip_wrset;
 	struct timeval tv;
 
 	tv.tv_sec = sec_max;
@@ -1589,13 +1590,14 @@ int eXosip_read_message(int max_message_nb, int sec_max, int usec_max)
 #endif
 
 		FD_ZERO(&osip_fdset);
-		eXtl_udp.tl_set_fdset(&osip_fdset, &max);
-		eXtl_tcp.tl_set_fdset(&osip_fdset, &max);
+		FD_ZERO(&osip_wrset);
+		eXtl_udp.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
+		eXtl_tcp.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
 #ifdef HAVE_OPENSSL_SSL_H
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-		eXtl_dtls.tl_set_fdset(&osip_fdset, &max);
+		eXtl_dtls.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
 #endif
-		eXtl_tls.tl_set_fdset(&osip_fdset, &max);
+		eXtl_tls.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
 #endif
 
 #ifdef OSIP_MT
@@ -1631,13 +1633,13 @@ int eXosip_read_message(int max_message_nb, int sec_max, int usec_max)
 			return -2000;		/* error */
 #endif
 		} else {
-			eXtl_udp.tl_read_message(&osip_fdset);
-			eXtl_tcp.tl_read_message(&osip_fdset);
+			eXtl_udp.tl_read_message(&osip_fdset, &osip_wrset);
+			eXtl_tcp.tl_read_message(&osip_fdset, &osip_wrset);
 #ifdef HAVE_OPENSSL_SSL_H
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-			eXtl_dtls.tl_read_message(&osip_fdset);
+			eXtl_dtls.tl_read_message(&osip_fdset, &osip_wrset);
 #endif
-			eXtl_tls.tl_read_message(&osip_fdset);
+			eXtl_tls.tl_read_message(&osip_fdset, &osip_wrset);
 #endif
 		}
 

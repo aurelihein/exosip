@@ -1486,7 +1486,7 @@ static int tls_tl_open(void)
 	return OSIP_SUCCESS;
 }
 
-static int tls_tl_set_fdset(fd_set * osip_fdset, int *fd_max)
+static int tls_tl_set_fdset(fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max)
 {
 	int pos;
 	if (tls_socket <= 0)
@@ -2003,7 +2003,7 @@ static int _tls_tl_ssl_connect_socket(int pos)
 	return 0;
 }
 
-static int tls_tl_read_message(fd_set * osip_fdset)
+static int tls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 {
 	int pos = 0;
 	char *buf;
