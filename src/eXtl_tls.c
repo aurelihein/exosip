@@ -2038,29 +2038,16 @@ static int handle_messages(struct socket_tab *sockinfo)
 
 		/* ok we have complete headers, find content-length: or l: */
 		clen_header = osip_strcasestr(buf, CLEN_HEADER_STR);
-		if (clen_header) {
-			clen_header += const_strlen(CLEN_HEADER_STR);
-		}
 		if (!clen_header)
-		{
+			clen_header = osip_strcasestr(buf, CLEN_HEADER_STR2);
+		if (!clen_header)
 			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR);
-			if (clen_header) {
-				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR);
-			}
-		}
 		if (!clen_header)
-		{
 			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR2);
-			if (clen_header) {
-				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR2);
-			}
-		}
-		if (!clen_header)
+		if (clen_header != NULL)
 		{
-			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR2);
-			if (clen_header) {
-				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR2);
-			}
+			clen_header = strchr(clen_header, ':');
+			clen_header++;
 		}
 		if (!clen_header)
 		{
