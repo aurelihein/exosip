@@ -37,6 +37,7 @@ EXPORTS
      eXosip_insubscription_send_request
      
      eXosip_register_build_initial_register
+     eXosip_register_build_initial_register_withqvalue
      eXosip_register_build_register
      eXosip_register_send_register
      eXosip_register_remove

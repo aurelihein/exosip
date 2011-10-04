@@ -201,7 +201,7 @@ static int udp_tl_open(void)
 }
 
 
-static int udp_tl_set_fdset(fd_set * osip_fdset, int *fd_max)
+static int udp_tl_set_fdset(fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max)
 {
 	if (udp_socket <= 0)
 		return -1;
@@ -251,7 +251,7 @@ void udp_tl_learn_port_from_via(osip_message_t * sip)
 	return;
 }
 
-static int udp_tl_read_message(fd_set * osip_fdset)
+static int udp_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 {
 	char *buf;
 	int i;

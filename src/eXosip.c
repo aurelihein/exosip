@@ -22,6 +22,10 @@
 #include <mpatrol.h>
 #endif
 
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
+
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
@@ -631,6 +635,10 @@ void eXosip_automatic_refresh(void)
 			} else if (now - jr->r_last_tr->birth_time > 900) {
 				/* automatic refresh */
 				eXosip_register_send_register(jr->r_id, NULL);
+#if TARGET_OS_IPHONE
+			} else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - 630) {
+				eXosip_register_send_register(jr->r_id, NULL);
+#endif
 			} else if (now - jr->r_last_tr->birth_time > jr->r_reg_period - (jr->r_reg_period/10)) {
 				/* automatic refresh at "timeout - 10%" */
 				eXosip_register_send_register(jr->r_id, NULL);
@@ -1493,4 +1501,21 @@ int eXosip_update_top_via(osip_message_t * sip)
 	snprintf(tmp, 40, "z9hG4bK%u", number);
 	br->gvalue = osip_strdup(tmp);
 	return OSIP_SUCCESS;
+}
+
+/* vivox: mark all registrations as needing refreshing */
+void eXosip_mark_all_registrations_expired()
+{
+	eXosip_reg_t *jr;
+	int wakeup = 0;
+
+	for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
+		if (jr->r_id >= 1 && jr->r_last_tr != NULL) {
+			jr->r_last_tr->birth_time -= jr->r_reg_period;
+			wakeup = 1;
+		}
+	}
+	if (wakeup) {
+		__eXosip_wakeup ();
+	}
 }

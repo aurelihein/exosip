@@ -237,7 +237,8 @@ extern "C" {
 		char *r_contact;		/* list of contacts string */
 
 		char r_line[16];		/* line identifier */
-
+		char r_qvalue[16];		/* the q value used for routing */
+		
 		osip_transaction_t *r_last_tr;
 		int r_retry;			/* avoid too many unsuccessfull retry */
 
@@ -530,6 +531,8 @@ extern "C" {
 	int eXosip_update_top_via(osip_message_t * sip);
 	int _eXosip_request_add_via(osip_message_t * request, const char *transport,
 								const char *locip);
+
+	void eXosip_mark_all_registrations_expired ();
 
 	int eXosip_add_authentication_information(osip_message_t * req,
 											  osip_message_t * last_response);

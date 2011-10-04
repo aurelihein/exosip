@@ -402,7 +402,7 @@ static int dtls_tl_open(void)
 #define EXOSIP_AS_A_SERVER 1
 #define EXOSIP_AS_A_CLIENT 2
 
-static int dtls_tl_set_fdset(fd_set * osip_fdset, int *fd_max)
+static int dtls_tl_set_fdset(fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max)
 {
 	if (dtls_socket <= 0)
 		return -1;
@@ -415,7 +415,7 @@ static int dtls_tl_set_fdset(fd_set * osip_fdset, int *fd_max)
 	return OSIP_SUCCESS;
 }
 
-static int dtls_tl_read_message(fd_set * osip_fdset)
+static int dtls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 {
 	char *enc_buf;
 	char *dec_buf;

@@ -49,8 +49,8 @@ struct eXtl_protocol {
 	int (*tl_init) (void);
 	int (*tl_free) (void);
 	int (*tl_open) (void);
-	int (*tl_set_fdset) (fd_set * osip_fdset, int *fd_max);
-	int (*tl_read_message) (fd_set * osip_fdset);
+	int (*tl_set_fdset) (fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max);
+	int (*tl_read_message) (fd_set * osip_fdset, fd_set * osip_wrset);
 	int (*tl_send_message) (osip_transaction_t * tr, osip_message_t * sip,
 							char *host, int port, int out_socket);
 	int (*tl_keepalive) (void);
