@@ -44,8 +44,15 @@
 #if defined(_WIN32_WCE) || defined(WIN32)
 #define strerror(X) "-1"
 #define ex_errno WSAGetLastError()
+#define is_wouldblock_error(r) ((r)==WSAEINTR||(r)==WSAEWOULDBLOCK)
+#define is_connreset_error(r) ((r)==WSAECONNRESET || (r)==WSAECONNABORTED || (r)==WSAETIMEDOUT || (r)==WSAENETRESET || (r)==WSAENOTCONN)
 #else
 #define ex_errno errno
+#define closesocket close
+#endif
+#ifndef is_wouldblock_error
+#define is_wouldblock_error(r) ((r)==EINTR||(r)==EWOULDBLOCK||(r)==EAGAIN)
+#define is_connreset_error(r) ((r)==ECONNRESET || (r)==ECONNABORTED || (r)==ETIMEDOUT || (r)==ENETRESET || (r)==ENOTCONN)
 #endif
 
 #ifdef HAVE_OPENSSL_SSL_H
@@ -79,11 +86,6 @@ extern eXosip_t eXosip;
 #include <CoreFoundation/CFStream.h>
 #include <CFNetwork/CFSocketStream.h>
 #define MULTITASKING_ENABLED
-#endif
-
-#ifdef MULTITASKING_ENABLED
-CFReadStreamRef tcp_readStream;
-CFWriteStreamRef tcp_writeStream;
 #endif
 
 SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
@@ -120,6 +122,12 @@ struct socket_tab {
 	SSL *ssl_conn;
 	SSL_CTX *ssl_ctx;
 	int ssl_state;
+	char *buf;      /* recv buffer */
+	size_t bufsize; /* allocated size of buf */
+	size_t buflen;  /* current length of buf */
+	char *sendbuf;  /* send buffer */
+	size_t sendbufsize;
+	size_t sendbuflen;
 #ifdef MULTITASKING_ENABLED
 	CFReadStreamRef readStream;
 	CFWriteStreamRef writeStream;
@@ -154,6 +162,38 @@ static int tls_tl_init(void)
 	return OSIP_SUCCESS;
 }
 
+static void _tls_tl_close_sockinfo (struct socket_tab *sockinfo)
+{
+	if (sockinfo->socket>0)
+	{
+		if (sockinfo->ssl_conn != NULL) {
+			SSL_shutdown(sockinfo->ssl_conn);
+			SSL_shutdown(sockinfo->ssl_conn);
+			SSL_free(sockinfo->ssl_conn);
+		}
+		if (sockinfo->ssl_ctx != NULL)
+			SSL_CTX_free(sockinfo->ssl_ctx);
+		closesocket(sockinfo->socket);
+	}
+	if (sockinfo->buf!=NULL)
+		osip_free(sockinfo->buf);
+	if (sockinfo->sendbuf!=NULL)
+		osip_free(sockinfo->sendbuf);
+#ifdef MULTITASKING_ENABLED
+	if (sockinfo->readStream!=NULL)
+	{
+		CFReadStreamClose(sockinfo->readStream);
+		CFRelease(sockinfo->readStream);						
+	}
+	if (sockinfo->writeStream!=NULL)
+	{
+		CFWriteStreamClose(sockinfo->writeStream);			
+		CFRelease(sockinfo->writeStream);
+	}
+#endif
+	memset(sockinfo, 0, sizeof(*sockinfo));
+}
+
 static int tls_tl_free(void)
 {
 	int pos;
@@ -166,28 +206,7 @@ static int tls_tl_free(void)
 	client_ctx = NULL;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket > 0) {
-			if (tls_socket_tab[pos].ssl_conn != NULL) {
-				SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-				SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-				SSL_free(tls_socket_tab[pos].ssl_conn);
-			}
-			if (tls_socket_tab[pos].ssl_ctx != NULL)
-				SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-			close(tls_socket_tab[pos].socket);
-#ifdef MULTITASKING_ENABLED
-			if (tls_socket_tab[pos].readStream!=NULL)
-			{
-				CFReadStreamClose(tls_socket_tab[pos].readStream);
-				CFRelease(tls_socket_tab[pos].readStream);						
-			}
-			if (tls_socket_tab[pos].writeStream!=NULL)
-			{
-				CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-				CFRelease(tls_socket_tab[pos].writeStream);
-			}
-#endif
-		}
+		_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
 	}
 
 #if 0
@@ -1502,6 +1521,8 @@ static int tls_tl_set_fdset(fd_set * osip_fdset, fd_set * osip_wrset, int *fd_ma
 			eXFD_SET(tls_socket_tab[pos].socket, osip_fdset);
 			if (tls_socket_tab[pos].socket > *fd_max)
 				*fd_max = tls_socket_tab[pos].socket;
+			if (tls_socket_tab[pos].sendbuflen > 0)
+				eXFD_SET (tls_socket_tab[pos].socket, osip_wrset);
 		}
 	}
 
@@ -1750,29 +1771,8 @@ static int _tls_tl_check_connected()
 							tls_socket_tab[pos].ai_addr.sa_family,
 							strerror(status),
 							status));
-						if (tls_socket_tab[pos].ssl_conn != NULL)
-							SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-						close(tls_socket_tab[pos].socket);
-						if (tls_socket_tab[pos].ssl_conn != NULL)
-							SSL_free(tls_socket_tab[pos].ssl_conn);
-						if (tls_socket_tab[pos].ssl_ctx != NULL)
-							SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-						if (tls_socket_tab[pos].readStream!=NULL)
-						{
-							CFReadStreamClose(tls_socket_tab[pos].readStream);
-							CFRelease(tls_socket_tab[pos].readStream);						
-						}
-						if (tls_socket_tab[pos].writeStream!=NULL)
-						{
-							CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-							CFRelease(tls_socket_tab[pos].writeStream);
-						}
-						tls_socket_tab[pos].readStream=0;
-						tls_socket_tab[pos].writeStream=0;
-#endif
-						memset(&tls_socket_tab[pos], 0, sizeof(tls_socket_tab[pos]));
-						continue;
+							_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
+							continue;
 					} else {
 						res = _tls_tl_is_connected(tls_socket_tab[pos].socket);
 						if (res > 0) {
@@ -1807,28 +1807,7 @@ static int _tls_tl_check_connected()
 								tls_socket_tab[pos].socket,
 								pos,
 								tls_socket_tab[pos].ai_addr.sa_family));
-							if (tls_socket_tab[pos].ssl_conn != NULL)
-								SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-							close(tls_socket_tab[pos].socket);
-							if (tls_socket_tab[pos].ssl_conn != NULL)
-								SSL_free(tls_socket_tab[pos].ssl_conn);
-							if (tls_socket_tab[pos].ssl_ctx != NULL)
-								SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-							if (tls_socket_tab[pos].readStream!=NULL)
-							{
-								CFReadStreamClose(tls_socket_tab[pos].readStream);
-								CFRelease(tls_socket_tab[pos].readStream);						
-							}
-							if (tls_socket_tab[pos].writeStream!=NULL)
-							{
-								CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-								CFRelease(tls_socket_tab[pos].writeStream);
-							}
-							tls_socket_tab[pos].readStream=0;
-							tls_socket_tab[pos].writeStream=0;
-#endif
-							memset(&tls_socket_tab[pos], 0, sizeof(tls_socket_tab[pos]));
+							_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
 							continue;
 						}
 					}
@@ -1851,38 +1830,38 @@ static int _tls_tl_check_connected()
 	return 0;
 }
 
-static int _tls_tl_ssl_connect_socket(int pos)
+static int _tls_tl_ssl_connect_socket(struct socket_tab *sockinfo)
 {
 	X509 *cert;
 	BIO *sbio;
 	int res;
 
-	if (tls_socket_tab[pos].ssl_ctx == NULL) {
-		tls_socket_tab[pos].ssl_ctx =
+	if (sockinfo->ssl_ctx == NULL) {
+		sockinfo->ssl_ctx =
 			initialize_client_ctx(eXosip_tls_ctx_params.client.priv_key,
 								  eXosip_tls_ctx_params.client.cert,
 								  eXosip_tls_ctx_params.client.priv_key_pw,
 								  IPPROTO_TCP);
 
 		/* FIXME: changed parameter from ctx to client_ctx -> works now */
-		tls_socket_tab[pos].ssl_conn = SSL_new(tls_socket_tab[pos].ssl_ctx);
-		if (tls_socket_tab[pos].ssl_conn == NULL) {
+		sockinfo->ssl_conn = SSL_new(sockinfo->ssl_ctx);
+		if (sockinfo->ssl_conn == NULL) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 								  "SSL_new error\n"));
 			return -1;
 		}
-		sbio = BIO_new_socket(tls_socket_tab[pos].socket, BIO_NOCLOSE);
+		sbio = BIO_new_socket(sockinfo->socket, BIO_NOCLOSE);
 
 		if (sbio == NULL) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 								  "BIO_new_socket error\n"));
 			return -1;
 		}
-		SSL_set_bio(tls_socket_tab[pos].ssl_conn, sbio, sbio);
+		SSL_set_bio(sockinfo->ssl_conn, sbio, sbio);
 
 	}
 
-	if (SSL_is_init_finished(tls_socket_tab[pos].ssl_conn)) {
+	if (SSL_is_init_finished(sockinfo->ssl_conn)) {
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
 							  "SSL_is_init_finished already done\n"));
 	} else {
@@ -1895,8 +1874,8 @@ static int _tls_tl_ssl_connect_socket(int pos)
 		int fd;
 		fd_set readfds;
 
-		res = SSL_connect(tls_socket_tab[pos].ssl_conn);
-		res = SSL_get_error(tls_socket_tab[pos].ssl_conn, res);
+		res = SSL_connect(sockinfo->ssl_conn);
+		res = SSL_get_error(sockinfo->ssl_conn, res);
 		if (res == SSL_ERROR_NONE) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
 								  "SSL_connect succeeded\n"));
@@ -1915,7 +1894,7 @@ static int _tls_tl_ssl_connect_socket(int pos)
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
 							  "SSL_connect retry\n"));
 
-		fd = SSL_get_fd(tls_socket_tab[pos].ssl_conn);
+		fd = SSL_get_fd(sockinfo->ssl_conn);
 		FD_ZERO(&readfds);
 		FD_SET(fd, &readfds);
 		res = select(fd + 1, &readfds, NULL, NULL, &tv);
@@ -1933,9 +1912,9 @@ static int _tls_tl_ssl_connect_socket(int pos)
 								  SOCKET_TIMEOUT));
 			return 1;
 		}
-	} while (!SSL_is_init_finished(tls_socket_tab[pos].ssl_conn));
+	} while (!SSL_is_init_finished(sockinfo->ssl_conn));
 
-	if (SSL_is_init_finished(tls_socket_tab[pos].ssl_conn)) {
+	if (SSL_is_init_finished(sockinfo->ssl_conn)) {
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL,
 							  "SSL_is_init_finished done\n"));
 	} else {
@@ -1943,12 +1922,12 @@ static int _tls_tl_ssl_connect_socket(int pos)
 							  "SSL_is_init_finished failed\n"));
 	}
 
-	cert = SSL_get_peer_certificate(tls_socket_tab[pos].ssl_conn);
+	cert = SSL_get_peer_certificate(sockinfo->ssl_conn);
 	if (cert != 0) {
 		int cert_err;
 		tls_dump_cert_info("tls_connect: remote certificate: ", cert);
 
-		cert_err = SSL_get_verify_result(tls_socket_tab[pos].ssl_conn);
+		cert_err = SSL_get_verify_result(sockinfo->ssl_conn);
 		if (cert_err != X509_V_OK) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 								  "Failed to verify remote certificate\n"));
@@ -1976,7 +1955,7 @@ static int _tls_tl_ssl_connect_socket(int pos)
 			memset(peer_CN, 0, sizeof(peer_CN));
 			X509_NAME_get_text_by_NID(X509_get_subject_name(cert), NID_commonName,
 									  peer_CN, sizeof(peer_CN));
-			if (osip_strcasecmp(tls_socket_tab[pos].remote_ip, peer_CN) != 0) {
+			if (osip_strcasecmp(sockinfo->remote_ip, peer_CN) != 0) {
 				SSL_set_verify_result(m_pSSL,
 									  X509_V_ERR_APPLICATION_VERIFICATION + 1);
 			}
@@ -1991,7 +1970,7 @@ static int _tls_tl_ssl_connect_socket(int pos)
 		if (eXosip_tls_ctx_params.server.cert[0] == '\0') {
 #ifdef ENABLE_ADH
 			/* how can we guess a user want ADH... specific APIs.. */
-			tls_socket_tab[pos].ssl_state = 3;
+			sockinfo->ssl_state = 3;
 			return 0;
 #endif
 		}
@@ -1999,14 +1978,278 @@ static int _tls_tl_ssl_connect_socket(int pos)
 		return -1;
 	}
 
-	tls_socket_tab[pos].ssl_state = 3;
+	sockinfo->ssl_state = 3;
 	return 0;
+}
+
+/* Like strstr, but works for haystack that may contain binary data and is
+   not NUL-terminated. */
+static char *buffer_find(const char *haystack, size_t haystack_len, const char *needle)
+{
+	const char *search = haystack, *end = haystack + haystack_len;
+	char *p;
+	size_t len = strlen(needle);
+
+	while (search < end &&
+		   (p = memchr(search, *needle, end - search)) != NULL) {
+		if (p + len > end)
+			break;
+		if (memcmp(p, needle, len) == 0)
+			return (p);
+		search = p + 1;
+	}
+
+	return (NULL);
+}
+
+#define END_HEADERS_STR "\r\n\r\n"
+#define CLEN_HEADER_STR "\r\ncontent-length:"
+#define CLEN_HEADER_COMPACT_STR "\r\nl:"
+#define CLEN_HEADER_STR2 "\r\ncontent-length "
+#define CLEN_HEADER_COMPACT_STR2 "\r\nl "
+#define const_strlen(x) (sizeof((x)) - 1)
+
+/* consume any complete messages in sockinfo->buf and
+   return the total number of bytes consumed */
+static int handle_messages(struct socket_tab *sockinfo)
+{
+	int consumed = 0;
+	char *buf = sockinfo->buf;
+	size_t buflen = sockinfo->buflen;
+	char *end_headers;
+	while (buflen > 0 && (end_headers = buffer_find(buf, buflen, END_HEADERS_STR)) != NULL) {
+		int clen, msglen;
+		char *clen_header;
+
+		if (buf == end_headers)
+		{
+			/* skip tcp standard keep-alive */
+			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+									"socket %s:%i: standard keep alive received (CRLFCRLF)\n",
+									sockinfo->remote_ip, sockinfo->remote_port, buf));
+			consumed += 4;
+			buflen -= 4;
+			buf += 4;
+			continue;
+		}
+
+		/* stuff a nul in so we can use osip_strcasestr */
+		*end_headers = '\0';
+
+		/* ok we have complete headers, find content-length: or l: */
+		clen_header = osip_strcasestr(buf, CLEN_HEADER_STR);
+		if (clen_header) {
+			clen_header += const_strlen(CLEN_HEADER_STR);
+		}
+		if (!clen_header)
+		{
+			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR);
+			if (clen_header) {
+				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR);
+			}
+		}
+		if (!clen_header)
+		{
+			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR2);
+			if (clen_header) {
+				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR2);
+			}
+		}
+		if (!clen_header)
+		{
+			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR2);
+			if (clen_header) {
+				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR2);
+			}
+		}
+		if (!clen_header)
+		{
+			/* Oops, no content-length header.	Presume 0 (below) so we
+				consume the headers and make forward progress.  This permits
+				server-side keepalive of "\r\n\r\n". */
+			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+									"socket %s:%i: message has no content-length: <%s>\n",
+									sockinfo->remote_ip, sockinfo->remote_port, buf));
+		}
+		clen = clen_header ? atoi(clen_header) : 0;
+
+		/* undo our overwrite and advance end_headers */
+		*end_headers = END_HEADERS_STR[0];
+		end_headers += const_strlen(END_HEADERS_STR);
+
+		/* do we have the whole message? */
+		msglen = end_headers - buf + clen;
+		if (msglen > buflen) {
+			/* nope */
+			return consumed;
+		}
+		/* yep; handle the message */
+		_eXosip_handle_incoming_message(buf, msglen, sockinfo->socket,
+										sockinfo->remote_ip, sockinfo->remote_port);
+		consumed += msglen;
+		buflen -= msglen;
+		buf += msglen;
+	}
+
+	return consumed;
+}
+
+static int _tls_tl_recv(struct socket_tab *sockinfo)
+{
+	int r;
+	int rlen, err;
+	if (!sockinfo->buf) {
+		sockinfo->buf = (char *) osip_malloc(SIP_MESSAGE_MAX_LENGTH);
+		if (sockinfo->buf == NULL)
+			return OSIP_NOMEM;
+		sockinfo->bufsize = SIP_MESSAGE_MAX_LENGTH;
+		sockinfo->buflen = 0;
+	}
+
+	/* buffer is 100% full -> realloc with more size */
+	if (sockinfo->bufsize - sockinfo->buflen<=0)
+	{
+		sockinfo->buf = (char *)osip_realloc(sockinfo->buf, sockinfo->bufsize+1000);
+		if (sockinfo->buf == NULL)
+			return OSIP_NOMEM;
+		sockinfo->bufsize = sockinfo->bufsize+1000;
+	}
+
+	/* buffer is 100% empty-> realloc with initial size */
+	if (sockinfo->buflen == 0 && sockinfo->bufsize>SIP_MESSAGE_MAX_LENGTH)
+	{
+		osip_free(sockinfo->buf);
+		sockinfo->buf = (char *) osip_malloc(SIP_MESSAGE_MAX_LENGTH);
+		if (sockinfo->buf == NULL)
+			return OSIP_NOMEM;
+		sockinfo->bufsize = SIP_MESSAGE_MAX_LENGTH;
+	}
+
+
+	/* do TLS handshake? */
+
+	if (sockinfo->ssl_state == 0) {
+		r = _tls_tl_is_connected(sockinfo->socket);
+		if (r > 0) {
+			return OSIP_SUCCESS;
+		} else if (r == 0) {
+			OSIP_TRACE(osip_trace
+						(__FILE__, __LINE__, OSIP_INFO2, NULL,
+						"socket node:%s , socket %d [pos=%d], connected\n",
+						sockinfo->remote_ip,
+						sockinfo->socket, -1));
+			sockinfo->ssl_state = 1;
+			sockinfo->ai_addrlen = 0;
+		} else {
+			OSIP_TRACE(osip_trace
+						(__FILE__, __LINE__, OSIP_ERROR, NULL,
+						"socket node:%s, socket %d [pos=%d], socket error\n",
+						sockinfo->remote_ip,
+						sockinfo->socket, -1));
+			_tls_tl_close_sockinfo(sockinfo);
+			return OSIP_SUCCESS;
+		}
+	}
+
+	if (sockinfo->ssl_state == 1) {
+		r = _tls_tl_ssl_connect_socket(sockinfo);
+		if (r < 0) {
+			_tls_tl_close_sockinfo(sockinfo);
+			return OSIP_SUCCESS;
+		}
+	}
+
+	if (sockinfo->ssl_state == 2) {
+		r = SSL_do_handshake(sockinfo->ssl_conn);
+		if (r <= 0) {
+			r = SSL_get_error(sockinfo->ssl_conn, r);
+			print_ssl_error(r);
+
+			_tls_tl_close_sockinfo(sockinfo);
+			return OSIP_SUCCESS;
+		}
+		sockinfo->ssl_state = 3;
+	}
+
+	if (sockinfo->ssl_state != 3)
+		return OSIP_SUCCESS;
+
+
+
+	r = 0;
+	rlen = 0;
+
+	do {
+		r = SSL_read(sockinfo->ssl_conn, sockinfo->buf + sockinfo->buflen + rlen,
+						sockinfo->bufsize - sockinfo->buflen - rlen);
+		if (r <= 0) {
+			err = SSL_get_error(sockinfo->ssl_conn, r);
+			if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
+				break;
+			} else {
+				print_ssl_error(err);
+				/*
+					The TLS/SSL connection has been closed.  If the protocol version
+					is SSL 3.0 or TLS 1.0, this result code is returned only if a
+					closure alert has occurred in the protocol, i.e. if the
+					connection has been closed cleanly. Note that in this case
+					SSL_ERROR_ZERO_RETURN does not necessarily indicate that the
+					underlying transport has been closed. */
+				OSIP_TRACE(osip_trace
+							(__FILE__, __LINE__, OSIP_WARNING,
+							NULL, "TLS closed\n"));
+
+				_tls_tl_close_sockinfo(sockinfo);
+
+				rlen = 0;	/* discard any remaining data ? */
+				break;
+			}
+		} else {
+			rlen += r;
+		}
+	}
+	while (SSL_pending(sockinfo->ssl_conn));
+
+	if (r == 0) {
+		//OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+		//					  "socket %s:%i: eof\n", sockinfo->remote_ip, sockinfo->remote_port));
+		//_tls_tl_close_sockinfo(sockinfo);
+		//eXosip_mark_all_registrations_expired();
+		return OSIP_UNDEFINED_ERROR;
+	} else if (r < 0) {
+		//int status = ex_errno;
+		//if (is_wouldblock_error(status))
+		//	return OSIP_SUCCESS;
+		/* Do we need next line ? */
+		/* else if (is_connreset_error(status)) */
+		//eXosip_mark_all_registrations_expired();
+		//OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+		//					  "socket %s:%i: error %d\n", sockinfo->remote_ip, sockinfo->remote_port, status));
+		//_tls_tl_close_sockinfo(sockinfo);
+		return OSIP_UNDEFINED_ERROR;
+	} else {
+		int consumed;
+		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+							  "socket %s:%i: read %d bytes\n", sockinfo->remote_ip, sockinfo->remote_port, r));
+		sockinfo->buflen += rlen;
+		consumed = handle_messages(sockinfo);
+		if (consumed == 0) {
+			return OSIP_SUCCESS;
+		} else {
+			if (sockinfo->buflen > consumed) {
+				memmove(sockinfo->buf, sockinfo->buf + consumed, sockinfo->buflen - consumed);
+				sockinfo->buflen -= consumed;
+			} else {
+				sockinfo->buflen = 0;
+			}
+			return OSIP_SUCCESS;
+		}
+	}
 }
 
 static int tls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 {
 	int pos = 0;
-	char *buf;
 
 	if (FD_ISSET(tls_socket, osip_fdset)) {
 		/* accept incoming connection */
@@ -2039,35 +2282,31 @@ static int tls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 			/* delete an old one! */
 			pos = 0;
 			if (tls_socket_tab[pos].socket > 0) {
-				if (tls_socket_tab[pos].ssl_conn != NULL) {
-					SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-					SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-					SSL_free(tls_socket_tab[pos].ssl_conn);
-					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-				}
-				close(tls_socket_tab[pos].socket);
-#ifdef MULTITASKING_ENABLED
-				if (tls_socket_tab[pos].readStream!=NULL)
-				{
-					CFReadStreamClose(tls_socket_tab[pos].readStream);
-					CFRelease(tls_socket_tab[pos].readStream);						
-				}
-				if (tls_socket_tab[pos].writeStream!=NULL)
-				{
-					CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-					CFRelease(tls_socket_tab[pos].writeStream);
-				}
-#endif
+				_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
 			}
 			memset(&tls_socket_tab[pos], 0, sizeof(struct socket_tab));
 		}
+
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
 							  "creating TLS socket at index: %i\n", pos));
-
 		sock = accept(tls_socket, (struct sockaddr *) &sa, &slen);
 		if (sock < 0) {
+#if defined(EBADF)
+			int status = ex_errno;
+#endif
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 								  "Error accepting TLS socket\n"));
+#if defined(EBADF)
+			if (status==EBADF)
+			{
+				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
+									  "Error accepting TLS socket: EBADF\n"));
+				memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
+				if (tls_socket > 0)
+					closesocket(tls_socket);
+				tls_tl_open();
+			}
+#endif
 		} else {
 			if (server_ctx == NULL) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -2174,379 +2413,12 @@ static int tls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 		}
 	}
 
-
-
-	buf = NULL;
-
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket > 0
-			&& FD_ISSET(tls_socket_tab[pos].socket, osip_fdset)) {
-			int i;
-			int rlen, err;
-
-			if (buf == NULL)
-				buf =
-					(char *) osip_malloc(SIP_MESSAGE_MAX_LENGTH * sizeof(char) +
-										 1);
-			if (buf == NULL)
-				return OSIP_NOMEM;
-
-			/* do TLS handshake? */
-
-			if (tls_socket_tab[pos].ssl_state == 0) {
-				i = _tls_tl_is_connected(tls_socket_tab[pos].socket);
-				if (i > 0) {
-					continue;
-				} else if (i == 0) {
-					OSIP_TRACE(osip_trace
-							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-								"socket node:%s , socket %d [pos=%d], connected\n",
-								tls_socket_tab[pos].remote_ip,
-								tls_socket_tab[pos].socket, pos));
-					tls_socket_tab[pos].ssl_state = 1;
-					tls_socket_tab[pos].ai_addrlen = 0;
-				} else {
-					OSIP_TRACE(osip_trace
-							   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-								"socket node:%s, socket %d [pos=%d], socket error\n",
-								tls_socket_tab[pos].remote_ip,
-								tls_socket_tab[pos].socket, pos));
-					if (tls_socket_tab[pos].ssl_conn != NULL)
-						SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-					close(tls_socket_tab[pos].socket);
-					if (tls_socket_tab[pos].ssl_conn != NULL)
-						SSL_free(tls_socket_tab[pos].ssl_conn);
-					if (tls_socket_tab[pos].ssl_ctx != NULL)
-						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-					if (tls_socket_tab[pos].readStream!=NULL)
-					{
-						CFReadStreamClose(tls_socket_tab[pos].readStream);
-						CFRelease(tls_socket_tab[pos].readStream);						
-					}
-					if (tls_socket_tab[pos].writeStream!=NULL)
-					{
-						CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-						CFRelease(tls_socket_tab[pos].writeStream);
-					}
-#endif
-					memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
-					continue;
-				}
-			}
-
-			if (tls_socket_tab[pos].ssl_state == 1) {
-				i = _tls_tl_ssl_connect_socket(pos);
-				if (i < 0) {
-					if (tls_socket_tab[pos].ssl_conn != NULL)
-						SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-					close(tls_socket_tab[pos].socket);
-					if (tls_socket_tab[pos].ssl_conn != NULL)
-						SSL_free(tls_socket_tab[pos].ssl_conn);
-					if (tls_socket_tab[pos].ssl_ctx != NULL)
-						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-					if (tls_socket_tab[pos].readStream!=NULL)
-					{
-						CFReadStreamClose(tls_socket_tab[pos].readStream);
-						CFRelease(tls_socket_tab[pos].readStream);						
-					}
-					if (tls_socket_tab[pos].writeStream!=NULL)
-					{
-						CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-						CFRelease(tls_socket_tab[pos].writeStream);
-					}
-#endif
-					memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
-					continue;
-				}
-			}
-
-			if (tls_socket_tab[pos].ssl_state == 2) {
-				i = SSL_do_handshake(tls_socket_tab[pos].ssl_conn);
-				if (i <= 0) {
-					i = SSL_get_error(tls_socket_tab[pos].ssl_conn, i);
-					print_ssl_error(i);
-
-					SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-					close(tls_socket_tab[pos].socket);
-					SSL_free(tls_socket_tab[pos].ssl_conn);
-					if (tls_socket_tab[pos].ssl_ctx != NULL)
-						SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-					if (tls_socket_tab[pos].readStream!=NULL)
-					{
-						CFReadStreamClose(tls_socket_tab[pos].readStream);
-						CFRelease(tls_socket_tab[pos].readStream);						
-					}
-					if (tls_socket_tab[pos].writeStream!=NULL)
-					{
-						CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-						CFRelease(tls_socket_tab[pos].writeStream);
-					}
-#endif
-					memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
-					continue;
-				}
-				tls_socket_tab[pos].ssl_state = 3;
-
-			}
-
-			if (tls_socket_tab[pos].ssl_state != 3)
-				continue;
-
-			i = 0;
-			rlen = 0;
-
-			do {
-				i = SSL_read(tls_socket_tab[pos].ssl_conn, buf + rlen,
-							 SIP_MESSAGE_MAX_LENGTH - rlen);
-				if (i <= 0) {
-					err = SSL_get_error(tls_socket_tab[pos].ssl_conn, i);
-					if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
-						break;
-					} else {
-						print_ssl_error(err);
-						/*
-						   The TLS/SSL connection has been closed.  If the protocol version
-						   is SSL 3.0 or TLS 1.0, this result code is returned only if a
-						   closure alert has occurred in the protocol, i.e. if the
-						   connection has been closed cleanly. Note that in this case
-						   SSL_ERROR_ZERO_RETURN does not necessarily indicate that the
-						   underlying transport has been closed. */
-						OSIP_TRACE(osip_trace
-								   (__FILE__, __LINE__, OSIP_WARNING,
-									NULL, "TLS closed\n"));
-
-						SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-						close(tls_socket_tab[pos].socket);
-						SSL_free(tls_socket_tab[pos].ssl_conn);
-						if (tls_socket_tab[pos].ssl_ctx != NULL)
-							SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-						if (tls_socket_tab[pos].readStream!=NULL)
-						{
-							CFReadStreamClose(tls_socket_tab[pos].readStream);
-							CFRelease(tls_socket_tab[pos].readStream);						
-						}
-						if (tls_socket_tab[pos].writeStream!=NULL)
-						{
-							CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-							CFRelease(tls_socket_tab[pos].writeStream);
-						}
-#endif
-						memset(&(tls_socket_tab[pos]), 0,
-							   sizeof(tls_socket_tab[pos]));
-
-						rlen = 0;	/* discard any remaining data ? */
-						break;
-					}
-				} else {
-					rlen += i;
-				}
-			}
-			while (SSL_pending(tls_socket_tab[pos].ssl_conn));
-
-#define TEST_CODE_FOR_FRAGMENTATION
-#ifdef TEST_CODE_FOR_FRAGMENTATION
-			if (i > 0) {
-				char *end_sip;
-				char *cl_header;
-				int cl_size;
-
-				i=rlen;
-				buf[i] = '\0';
-				if (tls_socket_tab[pos].previous_content != NULL) {
-					/* concat old data with new data */
-					tls_socket_tab[pos].previous_content =
-						(char *) osip_realloc(tls_socket_tab[pos].previous_content,
-						tls_socket_tab
-						[pos].previous_content_len + i + 1);
-					if (tls_socket_tab[pos].previous_content == NULL) {
-						OSIP_TRACE(osip_trace
-							(__FILE__, __LINE__, OSIP_ERROR, NULL,
-							"Reallocation error: (len=%i)",
-							tls_socket_tab[pos].previous_content_len + i +
-							1));
-						tls_socket_tab[pos].previous_content_len = 0;
-						continue;	/* give up: realloc issue */
-					}
-					osip_strncpy(tls_socket_tab[pos].previous_content +
-						tls_socket_tab[pos].previous_content_len, buf, i);
-					tls_socket_tab[pos].previous_content_len =
-						tls_socket_tab[pos].previous_content_len + i;
-				}
-				if (tls_socket_tab[pos].previous_content == NULL) {
-					tls_socket_tab[pos].previous_content =
-						(char *) osip_malloc(i + 1);
-					osip_strncpy(tls_socket_tab[pos].previous_content, buf, i);
-					tls_socket_tab[pos].previous_content_len = i;
-				}
-
-				end_sip = strstr(tls_socket_tab[pos].previous_content, "\r\n\r\n");
-				/* end_sip might be end of SIP headers */
-				while (end_sip != NULL) {
-					/* a content-legnth MUST exist before the CRLFCRLF */
-					cl_header =
-						osip_strcasestr(tls_socket_tab[pos].previous_content,
-						"\ncontent-length ");
-					if (cl_header == NULL || cl_header > end_sip)
-						cl_header =
-						osip_strcasestr(tls_socket_tab[pos].previous_content,
-						"\ncontent-length:");
-					if (cl_header == NULL || cl_header > end_sip)
-						cl_header =
-						osip_strcasestr(tls_socket_tab[pos].previous_content,
-						"\r\nl ");
-					if (cl_header == NULL || cl_header > end_sip)
-						cl_header =
-						osip_strcasestr(tls_socket_tab[pos].previous_content,
-						"\r\nl:");
-
-					if (cl_header != NULL && cl_header < end_sip)
-						cl_header = strchr(cl_header, ':');
-					/* broken data */
-					if (cl_header == NULL || cl_header >= end_sip) {
-						/* remove data up to crlfcrlf and restart */
-						memmove(tls_socket_tab[pos].previous_content,
-							end_sip+4,
-							tls_socket_tab[pos].previous_content_len -
-							(end_sip + 4 -
-							tls_socket_tab[pos].previous_content) + 1);
-
-						tls_socket_tab[pos].previous_content_len =
-							tls_socket_tab[pos].previous_content_len - (end_sip +
-							4 -
-							tls_socket_tab
-							[pos].
-							previous_content);
-						/* FIX HERE -> should search for start of a SIP message? */
-						OSIP_TRACE(osip_trace
-							(__FILE__, __LINE__, OSIP_WARNING, NULL,
-							"possible fragmentation issue\n"));
-
-						tls_socket_tab[pos].previous_content = (char *)
-							osip_realloc(tls_socket_tab[pos].previous_content,
-							tls_socket_tab[pos].previous_content_len +
-							1);
-						if (tls_socket_tab[pos].previous_content == NULL) {
-							OSIP_TRACE(osip_trace
-								(__FILE__, __LINE__, OSIP_ERROR, NULL,
-								"Reallocation error: (len=%i)",
-								tls_socket_tab[pos].previous_content_len +
-								1));
-							tls_socket_tab[pos].previous_content_len = 0;
-							break;
-						}
-						end_sip =
-							strstr(tls_socket_tab[pos].previous_content,
-							"\r\n\r\n");
-						continue;	/* and restart from new CRLFCRLF */
-					}
-
-					/* header content-length was found before CRLFCRLF -> all headers are available */
-					cl_header++;	/* after ':' char */
-					cl_size = osip_atoi(cl_header);
-
-					if (cl_size == 0
-						|| (cl_size >0 && (end_sip + 4 + cl_size <=
-						tls_socket_tab[pos].previous_content +
-						tls_socket_tab[pos].previous_content_len))) {
-							/* we have beg_sip & end_sip */
-							OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
-								"Message received: (from dest=%s:%i) \n%s\n",
-								tls_socket_tab[pos].remote_ip,
-								tls_socket_tab[pos].remote_port,
-								tls_socket_tab[pos].previous_content));
-							_eXosip_handle_incoming_message(tls_socket_tab
-								[pos].previous_content,
-								end_sip + 4 + cl_size -
-								tls_socket_tab
-								[pos].previous_content,
-								tls_socket_tab[pos].socket,
-								tls_socket_tab
-								[pos].remote_ip,
-								tls_socket_tab
-								[pos].remote_port);
-							if (tls_socket_tab[pos].previous_content_len -
-								(end_sip + 4 + cl_size -
-								tls_socket_tab[pos].previous_content) == 0) {
-									end_sip = NULL;
-									OSIP_TRACE(osip_trace
-										(__FILE__, __LINE__, OSIP_INFO2, NULL,
-										"All TLS data consumed\n"));
-									tls_socket_tab[pos].previous_content_len = 0;
-									osip_free(tls_socket_tab[pos].previous_content);
-									tls_socket_tab[pos].previous_content = NULL;
-									continue;
-							}
-
-							/* any more content? */
-							memmove(tls_socket_tab[pos].previous_content,
-								end_sip + 4 + cl_size,
-								tls_socket_tab[pos].previous_content_len -
-								(end_sip + 4 + cl_size -
-								tls_socket_tab[pos].previous_content) + 1);
-
-							tls_socket_tab[pos].previous_content_len =
-								tls_socket_tab[pos].previous_content_len - (end_sip +
-								4 +
-								cl_size -
-								tls_socket_tab
-								[pos].
-								previous_content);
-
-							tls_socket_tab[pos].previous_content = (char *)
-								osip_realloc(tls_socket_tab[pos].previous_content,
-								tls_socket_tab[pos].previous_content_len +
-								1);
-							if (tls_socket_tab[pos].previous_content == NULL) {
-								OSIP_TRACE(osip_trace
-									(__FILE__, __LINE__, OSIP_ERROR, NULL,
-									"Reallocation error: (len=%i)",
-									tls_socket_tab[pos].previous_content_len +
-									1));
-								tls_socket_tab[pos].previous_content_len = 0;
-								break;
-							}
-							end_sip =
-								strstr(tls_socket_tab[pos].previous_content,
-								"\r\n\r\n");
-							continue;	/* and restart from new CRLFCRLF */
-					}
-
-					/* uncomplete SIP message */
-					end_sip = NULL;
-					OSIP_TRACE(osip_trace
-						(__FILE__, __LINE__, OSIP_INFO2, NULL,
-						"Uncomplete TLS data (%s)\n", buf));
-					continue;
-				}
-
-				if (tls_socket_tab[pos].previous_content_len == 0) {
-					/* all data consumed are reallocation error ? */
-					continue;
-				}
-			}
-#else
-			if (i > 5) {
-
-				i=rlen;
-				buf[i] = '\0';
-				OSIP_TRACE(osip_trace
-						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-							"Received TLS message: \n%s\n", buf));
-				_eXosip_handle_incoming_message(buf, i,
-												tls_socket_tab[pos].socket,
-												tls_socket_tab[pos].remote_ip,
-												tls_socket_tab[pos].remote_port);
-			}
-#endif
+		if (tls_socket_tab[pos].socket > 0) {
+			if (FD_ISSET(tls_socket_tab[pos].socket, osip_fdset))
+				_tls_tl_recv(&tls_socket_tab[pos]);
 		}
 	}
-
-	if (buf != NULL)
-		osip_free(buf);
 
 	return OSIP_SUCCESS;
 }
@@ -2821,27 +2693,9 @@ static int _tls_tl_connect_socket(char *host, int port)
 		tls_socket_tab[pos].ssl_ctx = NULL;
 
 		if (tls_socket_tab[pos].ssl_state == 1) {	/* TCP connected but not TLS connected */
-			res = _tls_tl_ssl_connect_socket(pos);
+			res = _tls_tl_ssl_connect_socket(&tls_socket_tab[pos]);
 			if (res < 0) {
-				SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-				close(tls_socket_tab[pos].socket);
-				SSL_free(tls_socket_tab[pos].ssl_conn);
-				if (tls_socket_tab[pos].ssl_ctx != NULL)
-					SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-				if (tls_socket_tab[pos].readStream!=NULL)
-				{
-					CFReadStreamClose(tls_socket_tab[pos].readStream);
-					CFRelease(tls_socket_tab[pos].readStream);						
-				}
-				if (tls_socket_tab[pos].writeStream!=NULL)
-				{
-					CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-					CFRelease(tls_socket_tab[pos].writeStream);
-				}
-#endif
-				
-				memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
+				_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
 				return -1;
 			}
 		}
@@ -3093,27 +2947,9 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	}
 
 	if (tls_socket_tab[pos].ssl_state == 1) {	/* TCP connected but not TLS connected */
-		i = _tls_tl_ssl_connect_socket(pos);
+		i = _tls_tl_ssl_connect_socket(&tls_socket_tab[pos]);
 		if (i < 0) {
-			SSL_shutdown(tls_socket_tab[pos].ssl_conn);
-			close(tls_socket_tab[pos].socket);
-			SSL_free(tls_socket_tab[pos].ssl_conn);
-			if (tls_socket_tab[pos].ssl_ctx != NULL)
-				SSL_CTX_free(tls_socket_tab[pos].ssl_ctx);
-#ifdef MULTITASKING_ENABLED
-			if (tls_socket_tab[pos].readStream!=NULL)
-			{
-				CFReadStreamClose(tls_socket_tab[pos].readStream);
-				CFRelease(tls_socket_tab[pos].readStream);						
-			}
-			if (tls_socket_tab[pos].writeStream!=NULL)
-			{
-				CFWriteStreamClose(tls_socket_tab[pos].writeStream);			
-				CFRelease(tls_socket_tab[pos].writeStream);
-			}
-#endif
-			
-			memset(&(tls_socket_tab[pos]), 0, sizeof(tls_socket_tab[pos]));
+			_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
 			osip_free(message);
 			return -1;
 		} else if (i > 0) {

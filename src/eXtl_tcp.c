@@ -59,10 +59,6 @@ extern eXosip_t eXosip;
 #define MULTITASKING_ENABLED
 #endif
 
-#ifdef MULTITASKING_ENABLED
-CFReadStreamRef tcp_readStream;
-CFWriteStreamRef tcp_writeStream;
-#endif
 static int tcp_socket;
 static struct sockaddr_storage ai_addr;
 
@@ -200,18 +196,6 @@ static int tcp_tl_open(void)
 			}
 #endif							/* IPV6_V6ONLY */
 		}
-
-#if 0
-		tcp_readStream = NULL;
-		tcp_writeStream = NULL;
-		CFStreamCreatePairWithSocket(kCFAllocatorDefault, sock,
-									 &tcp_readStream, &tcp_writeStream);
-		if (tcp_readStream!=NULL)
-			CFReadStreamSetProperty(tcp_readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-		if (tcp_writeStream!=NULL)
-			CFWriteStreamSetProperty(tcp_writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-		
-#endif
 
 		res = bind(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
@@ -1040,7 +1024,7 @@ _tcp_tl_send_sockinfo (struct _tcp_sockets *sockinfo, const char *msg, int msgle
 		i = send(sockinfo->socket, (const void *) msg, msglen, 0);
 		if (i < 0) {
 			int status = ex_errno;
-			if (EAGAIN == status || EWOULDBLOCK == status) {
+			if (is_wouldblock_error(status)) {
 				struct timeval tv;
 				fd_set wrset;
 				tv.tv_sec = SOCKET_TIMEOUT / 1000;
