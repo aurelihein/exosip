@@ -1017,7 +1017,7 @@ _tcp_tl_send_sockinfo (struct _tcp_sockets *sockinfo, const char *msg, int msgle
 				tv.tv_sec = SOCKET_TIMEOUT / 1000;
 				tv.tv_usec = (SOCKET_TIMEOUT % 1000) * 1000;
 				if (tv.tv_usec==0)
-					lower_tv.tv_usec += 10000;
+					tv.tv_usec += 10000;
 
 				FD_ZERO(&wrset);
 				FD_SET(sockinfo->socket, &wrset);
