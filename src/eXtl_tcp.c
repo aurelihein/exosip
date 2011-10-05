@@ -59,10 +59,6 @@ extern eXosip_t eXosip;
 #define MULTITASKING_ENABLED
 #endif
 
-#ifdef MULTITASKING_ENABLED
-CFReadStreamRef tcp_readStream;
-CFWriteStreamRef tcp_writeStream;
-#endif
 static int tcp_socket;
 static struct sockaddr_storage ai_addr;
 
@@ -200,18 +196,6 @@ static int tcp_tl_open(void)
 			}
 #endif							/* IPV6_V6ONLY */
 		}
-
-#if 0
-		tcp_readStream = NULL;
-		tcp_writeStream = NULL;
-		CFStreamCreatePairWithSocket(kCFAllocatorDefault, sock,
-									 &tcp_readStream, &tcp_writeStream);
-		if (tcp_readStream!=NULL)
-			CFReadStreamSetProperty(tcp_readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-		if (tcp_writeStream!=NULL)
-			CFWriteStreamSetProperty(tcp_writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-		
-#endif
 
 		res = bind(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
@@ -359,29 +343,16 @@ static int handle_messages(struct _tcp_sockets *sockinfo)
 
 		/* ok we have complete headers, find content-length: or l: */
 		clen_header = osip_strcasestr(buf, CLEN_HEADER_STR);
-		if (clen_header) {
-			clen_header += const_strlen(CLEN_HEADER_STR);
-		}
 		if (!clen_header)
-		{
+			clen_header = osip_strcasestr(buf, CLEN_HEADER_STR2);
+		if (!clen_header)
 			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR);
-			if (clen_header) {
-				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR);
-			}
-		}
 		if (!clen_header)
-		{
 			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR2);
-			if (clen_header) {
-				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR2);
-			}
-		}
-		if (!clen_header)
+		if (clen_header != NULL)
 		{
-			clen_header = osip_strcasestr(buf, CLEN_HEADER_COMPACT_STR2);
-			if (clen_header) {
-				clen_header += const_strlen(CLEN_HEADER_COMPACT_STR2);
-			}
+			clen_header = strchr(clen_header, ':');
+			clen_header++;
 		}
 		if (!clen_header)
 		{
@@ -1040,11 +1011,13 @@ _tcp_tl_send_sockinfo (struct _tcp_sockets *sockinfo, const char *msg, int msgle
 		i = send(sockinfo->socket, (const void *) msg, msglen, 0);
 		if (i < 0) {
 			int status = ex_errno;
-			if (EAGAIN == status || EWOULDBLOCK == status) {
+			if (is_wouldblock_error(status)) {
 				struct timeval tv;
 				fd_set wrset;
 				tv.tv_sec = SOCKET_TIMEOUT / 1000;
 				tv.tv_usec = (SOCKET_TIMEOUT % 1000) * 1000;
+				if (tv.tv_usec==0)
+					lower_tv.tv_usec += 10000;
 
 				FD_ZERO(&wrset);
 				FD_SET(sockinfo->socket, &wrset);
@@ -1060,7 +1033,7 @@ _tcp_tl_send_sockinfo (struct _tcp_sockets *sockinfo, const char *msg, int msgle
 				} else {
 					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 										  "TCP timeout: %d ms\n", SOCKET_TIMEOUT));
-					return -1;
+					continue;
 				}
 			} else {
 				/* SIP_NETWORK_ERROR; */
