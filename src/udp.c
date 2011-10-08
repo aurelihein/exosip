@@ -976,19 +976,65 @@ static void eXosip_process_newrequest(osip_event_t * evt, int socket)
 		&& evt->sip->cseq != NULL && evt->sip->cseq->number != NULL) {
 		if (jd->d_dialog != NULL && jd->d_dialog->remote_cseq > 0) {
 			int cseq = osip_atoi(evt->sip->cseq->number);
-			if (cseq == jd->d_dialog->remote_cseq) {
-				OSIP_TRACE(osip_trace
-						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-							"eXosip: receive a request with same cseq??\n"));
-				_eXosip_dnsutils_release(transaction->naptr_record);
-				transaction->naptr_record=NULL;
-				osip_transaction_free(transaction);
-				return;
-			}
-			if (cseq <= jd->d_dialog->remote_cseq) {
+			if (cseq < jd->d_dialog->remote_cseq) {
+				osip_list_add(&eXosip.j_transactions, transaction, 0);
 				eXosip_send_default_answer(jd, transaction, evt, 500,
 										   NULL, "Wrong Lower CSeq", __LINE__);
 				return;
+			}
+			if (cseq == jd->d_dialog->remote_cseq) {
+
+				/* use-case: 1/ a duplicate of initial INVITE is received (same TOP Via header) after we replied -> discard */
+				/* use-case: 2/ a duplicate of initial INVITE is received (different TOP Via header) */
+				if (MSG_IS_INVITE(evt->sip) && jc->c_inc_tr!=NULL)
+				{
+					osip_generic_param_t *tag_param_local=NULL;
+					i = osip_to_get_tag(evt->sip->to, &tag_param_local);
+					if (i != 0)	/* no tag in request -> initial INVITE */
+					{
+						osip_generic_param_t *br;
+						osip_generic_param_t *br2;
+
+						osip_via_param_get_byname(transaction->topvia, "branch", &br);
+						osip_via_param_get_byname(jc->c_inc_tr->topvia, "branch", &br2);
+						if (br!=NULL && br2!=NULL && br->gvalue!=NULL  && br2->gvalue!=NULL)
+						{
+							if (osip_strcasecmp(br->gname, br2->gvalue)==0)
+							{
+								/* use-case: 1/ a duplicate of initial INVITE is received (same TOP Via header) after we replied -> discard */
+								OSIP_TRACE(osip_trace
+										   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+											"eXosip: drop INVITE retransmission after INVITE reply\n"));
+								_eXosip_dnsutils_release(transaction->naptr_record);
+								transaction->naptr_record=NULL;
+								osip_transaction_free(transaction);
+								return;
+							} else {
+								jc=NULL;
+								jd=NULL;
+#ifdef ACCEPT_DUPLICATE_INVITE
+#else
+								/* use-case: 2/ a duplicate of initial INVITE is received (different TOP Via header) */
+								osip_list_add(&eXosip.j_transactions, transaction, 0);
+								eXosip_send_default_answer(NULL, transaction, evt, 404,
+														   NULL, "invite for duplicate registration", __LINE__);
+								return;
+#endif
+							}
+						}
+					}
+				}
+
+				if (jd!=NULL)
+				{
+					OSIP_TRACE(osip_trace
+							   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+								"eXosip: receive a request with same cseq??\n"));
+					_eXosip_dnsutils_release(transaction->naptr_record);
+					transaction->naptr_record=NULL;
+					osip_transaction_free(transaction);
+					return;
+				}
 			}
 		}
 	}

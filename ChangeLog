@@ -1,3 +1,11 @@
+eXosip2 (3.6.0)
+	* use optionnal c-ares DNS library for non blocking DNS access
+	  as well as improvments over DNS operation such as NAPTR and
+	  SRV records.
+	* again, so many minor change/fix/improvments, sorry for not
+	  being able to have an history here... The git on savannah
+	  will bring you all details!
+
 eXosip2 (3.5.0)
 	* iphone with TCP/TLS background support.
 	* android support.
