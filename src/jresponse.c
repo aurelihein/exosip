@@ -277,7 +277,7 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 }
 
 int
-_eXosip_answer_invite_123456xx(eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
+_eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, eXosip_dialog_t * jd, int code,
 							   osip_message_t ** answer, int send)
 {
 	int i;
@@ -347,7 +347,7 @@ _eXosip_answer_invite_123456xx(eXosip_call_t * jc, eXosip_dialog_t * jd, int cod
 		evt_answer->transactionid = tr->transactionid;
 
 		osip_transaction_add_event(tr, evt_answer);
-		__eXosip_wakeup();
+		__eXosip_wakeup(excontext);
 		*answer = NULL;
 	}
 
@@ -357,7 +357,7 @@ _eXosip_answer_invite_123456xx(eXosip_call_t * jc, eXosip_dialog_t * jd, int cod
 #ifndef MINISIZE
 
 int
-_eXosip_insubscription_answer_1xx(eXosip_notify_t * jn, eXosip_dialog_t * jd,
+_eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * jn, eXosip_dialog_t * jd,
 								  int code)
 {
 	osip_event_t *evt_answer;
@@ -409,12 +409,12 @@ _eXosip_insubscription_answer_1xx(eXosip_notify_t * jn, eXosip_dialog_t * jd,
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return i;
 }
 
 int
-_eXosip_insubscription_answer_3456xx(eXosip_notify_t * jn,
+_eXosip_insubscription_answer_3456xx(struct eXosip_t *excontext, eXosip_notify_t * jn,
 									 eXosip_dialog_t * jd, int code)
 {
 	osip_event_t *evt_answer;
@@ -451,7 +451,7 @@ _eXosip_insubscription_answer_3456xx(eXosip_notify_t * jn,
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 

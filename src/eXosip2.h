@@ -125,9 +125,9 @@ extern "C" {
 
 	void eXosip_update(void);
 #ifdef OSIP_MT
-	void __eXosip_wakeup(void);
+	void __eXosip_wakeup(struct eXosip_t *excontext);
 #else
-#define __eXosip_wakeup()  ;
+#define __eXosip_wakeup(A)  ;
 #endif
 
 #ifndef DEFINE_SOCKADDR_STORAGE
@@ -569,15 +569,15 @@ extern "C" {
 	int eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc);
 	int eXosip_dialog_set_200ok(eXosip_dialog_t * _jd, osip_message_t * _200Ok);
 
-	int _eXosip_answer_invite_123456xx(eXosip_call_t * jc, eXosip_dialog_t * jd,
+	int _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, eXosip_dialog_t * jd,
 									   int code, osip_message_t ** answer,
 									   int send);
 #ifndef MINISIZE
-	int _eXosip_insubscription_answer_1xx(eXosip_notify_t * jc,
+	int _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * jc,
 										  eXosip_dialog_t * jd, int code);
 	int _eXosip_insubscription_answer_2xx(eXosip_notify_t * jn,
 										  eXosip_dialog_t * jd, int code);
-	int _eXosip_insubscription_answer_3456xx(eXosip_notify_t * jn,
+	int _eXosip_insubscription_answer_3456xx(struct eXosip_t *excontext, eXosip_notify_t * jn,
 											 eXosip_dialog_t * jd, int code);
 #endif
 

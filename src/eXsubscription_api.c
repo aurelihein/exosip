@@ -168,13 +168,13 @@ int eXosip_subscribe_send_initial_request(struct eXosip_t *excontext, osip_messa
 	sipevent = osip_new_outgoing_sipmessage(subscribe);
 	sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_set_your_instance(transaction,
+	osip_transaction_set_reserved1(transaction,
 									   __eXosip_new_jinfo(NULL, NULL, js, NULL));
 	osip_transaction_add_event(transaction, sipevent);
 
 	ADD_ELEMENT(excontext->j_subscribes, js);
 	eXosip_update();			/* fixed? */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return js->s_id;
 }
 
@@ -305,10 +305,10 @@ int eXosip_subscribe_send_refresh_request(struct eXosip_t *excontext, int did, o
 	sipevent = osip_new_outgoing_sipmessage(sub);
 	sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_set_your_instance(transaction,
+	osip_transaction_set_reserved1(transaction,
 									   __eXosip_new_jinfo(NULL, jd, js, NULL));
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -511,11 +511,11 @@ _eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosi
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(NULL, jd, js, NULL));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(NULL, jd, js, NULL));
 	osip_transaction_add_event(tr, sipevent);
 
 	eXosip_update();			/* fixed? */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 

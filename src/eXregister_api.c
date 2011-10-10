@@ -348,6 +348,6 @@ int eXosip_register_send_register(struct eXosip_t *excontext, int rid, osip_mess
 	osip_message_force_update(reg);
 
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }

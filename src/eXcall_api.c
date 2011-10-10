@@ -60,12 +60,12 @@ eXosip_create_transaction(struct eXosip_t *excontext, eXosip_call_t * jc,
 	sipevent->transactionid = tr->transactionid;
 
 #ifndef MINISIZE
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 #else
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(jc, jd));
 #endif
 	osip_transaction_add_event(tr, sipevent);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -91,7 +91,7 @@ eXosip_create_cancel_transaction(struct eXosip_t *excontext, eXosip_call_t * jc,
 	sipevent->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, sipevent);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -281,10 +281,10 @@ int eXosip_call_send_initial_invite(struct eXosip_t *excontext, osip_message_t *
 	sipevent->transactionid = transaction->transactionid;
 
 #ifndef MINISIZE
-	osip_transaction_set_your_instance(transaction,
+	osip_transaction_set_reserved1(transaction,
 									   __eXosip_new_jinfo(jc, NULL, NULL, NULL));
 #else
-	osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, NULL));
+	osip_transaction_set_reserved1(transaction, __eXosip_new_jinfo(jc, NULL));
 #endif
 	osip_transaction_add_event(transaction, sipevent);
 
@@ -292,7 +292,7 @@ int eXosip_call_send_initial_invite(struct eXosip_t *excontext, osip_message_t *
 	ADD_ELEMENT(excontext->j_calls, jc);
 
 	eXosip_update();			/* fixed? */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return jc->c_id;
 }
 
@@ -599,13 +599,13 @@ int eXosip_call_send_request(struct eXosip_t *excontext, int jid, osip_message_t
 	sipevent->transactionid = transaction->transactionid;
 
 #ifndef MINISIZE
-	osip_transaction_set_your_instance(transaction,
+	osip_transaction_set_reserved1(transaction,
 									   __eXosip_new_jinfo(jc, jd, NULL, NULL));
 #else
-	osip_transaction_set_your_instance(transaction, __eXosip_new_jinfo(jc, jd));
+	osip_transaction_set_reserved1(transaction, __eXosip_new_jinfo(jc, jd));
 #endif
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -735,7 +735,7 @@ int eXosip_call_build_answer(struct eXosip_t *excontext, int tid, int status, os
 	}
 
 	if (0 == osip_strcasecmp(tr->orig_request->sip_method, "INVITE")) {
-		i = _eXosip_answer_invite_123456xx(jc, jd, status, answer, 0);
+		i = _eXosip_answer_invite_123456xx(excontext, jc, jd, status, answer, 0);
 	} else {
 		i = _eXosip_build_response_default(answer, jd->d_dialog, status,
 											   tr->orig_request);
@@ -817,7 +817,7 @@ int eXosip_call_send_answer(struct eXosip_t *excontext, int tid, int status, osi
 	if (answer == NULL) {
 		if (0 == osip_strcasecmp(tr->orig_request->sip_method, "INVITE")) {
 			osip_message_t *response;
-			return _eXosip_answer_invite_123456xx(jc, jd, status, &response, 1);
+			return _eXosip_answer_invite_123456xx(excontext, jc, jd, status, &response, 1);
 		}
 		osip_message_free(answer);
 		return OSIP_BADPARAMETER;
@@ -943,7 +943,7 @@ int eXosip_call_send_answer(struct eXosip_t *excontext, int tid, int status, osi
 
 	osip_transaction_add_event(tr, evt_answer);
 	eXosip_update();
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -1177,12 +1177,12 @@ int eXosip_call_send_prack(struct eXosip_t *excontext, int tid, osip_message_t *
 	sipevent->transactionid = tr->transactionid;
 
 #ifndef MINISIZE
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 #else
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(jc, jd));
 #endif
 	osip_transaction_add_event(tr, sipevent);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -1451,14 +1451,14 @@ _eXosip_call_retry_request(struct eXosip_t *excontext, eXosip_call_t * jc,
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
 #ifndef MINISIZE
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(jc, jd, NULL, NULL));
 #else
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(jc, jd));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(jc, jd));
 #endif
 	osip_transaction_add_event(tr, sipevent);
 
 	eXosip_update();			/* fixed? */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 

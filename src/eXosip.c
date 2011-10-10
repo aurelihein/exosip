@@ -47,10 +47,10 @@ static jauthinfo_t *eXosip_find_authentication_info(struct eXosip_t *excontext, 
 
 eXosip_t *internal_eXosip = NULL;
 
-void __eXosip_wakeup(void)
+void __eXosip_wakeup(struct eXosip_t *excontext)
 {
 #ifdef OSIP_MT
-	jpipe_write(internal_eXosip->j_socketctl, "w", 1);
+	jpipe_write(excontext->j_socketctl, "w", 1);
 #endif
 }
 
@@ -230,15 +230,15 @@ _eXosip_retry_with_auth(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 
 	ji = osip_transaction_get_your_instance(out_tr);
 
-	osip_transaction_set_your_instance(out_tr, NULL);
-	osip_transaction_set_your_instance(tr, ji);
+	osip_transaction_set_reserved1(out_tr, NULL);
+	osip_transaction_set_reserved1(tr, ji);
 	osip_transaction_add_event(tr, sipevent);
 
 	if (retry)
 		(*retry)++;
 
 	eXosip_update();			/* fixed? */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -382,15 +382,15 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 
 	ji = osip_transaction_get_your_instance(out_tr);
 
-	osip_transaction_set_your_instance(out_tr, NULL);
-	osip_transaction_set_your_instance(tr, ji);
+	osip_transaction_set_reserved1(out_tr, NULL);
+	osip_transaction_set_reserved1(tr, ji);
 	osip_transaction_add_event(tr, sipevent);
 
 	if (retry)
 		(*retry)++;
 
 	eXosip_update();			/* fixed? */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -1524,6 +1524,6 @@ void eXosip_mark_all_registrations_expired(struct eXosip_t *excontext)
 		}
 	}
 	if (wakeup) {
-		__eXosip_wakeup ();
+		__eXosip_wakeup(excontext);
 	}
 }

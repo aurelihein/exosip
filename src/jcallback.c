@@ -566,7 +566,7 @@ void __eXosip_delete_jinfo(osip_transaction_t * transaction)
 		return;
 	ji = osip_transaction_get_your_instance(transaction);
 	osip_free(ji);
-	osip_transaction_set_your_instance(transaction, NULL);
+	osip_transaction_set_reserved1(transaction, NULL);
 }
 
 #ifndef MINISIZE
@@ -694,7 +694,7 @@ static void cb_rcv1xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 #endif
 			else {
 			}
-			osip_transaction_set_your_instance(tr, jinfo);
+			osip_transaction_set_reserved1(tr, jinfo);
 		} else {
 			if (jd->d_dialog == NULL) {
 			} else if (jd->d_dialog->remote_tag == NULL) {
@@ -783,7 +783,7 @@ static void cb_rcv2xx_4invite(osip_transaction_t * tr, osip_message_t * sip)
 		ADD_ELEMENT(jc->c_dialogs, jd);
 		jinfo->jd = jd;
 		eXosip_update();
-		osip_transaction_set_your_instance(tr, jinfo);
+		osip_transaction_set_reserved1(tr, jinfo);
 	} else {
 		/* Here is a special case:
 		   We have initiated a dialog and we have received informationnal
@@ -952,7 +952,7 @@ static void cb_rcv2xx_4subscribe(osip_transaction_t * tr, osip_message_t * sip)
 		ADD_ELEMENT(js->s_dialogs, jd);
 		jinfo->jd = jd;
 		eXosip_update();
-		osip_transaction_set_your_instance(tr, jinfo);
+		osip_transaction_set_reserved1(tr, jinfo);
 	} else {
 		osip_dialog_update_route_set_as_uac(jd->d_dialog, sip);
 		if (jd->d_dialog->remote_tag == NULL)

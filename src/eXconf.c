@@ -156,7 +156,7 @@ void eXosip_quit(struct eXosip_t *excontext)
 	}
 
 	excontext->j_stop_ua = 1;		/* ask to quit the application */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	__eXosip_wakeup_event();
 
 #ifdef OSIP_MT

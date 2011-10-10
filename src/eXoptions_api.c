@@ -66,11 +66,11 @@ int eXosip_options_send_request(struct eXosip_t *excontext, osip_message_t * opt
 	sipevent = osip_new_outgoing_sipmessage(options);
 	sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_set_your_instance(transaction,
+	osip_transaction_set_reserved1(transaction,
 									   __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
 	osip_transaction_add_event(transaction, sipevent);
 
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -156,7 +156,7 @@ int eXosip_options_send_answer(struct eXosip_t *excontext, int tid, int status, 
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 

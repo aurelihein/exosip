@@ -190,9 +190,9 @@ int eXosip_insubscription_send_answer(struct eXosip_t *excontext, int tid, int s
 	if (answer == NULL) {
 		if (0 == osip_strcasecmp(tr->orig_request->sip_method, "SUBSCRIBE")) {
 			if (status < 200)
-				i = _eXosip_insubscription_answer_1xx(jn, jd, status);
+				i = _eXosip_insubscription_answer_1xx(excontext, jn, jd, status);
 			else
-				i = _eXosip_insubscription_answer_3456xx(jn, jd, status);
+				i = _eXosip_insubscription_answer_3456xx(excontext, jn, jd, status);
 			if (i != 0) {
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -232,7 +232,7 @@ int eXosip_insubscription_send_answer(struct eXosip_t *excontext, int tid, int s
 
 	osip_transaction_add_event(tr, evt_answer);
 	eXosip_update();
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -412,10 +412,10 @@ int eXosip_insubscription_send_request(struct eXosip_t *excontext, int did, osip
 	sipevent = osip_new_outgoing_sipmessage(request);
 	sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_set_your_instance(transaction,
+	osip_transaction_set_reserved1(transaction,
 									   __eXosip_new_jinfo(NULL, jd, NULL, jn));
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -507,11 +507,11 @@ _eXosip_insubscription_send_request_with_credential(struct eXosip_t *excontext,
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	osip_transaction_set_your_instance(tr, __eXosip_new_jinfo(NULL, jd, NULL, jn));
+	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(NULL, jd, NULL, jn));
 	osip_transaction_add_event(tr, sipevent);
 
 	eXosip_update();			/* fixed? */
-	__eXosip_wakeup();
+	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
