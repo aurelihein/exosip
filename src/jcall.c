@@ -25,14 +25,12 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
-int eXosip_call_find(int cid, eXosip_call_t ** jc)
+int eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc)
 {
 	if (cid <= 0)
 		return OSIP_BADPARAMETER;
 
-	for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next) {
+	for (*jc = excontext->j_calls; *jc != NULL; *jc = (*jc)->next) {
 		if ((*jc)->c_id == cid) {
 			return OSIP_SUCCESS;
 		}
@@ -87,7 +85,7 @@ __eXosip_call_remove_dialog_reference_in_call(eXosip_call_t * jc,
 		ji->jd = NULL;
 }
 
-void eXosip_call_free(eXosip_call_t * jc)
+void _eXosip_call_free(struct eXosip_t *excontext, eXosip_call_t * jc)
 {
 	/* ... */
 
@@ -96,11 +94,11 @@ void eXosip_call_free(eXosip_call_t * jc)
 	if (jc->c_inc_tr != NULL && jc->c_inc_tr->orig_request != NULL
 		&& jc->c_inc_tr->orig_request->call_id != NULL
 		&& jc->c_inc_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(jc->c_inc_tr->orig_request->call_id->number);
+		_eXosip_delete_nonce(excontext, jc->c_inc_tr->orig_request->call_id->number);
 	else if (jc->c_out_tr != NULL && jc->c_out_tr->orig_request != NULL
 			 && jc->c_out_tr->orig_request->call_id != NULL
 			 && jc->c_out_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(jc->c_out_tr->orig_request->call_id->number);
+		_eXosip_delete_nonce(excontext, jc->c_out_tr->orig_request->call_id->number);
 
 	for (jd = jc->c_dialogs; jd != NULL; jd = jc->c_dialogs) {
 		REMOVE_ELEMENT(jc->c_dialogs, jd);
@@ -110,9 +108,9 @@ void eXosip_call_free(eXosip_call_t * jc)
 	__eXosip_delete_jinfo(jc->c_inc_tr);
 	__eXosip_delete_jinfo(jc->c_out_tr);
 	if (jc->c_inc_tr != NULL)
-		osip_list_add(&eXosip.j_transactions, jc->c_inc_tr, 0);
+		osip_list_add(&excontext->j_transactions, jc->c_inc_tr, 0);
 	if (jc->c_out_tr != NULL)
-		osip_list_add(&eXosip.j_transactions, jc->c_out_tr, 0);
+		osip_list_add(&excontext->j_transactions, jc->c_out_tr, 0);
 
 	osip_free(jc);
 

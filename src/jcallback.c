@@ -55,9 +55,7 @@
 #include <openssl/ssl.h>
 #endif
 
-extern eXosip_t eXosip;
-
-void udp_tl_learn_port_from_via(osip_message_t * sip);
+extern eXosip_t *internal_eXosip;
 
 /* Private functions */
 static void rcvregister_failure(osip_transaction_t * tr, osip_message_t * sip);
@@ -118,7 +116,7 @@ cb_snd_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	osip_via_t *via;
 
 #ifndef MINISIZE
-	if (eXosip.dontsend_101 != 0 && sip->status_code == 101)
+	if (internal_eXosip->dontsend_101 != 0 && sip->status_code == 101)
 		return OSIP_SUCCESS;
 #else
 	if (sip->status_code == 101)
@@ -187,23 +185,23 @@ cb_snd_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		}
 	}
 
-	if (eXosip.cbsipCallback != NULL) {
-		eXosip.cbsipCallback(sip, 0);
+	if (internal_eXosip->cbsipCallback != NULL) {
+		internal_eXosip->cbsipCallback(sip, 0);
 	}
 
 	i = -1;
 	if (osip_strcasecmp(via->protocol, "udp") == 0) {
-		i = eXtl_udp.tl_send_message(tr, sip, host, port, out_socket);
+		i = eXtl_udp.tl_send_message(internal_eXosip, tr, sip, host, port, out_socket);
 	} else if (osip_strcasecmp(via->protocol, "tcp") == 0) {
-		i = eXtl_tcp.tl_send_message(tr, sip, host, port, out_socket);
+		i = eXtl_tcp.tl_send_message(internal_eXosip, tr, sip, host, port, out_socket);
 	}
 #ifdef HAVE_OPENSSL_SSL_H
 	else if (osip_strcasecmp(via->protocol, "tls") == 0) {
-		i = eXtl_tls.tl_send_message(tr, sip, host, port, out_socket);
+		i = eXtl_tls.tl_send_message(internal_eXosip, tr, sip, host, port, out_socket);
 	} else if (osip_strcasecmp(via->protocol, "dtls-udp") == 0) {
 		i = -1;
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-		i = eXtl_dtls.tl_send_message(tr, sip, host, port, out_socket);
+		i = eXtl_dtls.tl_send_message(internal_eXosip, tr, sip, host, port, out_socket);
 #endif
 	}
 #endif
@@ -222,7 +220,7 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 				"cb_nict_kill_transaction (id=%i)\r\n", tr->transactionid));
-	i = osip_remove_transaction(eXosip.j_osip, tr);
+	i = osip_remove_transaction(internal_eXosip->j_osip, tr);
 	if (i != 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_BUG, NULL,
@@ -283,8 +281,8 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 											  jn, jd, tr);
 			report_event(je, NULL);
 
-			REMOVE_ELEMENT(eXosip.j_notifies, jn);
-			eXosip_notify_free(jn);
+			REMOVE_ELEMENT(internal_eXosip->j_notifies, jn);
+			_eXosip_notify_free(internal_eXosip, jn);
 			return;
 		}
 
@@ -293,8 +291,8 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 			/* delete the dialog! */
 			if (tr->last_response->status_code != 407
 				&& tr->last_response->status_code != 401) {
-				REMOVE_ELEMENT(eXosip.j_notifies, jn);
-				eXosip_notify_free(jn);
+				REMOVE_ELEMENT(internal_eXosip->j_notifies, jn);
+				_eXosip_notify_free(internal_eXosip, jn);
 				return;
 			}
 		}
@@ -305,8 +303,8 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 			&& tr->last_response->status_code < 300) {
 			if (jn->n_ss_status == EXOSIP_SUBCRSTATE_TERMINATED) {
 				/* delete the dialog! */
-				REMOVE_ELEMENT(eXosip.j_notifies, jn);
-				eXosip_notify_free(jn);
+				REMOVE_ELEMENT(internal_eXosip->j_notifies, jn);
+				_eXosip_notify_free(internal_eXosip, jn);
 				return;
 			}
 		}
@@ -322,8 +320,8 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 			report_event(je, NULL);
 
 			/* delete the dialog! */
-			REMOVE_ELEMENT(eXosip.j_subscribes, js);
-			eXosip_subscribe_free(js);
+			REMOVE_ELEMENT(internal_eXosip->j_subscribes, js);
+			_eXosip_subscribe_free(internal_eXosip, js);
 			return;
 		}
 
@@ -339,8 +337,8 @@ static void cb_xixt_kill_transaction(int type, osip_transaction_t * tr)
 			osip_message_get_expires(tr->orig_request, 0, &expires);
 			if (expires == NULL || expires->hvalue == NULL) {
 			} else if (0 == strcmp(expires->hvalue, "0")) {
-				REMOVE_ELEMENT(eXosip.j_subscribes, js);
-				eXosip_subscribe_free(js);
+				REMOVE_ELEMENT(internal_eXosip->j_subscribes, js);
+				_eXosip_subscribe_free(internal_eXosip, js);
 				return;
 			}
 		}
@@ -605,8 +603,6 @@ static void cb_rcv1xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv1xx (id=%i)\r\n",
 				tr->transactionid));
-
-	udp_tl_learn_port_from_via(sip);
 
 	if (jinfo == NULL)
 		return;
@@ -1059,8 +1055,6 @@ static void cb_rcv2xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv2xx (id=%i)\r\n",
 				tr->transactionid));
 
-	udp_tl_learn_port_from_via(sip);
-
 #ifndef MINISIZE
 	if (MSG_IS_RESPONSE_FOR(sip, "PUBLISH")) {
 		eXosip_pub_t *pub = NULL;
@@ -1176,8 +1170,8 @@ static void cb_rcv2xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 		} else if (0 == osip_strncasecmp(sub_state->hvalue, "terminated", 10)) {
 			/* delete the dialog! */
 			if (jn != NULL) {
-				REMOVE_ELEMENT(eXosip.j_notifies, jn);
-				eXosip_notify_free(jn);
+				REMOVE_ELEMENT(internal_eXosip->j_notifies, jn);
+				_eXosip_notify_free(internal_eXosip, jn);
 			}
 		}
 	}
@@ -1292,8 +1286,6 @@ static void cb_rcv3xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv3xx (id=%i)\r\n",
 				tr->transactionid));
 
-	udp_tl_learn_port_from_via(sip);
-
 	if (MSG_IS_RESPONSE_FOR(sip, "PUBLISH")) {
 		eXosip_event_t *je;
 		eXosip_pub_t *pub;
@@ -1369,8 +1361,6 @@ static void cb_rcv4xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv4xx (id=%i)\r\n",
 				tr->transactionid));
-
-	udp_tl_learn_port_from_via(sip);
 
 	if (MSG_IS_RESPONSE_FOR(sip, "PUBLISH")) {
 		eXosip_pub_t *pub;
@@ -1451,8 +1441,6 @@ static void cb_rcv5xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv5xx (id=%i)\r\n",
 				tr->transactionid));
 
-	udp_tl_learn_port_from_via(sip);
-
 	if (MSG_IS_RESPONSE_FOR(sip, "PUBLISH")) {
 		eXosip_pub_t *pub;
 		eXosip_event_t *je;
@@ -1523,8 +1511,6 @@ static void cb_rcv6xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 	eXosip_subscribe_t *js;
 	eXosip_notify_t *jn;
 	jinfo_t *jinfo = (jinfo_t *) osip_transaction_get_your_instance(tr);
-
-	udp_tl_learn_port_from_via(sip);
 
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv6xx (id=%i)\r\n",
@@ -1610,8 +1596,6 @@ cb_rcv3456xx(int type, osip_transaction_t * tr, osip_message_t * sip,
 	OSIP_TRACE(osip_trace
 			   (__FILE__, __LINE__, OSIP_INFO3, NULL, "cb_rcv3456xx (id=%i)\r\n",
 				tr->transactionid));
-
-	udp_tl_learn_port_from_via(sip);
 
 	if (MSG_IS_RESPONSE_FOR(sip, "REGISTER")) {
 		rcvregister_failure(tr, sip);
@@ -1796,23 +1780,15 @@ static void cb_transport_error(int type, osip_transaction_t * tr, int error)
 	if (jn != NULL && MSG_IS_NOTIFY(tr->orig_request)
 		&& type == OSIP_NICT_TRANSPORT_ERROR) {
 		/* delete the dialog! */
-		REMOVE_ELEMENT(eXosip.j_notifies, jn);
-		eXosip_notify_free(jn);
+		REMOVE_ELEMENT(internal_eXosip->j_notifies, jn);
+		_eXosip_notify_free(internal_eXosip, jn);
 	}
 
 	if (js != NULL && MSG_IS_SUBSCRIBE(tr->orig_request)
 		&& type == OSIP_NICT_TRANSPORT_ERROR) {
 		/* delete the dialog! */
-		REMOVE_ELEMENT(eXosip.j_subscribes, js);
-		eXosip_subscribe_free(js);
-	}
-#endif
-
-#if 0
-	if (jc->c_dialogs == NULL && type == OSIP_NICT_TRANSPORT_ERROR) {
-		/* delete the dialog! */
-		REMOVE_ELEMENT(eXosip.j_calls, jc);
-		eXosip_call_free(jc);
+		REMOVE_ELEMENT(internal_eXosip->j_subscribes, js);
+		_eXosip_subscribe_free(internal_eXosip, js);
 	}
 #endif
 

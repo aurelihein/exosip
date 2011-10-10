@@ -26,13 +26,11 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 int
-_eXosip_subscribe_transaction_find(int tid, eXosip_subscribe_t ** js,
+_eXosip_subscribe_transaction_find(struct eXosip_t *excontext, int tid, eXosip_subscribe_t ** js,
 								   eXosip_dialog_t ** jd, osip_transaction_t ** tr)
 {
-	for (*js = eXosip.j_subscribes; *js != NULL; *js = (*js)->next) {
+	for (*js = excontext->j_subscribes; *js != NULL; *js = (*js)->next) {
 		if ((*js)->s_inc_tr != NULL && (*js)->s_inc_tr->transactionid == tid) {
 			*tr = (*js)->s_inc_tr;
 			*jd = (*js)->s_dialogs;
@@ -74,7 +72,7 @@ _eXosip_subscribe_transaction_find(int tid, eXosip_subscribe_t ** js,
 	return OSIP_NOTFOUND;
 }
 
-int eXosip_subscribe_remove(int did)
+int eXosip_subscribe_remove(struct eXosip_t *excontext, int did)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_subscribe_t *js = NULL;
@@ -83,7 +81,7 @@ int eXosip_subscribe_remove(int did)
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_subscribe_dialog_find(did, &js, &jd);
+		eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
 	}
 	if (js == NULL) {
 		OSIP_TRACE(osip_trace
@@ -91,13 +89,13 @@ int eXosip_subscribe_remove(int did)
 					"eXosip: No outgoing subscription here?\n"));
 		return OSIP_NOTFOUND;
 	}
-	REMOVE_ELEMENT(eXosip.j_subscribes, js);
-	eXosip_subscribe_free(js);
+	REMOVE_ELEMENT(excontext->j_subscribes, js);
+	_eXosip_subscribe_free(excontext, js);
 	return OSIP_SUCCESS;
 }
 
 int
-eXosip_subscribe_build_initial_request(osip_message_t ** sub, const char *to,
+eXosip_subscribe_build_initial_request(struct eXosip_t *excontext, osip_message_t ** sub, const char *to,
 									   const char *from, const char *route,
 									   const char *event, int expires)
 {
@@ -125,12 +123,12 @@ eXosip_subscribe_build_initial_request(osip_message_t ** sub, const char *to,
 		return i;
 	}
 
-	i = generating_request_out_of_dialog(sub, "SUBSCRIBE", to, eXosip.transport,
+	i = _eXosip_generating_request_out_of_dialog(excontext, sub, "SUBSCRIBE", to, excontext->transport,
 										 from, route);
 	osip_to_free(_to);
 	if (i != 0)
 		return i;
-	_eXosip_dialog_add_contact(*sub, NULL);
+	_eXosip_dialog_add_contact(excontext, *sub, NULL);
 
 	snprintf(tmp, 10, "%i", expires);
 	osip_message_set_expires(*sub, tmp);
@@ -140,7 +138,7 @@ eXosip_subscribe_build_initial_request(osip_message_t ** sub, const char *to,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_subscribe_send_initial_request(osip_message_t * subscribe)
+int eXosip_subscribe_send_initial_request(struct eXosip_t *excontext, osip_message_t * subscribe)
 {
 	eXosip_subscribe_t *js = NULL;
 	osip_transaction_t *transaction;
@@ -156,9 +154,9 @@ int eXosip_subscribe_send_initial_request(osip_message_t * subscribe)
 		return i;
 	}
 
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, subscribe);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, subscribe);
 	if (i != 0) {
-		eXosip_subscribe_free(js);
+		_eXosip_subscribe_free(excontext, js);
 		osip_message_free(subscribe);
 		return i;
 	}
@@ -174,13 +172,13 @@ int eXosip_subscribe_send_initial_request(osip_message_t * subscribe)
 									   __eXosip_new_jinfo(NULL, NULL, js, NULL));
 	osip_transaction_add_event(transaction, sipevent);
 
-	ADD_ELEMENT(eXosip.j_subscribes, js);
+	ADD_ELEMENT(excontext->j_subscribes, js);
 	eXosip_update();			/* fixed? */
 	__eXosip_wakeup();
 	return js->s_id;
 }
 
-int eXosip_subscribe_build_refresh_request(int did, osip_message_t ** sub)
+int eXosip_subscribe_build_refresh_request(struct eXosip_t *excontext, int did, osip_message_t ** sub)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_subscribe_t *js = NULL;
@@ -195,7 +193,7 @@ int eXosip_subscribe_build_refresh_request(int did, osip_message_t ** sub)
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_subscribe_dialog_find(did, &js, &jd);
+		eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
 	}
 	if (jd == NULL) {
 		OSIP_TRACE(osip_trace
@@ -220,10 +218,10 @@ int eXosip_subscribe_build_refresh_request(int did, osip_message_t ** sub)
 		transport = _eXosip_transport_protocol(transaction->orig_request);
 
 	if (transport == NULL)
-		i = _eXosip_build_request_within_dialog(sub, "SUBSCRIBE", jd->d_dialog,
+		i = _eXosip_build_request_within_dialog(excontext, sub, "SUBSCRIBE", jd->d_dialog,
 												"UDP");
 	else
-		i = _eXosip_build_request_within_dialog(sub, "SUBSCRIBE", jd->d_dialog,
+		i = _eXosip_build_request_within_dialog(excontext, sub, "SUBSCRIBE", jd->d_dialog,
 												transport);
 
 	if (i != 0)
@@ -250,12 +248,12 @@ int eXosip_subscribe_build_refresh_request(int did, osip_message_t ** sub)
 		}
 	}
 
-	eXosip_add_authentication_information(*sub, NULL);
+	eXosip_add_authentication_information(excontext, *sub, NULL);
 
 	return OSIP_SUCCESS;
 }
 
-int eXosip_subscribe_send_refresh_request(int did, osip_message_t * sub)
+int eXosip_subscribe_send_refresh_request(struct eXosip_t *excontext, int did, osip_message_t * sub)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_subscribe_t *js = NULL;
@@ -268,7 +266,7 @@ int eXosip_subscribe_send_refresh_request(int did, osip_message_t * sub)
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_subscribe_dialog_find(did, &js, &jd);
+		eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
 	}
 	if (jd == NULL) {
 		OSIP_TRACE(osip_trace
@@ -293,7 +291,7 @@ int eXosip_subscribe_send_refresh_request(int did, osip_message_t * sub)
 	}
 
 	transaction = NULL;
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, sub);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, sub);
 
 	if (i != 0) {
 		osip_message_free(sub);
@@ -315,7 +313,7 @@ int eXosip_subscribe_send_refresh_request(int did, osip_message_t * sub)
 }
 
 int
-_eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
+_eXosip_subscribe_automatic_refresh(struct eXosip_t *excontext, eXosip_subscribe_t * js,
 									eXosip_dialog_t * jd,
 									osip_transaction_t * out_tr)
 {
@@ -325,7 +323,7 @@ _eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
 	if (js == NULL || jd == NULL || out_tr == NULL || out_tr->orig_request == NULL)
 		return OSIP_BADPARAMETER;
 
-	i = eXosip_subscribe_build_refresh_request(jd->d_id, &sub);
+	i = eXosip_subscribe_build_refresh_request(excontext, jd->d_id, &sub);
 	if (i != 0)
 		return i;
 
@@ -380,12 +378,12 @@ _eXosip_subscribe_automatic_refresh(eXosip_subscribe_t * js,
 		}
 	}
 
-	i = eXosip_subscribe_send_refresh_request(jd->d_id, sub);
+	i = eXosip_subscribe_send_refresh_request(excontext, jd->d_id, sub);
 	return i;
 }
 
 int
-_eXosip_subscribe_send_request_with_credential(eXosip_subscribe_t * js,
+_eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosip_subscribe_t * js,
 											   eXosip_dialog_t * jd,
 											   osip_transaction_t * out_tr)
 {
@@ -465,9 +463,9 @@ _eXosip_subscribe_send_request_with_credential(eXosip_subscribe_t * js,
 
 	if (out_tr->last_response->status_code == 401
 		|| out_tr->last_response->status_code == 407) {
-		eXosip_add_authentication_information(msg, out_tr->last_response);
+		eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
 	} else
-		eXosip_add_authentication_information(msg, NULL);
+		eXosip_add_authentication_information(excontext, msg, NULL);
 	
 
 	if (out_tr != NULL && out_tr->last_response != NULL
@@ -495,7 +493,7 @@ _eXosip_subscribe_send_request_with_credential(eXosip_subscribe_t * js,
 
 	osip_message_force_update(msg);
 
-	i = _eXosip_transaction_init(&tr, NICT, eXosip.j_osip, msg);
+	i = _eXosip_transaction_init(excontext, &tr, NICT, excontext->j_osip, msg);
 
 	if (i != 0) {
 		osip_message_free(msg);
@@ -504,7 +502,7 @@ _eXosip_subscribe_send_request_with_credential(eXosip_subscribe_t * js,
 
 	if (out_tr == js->s_out_tr) {
 		/* replace with the new tr */
-		osip_list_add(&eXosip.j_transactions, js->s_out_tr, 0);
+		osip_list_add(&excontext->j_transactions, js->s_out_tr, 0);
 		js->s_out_tr = tr;
 	} else {
 		/* add the new tr for the current dialog */

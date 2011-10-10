@@ -53,7 +53,7 @@
 #endif
 
 
-extern eXosip_t eXosip;
+extern eXosip_t *internal_eXosip;
 
 extern int ipv6_enable;
 
@@ -488,9 +488,9 @@ int eXosip_guess_ip_for_via(int family, char *address, int size)
 	sock = socket(family, SOCK_DGRAM, 0);
 
 	if (family == AF_INET) {
-		eXosip_get_addrinfo(&addrf, eXosip.ipv4_for_gateway, 0, IPPROTO_UDP);
+		eXosip_get_addrinfo(&addrf, internal_eXosip->ipv4_for_gateway, 0, IPPROTO_UDP);
 	} else if (family == AF_INET6) {
-		eXosip_get_addrinfo(&addrf, eXosip.ipv6_for_gateway, 0, IPPROTO_UDP);
+		eXosip_get_addrinfo(&addrf, internal_eXosip->ipv6_for_gateway, 0, IPPROTO_UDP);
 	}
 
 	if (addrf == NULL) {
@@ -614,7 +614,7 @@ static int _eXosip_default_gateway_ipv4(char *address, int size)
 	memset(&remote, 0, sizeof(struct sockaddr_in));
 
 	remote.sin_family = AF_INET;
-	remote.sin_addr.s_addr = inet_addr(eXosip.ipv4_for_gateway);
+	remote.sin_addr.s_addr = inet_addr(internal_eXosip->ipv4_for_gateway);
 	remote.sin_port = htons(11111);
 
 	memset(&iface_out, 0, sizeof(iface_out));
@@ -672,7 +672,7 @@ static int _eXosip_default_gateway_ipv6(char *address, int size)
 	memset(&remote, 0, sizeof(struct sockaddr_in6));
 
 	remote.sin6_family = AF_INET6;
-	inet_pton(AF_INET6, eXosip.ipv6_for_gateway, &remote.sin6_addr);
+	inet_pton(AF_INET6, internal_eXosip->ipv6_for_gateway, &remote.sin6_addr);
 	remote.sin6_port = htons(11111);
 
 	memset(&iface_out, 0, sizeof(iface_out));
@@ -767,16 +767,16 @@ eXosip_get_addrinfo(struct addrinfo **addrinfo, const char *hostname,
 	}
 
 	for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
-		if (eXosip.dns_entries[i].host[0] != '\0'
-			&& 0 == osip_strcasecmp(eXosip.dns_entries[i].host, hostname)) {
+		if (internal_eXosip->dns_entries[i].host[0] != '\0'
+			&& 0 == osip_strcasecmp(internal_eXosip->dns_entries[i].host, hostname)) {
 			/* update entry */
-			if (eXosip.dns_entries[i].ip[0] != '\0') {
-				hostname = eXosip.dns_entries[i].ip;
+			if (internal_eXosip->dns_entries[i].ip[0] != '\0') {
+				hostname = internal_eXosip->dns_entries[i].ip;
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 							"eXosip option set: dns cache used:%s -> %s\n",
-							eXosip.dns_entries[i].host,
-							eXosip.dns_entries[i].ip));
+							internal_eXosip->dns_entries[i].host,
+							internal_eXosip->dns_entries[i].ip));
 			}
 		}
 	}
@@ -858,7 +858,7 @@ static void osip_srv_record_sort(struct osip_srv_record *rec, int n)
 
 
 int
-_eXosip_srv_lookup(osip_message_t * sip, osip_naptr_t **naptr_record) 
+_eXosip_srv_lookup(struct eXosip_t *excontext, osip_message_t * sip, osip_naptr_t **naptr_record) 
 {
 	int use_srv = 1;
 
@@ -964,9 +964,9 @@ _eXosip_srv_lookup(osip_message_t * sip, osip_naptr_t **naptr_record)
 
 		osip_to_get_tag(sip->to, &tag);
 		if (tag != NULL) /* check cache only */
-			*naptr_record = eXosip_dnsutils_naptr(host, "sip", via->protocol, -1);
+			*naptr_record = eXosip_dnsutils_naptr(excontext, host, "sip", via->protocol, -1);
 		else
-			*naptr_record = eXosip_dnsutils_naptr(host, "sip", via->protocol, keep_in_cache);
+			*naptr_record = eXosip_dnsutils_naptr(excontext, host, "sip", via->protocol, keep_in_cache);
 
 		return OSIP_SUCCESS;
 	}
@@ -2056,7 +2056,7 @@ static int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char 
 	return OSIP_SUCCESS;
 }
 
-struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol, const char *transport, int keep_in_cache)
+struct osip_naptr *eXosip_dnsutils_naptr(struct eXosip_t *excontext, const char *domain, const char *protocol, const char *transport, int keep_in_cache)
 {
 	struct osip_naptr *naptr_record;
 	int pos;
@@ -2068,7 +2068,7 @@ struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protoco
 #endif
 	int not_in_list=0;
 
-	if (eXosip.dns_capabilities<=0)
+	if (excontext->dns_capabilities<=0)
 		return NULL;
 	
 	if (dnsutils_list==NULL)
@@ -2774,7 +2774,7 @@ int eXosip_dnsutils_naptr_lookup(osip_naptr_t *output_record, const char *domain
 	return OSIP_SUCCESS;
 }
 
-struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol, const char *transport, int keep_in_cache)
+struct osip_naptr *eXosip_dnsutils_naptr(struct eXosip_t *excontext, const char *domain, const char *protocol, const char *transport, int keep_in_cache)
 {
 	struct osip_naptr *naptr_record;
 	int pos;
@@ -2783,6 +2783,9 @@ struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protoco
 	DWORD buf_length=0;
 	IP4_ARRAY *dns_servers;
 	int not_in_list=0;
+
+	if (excontext->dns_capabilities<=0)
+		return NULL;
 
 	if (dnsutils_list==NULL)
 	{
@@ -3446,12 +3449,15 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 	return OSIP_SUCCESS;
 }
 
-struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol, const char *transport, int keep_in_cache)
+struct osip_naptr *eXosip_dnsutils_naptr(struct eXosip_t *excontext, const char *domain, const char *protocol, const char *transport, int keep_in_cache)
 {
 	struct osip_naptr *naptr_record;
 	int pos;
 	int i;
 	int not_in_list=0;
+
+	if (excontext->dns_capabilities<=0)
+		return NULL;
 
 	if (dnsutils_list==NULL)
 	{
@@ -3604,7 +3610,7 @@ void _eXosip_dnsutils_release(osip_naptr_t *naptr_record)
 
 #else
 
-struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol, const char *transport, int keep_in_cache)
+struct osip_naptr *eXosip_dnsutils_naptr(struct eXosip_t *excontext, const char *domain, const char *protocol, const char *transport, int keep_in_cache)
 {
 	return NULL;
 }

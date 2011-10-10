@@ -100,7 +100,7 @@ extern "C"
  * @param event     Event header for SUBSCRIBE.
  * @param expires   Expires header for SUBSCRIBE.
  */
-  int eXosip_subscribe_build_initial_request (osip_message_t ** subscribe,
+  int eXosip_subscribe_build_initial_request (struct eXosip_t *excontext, osip_message_t ** subscribe,
                                               const char *to, const char *from,
                                               const char *route, const char *event,
                                               int expires);
@@ -110,7 +110,7 @@ extern "C"
  * 
  * @param subscribe          SIP SUBSCRIBE message to send.
  */
-  int eXosip_subscribe_send_initial_request (osip_message_t * subscribe);
+  int eXosip_subscribe_send_initial_request (struct eXosip_t *excontext, osip_message_t * subscribe);
 
 /**
  * Build a default new SUBSCRIBE message.
@@ -118,7 +118,7 @@ extern "C"
  * @param did      identifier of the subscription.
  * @param sub      Pointer for the SIP request to build.
  */
-  int eXosip_subscribe_build_refresh_request (int did, osip_message_t ** sub);
+  int eXosip_subscribe_build_refresh_request (struct eXosip_t *excontext, int did, osip_message_t ** sub);
 
 /**
  * Send a new SUBSCRIBE request.
@@ -126,14 +126,14 @@ extern "C"
  * @param did          identifier of the subscription.
  * @param sub          SIP SUBSCRIBE message to send.
  */
-  int eXosip_subscribe_send_refresh_request (int did, osip_message_t * sub);
+  int eXosip_subscribe_send_refresh_request (struct eXosip_t *excontext, int did, osip_message_t * sub);
 
 /**
  * Remove outgoing subscription context.
  * 
  * @param did          identifier of the subscription.
  */
-  int eXosip_subscribe_remove (int did);
+  int eXosip_subscribe_remove (struct eXosip_t *excontext, int did);
 
 /** @} */
 
@@ -150,7 +150,7 @@ extern "C"
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
  */
-  int eXosip_insubscription_build_answer (int tid, int status,
+  int eXosip_insubscription_build_answer (struct eXosip_t *excontext, int tid, int status,
                                           osip_message_t ** answer);
 
 /**
@@ -160,7 +160,7 @@ extern "C"
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)
  */
-  int eXosip_insubscription_send_answer (int tid, int status,
+  int eXosip_insubscription_send_answer (struct eXosip_t *excontext, int tid, int status,
                                          osip_message_t * answer);
 
 /**
@@ -170,7 +170,7 @@ extern "C"
  * @param method          request method to build.
  * @param request         The SIP request to build.
  */
-  int eXosip_insubscription_build_request (int did, const char *method,
+  int eXosip_insubscription_build_request (struct eXosip_t *excontext, int did, const char *method,
                                            osip_message_t ** request);
 
 /**
@@ -181,7 +181,7 @@ extern "C"
  * @param subscription_reason  subscription reason
  * @param request              The SIP request to build.
  */
-  int eXosip_insubscription_build_notify (int did, int subscription_status,
+  int eXosip_insubscription_build_notify (struct eXosip_t *excontext, int did, int subscription_status,
                                           int subscription_reason,
                                           osip_message_t ** request);
 
@@ -191,14 +191,14 @@ extern "C"
  * @param did             id of incoming subscription.
  * @param request         The SIP request to send.
  */
-  int eXosip_insubscription_send_request (int did, osip_message_t * request);
+  int eXosip_insubscription_send_request (struct eXosip_t *excontext, int did, osip_message_t * request);
 
 /**
  * Remove incoming subscription context.
  * 
  * @param did          identifier of the subscription.
  */
-  int eXosip_insubscription_remove (int did);
+  int eXosip_insubscription_remove (struct eXosip_t *excontext, int did);
 
 
 #endif

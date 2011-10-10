@@ -26,10 +26,8 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 int
-eXosip_options_build_request(osip_message_t ** options, const char *to,
+eXosip_options_build_request(struct eXosip_t *excontext, osip_message_t ** options, const char *to,
 							 const char *from, const char *route)
 {
 	int i;
@@ -42,7 +40,7 @@ eXosip_options_build_request(osip_message_t ** options, const char *to,
 	if (route != NULL && *route == '\0')
 		route = NULL;
 
-	i = generating_request_out_of_dialog(options, "OPTIONS", to, "UDP", from,
+	i = _eXosip_generating_request_out_of_dialog(excontext, options, "OPTIONS", to, "UDP", from,
 										 route);
 	if (i != 0)
 		return i;
@@ -51,19 +49,19 @@ eXosip_options_build_request(osip_message_t ** options, const char *to,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_options_send_request(osip_message_t * options)
+int eXosip_options_send_request(struct eXosip_t *excontext, osip_message_t * options)
 {
 	osip_transaction_t *transaction;
 	osip_event_t *sipevent;
 	int i;
 
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, options);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, options);
 	if (i != 0) {
 		osip_message_free(options);
 		return i;
 	}
 
-	osip_list_add(&eXosip.j_transactions, transaction, 0);
+	osip_list_add(&excontext->j_transactions, transaction, 0);
 
 	sipevent = osip_new_outgoing_sipmessage(options);
 	sipevent->transactionid = transaction->transactionid;
@@ -76,7 +74,7 @@ int eXosip_options_send_request(osip_message_t * options)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_options_build_answer(int tid, int status, osip_message_t ** answer)
+int eXosip_options_build_answer(struct eXosip_t *excontext, int tid, int status, osip_message_t ** answer)
 {
 	osip_transaction_t *tr = NULL;
 	int i;
@@ -89,7 +87,7 @@ int eXosip_options_build_answer(int tid, int status, osip_message_t ** answer)
 		return OSIP_BADPARAMETER;
 
 	if (tid > 0) {
-		eXosip_transaction_find(tid, &tr);
+		_eXosip_transaction_find(excontext, tid, &tr);
 	}
 	if (tr == NULL) {
 		OSIP_TRACE(osip_trace
@@ -109,7 +107,7 @@ int eXosip_options_build_answer(int tid, int status, osip_message_t ** answer)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_options_send_answer(int tid, int status, osip_message_t * answer)
+int eXosip_options_send_answer(struct eXosip_t *excontext, int tid, int status, osip_message_t * answer)
 {
 	osip_transaction_t *tr = NULL;
 	osip_event_t *evt_answer;
@@ -123,7 +121,7 @@ int eXosip_options_send_answer(int tid, int status, osip_message_t * answer)
 		return OSIP_BADPARAMETER;
 
 	if (tid > 0) {
-		eXosip_transaction_find(tid, &tr);
+		_eXosip_transaction_find(excontext, tid, &tr);
 	}
 	if (tr == NULL) {
 		OSIP_TRACE(osip_trace

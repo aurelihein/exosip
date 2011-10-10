@@ -39,7 +39,7 @@
 #include <time.h>
 
 /**
- * @file eXosip.h
+ * @file internal_eXosip->h
  * @brief eXosip API
  *
  * eXosip is a high layer library for rfc3261: the SIP protocol.
@@ -98,15 +98,15 @@ extern "C"
  * @param realm		realm within which credentials apply, or NULL
  *			to apply credentials to unrecognized realms
  */
-  int eXosip_add_authentication_info (const char *username, const char *userid,
+  int eXosip_add_authentication_info (struct eXosip_t *excontext, const char *username, const char *userid,
                                       const char *passwd, const char *ha1,
                                       const char *realm);
 
 /**
- * Clear all authentication credentials stored in eXosip.
+ * Clear all authentication credentials stored in internal_eXosip->
  *
  */
-  int eXosip_clear_authentication_info (void);
+  int eXosip_clear_authentication_info (struct eXosip_t *excontext);
 
 /**
  * Initiate some default actions:
@@ -115,12 +115,12 @@ extern "C"
  *  Retry with Contact header upon reception of 3xx request.
  * 
  */
-  int eXosip_default_action (eXosip_event_t * je);
+  int eXosip_default_action (struct eXosip_t *excontext, eXosip_event_t * je);
 
 /**
  *  Refresh REGISTER and SUBSCRIBE before the expiration delay.
  */
-  void eXosip_automatic_refresh (void);
+  void eXosip_automatic_refresh (struct eXosip_t *excontext);
 
 /**
  * Initiate some automatic actions:
@@ -130,7 +130,7 @@ extern "C"
  *  Retry with Contact header upon reception of 3xx request.
  * 
  */
-  void eXosip_automatic_action (void);
+  void eXosip_automatic_action (struct eXosip_t *excontext);
 
 #ifndef MINISIZE
   /**
@@ -138,7 +138,7 @@ extern "C"
  * 
  * @param evt          event related to an incoming subscription.
  */
-  int eXosip_insubscription_automatic (eXosip_event_t * evt);
+  int eXosip_insubscription_automatic (struct eXosip_t *excontext, eXosip_event_t * evt);
 #endif
 
 /**
@@ -163,35 +163,35 @@ extern "C"
  * 
  * @param did          dialog id of call.
  */
-  sdp_message_t *eXosip_get_remote_sdp (int did);
+  sdp_message_t *eXosip_get_remote_sdp (struct eXosip_t *excontext, int did);
 
 /**
  * Get local SDP body for the latest INVITE of call.
  * 
  * @param did          dialog id of call.
  */
-  sdp_message_t *eXosip_get_local_sdp (int did);
+  sdp_message_t *eXosip_get_local_sdp (struct eXosip_t *excontext, int did);
 
 /**
  * Get local SDP body for the previous latest INVITE of call.
  * 
  * @param did          dialog id of call.
  */
-  sdp_message_t *eXosip_get_previous_local_sdp (int did);
+  sdp_message_t *eXosip_get_previous_local_sdp (struct eXosip_t *excontext, int did);
 
 /**
  * Get remote SDP body for the latest INVITE of call.
  * 
  * @param tid          transction id of transaction.
  */
-  sdp_message_t *eXosip_get_remote_sdp_from_tid (int tid);
+  sdp_message_t *eXosip_get_remote_sdp_from_tid (struct eXosip_t *excontext, int tid);
 
 /**
  * Get local SDP body for the latest INVITE of call.
  * 
  * @param tid          transction id of transaction.
  */
-  sdp_message_t *eXosip_get_local_sdp_from_tid (int tid);
+  sdp_message_t *eXosip_get_local_sdp_from_tid (struct eXosip_t *excontext, int tid);
 
 /**
  * Get local SDP body for the given message.
@@ -373,14 +373,14 @@ extern "C"
  * @param tv_s      timeout value (seconds).
  * @param tv_ms     timeout value (mseconds).
  */
-  eXosip_event_t *eXosip_event_wait (int tv_s, int tv_ms);
+  eXosip_event_t *eXosip_event_wait (struct eXosip_t *excontext, int tv_s, int tv_ms);
 
 
 /**
  * Wait for next eXosip event.
  * 
  */
-  eXosip_event_t *eXosip_event_get (void);
+  eXosip_event_t *eXosip_event_get (struct eXosip_t *excontext);
 
 /**
  * This socket receive some data yhen an event happens internally.
@@ -388,7 +388,7 @@ extern "C"
  * in the fifo.
  * 
  */
-  int eXosip_event_geteventsocket (void);
+  int eXosip_event_geteventsocket (struct eXosip_t *excontext);
 
 
  /**

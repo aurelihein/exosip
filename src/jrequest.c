@@ -36,8 +36,6 @@
 #include <iphlpapi.h>
 #endif
 
-extern eXosip_t eXosip;
-
 /* Private functions */
 static int dialog_fill_route_set(osip_dialog_t * dialog, osip_message_t * request);
 
@@ -78,7 +76,7 @@ unsigned int via_branch_new_random(void)
 	return osip_build_random_number();
 }
 
-int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer)
+int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * request, osip_message_t * answer)
 {
 	osip_via_t *via;
 	osip_from_t *a_from;
@@ -88,15 +86,15 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 	char firewall_port[10];
 	int len;
 
-	if (eXosip.eXtl == NULL)
+	if (excontext->eXtl == NULL)
 		return OSIP_NO_NETWORK;
 	if (request == NULL)
 		return OSIP_BADPARAMETER;
 
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
-	if (eXosip.eXtl->tl_get_masquerade_contact != NULL) {
-		eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
+		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -124,9 +122,9 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 	if (a_from->url->username != NULL)
 		len =
 			2 + 4 + (strlen(a_from->url->username)*3) + 1 + 100 + 6 + 10 +
-			strlen(eXosip.transport);
+			strlen(excontext->transport);
 	else
-		len = 2 + 4 + 100 + 6 + 10 + strlen(eXosip.transport);
+		len = 2 + 4 + 100 + 6 + 10 + strlen(excontext->transport);
 
 	contact = (char *) osip_malloc(len + 1);
 	if (contact == NULL)
@@ -159,7 +157,7 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 	}
 
 	if (locip[0] == '\0') {
-		eXosip_guess_ip_for_via(eXosip.eXtl->proto_family, locip, 49);
+		eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
 		if (locip[0] == '\0') {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -169,7 +167,7 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 		}
 	}
 
-	if (eXosip.eXtl->proto_family == AF_INET6) {
+	if (excontext->eXtl->proto_family == AF_INET6) {
 		if (a_from->url->username != NULL)
 		{
 			char *tmp2 = __osip_uri_escape_userinfo(a_from->url->username);
@@ -177,7 +175,7 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 			osip_free(tmp2);
 		}
 		else
-			snprintf(contact, len - strlen(eXosip.transport) - 10, "<sip:[%s]:%s>",
+			snprintf(contact, len - strlen(excontext->transport) - 10, "<sip:[%s]:%s>",
 					 locip, firewall_port);
 	} else {
 		if (a_from->url->username != NULL)
@@ -187,13 +185,13 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 			osip_free(tmp2);
 		}
 		else
-			snprintf(contact, len - strlen(eXosip.transport) - 10, "<sip:%s:%s>",
+			snprintf(contact, len - strlen(excontext->transport) - 10, "<sip:%s:%s>",
 					 locip, firewall_port);
 	}
-	if (osip_strcasecmp(eXosip.transport, "UDP") != 0) {
+	if (osip_strcasecmp(excontext->transport, "UDP") != 0) {
 		contact[strlen(contact) - 1] = '\0';
 		strcat(contact, ";transport=");
-		strcat(contact, eXosip.transport);
+		strcat(contact, excontext->transport);
 		strcat(contact, ">");
 	}
 	osip_message_set_contact(request, contact);
@@ -203,7 +201,7 @@ int _eXosip_dialog_add_contact(osip_message_t * request, osip_message_t * answer
 }
 
 int
-_eXosip_request_add_via(osip_message_t * request, const char *transport,
+_eXosip_request_add_via(struct eXosip_t *excontext, osip_message_t * request, const char *transport,
 						const char *locip)
 {
 	char tmp[200];
@@ -227,8 +225,8 @@ _eXosip_request_add_via(osip_message_t * request, const char *transport,
 
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
-	if (eXosip.eXtl != NULL && eXosip.eXtl->tl_get_masquerade_contact != NULL) {
-		eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+	if (excontext->eXtl != NULL && excontext->eXtl->tl_get_masquerade_contact != NULL) {
+		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -244,16 +242,16 @@ _eXosip_request_add_via(osip_message_t * request, const char *transport,
 		snprintf(firewall_port, sizeof(firewall_port), "5060");
 	}
 
-	if (eXosip.eXtl->proto_family == AF_INET6)
+	if (excontext->eXtl->proto_family == AF_INET6)
 		snprintf(tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u",
-				 eXosip.transport, ip, firewall_port, via_branch_new_random());
+				 excontext->transport, ip, firewall_port, via_branch_new_random());
 	else {
-		if (eXosip.use_rport != 0)
+		if (excontext->use_rport != 0)
 			snprintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-					 eXosip.transport, ip, firewall_port, via_branch_new_random());
+					 excontext->transport, ip, firewall_port, via_branch_new_random());
 		else
 			snprintf(tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u",
-					 eXosip.transport, ip, firewall_port, via_branch_new_random());
+					 excontext->transport, ip, firewall_port, via_branch_new_random());
 	}
 
 	osip_message_set_via(request, tmp);
@@ -268,7 +266,7 @@ _eXosip_request_add_via(osip_message_t * request, const char *transport,
    transport is either "TCP" or "UDP" (by now, only UDP is implemented!)
 */
 int
-generating_request_out_of_dialog(osip_message_t ** dest, const char *method,
+_eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_message_t ** dest, const char *method,
 								 const char *to, const char *transport,
 								 const char *from, const char *proxy)
 {
@@ -287,12 +285,12 @@ generating_request_out_of_dialog(osip_message_t ** dest, const char *method,
 	if (!method || !*method)
 		return OSIP_BADPARAMETER;
 
-	if (eXosip.eXtl == NULL)
+	if (excontext->eXtl == NULL)
 		return OSIP_NO_NETWORK;
 
 	/*guess the local ip since req uri is known */
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(eXosip.eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -581,7 +579,7 @@ generating_request_out_of_dialog(osip_message_t ** dest, const char *method,
 		}
 	}
 
-	i = _eXosip_request_add_via(request, transport, locip);
+	i = _eXosip_request_add_via(excontext, request, transport, locip);
 	if (i != 0) {
 		osip_message_free(request);
 		return i;
@@ -596,38 +594,38 @@ generating_request_out_of_dialog(osip_message_t ** dest, const char *method,
 		osip_message_set_accept(request, "application/sdp");
 	}
 
-	osip_message_set_user_agent(request, eXosip.user_agent);
+	osip_message_set_user_agent(request, excontext->user_agent);
 	/*  else if ... */
 	*dest = request;
 	return OSIP_SUCCESS;
 }
 
 int
-generating_register(eXosip_reg_t * jreg, osip_message_t ** reg, char *transport,
+_eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osip_message_t ** reg, char *transport,
 					char *from, char *proxy, char *contact, int expires)
 {
 	int i;
 	char locip[65];
 	char firewall_ip[65];
 	char firewall_port[10];
-	if (eXosip.eXtl == NULL)
+	if (excontext->eXtl == NULL)
 		return OSIP_NO_NETWORK;
 
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
-	if (eXosip.eXtl->tl_get_masquerade_contact != NULL) {
-		eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
+		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
 
-	i = generating_request_out_of_dialog(reg, "REGISTER", NULL, transport, from,
+	i = _eXosip_generating_request_out_of_dialog(excontext, reg, "REGISTER", NULL, transport, from,
 										 proxy);
 	if (i != 0)
 		return i;
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(eXosip.eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
 
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
@@ -726,7 +724,7 @@ generating_register(eXosip_reg_t * jreg, osip_message_t ** reg, char *transport,
 #ifndef MINISIZE
 
 int
-generating_publish(osip_message_t ** message, const char *to,
+_eXosip_generating_publish(struct eXosip_t *excontext, osip_message_t ** message, const char *to,
 				   const char *from, const char *route)
 {
 	int i;
@@ -737,7 +735,7 @@ generating_publish(osip_message_t ** message, const char *to,
 	if (route != NULL && *route == '\0')
 		route = NULL;
 
-	i = generating_request_out_of_dialog(message, "PUBLISH", to, "UDP", from,
+	i = _eXosip_generating_request_out_of_dialog(excontext, message, "PUBLISH", to, "UDP", from,
 										 route);
 	if (i != 0)
 		return i;
@@ -828,7 +826,7 @@ static int dialog_fill_route_set(osip_dialog_t * dialog, osip_message_t * reques
 }
 
 int
-_eXosip_build_request_within_dialog(osip_message_t ** dest,
+_eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t ** dest,
 									const char *method,
 									osip_dialog_t * dialog, const char *transport)
 {
@@ -843,13 +841,13 @@ _eXosip_build_request_within_dialog(osip_message_t ** dest,
 	if (dialog == NULL)
 		return OSIP_BADPARAMETER;
 
-	if (eXosip.eXtl == NULL)
+	if (excontext->eXtl == NULL)
 		return OSIP_NO_NETWORK;
 
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
-	if (eXosip.eXtl->tl_get_masquerade_contact != NULL) {
-		eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
+		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -868,7 +866,7 @@ _eXosip_build_request_within_dialog(osip_message_t ** dest,
 
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(eXosip.eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -966,7 +964,7 @@ _eXosip_build_request_within_dialog(osip_message_t ** dest,
 	osip_message_set_max_forwards(request, "70");	/* a UA should start a request with 70 */
 
 
-	i = _eXosip_request_add_via(request, transport, locip);
+	i = _eXosip_request_add_via(excontext, request, transport, locip);
 	if (i != 0) {
 		osip_message_free(request);
 		return i;
@@ -1013,7 +1011,7 @@ _eXosip_build_request_within_dialog(osip_message_t ** dest,
 		/* the require header must be added by the upper layer if needed */
 	}
 #else
-	_eXosip_dialog_add_contact(request, NULL);
+	_eXosip_dialog_add_contact(excontext, request, NULL);
 #endif
 
 	if (0 == strcmp("NOTIFY", method)) {
@@ -1026,18 +1024,18 @@ _eXosip_build_request_within_dialog(osip_message_t ** dest,
 		/* TODO... */
 	}
 
-	osip_message_set_user_agent(request, eXosip.user_agent);
+	osip_message_set_user_agent(request, excontext->user_agent);
 	/*  else if ... */
 	*dest = request;
 	return OSIP_SUCCESS;
 }
 
 /* this request is only build within a dialog!! */
-int generating_bye(osip_message_t ** bye, osip_dialog_t * dialog, char *transport)
+int _eXosip_generating_bye(struct eXosip_t *excontext, osip_message_t ** bye, osip_dialog_t * dialog, char *transport)
 {
 	int i;
 
-	i = _eXosip_build_request_within_dialog(bye, "BYE", dialog, transport);
+	i = _eXosip_build_request_within_dialog(excontext, bye, "BYE", dialog, transport);
 	if (i != 0)
 		return i;
 
@@ -1045,7 +1043,7 @@ int generating_bye(osip_message_t ** bye, osip_dialog_t * dialog, char *transpor
 }
 
 /* It is RECOMMENDED to only cancel INVITE request */
-int generating_cancel(osip_message_t ** dest, osip_message_t * request_cancelled)
+int _eXosip_generating_cancel(struct eXosip_t *excontext, osip_message_t ** dest, osip_message_t * request_cancelled)
 {
 	int i;
 	osip_message_t *request;
@@ -1142,7 +1140,7 @@ int generating_cancel(osip_message_t ** dest, osip_message_t * request_cancelled
 	}
 
 	osip_message_set_max_forwards(request, "70");	/* a UA should start a request with 70 */
-	osip_message_set_user_agent(request, eXosip.user_agent);
+	osip_message_set_user_agent(request, excontext->user_agent);
 
 	*dest = request;
 	return OSIP_SUCCESS;

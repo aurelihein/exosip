@@ -25,8 +25,6 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 
 /* some methods to extract transaction information from a eXosip_call_t */
 

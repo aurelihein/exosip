@@ -25,7 +25,7 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
+extern eXosip_t *internal_eXosip;
 
 int
 _eXosip_pub_update(eXosip_pub_t ** pub, osip_transaction_t * tr,
@@ -35,7 +35,7 @@ _eXosip_pub_update(eXosip_pub_t ** pub, osip_transaction_t * tr,
 
 	*pub = NULL;
 
-	for (jpub = eXosip.j_pub; jpub != NULL; jpub = jpub->next) {
+	for (jpub = internal_eXosip->j_pub; jpub != NULL; jpub = jpub->next) {
 		if (jpub->p_last_tr == NULL) {	/*bug? */
 		} else if (tr == jpub->p_last_tr) {
 			/* update the sip_etag parameter */
@@ -54,12 +54,12 @@ _eXosip_pub_update(eXosip_pub_t ** pub, osip_transaction_t * tr,
 	return OSIP_NOTFOUND;
 }
 
-int _eXosip_pub_find_by_aor(eXosip_pub_t ** pub, const char *aor)
+int _eXosip_pub_find_by_aor(struct eXosip_t *excontext, eXosip_pub_t ** pub, const char *aor)
 {
 	eXosip_pub_t *jpub;
 	*pub = NULL;
 
-	for (jpub = eXosip.j_pub; jpub != NULL; jpub = jpub->next) {
+	for (jpub = excontext->j_pub; jpub != NULL; jpub = jpub->next) {
 		if (osip_strcasecmp(aor, jpub->p_aor) == 0) {
 			*pub = jpub;
 			return OSIP_SUCCESS;
@@ -68,9 +68,9 @@ int _eXosip_pub_find_by_aor(eXosip_pub_t ** pub, const char *aor)
 	return OSIP_NOTFOUND;
 }
 
-int _eXosip_pub_find_by_tid(eXosip_pub_t ** pjp, int tid)
+int _eXosip_pub_find_by_tid(struct eXosip_t *excontext, eXosip_pub_t ** pjp, int tid)
 {
-	eXosip_pub_t *pub = eXosip.j_pub;
+	eXosip_pub_t *pub = excontext->j_pub;
 
 	*pjp = NULL;
 	while (pub) {
@@ -108,15 +108,15 @@ int _eXosip_pub_init(eXosip_pub_t ** pub, const char *aor, const char *exp)
 	return OSIP_SUCCESS;
 }
 
-void _eXosip_pub_free(eXosip_pub_t * pub)
+void _eXosip_pub_free(struct eXosip_t *excontext, eXosip_pub_t * pub)
 {
 	if (pub->p_last_tr != NULL) {
 		if (pub->p_last_tr != NULL && pub->p_last_tr->orig_request != NULL
 			&& pub->p_last_tr->orig_request->call_id != NULL
 			&& pub->p_last_tr->orig_request->call_id->number != NULL)
-			_eXosip_delete_nonce(pub->p_last_tr->orig_request->call_id->number);
+			_eXosip_delete_nonce(excontext, pub->p_last_tr->orig_request->call_id->number);
 
-		osip_list_add(&eXosip.j_transactions, pub->p_last_tr, 0);
+		osip_list_add(&excontext->j_transactions, pub->p_last_tr, 0);
 	}
 	osip_free(pub);
 }

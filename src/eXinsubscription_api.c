@@ -26,14 +26,12 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 int
-_eXosip_insubscription_transaction_find(int tid, eXosip_notify_t ** jn,
+_eXosip_insubscription_transaction_find(struct eXosip_t *excontext, int tid, eXosip_notify_t ** jn,
 										eXosip_dialog_t ** jd,
 										osip_transaction_t ** tr)
 {
-	for (*jn = eXosip.j_notifies; *jn != NULL; *jn = (*jn)->next) {
+	for (*jn = excontext->j_notifies; *jn != NULL; *jn = (*jn)->next) {
 		if ((*jn)->n_inc_tr != NULL && (*jn)->n_inc_tr->transactionid == tid) {
 			*tr = (*jn)->n_inc_tr;
 			*jd = (*jn)->n_dialogs;
@@ -75,7 +73,7 @@ _eXosip_insubscription_transaction_find(int tid, eXosip_notify_t ** jn,
 	return OSIP_NOTFOUND;
 }
 
-int eXosip_insubscription_remove(int did)
+int eXosip_insubscription_remove(struct eXosip_t *excontext, int did)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_notify_t *jn = NULL;
@@ -84,7 +82,7 @@ int eXosip_insubscription_remove(int did)
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_notify_dialog_find(did, &jn, &jd);
+		eXosip_notify_dialog_find(excontext, did, &jn, &jd);
 	}
 	if (jd == NULL || jn == NULL) {
 		OSIP_TRACE(osip_trace
@@ -92,13 +90,13 @@ int eXosip_insubscription_remove(int did)
 					"eXosip: No incoming subscription here?\n"));
 		return OSIP_NOTFOUND;
 	}
-	REMOVE_ELEMENT(eXosip.j_notifies, jn);
-	eXosip_notify_free(jn);
+	REMOVE_ELEMENT(excontext->j_notifies, jn);
+	_eXosip_notify_free(excontext, jn);
 	return OSIP_SUCCESS;
 }
 
 int
-eXosip_insubscription_build_answer(int tid, int status, osip_message_t ** answer)
+eXosip_insubscription_build_answer(struct eXosip_t *excontext, int tid, int status, osip_message_t ** answer)
 {
 	int i = -1;
 	eXosip_dialog_t *jd = NULL;
@@ -111,7 +109,7 @@ eXosip_insubscription_build_answer(int tid, int status, osip_message_t ** answer
 		return OSIP_BADPARAMETER;
 
 	if (tid > 0) {
-		_eXosip_insubscription_transaction_find(tid, &jn, &jd, &tr);
+		_eXosip_insubscription_transaction_find(excontext, tid, &jn, &jd, &tr);
 	}
 	if (tr == NULL || jd == NULL || jn == NULL) {
 		OSIP_TRACE(osip_trace
@@ -146,7 +144,7 @@ eXosip_insubscription_build_answer(int tid, int status, osip_message_t ** answer
 	return i;
 }
 
-int eXosip_insubscription_send_answer(int tid, int status, osip_message_t * answer)
+int eXosip_insubscription_send_answer(struct eXosip_t *excontext, int tid, int status, osip_message_t * answer)
 {
 	int i = -1;
 	eXosip_dialog_t *jd = NULL;
@@ -158,7 +156,7 @@ int eXosip_insubscription_send_answer(int tid, int status, osip_message_t * answ
 		return OSIP_BADPARAMETER;
 
 	if (tid > 0) {
-		_eXosip_insubscription_transaction_find(tid, &jn, &jd, &tr);
+		_eXosip_insubscription_transaction_find(excontext, tid, &jn, &jd, &tr);
 	}
 	if (jd == NULL || tr == NULL || tr->orig_request == NULL
 		|| tr->orig_request->sip_method == NULL) {
@@ -239,7 +237,7 @@ int eXosip_insubscription_send_answer(int tid, int status, osip_message_t * answ
 }
 
 int
-eXosip_insubscription_build_notify(int did, int subscription_status,
+eXosip_insubscription_build_notify(struct eXosip_t *excontext, int did, int subscription_status,
 								   int subscription_reason,
 								   osip_message_t ** request)
 {
@@ -258,7 +256,7 @@ eXosip_insubscription_build_notify(int did, int subscription_status,
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_notify_dialog_find(did, &jn, &jd);
+		eXosip_notify_dialog_find(excontext, did, &jn, &jd);
 	}
 	if (jd == NULL || jn == NULL) {
 		OSIP_TRACE(osip_trace
@@ -267,7 +265,7 @@ eXosip_insubscription_build_notify(int did, int subscription_status,
 		return OSIP_NOTFOUND;
 	}
 
-	i = eXosip_insubscription_build_request(did, "NOTIFY", request);
+	i = eXosip_insubscription_build_request(excontext, did, "NOTIFY", request);
 	if (i != 0) {
 		return i;
 	}
@@ -304,7 +302,7 @@ eXosip_insubscription_build_notify(int did, int subscription_status,
 }
 
 int
-eXosip_insubscription_build_request(int did, const char *method,
+eXosip_insubscription_build_request(struct eXosip_t *excontext, int did, const char *method,
 									osip_message_t ** request)
 {
 	eXosip_dialog_t *jd = NULL;
@@ -322,7 +320,7 @@ eXosip_insubscription_build_request(int did, const char *method,
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_notify_dialog_find(did, &jn, &jd);
+		eXosip_notify_dialog_find(excontext, did, &jn, &jd);
 	}
 	if (jd == NULL || jn == NULL) {
 		OSIP_TRACE(osip_trace
@@ -351,10 +349,10 @@ eXosip_insubscription_build_request(int did, const char *method,
 	transaction = NULL;
 
 	if (transport == NULL)
-		i = _eXosip_build_request_within_dialog(request, method, jd->d_dialog,
+		i = _eXosip_build_request_within_dialog(excontext, request, method, jd->d_dialog,
 												"UDP");
 	else
-		i = _eXosip_build_request_within_dialog(request, method, jd->d_dialog,
+		i = _eXosip_build_request_within_dialog(excontext, request, method, jd->d_dialog,
 												transport);
 	if (i != 0)
 		return i;
@@ -362,7 +360,7 @@ eXosip_insubscription_build_request(int did, const char *method,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_insubscription_send_request(int did, osip_message_t * request)
+int eXosip_insubscription_send_request(struct eXosip_t *excontext, int did, osip_message_t * request)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_notify_t *jn = NULL;
@@ -380,7 +378,7 @@ int eXosip_insubscription_send_request(int did, osip_message_t * request)
 	}
 
 	if (did > 0) {
-		eXosip_notify_dialog_find(did, &jn, &jd);
+		eXosip_notify_dialog_find(excontext, did, &jn, &jd);
 	}
 	if (jd == NULL || jn == NULL) {
 		OSIP_TRACE(osip_trace
@@ -403,7 +401,7 @@ int eXosip_insubscription_send_request(int did, osip_message_t * request)
 		transaction = NULL;
 	}
 
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, request);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, request);
 	if (i != 0) {
 		osip_message_free(request);
 		return i;
@@ -422,7 +420,8 @@ int eXosip_insubscription_send_request(int did, osip_message_t * request)
 }
 
 int
-_eXosip_insubscription_send_request_with_credential(eXosip_notify_t * jn,
+_eXosip_insubscription_send_request_with_credential(struct eXosip_t *excontext, 
+													eXosip_notify_t * jn,
 													eXosip_dialog_t * jd,
 													osip_transaction_t * out_tr)
 {
@@ -490,13 +489,13 @@ _eXosip_insubscription_send_request_with_credential(eXosip_notify_t * jn,
 
 	if (out_tr->last_response->status_code == 401
 		|| out_tr->last_response->status_code == 407)
-		eXosip_add_authentication_information(msg, out_tr->last_response);
+		eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
 	else
-		eXosip_add_authentication_information(msg, NULL);
+		eXosip_add_authentication_information(excontext, msg, NULL);
 
 	osip_message_force_update(msg);
 
-	i = _eXosip_transaction_init(&tr, NICT, eXosip.j_osip, msg);
+	i = _eXosip_transaction_init(excontext, &tr, NICT, excontext->j_osip, msg);
 
 	if (i != 0) {
 		osip_message_free(msg);
@@ -516,8 +515,8 @@ _eXosip_insubscription_send_request_with_credential(eXosip_notify_t * jn,
 	return OSIP_SUCCESS;
 }
 
-int
-_eXosip_insubscription_auto_send_notify(int did,
+static int
+_eXosip_insubscription_auto_send_notify(struct eXosip_t *excontext, int did,
 										int subscription_status,
 										int subscription_reason)
 {
@@ -531,7 +530,7 @@ _eXosip_insubscription_auto_send_notify(int did,
 	if (did <= 0)
 		return OSIP_BADPARAMETER;
 
-	i = eXosip_insubscription_build_notify(did, subscription_status,
+	i = eXosip_insubscription_build_notify(excontext, did, subscription_status,
 										   subscription_reason, &notify);
 	if (i != 0) {
 		return i;
@@ -553,7 +552,7 @@ _eXosip_insubscription_auto_send_notify(int did,
 	osip_free(entity);
 
 	/* loop over all jc/jd */
-	for (jc = eXosip.j_calls; jc != NULL; jc = jc->next) {
+	for (jc = excontext->j_calls; jc != NULL; jc = jc->next) {
 		for (jd = jc->c_dialogs; jd != NULL; jd = jd->next) {
 			if (jd->d_dialog == NULL) {	/* finished call */
 			} else {
@@ -608,10 +607,10 @@ _eXosip_insubscription_auto_send_notify(int did,
 	osip_message_set_content_type(notify, "application/dialog-info+xml");
 	osip_message_set_body(notify, xml, strlen(xml));
 
-	return eXosip_insubscription_send_request(did, notify);
+	return eXosip_insubscription_send_request(excontext, did, notify);
 }
 
-int eXosip_insubscription_automatic(eXosip_event_t * evt)
+int eXosip_insubscription_automatic(struct eXosip_t *excontext, eXosip_event_t * evt)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_notify_t *jn = NULL;
@@ -622,7 +621,7 @@ int eXosip_insubscription_automatic(eXosip_event_t * evt)
 	if (evt->request == NULL)
 		return OSIP_BADPARAMETER;
 
-	eXosip_notify_dialog_find(evt->did, &jn, &jd);
+	eXosip_notify_dialog_find(excontext, evt->did, &jn, &jd);
 	if (jd == NULL || jn == NULL) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -632,7 +631,7 @@ int eXosip_insubscription_automatic(eXosip_event_t * evt)
 
 	osip_message_header_get_byname(evt->request, "event", 0, &event_header);
 	if (event_header == NULL || event_header->hvalue == NULL) {
-		eXosip_insubscription_send_answer(evt->tid, 400, NULL);
+		eXosip_insubscription_send_answer(excontext, evt->tid, 400, NULL);
 		return OSIP_SUCCESS;
 	}
 
@@ -644,17 +643,17 @@ int eXosip_insubscription_automatic(eXosip_event_t * evt)
 			osip_message_t *answer;
 			int i;
 
-			i = eXosip_insubscription_build_answer(evt->tid, 202, &answer);
+			i = eXosip_insubscription_build_answer(excontext, evt->tid, 202, &answer);
 			if (i == 0) {
-				i = eXosip_insubscription_send_answer(evt->tid, 202, answer);
+				i = eXosip_insubscription_send_answer(excontext, evt->tid, 202, answer);
 			}
 			if (i != 0) {
-				i = eXosip_insubscription_send_answer(evt->tid, 400, NULL);
+				i = eXosip_insubscription_send_answer(excontext, evt->tid, 400, NULL);
 				return OSIP_SUCCESS;
 			}
 
 			/* send initial notify */
-			i = _eXosip_insubscription_auto_send_notify(evt->did,
+			i = _eXosip_insubscription_auto_send_notify(excontext, evt->did,
 														EXOSIP_SUBCRSTATE_ACTIVE,
 														PROBATION);
 			if (i != 0) {
@@ -664,7 +663,7 @@ int eXosip_insubscription_automatic(eXosip_event_t * evt)
 		}
 	} else {
 		if (evt->type == EXOSIP_IN_SUBSCRIPTION_NEW) {
-			eXosip_insubscription_send_answer(evt->tid, 489, NULL);
+			eXosip_insubscription_send_answer(excontext, evt->tid, 489, NULL);
 		}
 	}
 

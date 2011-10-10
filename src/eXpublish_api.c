@@ -27,10 +27,8 @@
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
-extern eXosip_t eXosip;
-
 int
-eXosip_build_publish(osip_message_t ** message,
+eXosip_build_publish(struct eXosip_t *excontext, osip_message_t ** message,
 					 const char *to,
 					 const char *from,
 					 const char *route,
@@ -55,7 +53,7 @@ eXosip_build_publish(osip_message_t ** message,
 			return OSIP_BADPARAMETER;
 	}
 
-	i = generating_publish(message, to, from, route);
+	i = _eXosip_generating_publish(excontext, message, to, from, route);
 	if (i != 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -81,7 +79,7 @@ eXosip_build_publish(osip_message_t ** message,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_publish(osip_message_t * message, const char *to)
+int eXosip_publish(struct eXosip_t *excontext, osip_message_t * message, const char *to)
 {
 	osip_transaction_t *transaction;
 	osip_event_t *sipevent;
@@ -99,7 +97,7 @@ int eXosip_publish(osip_message_t * message, const char *to)
 		return OSIP_BADPARAMETER;
 	}
 
-	i = _eXosip_pub_find_by_aor(&pub, to);
+	i = _eXosip_pub_find_by_aor(excontext, &pub, to);
 	if (i != 0 || pub == NULL) {
 		osip_header_t *expires;
 
@@ -117,7 +115,7 @@ int eXosip_publish(osip_message_t * message, const char *to)
 				osip_message_free(message);
 				return i;
 			}
-			ADD_ELEMENT(eXosip.j_pub, pub);
+			ADD_ELEMENT(excontext->j_pub, pub);
 		}
 	} else {
 		if (pub->p_sip_etag != NULL && pub->p_sip_etag[0] != '\0') {
@@ -155,14 +153,14 @@ int eXosip_publish(osip_message_t * message, const char *to)
 		}
 	}
 
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, message);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, message);
 	if (i != 0) {
 		osip_message_free(message);
 		return i;
 	}
 
 	if (pub->p_last_tr != NULL)
-		osip_list_add(&eXosip.j_transactions, pub->p_last_tr, 0);
+		osip_list_add(&excontext->j_transactions, pub->p_last_tr, 0);
 	pub->p_last_tr = transaction;
 
 	sipevent = osip_new_outgoing_sipmessage(message);

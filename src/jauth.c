@@ -79,8 +79,6 @@ AMF amfstar = "\0\0";
 
 /* end AKA */
 
-extern eXosip_t eXosip;
-
 /* Private functions */
 void CvtHex(IN HASH Bin, OUT HASHHEX Hex);
 static void DigestCalcHA1(IN const char *pszAlg, IN const char *pszUserName,
@@ -1100,7 +1098,7 @@ __eXosip_create_proxy_authorization_header(osip_proxy_authenticate_t * wa,
 }
 
 int
-_eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t * wa,
+_eXosip_store_nonce(struct eXosip_t *excontext, const char *call_id, osip_proxy_authenticate_t * wa,
 					int answer_code)
 {
 	struct eXosip_http_auth *http_auth;
@@ -1108,7 +1106,7 @@ _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t * wa,
 
 	/* update entries with same call_id */
 	for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++) {
-		http_auth = &eXosip.http_auths[pos];
+		http_auth = &excontext->http_auths[pos];
 		if (http_auth->pszCallId[0] == '\0')
 			continue;
 		if (osip_strcasecmp(http_auth->pszCallId, call_id) == 0
@@ -1128,7 +1126,7 @@ _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t * wa,
 
 	/* not found */
 	for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++) {
-		http_auth = &eXosip.http_auths[pos];
+		http_auth = &excontext->http_auths[pos];
 		if (http_auth->pszCallId[0] == '\0') {
 			snprintf(http_auth->pszCallId, sizeof(http_auth->pszCallId), "%s", call_id);
 			snprintf(http_auth->pszCNonce, sizeof(http_auth->pszCNonce),
@@ -1149,14 +1147,14 @@ _eXosip_store_nonce(const char *call_id, osip_proxy_authenticate_t * wa,
 	return OSIP_UNDEFINED_ERROR;
 }
 
-int _eXosip_delete_nonce(const char *call_id)
+int _eXosip_delete_nonce(struct eXosip_t *excontext, const char *call_id)
 {
 	struct eXosip_http_auth *http_auth;
 	int pos;
 
 	/* update entries with same call_id */
 	for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++) {
-		http_auth = &eXosip.http_auths[pos];
+		http_auth = &excontext->http_auths[pos];
 		if (http_auth->pszCallId[0] == '\0')
 			continue;
 		if (osip_strcasecmp(http_auth->pszCallId, call_id) == 0) {

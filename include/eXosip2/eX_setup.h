@@ -35,6 +35,7 @@ extern "C"
 {
 #endif
 
+  struct eXosip_t;
   struct osip_srv_record;
   struct osip_naptr;
 
@@ -54,23 +55,29 @@ extern "C"
  */
 
 /**
+ * Allocate an eXosip context.
+ * 
+ */
+  struct eXosip_t *eXosip_malloc(void);
+
+/**
  * Initiate the eXtented oSIP library.
  * 
  */
-  int eXosip_init (void);
+  int eXosip_init (struct eXosip_t *exosip);
 
 /**
  * Release ressource used by the eXtented oSIP library.
  * 
  */
-  void eXosip_quit (void);
+  void eXosip_quit (struct eXosip_t *exosip);
 
 
 /**
  * Process (non-threaded mode ONLY) eXosip events.
  * 
  */
-  int eXosip_execute (void);
+  int eXosip_execute (struct eXosip_t *exosip);
 
 #define EXOSIP_OPT_BASE_OPTION 0
 #define EXOSIP_OPT_UDP_KEEP_ALIVE (EXOSIP_OPT_BASE_OPTION+1)
@@ -122,29 +129,19 @@ extern "C"
  * @param value   value for options.
  * 
  */
-  int eXosip_set_option (int opt, const void *value);
-
-#ifdef OSIP_MT
+  int eXosip_set_option (struct eXosip_t *exosip, int opt, const void *value);
 
 /**
  * Lock the eXtented oSIP library.
  * 
  */
-  int eXosip_lock (void);
+  int eXosip_lock (struct eXosip_t *excontext);
 
 /**
  * UnLock the eXtented oSIP library.
  * 
  */
-  int eXosip_unlock (void);
-
-#else
-
-#define eXosip_lock() ;
-
-#define eXosip_unlock() ;
-
-#endif
+  int eXosip_unlock (struct eXosip_t *excontext);
 
 /**
  * Start and return osip_naptr context.
@@ -155,7 +152,7 @@ extern "C"
  * @param transport      transport to use ("UDP")
  * @param keep_in_cache  keep result in cache if >0
  */
-struct osip_naptr *eXosip_dnsutils_naptr(const char *domain, const char *protocol,
+struct osip_naptr *eXosip_dnsutils_naptr(struct eXosip_t *excontext, const char *domain, const char *protocol,
                                          const char *transport, int keep_in_cache);
 
 /**
@@ -182,7 +179,7 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * @param family    the IP family (AF_INET or AF_INET6).
  * @param secure    0 for UDP or TCP, 1 for TLS (with TCP).
  */
-  int eXosip_listen_addr (int transport, const char *addr, int port, int family,
+  int eXosip_listen_addr (struct eXosip_t *excontext, int transport, const char *addr, int port, int family,
                           int secure);
 
 /**
@@ -192,14 +189,14 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * @param socket socket to use for listening to UDP sip messages.
  * @param port the listening port for masquerading.
  */
-  int eXosip_set_socket (int transport, int socket, int port);
+  int eXosip_set_socket (struct eXosip_t *excontext, int transport, int socket, int port);
 
 /**
  * Set the SIP User-Agent: header string.
  *
  * @param user_agent the User-Agent header to insert in messages.
  */
-  void eXosip_set_user_agent (const char *user_agent);
+  void eXosip_set_user_agent (struct eXosip_t *excontext, const char *user_agent);
 
  /**
   * Get the eXosip version as a sring
@@ -214,7 +211,7 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  *
  * @param cbsipCallback the callback to retreive messages.
  */
-  int eXosip_set_cbsip_message (CbSipCallback cbsipCallback);
+  int eXosip_set_cbsip_message (struct eXosip_t *excontext, CbSipCallback cbsipCallback);
 
 /**
  * Use IPv6 instead of IPv4.

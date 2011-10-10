@@ -64,7 +64,7 @@ extern "C"
  * @param to        SIP url for callee.
  * @param route     Route header for REFER. (optional)
  */
-  int eXosip_refer_build_request (osip_message_t ** refer, const char *refer_to,
+  int eXosip_refer_build_request (struct eXosip_t *excontext, osip_message_t ** refer, const char *refer_to,
                                   const char *from, const char *to,
                                   const char *route);
 
@@ -73,7 +73,7 @@ extern "C"
  * 
  * @param refer     SIP REFER message to send.
  */
-  int eXosip_refer_send_request (osip_message_t * refer);
+  int eXosip_refer_send_request (struct eXosip_t *excontext, osip_message_t * refer);
 
 /** @} */
 

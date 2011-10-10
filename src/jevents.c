@@ -26,7 +26,7 @@
 #include <eXosip2/eXosip.h>
 #include <osip2/osip_condv.h>
 
-extern eXosip_t eXosip;
+extern eXosip_t *internal_eXosip;
 
 static int _eXosip_event_fill_messages(eXosip_event_t * je,
 									   osip_transaction_t * tr);
@@ -309,11 +309,11 @@ report_call_event(int evt, eXosip_call_t * jc,
 
 int eXosip_event_add(eXosip_event_t * je)
 {
-	int i = osip_fifo_add(eXosip.j_events, (void *) je);
+	int i = osip_fifo_add(internal_eXosip->j_events, (void *) je);
 
 #ifdef OSIP_MT
 #if !defined (_WIN32_WCE)
-	osip_cond_signal((struct osip_cond *) eXosip.j_cond);
+	osip_cond_signal((struct osip_cond *) internal_eXosip->j_cond);
 #endif
 #endif
 
@@ -356,23 +356,23 @@ void __eXosip_clock_gettime(unsigned int clock_id, struct timespec *time)
 
 #ifndef OSIP_MT
 
-eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms)
+eXosip_event_t *eXosip_event_wait(struct eXosip_t *excontext, int tv_s, int tv_ms)
 {
 	eXosip_event_t *je = NULL;
-	je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+	je = (eXosip_event_t *) osip_fifo_tryget(excontext->j_events);
 	if (je != NULL)
 		return je;
 
-	eXosip_lock();
-	eXosip_retransmit_lost200ok();
-	eXosip_unlock();
+	eXosip_lock(excontext);
+	eXosip_retransmit_lost200ok(excontext);
+	eXosip_unlock(excontext);
 
 	return NULL;
 }
 
 #else
 
-eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms)
+eXosip_event_t *eXosip_event_wait(struct eXosip_t *excontext, int tv_s, int tv_ms)
 {
 	eXosip_event_t *je = NULL;
 
@@ -382,33 +382,33 @@ eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms)
 
 	FD_ZERO(&fdset);
 #if defined (WIN32) || defined (_WIN32_WCE)
-	FD_SET((unsigned int) jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+	FD_SET((unsigned int) jpipe_get_read_descr(excontext->j_socketctl_event), &fdset);
 #else
-	FD_SET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+	FD_SET(jpipe_get_read_descr(excontext->j_socketctl_event), &fdset);
 #endif
-	max = jpipe_get_read_descr(eXosip.j_socketctl_event);
+	max = jpipe_get_read_descr(excontext->j_socketctl_event);
 
-	je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+	je = (eXosip_event_t *) osip_fifo_tryget(excontext->j_events);
 	if (je != NULL)
 		return je;
 
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	i = select(max + 1, &fdset, NULL, NULL, &tv);
-	if (FD_ISSET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset)) {
+	if (FD_ISSET(jpipe_get_read_descr(excontext->j_socketctl_event), &fdset)) {
 		char buf[500];
-		jpipe_read(eXosip.j_socketctl_event, buf, 499);
+		jpipe_read(excontext->j_socketctl_event, buf, 499);
 	}
 
-	eXosip_lock();
-	eXosip_retransmit_lost200ok();
-	eXosip_unlock();
+	eXosip_lock(excontext);
+	eXosip_retransmit_lost200ok(excontext);
+	eXosip_unlock(excontext);
 
 	FD_ZERO(&fdset);
 #if defined (WIN32) || defined (_WIN32_WCE)
-	FD_SET((unsigned int) jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+	FD_SET((unsigned int) jpipe_get_read_descr(excontext->j_socketctl_event), &fdset);
 #else
-	FD_SET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+	FD_SET(jpipe_get_read_descr(excontext->j_socketctl_event), &fdset);
 #endif
 	tv.tv_sec = tv_s;
 	tv.tv_usec = tv_ms * 1000;
@@ -420,27 +420,27 @@ eXosip_event_t *eXosip_event_wait(int tv_s, int tv_ms)
 	if (i <= 0)
 		return OSIP_SUCCESS;
 
-	if (eXosip.j_stop_ua)
+	if (excontext->j_stop_ua)
 		return NULL;
 
-	if (FD_ISSET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset)) {
+	if (FD_ISSET(jpipe_get_read_descr(excontext->j_socketctl_event), &fdset)) {
 		char buf[500];
-		jpipe_read(eXosip.j_socketctl_event, buf, 499);
+		jpipe_read(excontext->j_socketctl_event, buf, 499);
 	}
 
-	je = (eXosip_event_t *) osip_fifo_tryget(eXosip.j_events);
+	je = (eXosip_event_t *) osip_fifo_tryget(excontext->j_events);
 	if (je != NULL)
 		return je;
 
 	return je;
 }
 
-int eXosip_event_geteventsocket(void)
+int eXosip_event_geteventsocket(struct eXosip_t *excontext)
 {
-	return jpipe_get_read_descr(eXosip.j_socketctl_event);
+	return jpipe_get_read_descr(excontext->j_socketctl_event);
 }
 
-eXosip_event_t *eXosip_event_get()
+eXosip_event_t *eXosip_event_get(struct eXosip_t *excontext)
 {
 	eXosip_event_t *je;
 	fd_set fdset;
@@ -449,21 +449,21 @@ eXosip_event_t *eXosip_event_get()
 
 	FD_ZERO(&fdset);
 #if defined (WIN32) || defined (_WIN32_WCE)
-	FD_SET((unsigned int) jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+	FD_SET((unsigned int) jpipe_get_read_descr(excontext->j_socketctl_event), &fdset);
 #else
-	FD_SET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset);
+	FD_SET(jpipe_get_read_descr(excontext->j_socketctl_event), &fdset);
 #endif
-	max = jpipe_get_read_descr(eXosip.j_socketctl_event);
+	max = jpipe_get_read_descr(excontext->j_socketctl_event);
 
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
 	i = select(max + 1, &fdset, NULL, NULL, &tv);
-	if (FD_ISSET(jpipe_get_read_descr(eXosip.j_socketctl_event), &fdset)) {
+	if (FD_ISSET(jpipe_get_read_descr(excontext->j_socketctl_event), &fdset)) {
 		char buf[500];
-		jpipe_read(eXosip.j_socketctl_event, buf, 499);
+		jpipe_read(excontext->j_socketctl_event, buf, 499);
 	}
 
-	je = (eXosip_event_t *) osip_fifo_get(eXosip.j_events);
+	je = (eXosip_event_t *) osip_fifo_get(excontext->j_events);
 	return je;
 }
 

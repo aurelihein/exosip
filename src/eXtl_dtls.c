@@ -66,8 +66,6 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 							   const char *password, int transport);
 
-extern eXosip_t eXosip;
-
 static int dtls_socket;
 static struct sockaddr_storage ai_addr;
 
@@ -280,7 +278,7 @@ static int dtls_tl_free(void)
 	return OSIP_SUCCESS;
 }
 
-static int dtls_tl_open(void)
+static int dtls_tl_open(struct eXosip_t *excontext)
 {
 	int res;
 	struct addrinfo *addrinfo = NULL;
@@ -415,7 +413,7 @@ static int dtls_tl_set_fdset(fd_set * osip_fdset, fd_set * osip_wrset, int *fd_m
 	return OSIP_SUCCESS;
 }
 
-static int dtls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
+static int dtls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset)
 {
 	char *enc_buf;
 	char *dec_buf;
@@ -610,7 +608,7 @@ static int dtls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 			if (i > 5) {
 				dec_buf[i] = '\0';
 
-				_eXosip_handle_incoming_message(dec_buf, i, dtls_socket, src6host,
+				_eXosip_handle_incoming_message(excontext, dec_buf, i, dtls_socket, src6host,
 												recvport);
 
 			}
@@ -682,7 +680,7 @@ static int eXtl_update_local_target(osip_message_t * req)
 #endif
 
 static int
-dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
+dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, char *host,
 					 int port, int out_socket)
 {
 	int len = 0;
@@ -723,7 +721,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 #ifndef MINISIZE
 	if (tr==NULL)
 	{
-		_eXosip_srv_lookup(sip, &naptr_record);
+		_eXosip_srv_lookup(excontext, sip, &naptr_record);
 
 		if (naptr_record!=NULL) {
 			eXosip_dnsutils_dns_process(naptr_record, 1);
@@ -928,7 +926,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 			memset(&entry, 0, sizeof(struct eXosip_dns_cache));
 			snprintf(entry.host, sizeof(entry.host), "%s", host);
 			snprintf(entry.ip, sizeof(entry.ip), "%s", ipbuf);
-			eXosip_set_option(EXOSIP_OPT_ADD_DNS_CACHE, (void *) &entry);
+			eXosip_set_option(excontext, EXOSIP_OPT_ADD_DNS_CACHE, (void *) &entry);
 		}
 	}
 
@@ -1055,7 +1053,7 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 		return -1;
 	}
 
-	if (eXosip.keep_alive > 0) {
+	if (excontext->keep_alive > 0) {
 		if (MSG_IS_REGISTER(sip)) {
 			eXosip_reg_t *reg = NULL;
 
@@ -1070,19 +1068,19 @@ dtls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	return OSIP_SUCCESS;
 }
 
-static int dtls_tl_keepalive(void)
+static int dtls_tl_keepalive(struct eXosip_t *excontext)
 {
 	char buf[4] = "jaK";
 	eXosip_reg_t *jr;
 
-	if (eXosip.keep_alive <= 0) {
+	if (excontext->keep_alive <= 0) {
 		return 0;
 	}
 
 	if (dtls_socket <= 0)
 		return OSIP_UNDEFINED_ERROR;
 
-	for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
+	for (jr = excontext->j_reg; jr != NULL; jr = jr->next) {
 		if (jr->len > 0) {
 			if (sendto(dtls_socket, (const void *) buf, 4, 0,
 					   (struct sockaddr *) &(jr->addr), jr->len) > 0) {

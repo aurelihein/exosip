@@ -76,8 +76,6 @@
 #define RANDOM  PATH"random.pem"
 #define DHFILE PATH"dh1024.pem"*/
 
-extern eXosip_t eXosip;
-
 #ifdef __APPLE_CC__
 #include "TargetConditionals.h"
 #endif
@@ -1359,7 +1357,7 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 * Preprocessor directives.
 *@return < 0 if an error occured
 **/
-static int tls_tl_open(void)
+static int tls_tl_open(struct eXosip_t *excontext)
 {
 	int res;
 	struct addrinfo *addrinfo = NULL;
@@ -2011,7 +2009,7 @@ static char *buffer_find(const char *haystack, size_t haystack_len, const char *
 
 /* consume any complete messages in sockinfo->buf and
    return the total number of bytes consumed */
-static int handle_messages(struct socket_tab *sockinfo)
+static int handle_messages(struct eXosip_t *excontext, struct socket_tab *sockinfo)
 {
 	int consumed = 0;
 	char *buf = sockinfo->buf;
@@ -2071,7 +2069,7 @@ static int handle_messages(struct socket_tab *sockinfo)
 			return consumed;
 		}
 		/* yep; handle the message */
-		_eXosip_handle_incoming_message(buf, msglen, sockinfo->socket,
+		_eXosip_handle_incoming_message(excontext, buf, msglen, sockinfo->socket,
 										sockinfo->remote_ip, sockinfo->remote_port);
 		consumed += msglen;
 		buflen -= msglen;
@@ -2081,7 +2079,7 @@ static int handle_messages(struct socket_tab *sockinfo)
 	return consumed;
 }
 
-static int _tls_tl_recv(struct socket_tab *sockinfo)
+static int _tls_tl_recv(struct eXosip_t *excontext, struct socket_tab *sockinfo)
 {
 	int r;
 	int rlen, err;
@@ -2219,7 +2217,7 @@ static int _tls_tl_recv(struct socket_tab *sockinfo)
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 							  "socket %s:%i: read %d bytes\n", sockinfo->remote_ip, sockinfo->remote_port, r));
 		sockinfo->buflen += rlen;
-		consumed = handle_messages(sockinfo);
+		consumed = handle_messages(excontext, sockinfo);
 		if (consumed == 0) {
 			return OSIP_SUCCESS;
 		} else {
@@ -2234,7 +2232,7 @@ static int _tls_tl_recv(struct socket_tab *sockinfo)
 	}
 }
 
-static int tls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
+static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset)
 {
 	int pos = 0;
 
@@ -2291,7 +2289,7 @@ static int tls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 				memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
 				if (tls_socket > 0)
 					closesocket(tls_socket);
-				tls_tl_open();
+				tls_tl_open(excontext);
 			}
 #endif
 		} else {
@@ -2403,7 +2401,7 @@ static int tls_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 		if (tls_socket_tab[pos].socket > 0) {
 			if (FD_ISSET(tls_socket_tab[pos].socket, osip_fdset))
-				_tls_tl_recv(&tls_socket_tab[pos]);
+				_tls_tl_recv(excontext, &tls_socket_tab[pos]);
 		}
 	}
 
@@ -2693,7 +2691,7 @@ static int _tls_tl_connect_socket(char *host, int port)
 }
 
 static int
-tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
+tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, char *host,
 					int port, int out_socket)
 {
 	size_t length = 0;
@@ -2720,7 +2718,7 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 #ifndef MINISIZE
 	if (tr==NULL)
 	{
-		_eXosip_srv_lookup(sip, &naptr_record);
+		_eXosip_srv_lookup(excontext, sip, &naptr_record);
 
 		if (naptr_record!=NULL) {
 			eXosip_dnsutils_dns_process(naptr_record, 1);
@@ -3002,13 +3000,13 @@ tls_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 	return OSIP_SUCCESS;
 }
 
-static int tls_tl_keepalive(void)
+static int tls_tl_keepalive(struct eXosip_t *excontext)
 {
 	char buf[5] = "\r\n\r\n";
 	int pos;
 	int i;
 
-	if (eXosip.keep_alive <= 0) {
+	if (excontext->keep_alive <= 0) {
 		return 0;
 	}
 

@@ -48,12 +48,12 @@ struct eXtl_protocol {
 
 	int (*tl_init) (void);
 	int (*tl_free) (void);
-	int (*tl_open) (void);
+	int (*tl_open) (struct eXosip_t *excontext);
 	int (*tl_set_fdset) (fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max);
-	int (*tl_read_message) (fd_set * osip_fdset, fd_set * osip_wrset);
-	int (*tl_send_message) (osip_transaction_t * tr, osip_message_t * sip,
+	int (*tl_read_message) (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset);
+	int (*tl_send_message) (struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip,
 							char *host, int port, int out_socket);
-	int (*tl_keepalive) (void);
+	int (*tl_keepalive) (struct eXosip_t *excontext);
 	int (*tl_set_socket) (int socket);
 	int (*tl_masquerade_contact) (const char *ip, int port);
 	int (*tl_get_masquerade_contact) (char *ip, int ip_size, char *port,

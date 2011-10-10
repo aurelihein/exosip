@@ -22,10 +22,7 @@
 #include <mpatrol.h>
 #endif
 
-
 #include "eXosip2.h"
-
-extern eXosip_t eXosip;
 
 char *_eXosip_transport_protocol(osip_message_t * msg)
 {
@@ -71,7 +68,7 @@ int eXosip_transport_set(osip_message_t * msg, const char *transport)
 #if 0
 #ifndef MINISIZE
 int
-_eXosip_recvfrom(int s, char *buf, int len, unsigned int flags,
+_eXosip_recvfrom(struct eXosip_t *excontext, int s, char *buf, int len, unsigned int flags,
 				 struct sockaddr *from, socklen_t * fromlen)
 {
 	int message_size = 0;
@@ -80,12 +77,12 @@ _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags,
 	int i;
 	int extra_data_discarded;
 
-	if (!eXosip.http_port) {
+	if (!excontext->http_port) {
 		return recvfrom(s, buf, len, flags, from, fromlen);
 	}
 
 	/* we get the size of the HTTP data */
-	i = recv(eXosip.net_interfaces[0].net_socket, (char *) &(message_size), 4, 0);
+	i = recv(excontext->net_interfaces[0].net_socket, (char *) &(message_size), 4, 0);
 
 	real_size = message_size;
 	if (message_size < 0) {
@@ -100,7 +97,7 @@ _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags,
 
 	length_done = 0;
 
-	i = recv(eXosip.net_interfaces[0].net_socket, buf, message_size, 0);
+	i = recv(excontext->net_interfaces[0].net_socket, buf, message_size, 0);
 	length_done = i;
 
 	if (length_done == real_size) {
@@ -110,7 +107,7 @@ _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags,
 	if (length_done < message_size) {
 		/* continue reading up to message_size */
 		while (length_done < message_size) {
-			i = recv(eXosip.net_interfaces[0].net_socket, buf + length_done,
+			i = recv(excontext->net_interfaces[0].net_socket, buf + length_done,
 					 message_size - length_done, 0);
 			length_done = length_done + i;
 		}
@@ -121,20 +118,20 @@ _eXosip_recvfrom(int s, char *buf, int len, unsigned int flags,
 		char buf2[2048];
 
 		/* We have to discard the end of data... up to the next message */
-		i = recv(eXosip.net_interfaces[0].net_socket, buf2, 2048, 0);
+		i = recv(excontext->net_interfaces[0].net_socket, buf2, 2048, 0);
 		extra_data_discarded = extra_data_discarded + i;
 	}
 	return length_done;
 }
 
 int
-_eXosip_sendto(int s, const void *buf, size_t len, int flags,
+_eXosip_sendto(struct eXosip_t *excontext, int s, const void *buf, size_t len, int flags,
 			   const struct sockaddr *to, socklen_t tolen)
 {
 	int i;
 	char buf2[10000];
 
-	if (!eXosip.http_port) {
+	if (!excontext->http_port) {
 		i = sendto(s, buf, len, flags, to, tolen);
 		return i;
 	}

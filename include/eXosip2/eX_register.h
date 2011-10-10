@@ -65,7 +65,7 @@ extern "C"
  * @param expires   The expires value for registration.
  * @param reg       The SIP request to build.
  */
-  int eXosip_register_build_initial_register (const char *from, const char *proxy,
+  int eXosip_register_build_initial_register (struct eXosip_t *excontext, const char *from, const char *proxy,
                                               const char *contact, int expires,
                                               osip_message_t ** reg);
 
@@ -79,7 +79,7 @@ extern "C"
  * @param qvalue    The qvalue value for contact header.
  * @param reg       The SIP request to build.
  */
-  int eXosip_register_build_initial_register_withqvalue(const char *from, const char *proxy,
+  int eXosip_register_build_initial_register_withqvalue(struct eXosip_t *excontext, const char *from, const char *proxy,
 									   const char *contact, int expires,
 									   const char *qvalue,
 									   osip_message_t ** reg);
@@ -91,7 +91,7 @@ extern "C"
  * @param expires   The expires value for registration.
  * @param reg       The SIP request to build.
  */
-  int eXosip_register_build_register (int rid, int expires, osip_message_t ** reg);
+  int eXosip_register_build_register (struct eXosip_t *excontext, int rid, int expires, osip_message_t ** reg);
 
 /**
  * Send a REGISTER request for an existing registration.
@@ -99,14 +99,14 @@ extern "C"
  * @param rid       A unique identifier for the registration context
  * @param reg       The SIP request to build. (NULL for default REGISTER)
  */
-  int eXosip_register_send_register (int rid, osip_message_t * reg);
+  int eXosip_register_send_register (struct eXosip_t *excontext, int rid, osip_message_t * reg);
 
 /**
  * Remove existing registration without sending REGISTER.
  * 
  * @param rid       A unique identifier for the registration context
  */
-  int eXosip_register_remove (int rid);
+  int eXosip_register_remove (struct eXosip_t *excontext, int rid);
 
 /** @} */
 

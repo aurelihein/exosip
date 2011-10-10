@@ -25,10 +25,8 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 int
-eXosip_message_build_request(osip_message_t ** message, const char *method,
+eXosip_message_build_request(struct eXosip_t *excontext, osip_message_t ** message, const char *method,
 							 const char *to, const char *from, const char *route)
 {
 	int i;
@@ -43,26 +41,26 @@ eXosip_message_build_request(osip_message_t ** message, const char *method,
 	if (route != NULL && *route == '\0')
 		route = NULL;
 
-	i = generating_request_out_of_dialog(message, method, to, "UDP", from, route);
+	i = _eXosip_generating_request_out_of_dialog(excontext, message, method, to, "UDP", from, route);
 	if (i != 0)
 		return i;
 
 	return OSIP_SUCCESS;
 }
 
-int eXosip_message_send_request(osip_message_t * message)
+int eXosip_message_send_request(struct eXosip_t *excontext, osip_message_t * message)
 {
 	osip_transaction_t *transaction;
 	osip_event_t *sipevent;
 	int i;
 
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, message);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, message);
 	if (i != 0) {
 		osip_message_free(message);
 		return i;
 	}
 
-	osip_list_add(&eXosip.j_transactions, transaction, 0);
+	osip_list_add(&excontext->j_transactions, transaction, 0);
 
 	sipevent = osip_new_outgoing_sipmessage(message);
 	sipevent->transactionid = transaction->transactionid;
@@ -80,7 +78,7 @@ int eXosip_message_send_request(osip_message_t * message)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_message_build_answer(int tid, int status, osip_message_t ** answer)
+int eXosip_message_build_answer(struct eXosip_t *excontext, int tid, int status, osip_message_t ** answer)
 {
 	osip_transaction_t *tr = NULL;
 	int i;
@@ -93,7 +91,7 @@ int eXosip_message_build_answer(int tid, int status, osip_message_t ** answer)
 		return OSIP_BADPARAMETER;
 
 	if (tid > 0) {
-		eXosip_transaction_find(tid, &tr);
+		_eXosip_transaction_find(excontext, tid, &tr);
 	}
 	if (tr == NULL) {
 		OSIP_TRACE(osip_trace
@@ -113,7 +111,7 @@ int eXosip_message_build_answer(int tid, int status, osip_message_t ** answer)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_message_send_answer(int tid, int status, osip_message_t * answer)
+int eXosip_message_send_answer(struct eXosip_t *excontext, int tid, int status, osip_message_t * answer)
 {
 	osip_transaction_t *tr = NULL;
 	osip_event_t *evt_answer;
@@ -127,7 +125,7 @@ int eXosip_message_send_answer(int tid, int status, osip_message_t * answer)
 		return OSIP_BADPARAMETER;
 
 	if (tid > 0) {
-		eXosip_transaction_find(tid, &tr);
+		_eXosip_transaction_find(excontext, tid, &tr);
 	}
 	if (tr == NULL) {
 		OSIP_TRACE(osip_trace

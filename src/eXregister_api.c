@@ -25,16 +25,14 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
-static int _eXosip_register_build_register(eXosip_reg_t * jr,
+static int _eXosip_register_build_register(struct eXosip_t *excontext, eXosip_reg_t * jr,
 										   osip_message_t ** _reg);
 
-static eXosip_reg_t *eXosip_reg_find(int rid)
+static eXosip_reg_t *eXosip_reg_find(struct eXosip_t *excontext, int rid)
 {
 	eXosip_reg_t *jr;
 
-	for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
+	for (jr = excontext->j_reg; jr != NULL; jr = jr->next) {
 		if (jr->r_id == rid) {
 			return jr;
 		}
@@ -42,25 +40,25 @@ static eXosip_reg_t *eXosip_reg_find(int rid)
 	return NULL;
 }
 
-int eXosip_register_remove(int rid)
+int eXosip_register_remove(struct eXosip_t *excontext, int rid)
 {
 	eXosip_reg_t *jr;
 
 	if (rid <= 0)
 		return OSIP_BADPARAMETER;
 
-	jr = eXosip_reg_find(rid);
+	jr = eXosip_reg_find(excontext, rid);
 	if (jr == NULL)
 		return OSIP_NOTFOUND;
 	jr->r_reg_period = 0;
-	REMOVE_ELEMENT(eXosip.j_reg, jr);
-	eXosip_reg_free(jr);
+	REMOVE_ELEMENT(excontext->j_reg, jr);
+	eXosip_reg_free(excontext, jr);
 	jr = NULL;
 	return OSIP_SUCCESS;
 }
 
 static int
-_eXosip_register_build_register(eXosip_reg_t * jr, osip_message_t ** _reg)
+_eXosip_register_build_register(struct eXosip_t *excontext, eXosip_reg_t * jr, osip_message_t ** _reg)
 {
 	osip_message_t *reg = NULL;
 	int i;
@@ -93,7 +91,7 @@ _eXosip_register_build_register(eXosip_reg_t * jr, osip_message_t ** _reg)
 			__eXosip_delete_jinfo(jr->r_last_tr);
 			tr = jr->r_last_tr;
 			jr->r_last_tr = NULL;
-			osip_list_add(&eXosip.j_transactions, tr, 0);
+			osip_list_add(&excontext->j_transactions, tr, 0);
 
 			/* modify the REGISTER request */
 			{
@@ -174,15 +172,15 @@ _eXosip_register_build_register(eXosip_reg_t * jr, osip_message_t ** _reg)
 			if (last_response != NULL) {
 				if (last_response->status_code == 401
 					|| last_response->status_code == 407) {
-					eXosip_add_authentication_information(reg, last_response);
+					eXosip_add_authentication_information(excontext, reg, last_response);
 				} else
-					eXosip_add_authentication_information(reg, NULL);
+					eXosip_add_authentication_information(excontext, reg, NULL);
 				osip_message_free(last_response);
 			}
 		}
 	}
 	if (reg == NULL) {
-		i = generating_register(jr, &reg, eXosip.transport,
+		i = _eXosip_generating_register(excontext, jr, &reg, excontext->transport,
 								jr->r_aor, jr->r_registrar, jr->r_contact,
 								jr->r_reg_period);
 		if (i != 0)
@@ -194,7 +192,7 @@ _eXosip_register_build_register(eXosip_reg_t * jr, osip_message_t ** _reg)
 }
 
 int
-eXosip_register_build_initial_register_withqvalue(const char *from, const char *proxy,
+eXosip_register_build_initial_register_withqvalue(struct eXosip_t *excontext, const char *from, const char *proxy,
 									   const char *contact, int expires,
 									   const char *qvalue,
 									   osip_message_t ** reg)
@@ -209,10 +207,10 @@ eXosip_register_build_initial_register_withqvalue(const char *from, const char *
 
 #ifdef REJECT_DOUBLE_REGISTRATION
 	/* Avoid adding the same registration info twice to prevent mem leaks */
-	for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
+	for (jr = excontext->j_reg; jr != NULL; jr = jr->next) {
 		if (strcmp(jr->r_aor, from) == 0 && strcmp(jr->r_registrar, proxy) == 0) {
-			REMOVE_ELEMENT(eXosip.j_reg, jr);
-			eXosip_reg_free(jr);
+			REMOVE_ELEMENT(excontext->j_reg, jr);
+			eXosip_reg_free(excontext, jr);
 			jr = NULL;
 			break;
 		}
@@ -221,14 +219,14 @@ eXosip_register_build_initial_register_withqvalue(const char *from, const char *
 
 	if (jr == NULL) {
 		/* Add new registration info */
-		i = eXosip_reg_init(&jr, from, proxy, contact);
+		i = _eXosip_reg_init(excontext, &jr, from, proxy, contact);
 		if (i != 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: cannot register! "));
 			return i;
 		}
-		ADD_ELEMENT(eXosip.j_reg, jr);
+		ADD_ELEMENT(excontext->j_reg, jr);
 	}
 
 	/* build register */
@@ -241,7 +239,7 @@ eXosip_register_build_initial_register_withqvalue(const char *from, const char *
 	if(qvalue)
 		osip_strncpy(jr->r_qvalue, qvalue, sizeof(jr->r_qvalue));
 
-	i = _eXosip_register_build_register(jr, reg);
+	i = _eXosip_register_build_register(excontext, jr, reg);
 	if (i != 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -254,14 +252,14 @@ eXosip_register_build_initial_register_withqvalue(const char *from, const char *
 }
 
 int
-eXosip_register_build_initial_register(const char *from, const char *proxy,
+eXosip_register_build_initial_register(struct eXosip_t *excontext, const char *from, const char *proxy,
 									   const char *contact, int expires,
 									   osip_message_t ** reg)
 {
-	return eXosip_register_build_initial_register_withqvalue(from, proxy, contact, expires, NULL, reg);
+	return eXosip_register_build_initial_register_withqvalue(excontext, from, proxy, contact, expires, NULL, reg);
 }
 
-int eXosip_register_build_register(int rid, int expires, osip_message_t ** reg)
+int eXosip_register_build_register(struct eXosip_t *excontext, int rid, int expires, osip_message_t ** reg)
 {
 	eXosip_reg_t *jr;
 	int i;
@@ -271,7 +269,7 @@ int eXosip_register_build_register(int rid, int expires, osip_message_t ** reg)
 	if (rid <= 0)
 		return OSIP_BADPARAMETER;
 
-	jr = eXosip_reg_find(rid);
+	jr = eXosip_reg_find(excontext, rid);
 	if (jr == NULL)
 		return OSIP_NOTFOUND;
 	jr->r_reg_period = expires;
@@ -289,7 +287,7 @@ int eXosip_register_build_register(int rid, int expires, osip_message_t ** reg)
 		}
 	}
 
-	i = _eXosip_register_build_register(jr, reg);
+	i = _eXosip_register_build_register(excontext, jr, reg);
 	if (i != 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -300,7 +298,7 @@ int eXosip_register_build_register(int rid, int expires, osip_message_t ** reg)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_register_send_register(int rid, osip_message_t * reg)
+int eXosip_register_send_register(struct eXosip_t *excontext, int rid, osip_message_t * reg)
 {
 	osip_transaction_t *transaction;
 	osip_event_t *sipevent;
@@ -312,7 +310,7 @@ int eXosip_register_send_register(int rid, osip_message_t * reg)
 		return OSIP_BADPARAMETER;
 	}
 
-	jr = eXosip_reg_find(rid);
+	jr = eXosip_reg_find(excontext, rid);
 	if (jr == NULL) {
 		osip_message_free(reg);
 		return OSIP_NOTFOUND;
@@ -327,7 +325,7 @@ int eXosip_register_send_register(int rid, osip_message_t * reg)
 	}
 
 	if (reg == NULL) {
-		i = _eXosip_register_build_register(jr, &reg);
+		i = _eXosip_register_build_register(excontext, jr, &reg);
 		if (i != 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -336,7 +334,7 @@ int eXosip_register_send_register(int rid, osip_message_t * reg)
 		}
 	}
 
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, reg);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, reg);
 	if (i != 0) {
 		osip_message_free(reg);
 		return i;

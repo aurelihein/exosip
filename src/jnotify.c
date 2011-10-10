@@ -26,8 +26,6 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
 												   eXosip_dialog_t * jd)
 {
@@ -92,7 +90,7 @@ int eXosip_notify_init(eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
 	return OSIP_SUCCESS;
 }
 
-void eXosip_notify_free(eXosip_notify_t * jn)
+void _eXosip_notify_free(struct eXosip_t *excontext, eXosip_notify_t * jn)
 {
 	/* ... */
 
@@ -101,11 +99,11 @@ void eXosip_notify_free(eXosip_notify_t * jn)
 	if (jn->n_inc_tr != NULL && jn->n_inc_tr->orig_request != NULL
 		&& jn->n_inc_tr->orig_request->call_id != NULL
 		&& jn->n_inc_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(jn->n_inc_tr->orig_request->call_id->number);
+		_eXosip_delete_nonce(excontext, jn->n_inc_tr->orig_request->call_id->number);
 	else if (jn->n_out_tr != NULL && jn->n_out_tr->orig_request != NULL
 			 && jn->n_out_tr->orig_request->call_id != NULL
 			 && jn->n_out_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(jn->n_out_tr->orig_request->call_id->number);
+		_eXosip_delete_nonce(excontext, jn->n_out_tr->orig_request->call_id->number);
 
 	for (jd = jn->n_dialogs; jd != NULL; jd = jn->n_dialogs) {
 		REMOVE_ELEMENT(jn->n_dialogs, jd);
@@ -115,9 +113,9 @@ void eXosip_notify_free(eXosip_notify_t * jn)
 	__eXosip_delete_jinfo(jn->n_inc_tr);
 	__eXosip_delete_jinfo(jn->n_out_tr);
 	if (jn->n_inc_tr != NULL)
-		osip_list_add(&eXosip.j_transactions, jn->n_inc_tr, 0);
+		osip_list_add(&excontext->j_transactions, jn->n_inc_tr, 0);
 	if (jn->n_out_tr != NULL)
-		osip_list_add(&eXosip.j_transactions, jn->n_out_tr, 0);
+		osip_list_add(&excontext->j_transactions, jn->n_out_tr, 0);
 	osip_free(jn);
 }
 

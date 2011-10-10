@@ -27,16 +27,14 @@
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
-extern eXosip_t eXosip;
-
 int
-eXosip_refer_build_request(osip_message_t ** refer, const char *refer_to,
+eXosip_refer_build_request(struct eXosip_t *excontext, osip_message_t ** refer, const char *refer_to,
 						   const char *from, const char *to, const char *proxy)
 {
 	int i;
 
 	*refer = NULL;
-	i = generating_request_out_of_dialog(refer, "REFER", to, "UDP", from, proxy);
+	i = _eXosip_generating_request_out_of_dialog(excontext, refer, "REFER", to, "UDP", from, proxy);
 	if (i != 0) {
 		return i;
 	}
@@ -45,7 +43,7 @@ eXosip_refer_build_request(osip_message_t ** refer, const char *refer_to,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_refer_send_request(osip_message_t * refer)
+int eXosip_refer_send_request(struct eXosip_t *excontext, osip_message_t * refer)
 {
 	osip_transaction_t *transaction;
 	osip_event_t *sipevent;
@@ -54,13 +52,13 @@ int eXosip_refer_send_request(osip_message_t * refer)
 	if (refer == NULL)
 		return OSIP_BADPARAMETER;
 
-	i = _eXosip_transaction_init(&transaction, NICT, eXosip.j_osip, refer);
+	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, refer);
 	if (i != 0) {
 		osip_message_free(refer);
 		return i;
 	}
 
-	osip_list_add(&eXosip.j_transactions, transaction, 0);
+	osip_list_add(&excontext->j_transactions, transaction, 0);
 
 	sipevent = osip_new_outgoing_sipmessage(refer);
 	sipevent->transactionid = transaction->transactionid;

@@ -33,14 +33,14 @@
 #include "inet_ntop.h"
 #endif
 
-extern eXosip_t eXosip;
+extern eXosip_t *internal_eXosip;
 
 int ipv6_enable = 0;
 
 #ifdef OSIP_MT
 static void *_eXosip_thread(void *arg);
 #endif
-static void _eXosip_keep_alive(void);
+static void _eXosip_keep_alive(struct eXosip_t *excontext);
 
 #ifndef MINISIZE
 
@@ -56,9 +56,9 @@ const char *eXosip_get_version(void)
 	return EXOSIP_VERSION;
 }
 
-int eXosip_set_cbsip_message(CbSipCallback cbsipCallback)
+int eXosip_set_cbsip_message(struct eXosip_t *excontext, CbSipCallback cbsipCallback)
 {
-	eXosip.cbsipCallback = cbsipCallback;
+	excontext->cbsipCallback = cbsipCallback;
 	return 0;
 }
 
@@ -103,10 +103,10 @@ int eXosip_is_public_address(const char *c_address)
 			&& 0 != strncmp(c_address, "169.254", 7));
 }
 
-void eXosip_set_user_agent(const char *user_agent)
+void eXosip_set_user_agent(struct eXosip_t *excontext, const char *user_agent)
 {
-	osip_free(eXosip.user_agent);
-	eXosip.user_agent = osip_strdup(user_agent);
+	osip_free(excontext->user_agent);
+	excontext->user_agent = osip_strdup(user_agent);
 }
 
 void eXosip_kill_transaction(osip_list_t * transactions)
@@ -131,7 +131,7 @@ void eXosip_kill_transaction(osip_list_t * transactions)
 	}
 }
 
-void eXosip_quit(void)
+void eXosip_quit(struct eXosip_t *excontext)
 {
 	jauthinfo_t *jauthinfo;
 	eXosip_call_t *jc;
@@ -145,84 +145,87 @@ void eXosip_quit(void)
 	int i;
 #endif
 
-	if (eXosip.j_stop_ua == -1) {
+	if (excontext==NULL)
+		return;
+
+	if (excontext->j_stop_ua == -1) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_WARNING, NULL,
 					"eXosip: already stopped!\n"));
 		return;
 	}
 
-	eXosip.j_stop_ua = 1;		/* ask to quit the application */
+	excontext->j_stop_ua = 1;		/* ask to quit the application */
 	__eXosip_wakeup();
 	__eXosip_wakeup_event();
 
 #ifdef OSIP_MT
-	if (eXosip.j_thread != NULL) {
-		i = osip_thread_join((struct osip_thread *) eXosip.j_thread);
+	if (excontext->j_thread != NULL) {
+		i = osip_thread_join((struct osip_thread *) excontext->j_thread);
 		if (i != 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: can't terminate thread!\n"));
 		}
-		osip_free((struct osip_thread *) eXosip.j_thread);
+		osip_free((struct osip_thread *) excontext->j_thread);
 	}
 
-	jpipe_close(eXosip.j_socketctl);
-	jpipe_close(eXosip.j_socketctl_event);
+	jpipe_close(excontext->j_socketctl);
+	jpipe_close(excontext->j_socketctl_event);
 #endif
 
-	osip_free(eXosip.user_agent);
+	osip_free(excontext->user_agent);
 
-	for (jc = eXosip.j_calls; jc != NULL; jc = eXosip.j_calls) {
-		REMOVE_ELEMENT(eXosip.j_calls, jc);
-		eXosip_call_free(jc);
+	for (jc = excontext->j_calls; jc != NULL; jc = excontext->j_calls) {
+		REMOVE_ELEMENT(excontext->j_calls, jc);
+		_eXosip_call_free(excontext, jc);
 	}
 
 #ifndef MINISIZE
-	for (js = eXosip.j_subscribes; js != NULL; js = eXosip.j_subscribes) {
-		REMOVE_ELEMENT(eXosip.j_subscribes, js);
-		eXosip_subscribe_free(js);
+	for (js = excontext->j_subscribes; js != NULL; js = excontext->j_subscribes) {
+		REMOVE_ELEMENT(excontext->j_subscribes, js);
+		_eXosip_subscribe_free(excontext, js);
 	}
 
-	for (jn = eXosip.j_notifies; jn != NULL; jn = eXosip.j_notifies) {
-		REMOVE_ELEMENT(eXosip.j_notifies, jn);
-		eXosip_notify_free(jn);
+	for (jn = excontext->j_notifies; jn != NULL; jn = excontext->j_notifies) {
+		REMOVE_ELEMENT(excontext->j_notifies, jn);
+		_eXosip_notify_free(excontext, jn);
 	}
 #endif
 
 #ifdef OSIP_MT
-	osip_mutex_destroy((struct osip_mutex *) eXosip.j_mutexlock);
+	osip_mutex_destroy((struct osip_mutex *) excontext->j_mutexlock);
 #if !defined (_WIN32_WCE)
-	osip_cond_destroy((struct osip_cond *) eXosip.j_cond);
+	osip_cond_destroy((struct osip_cond *) excontext->j_cond);
 #endif
 #endif
 
-	for (jreg = eXosip.j_reg; jreg != NULL; jreg = eXosip.j_reg) {
-		REMOVE_ELEMENT(eXosip.j_reg, jreg);
-		eXosip_reg_free(jreg);
+	for (jreg = excontext->j_reg; jreg != NULL; jreg = excontext->j_reg) {
+		REMOVE_ELEMENT(excontext->j_reg, jreg);
+		eXosip_reg_free(excontext, jreg);
 	}
 
 #ifndef MINISIZE
-	for (jpub = eXosip.j_pub; jpub != NULL; jpub = eXosip.j_pub) {
-		REMOVE_ELEMENT(eXosip.j_pub, jpub);
-		_eXosip_pub_free(jpub);
+	for (jpub = excontext->j_pub; jpub != NULL; jpub = excontext->j_pub) {
+		REMOVE_ELEMENT(excontext->j_pub, jpub);
+		_eXosip_pub_free(excontext, jpub);
 	}
 #endif
 
-	while (!osip_list_eol(&eXosip.j_transactions, 0)) {
+	while (!osip_list_eol(&excontext->j_transactions, 0)) {
 		osip_transaction_t *tr =
-			(osip_transaction_t *) osip_list_get(&eXosip.j_transactions, 0);
+			(osip_transaction_t *) osip_list_get(&excontext->j_transactions, 0);
 		if (tr->state == IST_TERMINATED || tr->state == ICT_TERMINATED
 			|| tr->state == NICT_TERMINATED || tr->state == NIST_TERMINATED) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "Release a terminated transaction\n"));
-			osip_list_remove(&eXosip.j_transactions, 0);
+			osip_list_remove(&excontext->j_transactions, 0);
 			__eXosip_delete_jinfo(tr);
 			_eXosip_dnsutils_release(tr->naptr_record);
 			tr->naptr_record=NULL;
 			osip_transaction_free(tr);
 		} else {
-			osip_list_remove(&eXosip.j_transactions, 0);
+			osip_list_remove(&excontext->j_transactions, 0);
 			__eXosip_delete_jinfo(tr);
 			_eXosip_dnsutils_release(tr->naptr_record);
 			tr->naptr_record=NULL;
@@ -230,25 +233,25 @@ void eXosip_quit(void)
 		}
 	}
 
-	eXosip_kill_transaction(&eXosip.j_osip->osip_ict_transactions);
-	eXosip_kill_transaction(&eXosip.j_osip->osip_nict_transactions);
-	eXosip_kill_transaction(&eXosip.j_osip->osip_ist_transactions);
-	eXosip_kill_transaction(&eXosip.j_osip->osip_nist_transactions);
-	osip_release(eXosip.j_osip);
+	eXosip_kill_transaction(&excontext->j_osip->osip_ict_transactions);
+	eXosip_kill_transaction(&excontext->j_osip->osip_nict_transactions);
+	eXosip_kill_transaction(&excontext->j_osip->osip_ist_transactions);
+	eXosip_kill_transaction(&excontext->j_osip->osip_nist_transactions);
+	osip_release(excontext->j_osip);
 
 	{
 		eXosip_event_t *ev;
 
-		for (ev = osip_fifo_tryget(eXosip.j_events); ev != NULL;
-			 ev = osip_fifo_tryget(eXosip.j_events))
+		for (ev = osip_fifo_tryget(excontext->j_events); ev != NULL;
+			 ev = osip_fifo_tryget(excontext->j_events))
 			eXosip_event_free(ev);
 	}
 
-	osip_fifo_free(eXosip.j_events);
+	osip_fifo_free(excontext->j_events);
 
-	for (jauthinfo = eXosip.authinfos; jauthinfo != NULL;
-		 jauthinfo = eXosip.authinfos) {
-		REMOVE_ELEMENT(eXosip.authinfos, jauthinfo);
+	for (jauthinfo = excontext->authinfos; jauthinfo != NULL;
+		 jauthinfo = excontext->authinfos) {
+		REMOVE_ELEMENT(excontext->authinfos, jauthinfo);
 		osip_free(jauthinfo);
 	}
 
@@ -258,7 +261,7 @@ void eXosip_quit(void)
 
 		/* update entries with same call_id */
 		for (pos = 0; pos < MAX_EXOSIP_HTTP_AUTH; pos++) {
-			http_auth = &eXosip.http_auths[pos];
+			http_auth = &excontext->http_auths[pos];
 			if (http_auth->pszCallId[0] == '\0')
 				continue;
 			osip_proxy_authenticate_free(http_auth->wa);
@@ -275,30 +278,32 @@ void eXosip_quit(void)
 	eXtl_tls.tl_free();
 #endif
 
-	memset(&eXosip, 0, sizeof(eXosip));
-	eXosip.j_stop_ua = -1;
+	memset(excontext, 0, sizeof(eXosip_t));
+	excontext->j_stop_ua = -1;
+
+	internal_eXosip=NULL;
 	return;
 }
 
-int eXosip_set_socket(int transport, int socket, int port)
+int eXosip_set_socket(struct eXosip_t *excontext, int transport, int socket, int port)
 {
-	eXosip.eXtl = NULL;
+	excontext->eXtl = NULL;
 	if (transport == IPPROTO_UDP) {
 		eXtl_udp.proto_port = port;
 		eXtl_udp.tl_set_socket(socket);
-		eXosip.eXtl = &eXtl_udp;
-		snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "UDP");
+		excontext->eXtl = &eXtl_udp;
+		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "UDP");
 	} else if (transport == IPPROTO_TCP) {
 		eXtl_tcp.proto_port = port;
 		eXtl_tcp.tl_set_socket(socket);
-		eXosip.eXtl = &eXtl_tcp;
-		snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "TCP");
+		excontext->eXtl = &eXtl_tcp;
+		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "TCP");
 	} else
 		return OSIP_BADPARAMETER;
 
 #ifdef OSIP_MT
-	eXosip.j_thread = (void *) osip_thread_create(20000, _eXosip_thread, NULL);
-	if (eXosip.j_thread == NULL) {
+	excontext->j_thread = (void *) osip_thread_create(20000, _eXosip_thread, excontext);
+	if (excontext->j_thread == NULL) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					"eXosip: Cannot start thread!\n"));
@@ -543,13 +548,13 @@ int eXosip_find_free_port(int free_port, int transport)
 #endif
 
 int
-eXosip_listen_addr(int transport, const char *addr, int port, int family,
+eXosip_listen_addr(struct eXosip_t *excontext, int transport, const char *addr, int port, int family,
 				   int secure)
 {
 	int i = -1;
 	struct eXtl_protocol *eXtl = NULL;
 
-	if (eXosip.eXtl != NULL) {
+	if (excontext->eXtl != NULL) {
 		/* already set */
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -583,26 +588,26 @@ eXosip_listen_addr(int transport, const char *addr, int port, int family,
 		snprintf(eXtl->proto_ifs, sizeof(eXtl->proto_ifs), "::0");
 #endif
 
-	i = eXtl->tl_open();
+	i = eXtl->tl_open(excontext);
 
 	if (i != 0)
 		return i;
 
-	eXosip.eXtl = eXtl;
+	excontext->eXtl = eXtl;
 
 	if (transport == IPPROTO_UDP && secure == 0)
-		snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "UDP");
+		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "UDP");
 	else if (transport == IPPROTO_TCP && secure == 0)
-		snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "TCP");
+		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "TCP");
 	else if (transport == IPPROTO_UDP)
-		snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "DTLS-UDP");
+		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "DTLS-UDP");
 	else if (transport == IPPROTO_TCP)
-		snprintf(eXosip.transport, sizeof(eXosip.transport), "%s", "TLS");
+		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "TLS");
 
 #ifdef OSIP_MT
-	if (eXosip.j_thread == NULL) {
-		eXosip.j_thread = (void *) osip_thread_create(20000, _eXosip_thread, NULL);
-		if (eXosip.j_thread == NULL) {
+	if (excontext->j_thread == NULL) {
+		excontext->j_thread = (void *) osip_thread_create(20000, _eXosip_thread, excontext);
+		if (excontext->j_thread == NULL) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: Cannot start thread!\n"));
@@ -614,20 +619,35 @@ eXosip_listen_addr(int transport, const char *addr, int port, int family,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_init(void)
+struct eXosip_t *eXosip_malloc(void)
+{
+	struct eXosip_t *ptr = (struct eXosip_t *)osip_malloc(sizeof(eXosip_t));
+	if (ptr)
+		memset(ptr , 0, sizeof(eXosip_t));
+	return ptr;
+}
+
+int eXosip_init(struct eXosip_t *excontext)
 {
 	osip_t *osip;
 	int i;
 
-	memset(&eXosip, 0, sizeof(eXosip));
+#ifdef OLD_EXOSIP_API
+	if (excontext==NULL)
+		excontext = internal_eXosip;
+	else
+		internal_eXosip = excontext;
+#endif
 
-	eXosip.dscp = 0x1A;
+	memset(excontext, 0, sizeof(eXosip_t));
 
-	snprintf(eXosip.ipv4_for_gateway, 256, "%s", "217.12.3.11");
-	snprintf(eXosip.ipv6_for_gateway, 256, "%s",
+	excontext->dscp = 0x1A;
+
+	snprintf(excontext->ipv4_for_gateway, 256, "%s", "217.12.3.11");
+	snprintf(excontext->ipv6_for_gateway, 256, "%s",
 			 "2001:638:500:101:2e0:81ff:fe24:37c6");
 #ifndef MINISIZE
-	snprintf(eXosip.event_package, 256, "%s", "dialog");
+	snprintf(excontext->event_package, 256, "%s", "dialog");
 #endif
 
 #ifdef WIN32
@@ -647,35 +667,35 @@ int eXosip_init(void)
 	}
 #endif
 
-	eXosip.user_agent = osip_strdup("eXosip/" EXOSIP_VERSION);
-	if (eXosip.user_agent == NULL)
+	excontext->user_agent = osip_strdup("eXosip/" EXOSIP_VERSION);
+	if (excontext->user_agent == NULL)
 		return OSIP_NOMEM;
 
-	eXosip.j_calls = NULL;
-	eXosip.j_stop_ua = 0;
+	excontext->j_calls = NULL;
+	excontext->j_stop_ua = 0;
 #ifdef OSIP_MT
-	eXosip.j_thread = NULL;
+	excontext->j_thread = NULL;
 #endif
-	i = osip_list_init(&eXosip.j_transactions);
-	eXosip.j_reg = NULL;
+	i = osip_list_init(&excontext->j_transactions);
+	excontext->j_reg = NULL;
 
 #ifdef OSIP_MT
 #if !defined (_WIN32_WCE)
-	eXosip.j_cond = (struct osip_cond *) osip_cond_init();
-	if (eXosip.j_cond == NULL) {
-		osip_free(eXosip.user_agent);
-		eXosip.user_agent = NULL;
+	excontext->j_cond = (struct osip_cond *) osip_cond_init();
+	if (excontext->j_cond == NULL) {
+		osip_free(excontext->user_agent);
+		excontext->user_agent = NULL;
 		return OSIP_NOMEM;
 	}
 #endif
 
-	eXosip.j_mutexlock = (struct osip_mutex *) osip_mutex_init();
-	if (eXosip.j_mutexlock == NULL) {
-		osip_free(eXosip.user_agent);
-		eXosip.user_agent = NULL;
+	excontext->j_mutexlock = (struct osip_mutex *) osip_mutex_init();
+	if (excontext->j_mutexlock == NULL) {
+		osip_free(excontext->user_agent);
+		excontext->user_agent = NULL;
 #if !defined (_WIN32_WCE)
-		osip_cond_destroy((struct osip_cond *) eXosip.j_cond);
-		eXosip.j_cond = NULL;
+		osip_cond_destroy((struct osip_cond *) excontext->j_cond);
+		excontext->j_cond = NULL;
 #endif
 		return OSIP_NOMEM;
 	}
@@ -689,33 +709,33 @@ int eXosip_init(void)
 		return i;
 	}
 
-	osip_set_application_context(osip, &eXosip);
+	osip_set_application_context(osip, &excontext);
 
 	eXosip_set_callbacks(osip);
 
-	eXosip.j_osip = osip;
+	excontext->j_osip = osip;
 
 #ifdef OSIP_MT
 	/* open a TCP socket to wake up the application when needed. */
-	eXosip.j_socketctl = jpipe();
-	if (eXosip.j_socketctl == NULL)
+	excontext->j_socketctl = jpipe();
+	if (excontext->j_socketctl == NULL)
 		return OSIP_UNDEFINED_ERROR;
 
-	eXosip.j_socketctl_event = jpipe();
-	if (eXosip.j_socketctl_event == NULL)
+	excontext->j_socketctl_event = jpipe();
+	if (excontext->j_socketctl_event == NULL)
 		return OSIP_UNDEFINED_ERROR;
 #endif
 
 	/* To be changed in osip! */
-	eXosip.j_events = (osip_fifo_t *) osip_malloc(sizeof(osip_fifo_t));
-	if (eXosip.j_events == NULL)
+	excontext->j_events = (osip_fifo_t *) osip_malloc(sizeof(osip_fifo_t));
+	if (excontext->j_events == NULL)
 		return OSIP_NOMEM;
-	osip_fifo_init(eXosip.j_events);
+	osip_fifo_init(excontext->j_events);
 
-	eXosip.use_rport = 1;
-	eXosip.dns_capabilities = 2;
-	eXosip.keep_alive = 17000;
-	eXosip.keep_alive_options = 0;
+	excontext->use_rport = 1;
+	excontext->dns_capabilities = 2;
+	excontext->keep_alive = 17000;
+	excontext->keep_alive_options = 0;
 
 	eXtl_udp.tl_init();
 	eXtl_tcp.tl_init();
@@ -729,13 +749,13 @@ int eXosip_init(void)
 }
 
 
-int eXosip_execute(void)
+int eXosip_execute(struct eXosip_t *excontext)
 {
 	struct timeval lower_tv;
 	int i;
 
 #ifdef OSIP_MT
-	osip_timers_gettimeout(eXosip.j_osip, &lower_tv);
+	osip_timers_gettimeout(excontext->j_osip, &lower_tv);
 	if (lower_tv.tv_sec > 10) {
 		eXosip_reg_t *jr;
 		time_t now;
@@ -743,8 +763,8 @@ int eXosip_execute(void)
 
 		lower_tv.tv_sec = 10;
 
-		eXosip_lock();
-		for (jr = eXosip.j_reg; jr != NULL; jr = jr->next) {
+		eXosip_lock(excontext);
+		for (jr = excontext->j_reg; jr != NULL; jr = jr->next) {
 			if (jr->r_id >= 1 && jr->r_last_tr != NULL) {
 				if (jr->r_reg_period == 0) {
 					/* skip refresh! */
@@ -754,7 +774,7 @@ int eXosip_execute(void)
 				}
 			}
 		}
-		eXosip_unlock();
+		eXosip_unlock(excontext);
 
 		if (lower_tv.tv_sec==1)
 		{
@@ -786,40 +806,40 @@ int eXosip_execute(void)
 	lower_tv.tv_sec = 0;
 	lower_tv.tv_usec = 0;
 #endif
-	i = eXosip_read_message(1, lower_tv.tv_sec, lower_tv.tv_usec);
+	i = eXosip_read_message(excontext, 1, lower_tv.tv_sec, lower_tv.tv_usec);
 
 	if (i == -2000) {
 		return -2000;
 	}
 
-	eXosip_lock();
-	osip_timers_ict_execute(eXosip.j_osip);
-	osip_timers_nict_execute(eXosip.j_osip);
-	osip_timers_ist_execute(eXosip.j_osip);
-	osip_timers_nist_execute(eXosip.j_osip);
+	eXosip_lock(excontext);
+	osip_timers_ict_execute(excontext->j_osip);
+	osip_timers_nict_execute(excontext->j_osip);
+	osip_timers_ist_execute(excontext->j_osip);
+	osip_timers_nist_execute(excontext->j_osip);
 
-	osip_nist_execute(eXosip.j_osip);
-	osip_nict_execute(eXosip.j_osip);
-	osip_ist_execute(eXosip.j_osip);
-	osip_ict_execute(eXosip.j_osip);
+	osip_nist_execute(excontext->j_osip);
+	osip_nict_execute(excontext->j_osip);
+	osip_ist_execute(excontext->j_osip);
+	osip_ict_execute(excontext->j_osip);
 
 	/* free all Calls that are in the TERMINATED STATE? */
-	eXosip_release_terminated_calls();
-	eXosip_release_terminated_registrations();
-	eXosip_release_terminated_publications();
+	eXosip_release_terminated_calls(excontext);
+	eXosip_release_terminated_registrations(excontext);
+	eXosip_release_terminated_publications(excontext);
 #ifndef MINISIZE
-	eXosip_release_terminated_subscriptions();
-	eXosip_release_terminated_in_subscriptions();
+	eXosip_release_terminated_subscriptions(excontext);
+	eXosip_release_terminated_in_subscriptions(excontext);
 #endif
 
-	eXosip_unlock();
+	eXosip_unlock(excontext);
 
-	_eXosip_keep_alive();
+	_eXosip_keep_alive(excontext);
 
 	return OSIP_SUCCESS;
 }
 
-int eXosip_set_option(int opt, const void *value)
+int eXosip_set_option(struct eXosip_t *excontext, int opt, const void *value)
 {
 	int val;
 	char *tmp;
@@ -834,21 +854,21 @@ int eXosip_set_option(int opt, const void *value)
 				return OSIP_BADPARAMETER;
 			}
 			for (i = 0; i < MAX_EXOSIP_ACCOUNT_INFO; i++) {
-				if (eXosip.account_entries[i].proxy[0] != '\0'
-					&& 0 == osip_strcasecmp(eXosip.account_entries[i].proxy,
+				if (excontext->account_entries[i].proxy[0] != '\0'
+					&& 0 == osip_strcasecmp(excontext->account_entries[i].proxy,
 											ainfo->proxy)) {
 					/* update ainfo */
 					if (ainfo->nat_ip[0] != '\0') {
-						snprintf(eXosip.account_entries[i].nat_ip,
-								 sizeof(eXosip.account_entries[i].nat_ip), "%s",
+						snprintf(excontext->account_entries[i].nat_ip,
+								 sizeof(excontext->account_entries[i].nat_ip), "%s",
 								 ainfo->nat_ip);
-						eXosip.account_entries[i].nat_port = ainfo->nat_port;
+						excontext->account_entries[i].nat_port = ainfo->nat_port;
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 									"eXosip option set: account info updated:%s -> %s:%i\n",
 									ainfo->proxy, ainfo->nat_ip, ainfo->nat_port));
 					} else {
-						eXosip.account_entries[i].proxy[0] = '\0';
+						excontext->account_entries[i].proxy[0] = '\0';
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 									"eXosip option set: account info deleted :%s\n",
@@ -862,13 +882,13 @@ int eXosip_set_option(int opt, const void *value)
 			}
 			/* not found case: */
 			for (i = 0; i < MAX_EXOSIP_ACCOUNT_INFO; i++) {
-				if (eXosip.account_entries[i].proxy[0] == '\0') {
+				if (excontext->account_entries[i].proxy[0] == '\0') {
 					/* add ainfo */
-					snprintf(eXosip.account_entries[i].proxy, sizeof(ainfo->proxy),
+					snprintf(excontext->account_entries[i].proxy, sizeof(ainfo->proxy),
 							 "%s", ainfo->proxy);
-					snprintf(eXosip.account_entries[i].nat_ip,
+					snprintf(excontext->account_entries[i].nat_ip,
 							 sizeof(ainfo->nat_ip), "%s", ainfo->nat_ip);
-					eXosip.account_entries[i].nat_port = ainfo->nat_port;
+					excontext->account_entries[i].nat_port = ainfo->nat_port;
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 								"eXosip option set: account info added:%s -> %s:%i\n",
@@ -888,13 +908,13 @@ int eXosip_set_option(int opt, const void *value)
 				return OSIP_BADPARAMETER;
 			}
 			for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
-				if (eXosip.dns_entries[i].host[0] != '\0'
-					&& 0 == osip_strcasecmp(eXosip.dns_entries[i].host,
+				if (excontext->dns_entries[i].host[0] != '\0'
+					&& 0 == osip_strcasecmp(excontext->dns_entries[i].host,
 											entry->host)) {
 					/* update entry */
 					if (entry->ip[0] != '\0') {
-						snprintf(eXosip.dns_entries[i].ip,
-								 sizeof(eXosip.dns_entries[i].ip), "%s",
+						snprintf(excontext->dns_entries[i].ip,
+								 sizeof(excontext->dns_entries[i].ip), "%s",
 								 entry->ip);
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -902,7 +922,7 @@ int eXosip_set_option(int opt, const void *value)
 									entry->host, entry->ip));
 					} else {
 						/* return previously added cache */
-						snprintf(entry->ip, sizeof(entry->ip), "%s", eXosip.dns_entries[i].ip);
+						snprintf(entry->ip, sizeof(entry->ip), "%s", excontext->dns_entries[i].ip);
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 									"eXosip option set: dns cache returned:%s ->%s\n",
@@ -945,11 +965,11 @@ int eXosip_set_option(int opt, const void *value)
 			}
 			/* not found case: */
 			for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
-				if (eXosip.dns_entries[i].host[0] == '\0') {
+				if (excontext->dns_entries[i].host[0] == '\0') {
 					/* add entry */
-					snprintf(eXosip.dns_entries[i].host, sizeof(entry->host), "%s",
+					snprintf(excontext->dns_entries[i].host, sizeof(entry->host), "%s",
 							 entry->host);
-					snprintf(eXosip.dns_entries[i].ip, sizeof(entry->ip), "%s",
+					snprintf(excontext->dns_entries[i].ip, sizeof(entry->ip), "%s",
 							 entry->ip);
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
@@ -970,10 +990,10 @@ int eXosip_set_option(int opt, const void *value)
 				return OSIP_BADPARAMETER;
 			}
 			for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
-				if (eXosip.dns_entries[i].host[0] != '\0'
-					&& 0 == osip_strcasecmp(eXosip.dns_entries[i].host,
+				if (excontext->dns_entries[i].host[0] != '\0'
+					&& 0 == osip_strcasecmp(excontext->dns_entries[i].host,
 											entry->host)) {
-					eXosip.dns_entries[i].host[0] = '\0';
+					excontext->dns_entries[i].host[0] = '\0';
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 								"eXosip option set: dns cache deleted :%s\n",
@@ -986,99 +1006,99 @@ int eXosip_set_option(int opt, const void *value)
 		break;
 	case EXOSIP_OPT_UDP_KEEP_ALIVE:
 		val = *((int *) value);
-		eXosip.keep_alive = val;	/* value in ms */
+		excontext->keep_alive = val;	/* value in ms */
 		break;
 #ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
 	case EXOSIP_OPT_KEEP_ALIVE_OPTIONS_METHOD:
 		val = *((int *) value);
-		eXosip.keep_alive_options = val;	/* value 0 or 1 */
+		excontext->keep_alive_options = val;	/* value 0 or 1 */
 		break;
 #endif
 	case EXOSIP_OPT_UDP_LEARN_PORT:
 		val = *((int *) value);
-		eXosip.learn_port = val;	/* 1 to learn port */
+		excontext->learn_port = val;	/* 1 to learn port */
 		break;
 #ifndef MINISIZE
 	case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
 		val = *((int *) value);
-		eXosip.http_port = val;	/* value in ms */
+		excontext->http_port = val;	/* value in ms */
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					"eXosip option set: http_port:%i!\n", eXosip.http_port));
+					"eXosip option set: http_port:%i!\n", excontext->http_port));
 		break;
 	case EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY:
 		tmp = (char *) value;
-		memset(eXosip.http_proxy, '\0', sizeof(eXosip.http_proxy));
+		memset(excontext->http_proxy, '\0', sizeof(excontext->http_proxy));
 		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(eXosip.http_proxy, tmp, sizeof(eXosip.http_proxy)-1);	/* value in proxy:port */
+			osip_strncpy(excontext->http_proxy, tmp, sizeof(excontext->http_proxy)-1);	/* value in proxy:port */
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					"eXosip option set: http_proxy:%s!\n", eXosip.http_proxy));
+					"eXosip option set: http_proxy:%s!\n", excontext->http_proxy));
 		break;
 	case EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY:
 		tmp = (char *) value;
-		memset(eXosip.http_outbound_proxy, '\0',
-			   sizeof(eXosip.http_outbound_proxy));
+		memset(excontext->http_outbound_proxy, '\0',
+			   sizeof(excontext->http_outbound_proxy));
 		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(eXosip.http_outbound_proxy, tmp, sizeof(eXosip.http_outbound_proxy)-1);	/* value in proxy:port */
+			osip_strncpy(excontext->http_outbound_proxy, tmp, sizeof(excontext->http_outbound_proxy)-1);	/* value in proxy:port */
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: http_outbound_proxy:%s!\n",
-					eXosip.http_outbound_proxy));
+					excontext->http_outbound_proxy));
 		break;
 
 	case EXOSIP_OPT_DONT_SEND_101:
 		val = *((int *) value);
-		eXosip.dontsend_101 = val;	/* 0 to disable */
+		excontext->dontsend_101 = val;	/* 0 to disable */
 		break;
 #endif
 
 	case EXOSIP_OPT_USE_RPORT:
 		val = *((int *) value);
-		eXosip.use_rport = val;	/* 0 to disable (for broken NAT only?) */
+		excontext->use_rport = val;	/* 0 to disable (for broken NAT only?) */
 		break;
 
 	case EXOSIP_OPT_SET_IPV4_FOR_GATEWAY:
 		tmp = (char *) value;
-		memset(eXosip.ipv4_for_gateway, '\0', sizeof(eXosip.ipv4_for_gateway));
+		memset(excontext->ipv4_for_gateway, '\0', sizeof(excontext->ipv4_for_gateway));
 		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(eXosip.ipv4_for_gateway, tmp, sizeof(eXosip.ipv4_for_gateway)-1);
+			osip_strncpy(excontext->ipv4_for_gateway, tmp, sizeof(excontext->ipv4_for_gateway)-1);
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: ipv4_for_gateway:%s!\n",
-					eXosip.ipv4_for_gateway));
+					excontext->ipv4_for_gateway));
 		break;
 #ifndef MINISIZE
 	case EXOSIP_OPT_SET_IPV6_FOR_GATEWAY:
 		tmp = (char *) value;
-		memset(eXosip.ipv6_for_gateway, '\0', sizeof(eXosip.ipv6_for_gateway));
+		memset(excontext->ipv6_for_gateway, '\0', sizeof(excontext->ipv6_for_gateway));
 		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(eXosip.ipv6_for_gateway, tmp, sizeof(eXosip.ipv6_for_gateway)-1);
+			osip_strncpy(excontext->ipv6_for_gateway, tmp, sizeof(excontext->ipv6_for_gateway)-1);
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: ipv6_for_gateway:%s!\n",
-					eXosip.ipv6_for_gateway));
+					excontext->ipv6_for_gateway));
 		break;
 	case EXOSIP_OPT_EVENT_PACKAGE:
 		tmp = (char *) value;
-		memset(eXosip.event_package, '\0', sizeof(eXosip.event_package));
+		memset(excontext->event_package, '\0', sizeof(excontext->event_package));
 		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(eXosip.event_package, tmp, sizeof(eXosip.event_package)-1);
+			osip_strncpy(excontext->event_package, tmp, sizeof(excontext->event_package)-1);
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: event_package:%s!\n",
-					eXosip.event_package));
+					excontext->event_package));
 		break;
 #endif
 	case EXOSIP_OPT_DNS_CAPABILITIES:	/*EXOSIP_OPT_SRV_WITH_NAPTR: */
 		val = *((int *) value);
 		/* 0: A request, 1: SRV support, 2: NAPTR+SRV support */
-		eXosip.dns_capabilities = val;
+		excontext->dns_capabilities = val;
 		break;
 	case EXOSIP_OPT_SET_DSCP:
 		val = *((int *) value);
 		/* 0x1A by default */
-		eXosip.dscp = val;
+		excontext->dscp = val;
 		break;
 	default:
 		return OSIP_BADPARAMETER;
@@ -1086,7 +1106,7 @@ int eXosip_set_option(int opt, const void *value)
 	return OSIP_SUCCESS;
 }
 
-static void _eXosip_keep_alive(void)
+static void _eXosip_keep_alive(struct eXosip_t *excontext)
 {
 	static struct timeval mtimer = { 0, 0 };
 
@@ -1097,7 +1117,7 @@ static void _eXosip_keep_alive(void)
 	if (mtimer.tv_sec == 0 && mtimer.tv_usec == 0) {
 		/* first init */
 		osip_gettimeofday(&mtimer, NULL);
-		add_gettimeofday(&mtimer, eXosip.keep_alive);
+		add_gettimeofday(&mtimer, excontext->keep_alive);
 	}
 
 	if (osip_timercmp(&now, &mtimer, <)) {
@@ -1110,14 +1130,14 @@ static void _eXosip_keep_alive(void)
 
 	/* reset timer */
 	osip_gettimeofday(&mtimer, NULL);
-	add_gettimeofday(&mtimer, eXosip.keep_alive);
+	add_gettimeofday(&mtimer, excontext->keep_alive);
 
-	eXtl_udp.tl_keepalive();
-	eXtl_tcp.tl_keepalive();
+	eXtl_udp.tl_keepalive(excontext);
+	eXtl_tcp.tl_keepalive(excontext);
 #ifdef HAVE_OPENSSL_SSL_H
-	eXtl_tls.tl_keepalive();
+	eXtl_tls.tl_keepalive(excontext);
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-	eXtl_dtls.tl_keepalive();
+	eXtl_dtls.tl_keepalive(excontext);
 #endif
 #endif
 }
@@ -1125,10 +1145,10 @@ static void _eXosip_keep_alive(void)
 #ifdef OSIP_MT
 void *_eXosip_thread(void *arg)
 {
+	struct eXosip_t *excontext=(struct eXosip_t *)arg;
 	int i;
-
-	while (eXosip.j_stop_ua == 0) {
-		i = eXosip_execute();
+	while (excontext->j_stop_ua == 0) {
+		i = eXosip_execute(excontext);
 		if (i == -2000)
 			osip_thread_exit();
 	}

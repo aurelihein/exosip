@@ -24,7 +24,7 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
+extern eXosip_t *internal_eXosip;
 
 
 int
@@ -159,7 +159,7 @@ _eXosip_build_response_default(osip_message_t ** dest,
 	}
 #endif
 
-	osip_message_set_user_agent(response, eXosip.user_agent);
+	osip_message_set_user_agent(response, internal_eXosip->user_agent);
 
 	*dest = response;
 	return OSIP_SUCCESS;
@@ -177,8 +177,8 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 	char firewall_port[10];
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
-	if (eXosip.eXtl->tl_get_masquerade_contact != NULL) {
-		eXosip.eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+	if (internal_eXosip->eXtl->tl_get_masquerade_contact != NULL) {
+		internal_eXosip->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -200,7 +200,7 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 	}
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(eXosip.eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(internal_eXosip->eXtl->proto_family, locip, 49);
 
 	if (request->to->url->username == NULL)
 		snprintf(contact, 1000, "<sip:%s:%s>", locip, firewall_port);

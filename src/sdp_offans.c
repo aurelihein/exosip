@@ -24,19 +24,17 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 sdp_message_t *_eXosip_get_remote_sdp(osip_transaction_t * invite_tr);
 sdp_message_t *_eXosip_get_local_sdp(osip_transaction_t * invite_tr);
 
-sdp_message_t *eXosip_get_remote_sdp_from_tid(int tid)
+sdp_message_t *eXosip_get_remote_sdp_from_tid(struct eXosip_t *excontext, int tid)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_call_t *jc = NULL;
 	osip_transaction_t *tr = NULL;
 
 	if (tid > 0) {
-		_eXosip_call_transaction_find(tid, &jc, &jd, &tr);
+		_eXosip_call_transaction_find(excontext, tid, &jc, &jd, &tr);
 	}
 	if (jc == NULL) {
 		OSIP_TRACE(osip_trace
@@ -51,14 +49,14 @@ sdp_message_t *eXosip_get_remote_sdp_from_tid(int tid)
 }
 
 
-sdp_message_t *eXosip_get_local_sdp_from_tid(int tid)
+sdp_message_t *eXosip_get_local_sdp_from_tid(struct eXosip_t *excontext, int tid)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_call_t *jc = NULL;
 	osip_transaction_t *tr = NULL;
 
 	if (tid > 0) {
-		_eXosip_call_transaction_find(tid, &jc, &jd, &tr);
+		_eXosip_call_transaction_find(excontext, tid, &jc, &jd, &tr);
 	}
 	if (jc == NULL) {
 		OSIP_TRACE(osip_trace
@@ -72,14 +70,14 @@ sdp_message_t *eXosip_get_local_sdp_from_tid(int tid)
 	return _eXosip_get_local_sdp(tr);
 }
 
-sdp_message_t *eXosip_get_remote_sdp(int jid)
+sdp_message_t *eXosip_get_remote_sdp(struct eXosip_t *excontext, int jid)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_call_t *jc = NULL;
 	osip_transaction_t *invite_tr = NULL;
 
 	if (jid > 0) {
-		eXosip_call_dialog_find(jid, &jc, &jd);
+		_eXosip_call_dialog_find(excontext, jid, &jc, &jd);
 	}
 	if (jc == NULL) {
 		OSIP_TRACE(osip_trace
@@ -94,14 +92,14 @@ sdp_message_t *eXosip_get_remote_sdp(int jid)
 	return _eXosip_get_remote_sdp(invite_tr);
 }
 
-sdp_message_t *eXosip_get_previous_local_sdp(int jid)
+sdp_message_t *eXosip_get_previous_local_sdp(struct eXosip_t *excontext, int jid)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_call_t *jc = NULL;
 	osip_transaction_t *invite_tr = NULL;
 
 	if (jid > 0) {
-		eXosip_call_dialog_find(jid, &jc, &jd);
+		_eXosip_call_dialog_find(excontext, jid, &jc, &jd);
 	}
 	if (jc == NULL) {
 		OSIP_TRACE(osip_trace
@@ -119,14 +117,14 @@ sdp_message_t *eXosip_get_previous_local_sdp(int jid)
 	return _eXosip_get_local_sdp(invite_tr);
 }
 
-sdp_message_t *eXosip_get_local_sdp(int jid)
+sdp_message_t *eXosip_get_local_sdp(struct eXosip_t *excontext, int jid)
 {
 	eXosip_dialog_t *jd = NULL;
 	eXosip_call_t *jc = NULL;
 	osip_transaction_t *invite_tr = NULL;
 
 	if (jid > 0) {
-		eXosip_call_dialog_find(jid, &jc, &jd);
+		_eXosip_call_dialog_find(excontext, jid, &jc, &jd);
 	}
 	if (jc == NULL) {
 		OSIP_TRACE(osip_trace

@@ -47,8 +47,6 @@
 #define is_connreset_error(r) ((r)==ECONNRESET || (r)==ECONNABORTED || (r)==ETIMEDOUT || (r)==ENETRESET || (r)==ENOTCONN)
 #endif
 
-extern eXosip_t eXosip;
-
 #ifdef __APPLE_CC__
 #include "TargetConditionals.h"
 #endif
@@ -148,7 +146,7 @@ static int tcp_tl_free(void)
 	return OSIP_SUCCESS;
 }
 
-static int tcp_tl_open(void)
+static int tcp_tl_open(struct eXosip_t *excontext)
 {
 	int res;
 	struct addrinfo *addrinfo = NULL;
@@ -316,7 +314,7 @@ static char *buffer_find(const char *haystack, size_t haystack_len, const char *
 
 /* consume any complete messages in sockinfo->buf and
    return the total number of bytes consumed */
-static int handle_messages(struct _tcp_sockets *sockinfo)
+static int handle_messages(struct eXosip_t *excontext, struct _tcp_sockets *sockinfo)
 {
 	int consumed = 0;
 	char *buf = sockinfo->buf;
@@ -376,7 +374,7 @@ static int handle_messages(struct _tcp_sockets *sockinfo)
 			return consumed;
 		}
 		/* yep; handle the message */
-		_eXosip_handle_incoming_message(buf, msglen, sockinfo->socket,
+		_eXosip_handle_incoming_message(excontext, buf, msglen, sockinfo->socket,
 										sockinfo->remote_ip, sockinfo->remote_port);
 		consumed += msglen;
 		buflen -= msglen;
@@ -386,7 +384,7 @@ static int handle_messages(struct _tcp_sockets *sockinfo)
 	return consumed;
 }
 
-static int _tcp_tl_recv(struct _tcp_sockets *sockinfo)
+static int _tcp_tl_recv(struct eXosip_t *excontext, struct _tcp_sockets *sockinfo)
 {
 	int r;
 	if (!sockinfo->buf) {
@@ -421,7 +419,7 @@ static int _tcp_tl_recv(struct _tcp_sockets *sockinfo)
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 							  "socket %s:%i: eof\n", sockinfo->remote_ip, sockinfo->remote_port));
 		_tcp_tl_close_sockinfo(sockinfo);
-		eXosip_mark_all_registrations_expired();
+		eXosip_mark_all_registrations_expired(excontext);
 		return OSIP_UNDEFINED_ERROR;
 	} else if (r < 0) {
 		int status = ex_errno;
@@ -429,7 +427,7 @@ static int _tcp_tl_recv(struct _tcp_sockets *sockinfo)
 			return OSIP_SUCCESS;
 		/* Do we need next line ? */
 		/* else if (is_connreset_error(status)) */
-		eXosip_mark_all_registrations_expired();
+		eXosip_mark_all_registrations_expired(excontext);
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 							  "socket %s:%i: error %d\n", sockinfo->remote_ip, sockinfo->remote_port, status));
 		_tcp_tl_close_sockinfo(sockinfo);
@@ -439,7 +437,7 @@ static int _tcp_tl_recv(struct _tcp_sockets *sockinfo)
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 							  "socket %s:%i: read %d bytes\n", sockinfo->remote_ip, sockinfo->remote_port, r));
 		sockinfo->buflen += r;
-		consumed = handle_messages(sockinfo);
+		consumed = handle_messages(excontext, sockinfo);
 		if (consumed == 0) {
 			return OSIP_SUCCESS;
 		} else {
@@ -454,7 +452,7 @@ static int _tcp_tl_recv(struct _tcp_sockets *sockinfo)
 	}
 }
 
-static int tcp_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
+static int tcp_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset)
 {
 	int pos = 0;
 
@@ -506,7 +504,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 				memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
 				if (tcp_socket > 0)
 					closesocket(tcp_socket);
-				tcp_tl_open();
+				tcp_tl_open(excontext);
 			}
 #endif
 		} else {
@@ -569,7 +567,7 @@ static int tcp_tl_read_message(fd_set * osip_fdset, fd_set * osip_wrset)
 			if (FD_ISSET(tcp_socket_tab[pos].socket, osip_wrset))
 				_tcp_tl_send_sockinfo(&tcp_socket_tab[pos], NULL, 0);
 			if (FD_ISSET(tcp_socket_tab[pos].socket, osip_fdset))
-				_tcp_tl_recv(&tcp_socket_tab[pos]);
+				_tcp_tl_recv(excontext, &tcp_socket_tab[pos]);
 		}
 	}
 
@@ -1068,7 +1066,7 @@ _tcp_tl_send (int sock, const char *msg, int msglen)
 }
 
 static int
-tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
+tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, char *host,
 					int port, int out_socket)
 {
 	size_t length = 0;
@@ -1089,7 +1087,7 @@ tcp_tl_send_message(osip_transaction_t * tr, osip_message_t * sip, char *host,
 #ifndef MINISIZE
 	if (tr==NULL)
 	{
-		_eXosip_srv_lookup(sip, &naptr_record);
+		_eXosip_srv_lookup(excontext, sip, &naptr_record);
 
 		if (naptr_record!=NULL) {
 			eXosip_dnsutils_dns_process(naptr_record, 1);
@@ -1374,7 +1372,7 @@ static int _tcp_tl_get_socket_info(int socket, char *host, int hostsize, int *po
 }
 #endif
 
-static int tcp_tl_keepalive(void)
+static int tcp_tl_keepalive(struct eXosip_t *excontext)
 {
 	char buf[5] = "\r\n\r\n";
 	int pos;
@@ -1411,9 +1409,9 @@ static int tcp_tl_keepalive(void)
 				_tcp_tl_close_sockinfo(&tcp_socket_tab[pos]);
 				continue;
 			}
-			if (eXosip.keep_alive > 0) {
+			if (excontext->keep_alive > 0) {
 #ifdef ENABLE_KEEP_ALIVE_OPTIONS_METHOD
-				if (eXosip.keep_alive_options != 0)
+				if (excontext->keep_alive_options != 0)
 				{
 					osip_message_t *options;
 					char from[NI_MAXHOST];
@@ -1443,9 +1441,9 @@ static int tcp_tl_keepalive(void)
 
 					snprintf(from, sizeof(from), "<sip:%s:%d>", locip, locport);
 
-					eXosip_lock();
+					eXosip_lock(excontext);
 					/* Generate an options message */
-					if(eXosip_options_build_request(&options,to,from,NULL) == OSIP_SUCCESS)
+					if(eXosip_options_build_request(excontext, &options,to,from,NULL) == OSIP_SUCCESS)
 					{
 						message = NULL;
 						length = 0;
@@ -1483,7 +1481,7 @@ static int tcp_tl_keepalive(void)
 							tcp_socket_tab[pos].socket, 
 							pos));
 					}
-					eXosip_unlock();
+					eXosip_unlock(excontext);
 					continue;
 				}
 #endif

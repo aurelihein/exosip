@@ -24,7 +24,7 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
+extern eXosip_t *internal_eXosip;
 
 void eXosip_dialog_set_state(eXosip_dialog_t * jd, int state)
 {
@@ -32,12 +32,12 @@ void eXosip_dialog_set_state(eXosip_dialog_t * jd, int state)
 }
 
 
-int eXosip_call_dialog_find(int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
+int _eXosip_call_dialog_find(struct eXosip_t *excontext, int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
 {
 	if (jid <= 0)
 		return OSIP_BADPARAMETER;
 
-	for (*jc = eXosip.j_calls; *jc != NULL; *jc = (*jc)->next) {
+	for (*jc = excontext->j_calls; *jc != NULL; *jc = (*jc)->next) {
 		for (*jd = (*jc)->c_dialogs; *jd != NULL; *jd = (*jd)->next) {
 			if ((*jd)->d_id == jid)
 				return OSIP_SUCCESS;
@@ -51,11 +51,11 @@ int eXosip_call_dialog_find(int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
 #ifndef MINISIZE
 
 int
-eXosip_notify_dialog_find(int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
+eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
 {
 	if (nid <= 0)
 		return OSIP_BADPARAMETER;
-	for (*jn = eXosip.j_notifies; *jn != NULL; *jn = (*jn)->next) {
+	for (*jn = excontext->j_notifies; *jn != NULL; *jn = (*jn)->next) {
 		for (*jd = (*jn)->n_dialogs; *jd != NULL; *jd = (*jd)->next) {
 			if ((*jd)->d_id == nid)
 				return OSIP_SUCCESS;
@@ -67,12 +67,12 @@ eXosip_notify_dialog_find(int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
 }
 
 int
-eXosip_subscribe_dialog_find(int sid, eXosip_subscribe_t ** js,
+eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int sid, eXosip_subscribe_t ** js,
 							 eXosip_dialog_t ** jd)
 {
 	if (sid <= 0)
 		return OSIP_BADPARAMETER;
-	for (*js = eXosip.j_subscribes; *js != NULL; *js = (*js)->next) {
+	for (*js = excontext->j_subscribes; *js != NULL; *js = (*js)->next) {
 		*jd = NULL;
 		if ((*js)->s_id == sid)
 			return OSIP_SUCCESS;
@@ -217,7 +217,7 @@ void eXosip_dialog_free(eXosip_dialog_t * jd)
 		tr = (osip_transaction_t *) osip_list_get(jd->d_inc_trs, 0);
 		osip_list_remove(jd->d_inc_trs, 0);
 		__eXosip_delete_jinfo(tr);
-		osip_list_add(&eXosip.j_transactions, tr, 0);
+		osip_list_add(&internal_eXosip->j_transactions, tr, 0);
 	}
 
 	while (!osip_list_eol(jd->d_out_trs, 0)) {
@@ -226,7 +226,7 @@ void eXosip_dialog_free(eXosip_dialog_t * jd)
 		tr = (osip_transaction_t *) osip_list_get(jd->d_out_trs, 0);
 		osip_list_remove(jd->d_out_trs, 0);
 		__eXosip_delete_jinfo(tr);
-		osip_list_add(&eXosip.j_transactions, tr, 0);
+		osip_list_add(&internal_eXosip->j_transactions, tr, 0);
 	}
 
 	osip_message_free(jd->d_200Ok);

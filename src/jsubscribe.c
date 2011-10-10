@@ -26,8 +26,6 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t eXosip;
-
 osip_transaction_t *eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
 												   eXosip_dialog_t * jd)
 {
@@ -84,7 +82,7 @@ int eXosip_subscribe_init(eXosip_subscribe_t ** js)
 	return OSIP_SUCCESS;
 }
 
-void eXosip_subscribe_free(eXosip_subscribe_t * js)
+void _eXosip_subscribe_free(struct eXosip_t *excontext, eXosip_subscribe_t * js)
 {
 	/* ... */
 
@@ -93,11 +91,11 @@ void eXosip_subscribe_free(eXosip_subscribe_t * js)
 	if (js->s_inc_tr != NULL && js->s_inc_tr->orig_request != NULL
 		&& js->s_inc_tr->orig_request->call_id != NULL
 		&& js->s_inc_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(js->s_inc_tr->orig_request->call_id->number);
+		_eXosip_delete_nonce(excontext, js->s_inc_tr->orig_request->call_id->number);
 	else if (js->s_out_tr != NULL && js->s_out_tr->orig_request != NULL
 			 && js->s_out_tr->orig_request->call_id != NULL
 			 && js->s_out_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(js->s_out_tr->orig_request->call_id->number);
+		_eXosip_delete_nonce(excontext, js->s_out_tr->orig_request->call_id->number);
 
 	for (jd = js->s_dialogs; jd != NULL; jd = js->s_dialogs) {
 		REMOVE_ELEMENT(js->s_dialogs, jd);
@@ -107,9 +105,9 @@ void eXosip_subscribe_free(eXosip_subscribe_t * js)
 	__eXosip_delete_jinfo(js->s_inc_tr);
 	__eXosip_delete_jinfo(js->s_out_tr);
 	if (js->s_inc_tr != NULL)
-		osip_list_add(&eXosip.j_transactions, js->s_inc_tr, 0);
+		osip_list_add(&excontext->j_transactions, js->s_inc_tr, 0);
 	if (js->s_out_tr != NULL)
-		osip_list_add(&eXosip.j_transactions, js->s_out_tr, 0);
+		osip_list_add(&excontext->j_transactions, js->s_out_tr, 0);
 
 	osip_free(js);
 }

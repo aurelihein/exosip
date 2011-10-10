@@ -34,10 +34,10 @@ typedef char HASHHEX[HASHHEXLEN + 1];
 
 void CvtHex(HASH Bin, HASHHEX Hex);
 
-extern eXosip_t eXosip;
+extern eXosip_t *internal_eXosip;
 
 int
-eXosip_reg_init(eXosip_reg_t ** jr, const char *from, const char *proxy,
+_eXosip_reg_init(struct eXosip_t *excontext, eXosip_reg_t ** jr, const char *from, const char *proxy,
 				const char *contact)
 {
 	static int r_id = 0;
@@ -85,8 +85,8 @@ eXosip_reg_init(eXosip_reg_t ** jr, const char *from, const char *proxy,
 		memset(firewall_port, '\0', sizeof(firewall_port));
 
 		eXosip_guess_localip(AF_INET, localip, 128);
-		if (eXosip.eXtl != NULL && eXosip.eXtl->tl_get_masquerade_contact != NULL) {
-			eXosip.eXtl->tl_get_masquerade_contact(firewall_ip,
+		if (excontext->eXtl != NULL && excontext->eXtl->tl_get_masquerade_contact != NULL) {
+			excontext->eXtl->tl_get_masquerade_contact(firewall_ip,
 												   sizeof(firewall_ip),
 												   firewall_port,
 												   sizeof(firewall_port));
@@ -121,7 +121,7 @@ eXosip_reg_init(eXosip_reg_t ** jr, const char *from, const char *proxy,
 	return OSIP_SUCCESS;
 }
 
-void eXosip_reg_free(eXosip_reg_t * jreg)
+void eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg)
 {
 
 	osip_free(jreg->r_aor);
@@ -132,7 +132,7 @@ void eXosip_reg_free(eXosip_reg_t * jreg)
 		if (jreg->r_last_tr != NULL && jreg->r_last_tr->orig_request != NULL
 			&& jreg->r_last_tr->orig_request->call_id != NULL
 			&& jreg->r_last_tr->orig_request->call_id->number != NULL)
-			_eXosip_delete_nonce(jreg->r_last_tr->orig_request->call_id->number);
+			_eXosip_delete_nonce(excontext, jreg->r_last_tr->orig_request->call_id->number);
 
 		if (jreg->r_last_tr->state == IST_TERMINATED ||
 			jreg->r_last_tr->state == ICT_TERMINATED ||
@@ -142,13 +142,13 @@ void eXosip_reg_free(eXosip_reg_t * jreg)
 								  "Release a terminated transaction\n"));
 			__eXosip_delete_jinfo(jreg->r_last_tr);
 			if (jreg->r_last_tr != NULL)
-				osip_list_add(&eXosip.j_transactions, jreg->r_last_tr, 0);
+				osip_list_add(&excontext->j_transactions, jreg->r_last_tr, 0);
 		} else {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "Release a non-terminated transaction\n"));
 			__eXosip_delete_jinfo(jreg->r_last_tr);
 			if (jreg->r_last_tr != NULL)
-				osip_list_add(&eXosip.j_transactions, jreg->r_last_tr, 0);
+				osip_list_add(&excontext->j_transactions, jreg->r_last_tr, 0);
 		}
 	}
 
@@ -163,7 +163,7 @@ int _eXosip_reg_find(eXosip_reg_t ** reg, osip_transaction_t * tr)
 	if (tr == NULL)
 		return OSIP_BADPARAMETER;
 
-	for (jreg = eXosip.j_reg; jreg != NULL; jreg = jreg->next) {
+	for (jreg = internal_eXosip->j_reg; jreg != NULL; jreg = jreg->next) {
 		if (jreg->r_last_tr == tr) {
 			*reg = jreg;
 			return OSIP_SUCCESS;
@@ -181,7 +181,7 @@ int eXosip_reg_find_id(eXosip_reg_t ** reg, int rid)
 	if (rid <= 0)
 		return OSIP_BADPARAMETER;
 
-	for (jreg = eXosip.j_reg; jreg != NULL; jreg = jreg->next) {
+	for (jreg = internal_eXosip->j_reg; jreg != NULL; jreg = jreg->next) {
 		if (jreg->r_id == rid) {
 			*reg = jreg;
 			return OSIP_SUCCESS;
