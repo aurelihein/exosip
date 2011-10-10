@@ -53,8 +53,6 @@
 #endif
 
 
-extern eXosip_t *internal_eXosip;
-
 extern int ipv6_enable;
 
 #if defined(__arc__)
@@ -206,7 +204,7 @@ static int eXosip_inet_pton(int family, const char *src, void *dst)
  *
  */
 int
-eXosip_get_addrinfo(struct addrinfo **addrinfo,
+eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo,
 					const char *hostname, int port, int protocol)
 {
 	struct hostent *h = NULL;
@@ -474,7 +472,7 @@ eXosip_dns_get_local_fqdn(char **servername, char **serverip,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_guess_ip_for_via(int family, char *address, int size)
+int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size)
 {
 	SOCKET sock;
 
@@ -488,9 +486,9 @@ int eXosip_guess_ip_for_via(int family, char *address, int size)
 	sock = socket(family, SOCK_DGRAM, 0);
 
 	if (family == AF_INET) {
-		eXosip_get_addrinfo(&addrf, internal_eXosip->ipv4_for_gateway, 0, IPPROTO_UDP);
+		eXosip_get_addrinfo(excontext, &addrf, excontext->ipv4_for_gateway, 0, IPPROTO_UDP);
 	} else if (family == AF_INET6) {
-		eXosip_get_addrinfo(&addrf, internal_eXosip->ipv6_for_gateway, 0, IPPROTO_UDP);
+		eXosip_get_addrinfo(excontext, &addrf, excontext->ipv6_for_gateway, 0, IPPROTO_UDP);
 	}
 
 	if (addrf == NULL) {
@@ -536,9 +534,9 @@ int eXosip_guess_ip_for_via(int family, char *address, int size)
 
 #include <stdio.h>
 
-static int _eXosip_default_gateway_ipv4(char *address, int size);
+static int _eXosip_default_gateway_ipv4(struct eXosip_t *excontext, char *address, int size);
 
-static int _eXosip_default_gateway_ipv6(char *address, int size);
+static int _eXosip_default_gateway_ipv6(struct eXosip_t *excontext, char *address, int size);
 
 #ifdef HAVE_GETIFADDRS
 
@@ -579,14 +577,14 @@ _eXosip_default_gateway_with_getifaddrs(int type, char *address, int size)
 }
 #endif
 
-int eXosip_guess_ip_for_via(int family, char *address, int size)
+int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size)
 {
 	int err;
 
 	if (family == AF_INET6) {
-		err = _eXosip_default_gateway_ipv6(address, size);
+		err = _eXosip_default_gateway_ipv6(excontext, address, size);
 	} else {
-		err = _eXosip_default_gateway_ipv4(address, size);
+		err = _eXosip_default_gateway_ipv4(excontext, address, size);
 	}
 #ifdef HAVE_GETIFADDRS
 	if (err < 0)
@@ -598,7 +596,7 @@ int eXosip_guess_ip_for_via(int family, char *address, int size)
 /* This is a portable way to find the default gateway.
  * The ip of the default interface is returned.
  */
-static int _eXosip_default_gateway_ipv4(char *address, int size)
+static int _eXosip_default_gateway_ipv4(struct eXosip_t *excontext, char *address, int size)
 {
 #ifdef __APPLE_CC__
 	int len;
@@ -614,7 +612,7 @@ static int _eXosip_default_gateway_ipv4(char *address, int size)
 	memset(&remote, 0, sizeof(struct sockaddr_in));
 
 	remote.sin_family = AF_INET;
-	remote.sin_addr.s_addr = inet_addr(internal_eXosip->ipv4_for_gateway);
+	remote.sin_addr.s_addr = inet_addr(excontext->ipv4_for_gateway);
 	remote.sin_port = htons(11111);
 
 	memset(&iface_out, 0, sizeof(iface_out));
@@ -656,7 +654,7 @@ static int _eXosip_default_gateway_ipv4(char *address, int size)
 /* This is a portable way to find the default gateway.
  * The ip of the default interface is returned.
  */
-static int _eXosip_default_gateway_ipv6(char *address, int size)
+static int _eXosip_default_gateway_ipv6(struct eXosip_t *excontext, char *address, int size)
 {
 #ifdef __APPLE_CC__
 	int len;
@@ -672,7 +670,7 @@ static int _eXosip_default_gateway_ipv6(char *address, int size)
 	memset(&remote, 0, sizeof(struct sockaddr_in6));
 
 	remote.sin6_family = AF_INET6;
-	inet_pton(AF_INET6, internal_eXosip->ipv6_for_gateway, &remote.sin6_addr);
+	inet_pton(AF_INET6, excontext->ipv6_for_gateway, &remote.sin6_addr);
 	remote.sin6_port = htons(11111);
 
 	memset(&iface_out, 0, sizeof(iface_out));
@@ -746,7 +744,7 @@ char *strdup_printf(const char *fmt, ...)
 #if !defined(USE_GETHOSTBYNAME)
 
 int
-eXosip_get_addrinfo(struct addrinfo **addrinfo, const char *hostname,
+eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, const char *hostname,
 					int service, int protocol)
 {
 	struct addrinfo hints;
@@ -766,17 +764,20 @@ eXosip_get_addrinfo(struct addrinfo **addrinfo, const char *hostname,
 		return -1;
 	}
 
-	for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
-		if (internal_eXosip->dns_entries[i].host[0] != '\0'
-			&& 0 == osip_strcasecmp(internal_eXosip->dns_entries[i].host, hostname)) {
-			/* update entry */
-			if (internal_eXosip->dns_entries[i].ip[0] != '\0') {
-				hostname = internal_eXosip->dns_entries[i].ip;
-				OSIP_TRACE(osip_trace
-						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-							"eXosip option set: dns cache used:%s -> %s\n",
-							internal_eXosip->dns_entries[i].host,
-							internal_eXosip->dns_entries[i].ip));
+	if (excontext!=NULL)
+	{
+		for (i = 0; i < MAX_EXOSIP_DNS_ENTRY; i++) {
+			if (excontext->dns_entries[i].host[0] != '\0'
+				&& 0 == osip_strcasecmp(excontext->dns_entries[i].host, hostname)) {
+				/* update entry */
+				if (excontext->dns_entries[i].ip[0] != '\0') {
+					hostname = excontext->dns_entries[i].ip;
+					OSIP_TRACE(osip_trace
+							   (__FILE__, __LINE__, OSIP_INFO1, NULL,
+								"eXosip option set: dns cache used:%s -> %s\n",
+								excontext->dns_entries[i].host,
+								excontext->dns_entries[i].ip));
+				}
 			}
 		}
 	}

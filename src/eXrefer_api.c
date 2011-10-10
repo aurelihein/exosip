@@ -63,7 +63,7 @@ int eXosip_refer_send_request(struct eXosip_t *excontext, osip_message_t * refer
 	sipevent = osip_new_outgoing_sipmessage(refer);
 	sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_set_reserved1(transaction,
+	osip_transaction_set_reserved2(transaction,
 									   __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
 	osip_transaction_add_event(transaction, sipevent);
 	__eXosip_wakeup(excontext);

@@ -123,7 +123,7 @@ extern "C" {
 
 #endif
 
-	void eXosip_update(void);
+	void eXosip_update(struct eXosip_t *excontext);
 #ifdef OSIP_MT
 	void __eXosip_wakeup(struct eXosip_t *excontext);
 #else
@@ -267,7 +267,7 @@ extern "C" {
 		eXosip_pub_t *parent;
 	};
 
-	int _eXosip_pub_update(eXosip_pub_t ** pub, osip_transaction_t * tr,
+	int _eXosip_pub_update(struct eXosip_t *excontext, eXosip_pub_t ** pub, osip_transaction_t * tr,
 						   osip_message_t * answer);
 	int _eXosip_pub_find_by_aor(struct eXosip_t *excontext, eXosip_pub_t ** pub, const char *aor);
 	int _eXosip_pub_find_by_tid(struct eXosip_t *excontext, eXosip_pub_t ** pjp, int tid);
@@ -331,10 +331,10 @@ extern "C" {
 												  osip_transaction_t * tr);
 
 	int eXosip_event_init(eXosip_event_t ** je, int type);
-	void report_call_event(int evt, eXosip_call_t * jc, eXosip_dialog_t * jd,
+	void report_call_event(struct eXosip_t *excontext, int evt, eXosip_call_t * jc, eXosip_dialog_t * jd,
 						   osip_transaction_t * tr);
-	void report_event(eXosip_event_t * je, osip_message_t * sip);
-	int eXosip_event_add(eXosip_event_t * je);
+	void report_event(struct eXosip_t *excontext, eXosip_event_t * je, osip_message_t * sip);
+	int eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je);
 
 	typedef void (*eXosip_callback_t) (int type, eXosip_event_t *);
 
@@ -473,7 +473,7 @@ extern "C" {
 #endif
 	};
 
-	int eXosip_guess_ip_for_via(int family, char *address, int size);
+	int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size);
 
 /**
  * Prepare addrinfo for socket binding and resolv hostname
@@ -482,16 +482,12 @@ extern "C" {
  * @param hostname  hostname to resolv.
  * @param service   port number or "sip" SRV record if service=0
  */
-	int eXosip_get_addrinfo(struct addrinfo **addrinfo, const char *hostname,
+	int eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, const char *hostname,
 							int service, int protocol);
 
 	int eXosip_set_callbacks(osip_t * osip);
-	int cb_snd_message(osip_transaction_t * tr, osip_message_t * sip,
-					   char *host, int port, int out_socket);
-	int cb_udp_snd_message(osip_transaction_t * tr, osip_message_t * sip,
-						   char *host, int port, int out_socket);
-	int cb_tcp_snd_message(osip_transaction_t * tr, osip_message_t * sip,
-						   char *host, int port, int out_socket);
+	int _eXosip_snd_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, char *host,
+			   int port, int out_socket);
 	char *osip_call_id_new_random(void);
 	char *osip_to_tag_new_random(void);
 	char *osip_from_tag_new_random(void);
@@ -508,9 +504,8 @@ extern "C" {
 	int eXosip_dialog_init_as_uas(eXosip_dialog_t ** jd,
 								  osip_message_t * _invite,
 								  osip_message_t * _200Ok);
-	void eXosip_dialog_free(eXosip_dialog_t * jd);
+	void _eXosip_dialog_free(struct eXosip_t *excontext,eXosip_dialog_t * jd);
 	void eXosip_dialog_set_state(eXosip_dialog_t * jd, int state);
-	void eXosip_delete_early_dialog(eXosip_dialog_t * jd);
 
 
 	int isrfc1918(char *ipaddr);
@@ -534,8 +529,8 @@ extern "C" {
 
 	int eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t * req,
 											  osip_message_t * last_response);
-	int _eXosip_reg_find(eXosip_reg_t ** reg, osip_transaction_t * tr);
-	int eXosip_reg_find_id(eXosip_reg_t ** reg, int rid);
+	int _eXosip_reg_find(struct eXosip_t *excontext, eXosip_reg_t ** reg, osip_transaction_t * tr);
+	int _eXosip_reg_find_id(struct eXosip_t *excontext, eXosip_reg_t ** reg, int rid);
 	int _eXosip_reg_init(struct eXosip_t *excontext, eXosip_reg_t ** jr, const char *from,
 						const char *proxy, const char *contact);
 	void eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg);
@@ -582,10 +577,10 @@ extern "C" {
 #endif
 
 	int eXosip_build_response_default(int jid, int status);
-	int _eXosip_build_response_default(osip_message_t ** dest,
+	int _eXosip_build_response_default(struct eXosip_t *excontext, osip_message_t ** dest,
 									   osip_dialog_t * dialog, int status,
 									   osip_message_t * request);
-	int complete_answer_that_establish_a_dialog(osip_message_t * response,
+	int _eXosip_complete_answer_that_establish_a_dialog(struct eXosip_t *excontext, osip_message_t * response,
 												osip_message_t * request);
 	int _eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t ** dest,
 											const char *method,

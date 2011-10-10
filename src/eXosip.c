@@ -45,8 +45,6 @@
 static jauthinfo_t *eXosip_find_authentication_info(struct eXosip_t *excontext, const char *username,
 													const char *realm);
 
-eXosip_t *internal_eXosip = NULL;
-
 void __eXosip_wakeup(struct eXosip_t *excontext)
 {
 #ifdef OSIP_MT
@@ -54,10 +52,10 @@ void __eXosip_wakeup(struct eXosip_t *excontext)
 #endif
 }
 
-void __eXosip_wakeup_event(void)
+void __eXosip_wakeup_event(struct eXosip_t *excontext)
 {
 #ifdef OSIP_MT
-	jpipe_write(internal_eXosip->j_socketctl_event, "w", 1);
+	jpipe_write(excontext->j_socketctl_event, "w", 1);
 #endif
 }
 
@@ -89,6 +87,7 @@ _eXosip_transaction_init(struct eXosip_t *excontext, osip_transaction_t ** trans
 	if (i != 0) {
 		return i;
 	}
+	osip_transaction_set_reserved1(*transaction, excontext);
 	{
 		osip_naptr_t *naptr_record=NULL;
 		i = _eXosip_srv_lookup(excontext, message, &naptr_record);
@@ -228,16 +227,16 @@ _eXosip_retry_with_auth(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	ji = osip_transaction_get_your_instance(out_tr);
+	ji = osip_transaction_get_reserved2(out_tr);
 
-	osip_transaction_set_reserved1(out_tr, NULL);
-	osip_transaction_set_reserved1(tr, ji);
+	osip_transaction_set_reserved2(out_tr, NULL);
+	osip_transaction_set_reserved2(tr, ji);
 	osip_transaction_add_event(tr, sipevent);
 
 	if (retry)
 		(*retry)++;
 
-	eXosip_update();			/* fixed? */
+	eXosip_update(excontext);			/* fixed? */
 	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
@@ -380,16 +379,16 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	ji = osip_transaction_get_your_instance(out_tr);
+	ji = osip_transaction_get_reserved2(out_tr);
 
-	osip_transaction_set_reserved1(out_tr, NULL);
-	osip_transaction_set_reserved1(tr, ji);
+	osip_transaction_set_reserved2(out_tr, NULL);
+	osip_transaction_set_reserved2(tr, ji);
 	osip_transaction_add_event(tr, sipevent);
 
 	if (retry)
 		(*retry)++;
 
-	eXosip_update();			/* fixed? */
+	eXosip_update(excontext);			/* fixed? */
 	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
@@ -399,7 +398,7 @@ static int _eXosip_retry_register_with_auth(struct eXosip_t *excontext, eXosip_e
 	eXosip_reg_t *jr = NULL;
 	int i;
 
-	i = eXosip_reg_find_id(&jr, je->rid);
+	i = _eXosip_reg_find_id(excontext, &jr, je->rid);
 	if (i < 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -685,7 +684,7 @@ void eXosip_retransmit_lost200ok(struct eXosip_t *excontext)
 						i = eXosip_call_terminate(excontext, jc->c_id, jd->d_id);
 						if (i == OSIP_SUCCESS)
 						{
-							report_call_event(EXOSIP_CALL_CLOSED, jc, jd, NULL);
+							report_call_event(excontext, EXOSIP_CALL_CLOSED, jc, jd, NULL);
 						}
 					} else if (jd->d_timer < now) {
 						/* a dialog exist: retransmit lost 200ok */
@@ -698,7 +697,7 @@ void eXosip_retransmit_lost200ok(struct eXosip_t *excontext)
 							jd->d_timer = time(NULL) + 4;
 						jd = jc->c_dialogs;
 						/* TU retransmission */
-						cb_snd_message(NULL, jd->d_200Ok, NULL, 0, -1);
+						_eXosip_snd_message(excontext, NULL, jd->d_200Ok, NULL, 0, -1);
 					}
 				}
 			}
@@ -1109,7 +1108,7 @@ void eXosip_automatic_action(struct eXosip_t *excontext)
 
 }
 
-void eXosip_update()
+void eXosip_update(struct eXosip_t *excontext)
 {
 	static int static_id = 1;
 	eXosip_call_t *jc;
@@ -1124,7 +1123,7 @@ void eXosip_update()
 		static_id = 1;			/* loop */
 
 	now = time(NULL);
-	for (jc = internal_eXosip->j_calls; jc != NULL; jc = jc->next) {
+	for (jc = excontext->j_calls; jc != NULL; jc = jc->next) {
 		if (jc->c_id < 1) {
 			jc->c_id = static_id;
 			static_id++;
@@ -1141,7 +1140,7 @@ void eXosip_update()
 	}
 
 #ifndef MINISIZE
-	for (js = internal_eXosip->j_subscribes; js != NULL; js = js->next) {
+	for (js = excontext->j_subscribes; js != NULL; js = js->next) {
 		if (js->s_id < 1) {
 			js->s_id = static_id;
 			static_id++;
@@ -1157,7 +1156,7 @@ void eXosip_update()
 		}
 	}
 
-	for (jn = internal_eXosip->j_notifies; jn != NULL; jn = jn->next) {
+	for (jn = excontext->j_notifies; jn != NULL; jn = jn->next) {
 		if (jn->n_id < 1) {
 			jn->n_id = static_id;
 			static_id++;

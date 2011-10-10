@@ -137,7 +137,7 @@ int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * requ
 		struct __eXosip_sockaddr addr;
 		int i;
 
-		i = eXosip_get_addrinfo(&addrinfo, request->req_uri->host, 5060,
+		i = eXosip_get_addrinfo(excontext, &addrinfo, request->req_uri->host, 5060,
 								IPPROTO_TCP);
 		if (i == 0) {
 			memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -157,7 +157,7 @@ int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * requ
 	}
 
 	if (locip[0] == '\0') {
-		eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
+		eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 		if (locip[0] == '\0') {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -290,7 +290,7 @@ _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_messag
 
 	/*guess the local ip since req uri is known */
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -625,7 +625,7 @@ _eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osi
 		return i;
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
@@ -660,7 +660,7 @@ _eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osi
 				struct addrinfo *addrinfo;
 				struct __eXosip_sockaddr addr;
 
-				i = eXosip_get_addrinfo(&addrinfo, (*reg)->req_uri->host, 5060,
+				i = eXosip_get_addrinfo(excontext, &addrinfo, (*reg)->req_uri->host, 5060,
 										IPPROTO_UDP);
 				if (i == 0) {
 					memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
@@ -866,7 +866,7 @@ _eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t *
 
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(excontext->eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -982,7 +982,7 @@ _eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t *
 			struct addrinfo *addrinfo;
 			struct __eXosip_sockaddr addr;
 
-			i = eXosip_get_addrinfo(&addrinfo, request->req_uri->host, 5060,
+			i = eXosip_get_addrinfo(excontext, &addrinfo, request->req_uri->host, 5060,
 									IPPROTO_UDP);
 			if (i == 0) {
 				memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);

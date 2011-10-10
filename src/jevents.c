@@ -26,8 +26,6 @@
 #include <eXosip2/eXosip.h>
 #include <osip2/osip_condv.h>
 
-extern eXosip_t *internal_eXosip;
-
 static int _eXosip_event_fill_messages(eXosip_event_t * je,
 									   osip_transaction_t * tr);
 
@@ -290,34 +288,34 @@ void eXosip_event_free(eXosip_event_t * je)
 	osip_free(je);
 }
 
-void report_event(eXosip_event_t * je, osip_message_t * sip)
+void report_event(struct eXosip_t *excontext, eXosip_event_t * je, osip_message_t * sip)
 {
 	if (je != NULL) {
-		eXosip_event_add(je);
+		eXosip_event_add(excontext, je);
 	}
 }
 
 void
-report_call_event(int evt, eXosip_call_t * jc,
+report_call_event(struct eXosip_t *excontext, int evt, eXosip_call_t * jc,
 				  eXosip_dialog_t * jd, osip_transaction_t * tr)
 {
 	eXosip_event_t *je;
 
 	je = eXosip_event_init_for_call(evt, jc, jd, tr);
-	report_event(je, NULL);
+	report_event(excontext, je, NULL);
 }
 
-int eXosip_event_add(eXosip_event_t * je)
+int eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je)
 {
-	int i = osip_fifo_add(internal_eXosip->j_events, (void *) je);
+	int i = osip_fifo_add(excontext->j_events, (void *) je);
 
 #ifdef OSIP_MT
 #if !defined (_WIN32_WCE)
-	osip_cond_signal((struct osip_cond *) internal_eXosip->j_cond);
+	osip_cond_signal((struct osip_cond *) excontext->j_cond);
 #endif
 #endif
 
-	__eXosip_wakeup_event();
+	__eXosip_wakeup_event(excontext);
 	return i;
 }
 

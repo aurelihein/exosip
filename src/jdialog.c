@@ -24,8 +24,6 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t *internal_eXosip;
-
 void eXosip_dialog_set_state(eXosip_dialog_t * jd, int state)
 {
 	jd->d_STATE = state;
@@ -209,7 +207,7 @@ eXosip_dialog_init_as_uas(eXosip_dialog_t ** _jd, osip_message_t * _invite,
 	return OSIP_SUCCESS;
 }
 
-void eXosip_dialog_free(eXosip_dialog_t * jd)
+void _eXosip_dialog_free(struct eXosip_t *excontext, eXosip_dialog_t * jd)
 {
 	while (!osip_list_eol(jd->d_inc_trs, 0)) {
 		osip_transaction_t *tr;
@@ -217,7 +215,7 @@ void eXosip_dialog_free(eXosip_dialog_t * jd)
 		tr = (osip_transaction_t *) osip_list_get(jd->d_inc_trs, 0);
 		osip_list_remove(jd->d_inc_trs, 0);
 		__eXosip_delete_jinfo(tr);
-		osip_list_add(&internal_eXosip->j_transactions, tr, 0);
+		osip_list_add(&excontext->j_transactions, tr, 0);
 	}
 
 	while (!osip_list_eol(jd->d_out_trs, 0)) {
@@ -226,7 +224,7 @@ void eXosip_dialog_free(eXosip_dialog_t * jd)
 		tr = (osip_transaction_t *) osip_list_get(jd->d_out_trs, 0);
 		osip_list_remove(jd->d_out_trs, 0);
 		__eXosip_delete_jinfo(tr);
-		osip_list_add(&internal_eXosip->j_transactions, tr, 0);
+		osip_list_add(&excontext->j_transactions, tr, 0);
 	}
 
 	osip_message_free(jd->d_200Ok);
@@ -238,5 +236,5 @@ void eXosip_dialog_free(eXosip_dialog_t * jd)
 	osip_free(jd->d_inc_trs);
 	osip_free(jd);
 
-	eXosip_update();
+	eXosip_update(excontext);
 }

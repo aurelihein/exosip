@@ -99,7 +99,7 @@ void _eXosip_subscribe_free(struct eXosip_t *excontext, eXosip_subscribe_t * js)
 
 	for (jd = js->s_dialogs; jd != NULL; jd = js->s_dialogs) {
 		REMOVE_ELEMENT(js->s_dialogs, jd);
-		eXosip_dialog_free(jd);
+		_eXosip_dialog_free(excontext, jd);
 	}
 
 	__eXosip_delete_jinfo(js->s_inc_tr);

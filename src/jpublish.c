@@ -25,17 +25,15 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t *internal_eXosip;
-
 int
-_eXosip_pub_update(eXosip_pub_t ** pub, osip_transaction_t * tr,
+_eXosip_pub_update(struct eXosip_t *excontext, eXosip_pub_t ** pub, osip_transaction_t * tr,
 				   osip_message_t * answer)
 {
 	eXosip_pub_t *jpub;
 
 	*pub = NULL;
 
-	for (jpub = internal_eXosip->j_pub; jpub != NULL; jpub = jpub->next) {
+	for (jpub = excontext->j_pub; jpub != NULL; jpub = jpub->next) {
 		if (jpub->p_last_tr == NULL) {	/*bug? */
 		} else if (tr == jpub->p_last_tr) {
 			/* update the sip_etag parameter */

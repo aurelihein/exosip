@@ -39,7 +39,7 @@
 #include <time.h>
 
 /**
- * @file internal_eXosip->h
+ * @file eXosip.h
  * @brief eXosip API
  *
  * eXosip is a high layer library for rfc3261: the SIP protocol.
@@ -103,7 +103,7 @@ extern "C"
                                       const char *realm);
 
 /**
- * Clear all authentication credentials stored in internal_eXosip->
+ * Clear all authentication credentials stored in eXosip
  *
  */
   int eXosip_clear_authentication_info (struct eXosip_t *excontext);

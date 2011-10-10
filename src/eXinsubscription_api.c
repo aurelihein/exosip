@@ -125,7 +125,7 @@ eXosip_insubscription_build_answer(struct eXosip_t *excontext, int tid, int stat
 		return OSIP_BADPARAMETER;
 	}
 
-	i = _eXosip_build_response_default(answer, jd->d_dialog, status,
+	i = _eXosip_build_response_default(excontext, answer, jd->d_dialog, status,
 										   tr->orig_request);
 
 	if (i != 0) {
@@ -139,7 +139,7 @@ eXosip_insubscription_build_answer(struct eXosip_t *excontext, int tid, int stat
 		_eXosip_notify_add_expires_in_2XX_for_subscribe(jn, *answer);
 
 	if (status < 300)
-		i = complete_answer_that_establish_a_dialog(*answer, tr->orig_request);
+		i = _eXosip_complete_answer_that_establish_a_dialog(excontext, *answer, tr->orig_request);
 
 	return i;
 }
@@ -231,7 +231,7 @@ int eXosip_insubscription_send_answer(struct eXosip_t *excontext, int tid, int s
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	eXosip_update();
+	eXosip_update(excontext);
 	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
@@ -412,7 +412,7 @@ int eXosip_insubscription_send_request(struct eXosip_t *excontext, int did, osip
 	sipevent = osip_new_outgoing_sipmessage(request);
 	sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_set_reserved1(transaction,
+	osip_transaction_set_reserved2(transaction,
 									   __eXosip_new_jinfo(NULL, jd, NULL, jn));
 	osip_transaction_add_event(transaction, sipevent);
 	__eXosip_wakeup(excontext);
@@ -507,10 +507,10 @@ _eXosip_insubscription_send_request_with_credential(struct eXosip_t *excontext,
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	osip_transaction_set_reserved1(tr, __eXosip_new_jinfo(NULL, jd, NULL, jn));
+	osip_transaction_set_reserved2(tr, __eXosip_new_jinfo(NULL, jd, NULL, jn));
 	osip_transaction_add_event(tr, sipevent);
 
-	eXosip_update();			/* fixed? */
+	eXosip_update(excontext);			/* fixed? */
 	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }

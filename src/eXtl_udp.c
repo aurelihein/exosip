@@ -80,7 +80,7 @@ static int udp_tl_open(struct eXosip_t *excontext)
 		eXtl_udp.proto_port = 5060;
 
 
-	res = eXosip_get_addrinfo(&addrinfo,
+	res = eXosip_get_addrinfo(excontext, &addrinfo,
 							  eXtl_udp.proto_ifs,
 							  eXtl_udp.proto_port, eXtl_udp.proto_num);
 	if (res)
@@ -493,9 +493,9 @@ udp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 						n < 10 && naptr_record->sipudp_record.srventry[naptr_record->sipudp_record.index].srv[0];
 						srv = &naptr_record->sipudp_record.srventry[naptr_record->sipudp_record.index]) {
 							if (srv->ipaddress[0])
-								i = eXosip_get_addrinfo(&addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
+								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
 							else
-								i = eXosip_get_addrinfo(&addrinfo, srv->srv, srv->port, IPPROTO_UDP);
+								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->srv, srv->port, IPPROTO_UDP);
 							if (i == 0) {
 								host = srv->srv;
 								port = srv->port;
@@ -575,9 +575,9 @@ udp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 						n < 10 && naptr_record->sipudp_record.srventry[naptr_record->sipudp_record.index].srv[0];
 						srv = &naptr_record->sipudp_record.srventry[naptr_record->sipudp_record.index]) {
 							if (srv->ipaddress[0])
-								i = eXosip_get_addrinfo(&addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
+								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
 							else
-								i = eXosip_get_addrinfo(&addrinfo, srv->srv, srv->port, IPPROTO_UDP);
+								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->srv, srv->port, IPPROTO_UDP);
 							if (i == 0) {
 								host = srv->srv;
 								port = srv->port;
@@ -614,7 +614,7 @@ udp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 
 	/* if SRV was used, destination may be already found */
 	if (i != 0) {
-		i = eXosip_get_addrinfo(&addrinfo, host, port, IPPROTO_UDP);
+		i = eXosip_get_addrinfo(excontext, &addrinfo, host, port, IPPROTO_UDP);
 	}
 
 	if (i != 0) {
@@ -710,7 +710,7 @@ udp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		if (MSG_IS_REGISTER(sip)) {
 			eXosip_reg_t *reg = NULL;
 
-			if (_eXosip_reg_find(&reg, tr) == 0) {
+			if (_eXosip_reg_find(excontext, &reg, tr) == 0) {
 				memcpy(&(reg->addr), &addr, len);
 				reg->len = len;
 			}

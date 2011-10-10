@@ -34,8 +34,6 @@ typedef char HASHHEX[HASHHEXLEN + 1];
 
 void CvtHex(HASH Bin, HASHHEX Hex);
 
-extern eXosip_t *internal_eXosip;
-
 int
 _eXosip_reg_init(struct eXosip_t *excontext, eXosip_reg_t ** jr, const char *from, const char *proxy,
 				const char *contact)
@@ -84,7 +82,7 @@ _eXosip_reg_init(struct eXosip_t *excontext, eXosip_reg_t ** jr, const char *fro
 		memset(firewall_ip, '\0', sizeof(firewall_ip));
 		memset(firewall_port, '\0', sizeof(firewall_port));
 
-		eXosip_guess_localip(AF_INET, localip, 128);
+		eXosip_guess_localip(excontext, AF_INET, localip, 128);
 		if (excontext->eXtl != NULL && excontext->eXtl->tl_get_masquerade_contact != NULL) {
 			excontext->eXtl->tl_get_masquerade_contact(firewall_ip,
 												   sizeof(firewall_ip),
@@ -155,7 +153,7 @@ void eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg)
 	osip_free(jreg);
 }
 
-int _eXosip_reg_find(eXosip_reg_t ** reg, osip_transaction_t * tr)
+int _eXosip_reg_find(struct eXosip_t *excontext, eXosip_reg_t ** reg, osip_transaction_t * tr)
 {
 	eXosip_reg_t *jreg;
 
@@ -163,7 +161,7 @@ int _eXosip_reg_find(eXosip_reg_t ** reg, osip_transaction_t * tr)
 	if (tr == NULL)
 		return OSIP_BADPARAMETER;
 
-	for (jreg = internal_eXosip->j_reg; jreg != NULL; jreg = jreg->next) {
+	for (jreg = excontext->j_reg; jreg != NULL; jreg = jreg->next) {
 		if (jreg->r_last_tr == tr) {
 			*reg = jreg;
 			return OSIP_SUCCESS;
@@ -173,7 +171,7 @@ int _eXosip_reg_find(eXosip_reg_t ** reg, osip_transaction_t * tr)
 }
 
 
-int eXosip_reg_find_id(eXosip_reg_t ** reg, int rid)
+int _eXosip_reg_find_id(struct eXosip_t *excontext, eXosip_reg_t ** reg, int rid)
 {
 	eXosip_reg_t *jreg;
 
@@ -181,7 +179,7 @@ int eXosip_reg_find_id(eXosip_reg_t ** reg, int rid)
 	if (rid <= 0)
 		return OSIP_BADPARAMETER;
 
-	for (jreg = internal_eXosip->j_reg; jreg != NULL; jreg = jreg->next) {
+	for (jreg = excontext->j_reg; jreg != NULL; jreg = jreg->next) {
 		if (jreg->r_id == rid) {
 			*reg = jreg;
 			return OSIP_SUCCESS;

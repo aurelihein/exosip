@@ -24,11 +24,8 @@
 
 #include "eXosip2.h"
 
-extern eXosip_t *internal_eXosip;
-
-
 int
-_eXosip_build_response_default(osip_message_t ** dest,
+_eXosip_build_response_default(struct eXosip_t *excontext, osip_message_t ** dest,
 							   osip_dialog_t * dialog, int status,
 							   osip_message_t * request)
 {
@@ -159,14 +156,14 @@ _eXosip_build_response_default(osip_message_t ** dest,
 	}
 #endif
 
-	osip_message_set_user_agent(response, internal_eXosip->user_agent);
+	osip_message_set_user_agent(response, excontext->user_agent);
 
 	*dest = response;
 	return OSIP_SUCCESS;
 }
 
 int
-complete_answer_that_establish_a_dialog(osip_message_t * response,
+_eXosip_complete_answer_that_establish_a_dialog(struct eXosip_t *excontext, osip_message_t * response,
 										osip_message_t * request)
 {
 	int i;
@@ -177,8 +174,8 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 	char firewall_port[10];
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
-	if (internal_eXosip->eXtl->tl_get_masquerade_contact != NULL) {
-		internal_eXosip->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
+		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -200,7 +197,7 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 	}
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(internal_eXosip->eXtl->proto_family, locip, 49);
+	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 
 	if (request->to->url->username == NULL)
 		snprintf(contact, 1000, "<sip:%s:%s>", locip, firewall_port);
@@ -220,7 +217,7 @@ complete_answer_that_establish_a_dialog(osip_message_t * response,
 			struct addrinfo *addrinfo;
 			struct __eXosip_sockaddr addr;
 
-			i = eXosip_get_addrinfo(&addrinfo, con->url->host, 5060, IPPROTO_UDP);
+			i = eXosip_get_addrinfo(excontext, &addrinfo, con->url->host, 5060, IPPROTO_UDP);
 			if (i == 0) {
 				memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
 				eXosip_freeaddrinfo(addrinfo);
@@ -310,9 +307,9 @@ _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, e
 	}
 
 	if (jd == NULL)
-		i = _eXosip_build_response_default(answer, NULL, code, tr->orig_request);
+		i = _eXosip_build_response_default(excontext, answer, NULL, code, tr->orig_request);
 	else
-		i = _eXosip_build_response_default(answer, jd->d_dialog, code,
+		i = _eXosip_build_response_default(excontext, answer, jd->d_dialog, code,
 										   tr->orig_request);
 
 	if (i != 0) {
@@ -326,7 +323,7 @@ _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, e
 	/* request that estabish a dialog: */
 	/* 12.1.1 UAS Behavior */
 	if (code > 100 && code < 300) {
-		i = complete_answer_that_establish_a_dialog(*answer, tr->orig_request);
+		i = _eXosip_complete_answer_that_establish_a_dialog(excontext, *answer, tr->orig_request);
 		if (i != 0) {
 			osip_message_free(*answer);
 			*answer = NULL;
@@ -374,10 +371,10 @@ _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * 
 	}
 
 	if (jd == NULL)
-		i = _eXosip_build_response_default(&response, NULL, code,
+		i = _eXosip_build_response_default(excontext, &response, NULL, code,
 										   tr->orig_request);
 	else
-		i = _eXosip_build_response_default(&response, jd->d_dialog, code,
+		i = _eXosip_build_response_default(excontext, &response, jd->d_dialog, code,
 										   tr->orig_request);
 
 	if (i != 0) {
@@ -390,7 +387,7 @@ _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * 
 	if (code > 100) {
 		/* request that estabish a dialog: */
 		/* 12.1.1 UAS Behavior */
-		i = complete_answer_that_establish_a_dialog(response, tr->orig_request);
+		i = _eXosip_complete_answer_that_establish_a_dialog(excontext, response, tr->orig_request);
 		if (i != 0) {
 		}
 
@@ -430,10 +427,10 @@ _eXosip_insubscription_answer_3456xx(struct eXosip_t *excontext, eXosip_notify_t
 		return OSIP_NOTFOUND;
 	}
 	if (jd == NULL)
-		i = _eXosip_build_response_default(&response, NULL, code,
+		i = _eXosip_build_response_default(excontext, &response, NULL, code,
 										   tr->orig_request);
 	else
-		i = _eXosip_build_response_default(&response, jd->d_dialog, code,
+		i = _eXosip_build_response_default(excontext, &response, jd->d_dialog, code,
 										   tr->orig_request);
 	if (i != 0) {
 		OSIP_TRACE(osip_trace

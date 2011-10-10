@@ -242,7 +242,7 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * @param transport          	IPPROTO_UDP or IPPROTO_TCP protocol.
  * 
  */
-  int eXosip_find_free_port (int free_port, int transport);
+  int eXosip_find_free_port (struct eXosip_t *excontext, int free_port, int transport);
 
 #ifndef DOXYGEN
 
@@ -251,9 +251,9 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * 
  */
 #ifdef OSIP_MT
-  void __eXosip_wakeup_event (void);
+  void __eXosip_wakeup_event (struct eXosip_t *excontext);
 #else
-#define __eXosip_wakeup_event()   ;
+#define __eXosip_wakeup_event(A)   ;
 #endif
 
 #endif
@@ -282,7 +282,7 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * @param address   a string containing the local IP address.
  * @param size      The size of the string
  */
-  int eXosip_guess_localip (int family, char *address, int size);
+  int eXosip_guess_localip (struct eXosip_t *excontext, int family, char *address, int size);
 
 /** @} */
 

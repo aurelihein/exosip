@@ -66,10 +66,10 @@ int eXosip_message_send_request(struct eXosip_t *excontext, osip_message_t * mes
 	sipevent->transactionid = transaction->transactionid;
 
 #ifndef MINISIZE
-	osip_transaction_set_reserved1(transaction,
+	osip_transaction_set_reserved2(transaction,
 									   __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
 #else
-	osip_transaction_set_reserved1(transaction,
+	osip_transaction_set_reserved2(transaction,
 									   __eXosip_new_jinfo(NULL, NULL));
 #endif
 	osip_transaction_add_event(transaction, sipevent);
@@ -102,9 +102,9 @@ int eXosip_message_build_answer(struct eXosip_t *excontext, int tid, int status,
 
 	i = -1;
 	if (status < 300)			/* 2xx answer */
-		i = _eXosip_build_response_default(answer, NULL, status, tr->orig_request);
+		i = _eXosip_build_response_default(excontext, answer, NULL, status, tr->orig_request);
 	else if (status > 300)		/* 3456xx answer */
-		i = _eXosip_build_response_default(answer, NULL, status, tr->orig_request);
+		i = _eXosip_build_response_default(excontext, answer, NULL, status, tr->orig_request);
 
 	if (i != 0)
 		return i;
@@ -147,10 +147,10 @@ int eXosip_message_send_answer(struct eXosip_t *excontext, int tid, int status, 
 	if (answer == NULL) {
 		i = -1;
 		if (status > 199 && status < 300)
-			i = _eXosip_build_response_default(&answer, NULL, status,
+			i = _eXosip_build_response_default(excontext, &answer, NULL, status,
 											   tr->orig_request);
 		else if (status > 300 && status <= 699)
-			i = _eXosip_build_response_default(&answer, NULL, status,
+			i = _eXosip_build_response_default(excontext, &answer, NULL, status,
 											   tr->orig_request);
 		if (i != 0)
 			return i;

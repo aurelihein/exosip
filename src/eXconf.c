@@ -33,8 +33,6 @@
 #include "inet_ntop.h"
 #endif
 
-extern eXosip_t *internal_eXosip;
-
 int ipv6_enable = 0;
 
 #ifdef OSIP_MT
@@ -75,9 +73,9 @@ void eXosip_masquerade_contact(const char *public_address, int port)
 	return;
 }
 
-int eXosip_guess_localip(int family, char *address, int size)
+int eXosip_guess_localip(struct eXosip_t *excontext, int family, char *address, int size)
 {
-	return eXosip_guess_ip_for_via(family, address, size);
+	return eXosip_guess_ip_for_via(excontext, family, address, size);
 }
 
 int eXosip_is_public_address(const char *c_address)
@@ -157,7 +155,7 @@ void eXosip_quit(struct eXosip_t *excontext)
 
 	excontext->j_stop_ua = 1;		/* ask to quit the application */
 	__eXosip_wakeup(excontext);
-	__eXosip_wakeup_event();
+	__eXosip_wakeup_event(excontext);
 
 #ifdef OSIP_MT
 	if (excontext->j_thread != NULL) {
@@ -281,7 +279,6 @@ void eXosip_quit(struct eXosip_t *excontext)
 	memset(excontext, 0, sizeof(eXosip_t));
 	excontext->j_stop_ua = -1;
 
-	internal_eXosip=NULL;
 	return;
 }
 
@@ -323,7 +320,7 @@ int setsockopt_ipv6only(int sock)
 #endif							/* IPV6_V6ONLY */
 
 #ifndef MINISIZE
-int eXosip_find_free_port(int free_port, int transport)
+int eXosip_find_free_port(struct eXosip_t *excontext, int free_port, int transport)
 {
 	int res1;
 	int res2;
@@ -336,15 +333,15 @@ int eXosip_find_free_port(int free_port, int transport)
 
 	for (count = 0; count < 8; count++) {
 		if (ipv6_enable == 0)
-			res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", free_port + count * 2, transport);
+			res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "0.0.0.0", free_port + count * 2, transport);
 		else
-			res1 = eXosip_get_addrinfo(&addrinfo_rtp, "::", free_port + count * 2, transport);
+			res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "::", free_port + count * 2, transport);
 		if (res1 != 0)
 			return res1;
 		if (ipv6_enable == 0)
-			res2 = eXosip_get_addrinfo(&addrinfo_rtcp, "0.0.0.0", free_port + count * 2 + 1, transport);
+			res2 = eXosip_get_addrinfo(excontext, &addrinfo_rtcp, "0.0.0.0", free_port + count * 2 + 1, transport);
 		else
-			res2 = eXosip_get_addrinfo(&addrinfo_rtcp, "::", free_port + count * 2 + 1, transport);
+			res2 = eXosip_get_addrinfo(excontext, &addrinfo_rtcp, "::", free_port + count * 2 + 1, transport);
 		if (res2 != 0) {
 			eXosip_freeaddrinfo(addrinfo_rtp);
 			return res2;
@@ -464,9 +461,9 @@ int eXosip_find_free_port(int free_port, int transport)
 
 	/* just get a free port */
 	if (ipv6_enable == 0)
-		res1 = eXosip_get_addrinfo(&addrinfo_rtp, "0.0.0.0", 0, transport);
+		res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "0.0.0.0", 0, transport);
 	else
-		res1 = eXosip_get_addrinfo(&addrinfo_rtp, "::", 0, transport);
+		res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "::", 0, transport);
 
 	if (res1)
 		return res1;
@@ -631,13 +628,6 @@ int eXosip_init(struct eXosip_t *excontext)
 {
 	osip_t *osip;
 	int i;
-
-#ifdef OLD_EXOSIP_API
-	if (excontext==NULL)
-		excontext = internal_eXosip;
-	else
-		internal_eXosip = excontext;
-#endif
 
 	memset(excontext, 0, sizeof(eXosip_t));
 
@@ -937,7 +927,7 @@ int eXosip_set_option(struct eXosip_t *excontext, int opt, const void *value)
 				struct addrinfo *addrinfo;
 
 				/* create the A record */
-				i = eXosip_get_addrinfo(&addrinfo, entry->host, 0, IPPROTO_UDP);
+				i = eXosip_get_addrinfo(excontext, &addrinfo, entry->host, 0, IPPROTO_UDP);
 				if (i!=0)
 					return OSIP_BADPARAMETER;
 

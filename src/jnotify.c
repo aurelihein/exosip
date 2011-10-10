@@ -107,7 +107,7 @@ void _eXosip_notify_free(struct eXosip_t *excontext, eXosip_notify_t * jn)
 
 	for (jd = jn->n_dialogs; jd != NULL; jd = jn->n_dialogs) {
 		REMOVE_ELEMENT(jn->n_dialogs, jd);
-		eXosip_dialog_free(jd);
+		_eXosip_dialog_free(excontext, jd);
 	}
 
 	__eXosip_delete_jinfo(jn->n_inc_tr);

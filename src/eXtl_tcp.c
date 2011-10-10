@@ -157,7 +157,7 @@ static int tcp_tl_open(struct eXosip_t *excontext)
 		eXtl_tcp.proto_port = 5060;
 
 
-	res = eXosip_get_addrinfo(&addrinfo,
+	res = eXosip_get_addrinfo(excontext, &addrinfo,
 							  eXtl_tcp.proto_ifs,
 							  eXtl_tcp.proto_port, eXtl_tcp.proto_num);
 	if (res)
@@ -744,7 +744,7 @@ static int _tcp_tl_check_connected()
 	return 0;
 }
 
-static int _tcp_tl_connect_socket(char *host, int port)
+static int _tcp_tl_connect_socket(struct eXosip_t *excontext, char *host, int port)
 {
 	int pos;
 	int res;
@@ -782,7 +782,7 @@ static int _tcp_tl_connect_socket(char *host, int port)
 #endif
 	}
 
-	res = eXosip_get_addrinfo(&addrinfo, host, port, IPPROTO_TCP);
+	res = eXosip_get_addrinfo(excontext, &addrinfo, host, port, IPPROTO_TCP);
 	if (res)
 		return -1;
 
@@ -1250,7 +1250,7 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		
 		/* Step 2: create new socket with host:port */
 		if (pos < 0) {
-			pos = _tcp_tl_connect_socket(host, port);
+			pos = _tcp_tl_connect_socket(excontext, host, port);
 		}
 		if (pos>=0)
 			out_socket = tcp_socket_tab[pos].socket;

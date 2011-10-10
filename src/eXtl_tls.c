@@ -1399,7 +1399,7 @@ static int tls_tl_open(struct eXosip_t *excontext)
 					"eXosip: Couldn't load randomness\n"));
 #endif
 
-	res = eXosip_get_addrinfo(&addrinfo,
+	res = eXosip_get_addrinfo(excontext, &addrinfo,
 							  eXtl_tls.proto_ifs,
 							  eXtl_tls.proto_port, eXtl_tls.proto_num);
 	if (res)
@@ -2424,7 +2424,7 @@ static int _tls_tl_find_socket(char *host, int port)
 }
 
 
-static int _tls_tl_connect_socket(char *host, int port)
+static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int port)
 {
 	int pos;
 	int res;
@@ -2450,7 +2450,7 @@ static int _tls_tl_connect_socket(char *host, int port)
 	if (pos == EXOSIP_MAX_SOCKETS)
 		return -1;
 
-	res = eXosip_get_addrinfo(&addrinfo, host, port, IPPROTO_TCP);
+	res = eXosip_get_addrinfo(excontext, &addrinfo, host, port, IPPROTO_TCP);
 	if (res)
 		return -1;
 
@@ -2873,7 +2873,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 
 		/* Step 2: create new socket with host:port */
 		if (pos < 0) {
-			pos = _tls_tl_connect_socket(host, port);
+			pos = _tls_tl_connect_socket(excontext, host, port);
 		}
 		if (pos >= 0) {
 			out_socket = tls_socket_tab[pos].socket;
