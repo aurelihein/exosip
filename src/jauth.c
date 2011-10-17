@@ -236,7 +236,7 @@ static int base64_val(char x)
 	case '=':
 		return -1;
 	case 'A':
-		return OSIP_SUCCESS;
+		return 0;
 	case 'B':
 		return 1;
 	case 'C':
@@ -376,7 +376,7 @@ static char *base64_decode_string(const char *buf, unsigned int len, int *newlen
 	out = (char *) osip_malloc((len * 3 / 4) + 8);
 	if (out == NULL)
 		return NULL;
-	for (i = 0, j = 0; i + 3 < len; i += 4) {
+	for (i = 0, j = 0; i + 4 < len; i += 4) {
 		x1 = base64_val(buf[i]);
 		x2 = base64_val(buf[i + 1]);
 		x3 = base64_val(buf[i + 2]);
@@ -385,7 +385,7 @@ static char *base64_decode_string(const char *buf, unsigned int len, int *newlen
 		out[j++] = ((x2 & 0x0F) << 4) | ((x3 & 0x3C) >> 2);
 		out[j++] = ((x3 & 0x03) << 6) | (x4 & 0x3F);
 	}
-	if (i < len) {
+	if (i <= len) {
 		x1 = base64_val(buf[i]);
 		if (i + 1 < len)
 			x2 = base64_val(buf[i + 1]);
@@ -401,9 +401,9 @@ static char *base64_decode_string(const char *buf, unsigned int len, int *newlen
 			x4 = -1;
 		if (x2 != -1) {
 			out[j++] = (x1 << 2) | ((x2 & 0x30) >> 4);
-			if (x3 == -1) {
+			if (x3 != -1) {
 				out[j++] = ((x2 & 0x0F) << 4) | ((x3 & 0x3C) >> 2);
-				if (x4 == -1) {
+				if (x4 != -1) {
 					out[j++] = ((x3 & 0x03) << 6) | (x4 & 0x3F);
 				}
 			}
@@ -412,11 +412,11 @@ static char *base64_decode_string(const char *buf, unsigned int len, int *newlen
 	}
 
 	out[j++] = 0;
-	*newlen = j;
+	*newlen = j-1;
 	return out;
 }
 
-char base64[64] =
+char base64[65] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static char *base64_encode_string(const char *buf, unsigned int len, int *newlen)
 {
@@ -488,6 +488,7 @@ static char *base64_encode_string(const char *buf, unsigned int len, int *newlen
 		break;
 	}
 
+	*ptr = '\0';
 	*newlen = ptr - out;
 	return out;
 }
