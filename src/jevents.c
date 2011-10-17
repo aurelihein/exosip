@@ -319,39 +319,6 @@ int eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je)
 	return i;
 }
 
-#if 0
-#ifdef CLOCK_REALTIME
-/* if CLOCK_REALTIME exist, then clock_gettime should be defined */
-
-#define OSIP_CLOCK_REALTIME CLOCK_REALTIME
-
-void __eXosip_clock_gettime(clockid_t cid, struct timespec *time)
-{
-	clock_gettime(cid, time);
-}
-
-#elif defined (WIN32) || defined (_WIN32_WCE)
-
-#include <sys/types.h>
-#include <sys/timeb.h>
-
-#define OSIP_CLOCK_REALTIME 4002
-
-void __eXosip_clock_gettime(unsigned int clock_id, struct timespec *time)
-{
-	struct _timeb time_val;
-
-	if (clock_id != OSIP_CLOCK_REALTIME)
-		return;
-
-	_ftime(&time_val);
-	time->tv_sec = time_val.time;
-	time->tv_nsec = time_val.millitm * 1000000;
-	return;
-}
-#endif
-#endif
-
 #ifndef OSIP_MT
 
 eXosip_event_t *eXosip_event_wait(struct eXosip_t *excontext, int tv_s, int tv_ms)
