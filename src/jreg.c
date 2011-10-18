@@ -138,13 +138,13 @@ void eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg)
 			jreg->r_last_tr->state == NIST_TERMINATED) {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "Release a terminated transaction\n"));
-			__eXosip_delete_jinfo(jreg->r_last_tr);
+			_eXosip_delete_reserved(jreg->r_last_tr);
 			if (jreg->r_last_tr != NULL)
 				osip_list_add(&excontext->j_transactions, jreg->r_last_tr, 0);
 		} else {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "Release a non-terminated transaction\n"));
-			__eXosip_delete_jinfo(jreg->r_last_tr);
+			_eXosip_delete_reserved(jreg->r_last_tr);
 			if (jreg->r_last_tr != NULL)
 				osip_list_add(&excontext->j_transactions, jreg->r_last_tr, 0);
 		}

@@ -214,7 +214,7 @@ void _eXosip_dialog_free(struct eXosip_t *excontext, eXosip_dialog_t * jd)
 
 		tr = (osip_transaction_t *) osip_list_get(jd->d_inc_trs, 0);
 		osip_list_remove(jd->d_inc_trs, 0);
-		__eXosip_delete_jinfo(tr);
+		_eXosip_delete_reserved(tr);
 		osip_list_add(&excontext->j_transactions, tr, 0);
 	}
 
@@ -223,7 +223,7 @@ void _eXosip_dialog_free(struct eXosip_t *excontext, eXosip_dialog_t * jd)
 
 		tr = (osip_transaction_t *) osip_list_get(jd->d_out_trs, 0);
 		osip_list_remove(jd->d_out_trs, 0);
-		__eXosip_delete_jinfo(tr);
+		_eXosip_delete_reserved(tr);
 		osip_list_add(&excontext->j_transactions, tr, 0);
 	}
 

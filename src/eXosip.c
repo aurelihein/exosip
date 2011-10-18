@@ -128,8 +128,7 @@ _eXosip_retry_with_auth(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	osip_transaction_t *tr = NULL;
 	osip_message_t *msg = NULL;
 	osip_event_t *sipevent;
-	jinfo_t *ji = NULL;
-
+	void *reserved1;
 	int cseq;
 	osip_via_t *via;
 	int i;
@@ -227,10 +226,22 @@ _eXosip_retry_with_auth(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	ji = osip_transaction_get_reserved2(out_tr);
-
+	reserved1 = osip_transaction_get_reserved2(out_tr);
 	osip_transaction_set_reserved2(out_tr, NULL);
-	osip_transaction_set_reserved2(tr, ji);
+	osip_transaction_set_reserved2(tr, reserved1);
+
+	reserved1 = osip_transaction_get_reserved3(out_tr);
+	osip_transaction_set_reserved3(out_tr, NULL);
+	osip_transaction_set_reserved3(tr, reserved1);
+
+	reserved1 = osip_transaction_get_reserved4(out_tr);
+	osip_transaction_set_reserved4(out_tr, NULL);
+	osip_transaction_set_reserved4(tr, reserved1);
+
+	reserved1 = osip_transaction_get_reserved5(out_tr);
+	osip_transaction_set_reserved5(out_tr, NULL);
+	osip_transaction_set_reserved5(tr, reserved1);
+
 	osip_transaction_add_event(tr, sipevent);
 
 	if (retry)
@@ -249,7 +260,6 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	osip_transaction_t *tr = NULL;
 	osip_message_t *msg = NULL;
 	osip_event_t *sipevent;
-	jinfo_t *ji = NULL;
 
 	int cseq;
 	osip_via_t *via;
@@ -379,10 +389,6 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	ji = osip_transaction_get_reserved2(out_tr);
-
-	osip_transaction_set_reserved2(out_tr, NULL);
-	osip_transaction_set_reserved2(tr, ji);
 	osip_transaction_add_event(tr, sipevent);
 
 	if (retry)

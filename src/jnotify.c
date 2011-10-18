@@ -110,8 +110,8 @@ void _eXosip_notify_free(struct eXosip_t *excontext, eXosip_notify_t * jn)
 		_eXosip_dialog_free(excontext, jd);
 	}
 
-	__eXosip_delete_jinfo(jn->n_inc_tr);
-	__eXosip_delete_jinfo(jn->n_out_tr);
+	_eXosip_delete_reserved(jn->n_inc_tr);
+	_eXosip_delete_reserved(jn->n_out_tr);
 	if (jn->n_inc_tr != NULL)
 		osip_list_add(&excontext->j_transactions, jn->n_inc_tr, 0);
 	if (jn->n_out_tr != NULL)

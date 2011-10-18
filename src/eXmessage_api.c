@@ -65,13 +65,6 @@ int eXosip_message_send_request(struct eXosip_t *excontext, osip_message_t * mes
 	sipevent = osip_new_outgoing_sipmessage(message);
 	sipevent->transactionid = transaction->transactionid;
 
-#ifndef MINISIZE
-	osip_transaction_set_reserved2(transaction,
-									   __eXosip_new_jinfo(NULL, NULL, NULL, NULL));
-#else
-	osip_transaction_set_reserved2(transaction,
-									   __eXosip_new_jinfo(NULL, NULL));
-#endif
 	osip_transaction_add_event(transaction, sipevent);
 
 	__eXosip_wakeup(excontext);

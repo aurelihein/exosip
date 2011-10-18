@@ -412,8 +412,9 @@ int eXosip_insubscription_send_request(struct eXosip_t *excontext, int did, osip
 	sipevent = osip_new_outgoing_sipmessage(request);
 	sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_set_reserved2(transaction,
-									   __eXosip_new_jinfo(NULL, jd, NULL, jn));
+	osip_transaction_set_reserved4(transaction, jn);
+	osip_transaction_set_reserved3(transaction, jd);
+
 	osip_transaction_add_event(transaction, sipevent);
 	__eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
@@ -507,7 +508,9 @@ _eXosip_insubscription_send_request_with_credential(struct eXosip_t *excontext,
 
 	sipevent = osip_new_outgoing_sipmessage(msg);
 
-	osip_transaction_set_reserved2(tr, __eXosip_new_jinfo(NULL, jd, NULL, jn));
+	osip_transaction_set_reserved4(tr, jn);
+	osip_transaction_set_reserved3(tr, jd);
+
 	osip_transaction_add_event(tr, sipevent);
 
 	eXosip_update(excontext);			/* fixed? */

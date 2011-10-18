@@ -88,7 +88,7 @@ _eXosip_register_build_register(struct eXosip_t *excontext, eXosip_reg_t * jr, o
 				}
 			}
 
-			__eXosip_delete_jinfo(jr->r_last_tr);
+			_eXosip_delete_reserved(jr->r_last_tr);
 			tr = jr->r_last_tr;
 			jr->r_last_tr = NULL;
 			osip_list_add(&excontext->j_transactions, tr, 0);

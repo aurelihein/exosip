@@ -462,6 +462,7 @@ extern "C" {
 		CbSipCallback cbsipCallback;
 	};
 
+#if 0
 	typedef struct jinfo_t jinfo_t;
 
 	struct jinfo_t {
@@ -472,6 +473,7 @@ extern "C" {
 		eXosip_notify_t *jn;
 #endif
 	};
+#endif
 
 	int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size);
 
@@ -492,13 +494,7 @@ extern "C" {
 	char *osip_to_tag_new_random(void);
 	char *osip_from_tag_new_random(void);
 	unsigned int via_branch_new_random(void);
-	void __eXosip_delete_jinfo(osip_transaction_t * transaction);
-#ifndef MINISIZE
-	jinfo_t *__eXosip_new_jinfo(eXosip_call_t * jc, eXosip_dialog_t * jd,
-								eXosip_subscribe_t * js, eXosip_notify_t * jn);
-#else
-	jinfo_t *__eXosip_new_jinfo(eXosip_call_t * jc, eXosip_dialog_t * jd);
-#endif
+	void _eXosip_delete_reserved(osip_transaction_t * transaction);
 
 	int eXosip_dialog_init_as_uac(eXosip_dialog_t ** jd, osip_message_t * _200Ok);
 	int eXosip_dialog_init_as_uas(eXosip_dialog_t ** jd,

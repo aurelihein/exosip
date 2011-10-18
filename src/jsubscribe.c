@@ -102,8 +102,8 @@ void _eXosip_subscribe_free(struct eXosip_t *excontext, eXosip_subscribe_t * js)
 		_eXosip_dialog_free(excontext, jd);
 	}
 
-	__eXosip_delete_jinfo(js->s_inc_tr);
-	__eXosip_delete_jinfo(js->s_out_tr);
+	_eXosip_delete_reserved(js->s_inc_tr);
+	_eXosip_delete_reserved(js->s_out_tr);
 	if (js->s_inc_tr != NULL)
 		osip_list_add(&excontext->j_transactions, js->s_inc_tr, 0);
 	if (js->s_out_tr != NULL)

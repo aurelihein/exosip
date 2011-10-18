@@ -122,7 +122,7 @@ void eXosip_kill_transaction(osip_list_t * transactions)
 	while (!osip_list_eol(transactions, 0)) {
 		transaction = osip_list_get(transactions, 0);
 
-		__eXosip_delete_jinfo(transaction);
+		_eXosip_delete_reserved(transaction);
 		_eXosip_dnsutils_release(transaction->naptr_record);
 		transaction->naptr_record=NULL;
 		osip_transaction_free(transaction);
@@ -218,13 +218,13 @@ void eXosip_quit(struct eXosip_t *excontext)
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "Release a terminated transaction\n"));
 			osip_list_remove(&excontext->j_transactions, 0);
-			__eXosip_delete_jinfo(tr);
+			_eXosip_delete_reserved(tr);
 			_eXosip_dnsutils_release(tr->naptr_record);
 			tr->naptr_record=NULL;
 			osip_transaction_free(tr);
 		} else {
 			osip_list_remove(&excontext->j_transactions, 0);
-			__eXosip_delete_jinfo(tr);
+			_eXosip_delete_reserved(tr);
 			_eXosip_dnsutils_release(tr->naptr_record);
 			tr->naptr_record=NULL;
 			osip_transaction_free(tr);
