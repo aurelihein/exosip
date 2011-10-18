@@ -1399,7 +1399,7 @@ static int tls_tl_open(struct eXosip_t *excontext)
 					"eXosip: Couldn't load randomness\n"));
 #endif
 
-	res = eXosip_get_addrinfo(excontext, &addrinfo,
+	res = _eXosip_get_addrinfo(excontext, &addrinfo,
 							  eXtl_tls.proto_ifs,
 							  eXtl_tls.proto_port, eXtl_tls.proto_num);
 	if (res)
@@ -1474,7 +1474,7 @@ static int tls_tl_open(struct eXosip_t *excontext)
 		break;
 	}
 
-	eXosip_freeaddrinfo(addrinfo);
+	_eXosip_freeaddrinfo(addrinfo);
 
 	if (sock < 0) {
 		OSIP_TRACE(osip_trace
@@ -2199,7 +2199,7 @@ static int _tls_tl_recv(struct eXosip_t *excontext, struct socket_tab *sockinfo)
 		//OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 		//					  "socket %s:%i: eof\n", sockinfo->remote_ip, sockinfo->remote_port));
 		//_tls_tl_close_sockinfo(sockinfo);
-		//eXosip_mark_all_registrations_expired();
+		//_eXosip_mark_all_registrations_expired();
 		return OSIP_UNDEFINED_ERROR;
 	} else if (r < 0) {
 		//int status = ex_errno;
@@ -2207,7 +2207,7 @@ static int _tls_tl_recv(struct eXosip_t *excontext, struct socket_tab *sockinfo)
 		//	return OSIP_SUCCESS;
 		/* Do we need next line ? */
 		/* else if (is_connreset_error(status)) */
-		//eXosip_mark_all_registrations_expired();
+		//_eXosip_mark_all_registrations_expired();
 		//OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 		//					  "socket %s:%i: error %d\n", sockinfo->remote_ip, sockinfo->remote_port, status));
 		//_tls_tl_close_sockinfo(sockinfo);
@@ -2450,7 +2450,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 	if (pos == EXOSIP_MAX_SOCKETS)
 		return -1;
 
-	res = eXosip_get_addrinfo(excontext, &addrinfo, host, port, IPPROTO_TCP);
+	res = _eXosip_get_addrinfo(excontext, &addrinfo, host, port, IPPROTO_TCP);
 	if (res)
 		return -1;
 
@@ -2470,7 +2470,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 		if (res == 0) {
 			int i = _tls_tl_find_socket(src6host, port);
 			if (i >= 0) {
-				eXosip_freeaddrinfo(addrinfo);
+				_eXosip_freeaddrinfo(addrinfo);
 				return i;
 			}
 			OSIP_TRACE(osip_trace
@@ -2655,7 +2655,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 		break;
 	}
 
-	eXosip_freeaddrinfo(addrinfo);
+	_eXosip_freeaddrinfo(addrinfo);
 
 	if (sock > 0) {
 		tls_socket_tab[pos].socket = sock;

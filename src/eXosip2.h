@@ -115,19 +115,19 @@ extern "C" {
 		struct addrinfo *ai_next;	/* Pointer to next in list.  */
 	};
 
-	void eXosip_freeaddrinfo(struct addrinfo *ai);
+	void _eXosip_freeaddrinfo(struct addrinfo *ai);
 
 #else
 
-#define eXosip_freeaddrinfo freeaddrinfo
+#define _eXosip_freeaddrinfo freeaddrinfo
 
 #endif
 
-	void eXosip_update(struct eXosip_t *excontext);
+	void _eXosip_update(struct eXosip_t *excontext);
 #ifdef OSIP_MT
-	void __eXosip_wakeup(struct eXosip_t *excontext);
+	void _eXosip_wakeup(struct eXosip_t *excontext);
 #else
-#define __eXosip_wakeup(A)  ;
+#define _eXosip_wakeup(A)  ;
 #endif
 
 #ifndef DEFINE_SOCKADDR_STORAGE
@@ -289,7 +289,7 @@ extern "C" {
 	};
 
 	int
-	 __eXosip_create_authorization_header(osip_www_authenticate_t * wa,
+	 _eXosip_create_authorization_header(osip_www_authenticate_t * wa,
 										  const char *rquri,
 										  const char *username,
 										  const char *passwd,
@@ -297,7 +297,7 @@ extern "C" {
 										  osip_authorization_t ** auth,
 										  const char *method,
 										  const char *pszCNonce, int iNonceCount);
-	int __eXosip_create_proxy_authorization_header(osip_proxy_authenticate_t * wa,
+	int _eXosip_create_proxy_authorization_header(osip_proxy_authenticate_t * wa,
 												   const char *rquri,
 												   const char *username,
 												   const char *passwd,
@@ -310,40 +310,40 @@ extern "C" {
 							int answer_code);
 	int _eXosip_delete_nonce(struct eXosip_t *excontext, const char *call_id);
 
-	eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t * jc,
+	eXosip_event_t *_eXosip_event_init_for_call(int type, eXosip_call_t * jc,
 											   eXosip_dialog_t * jd,
 											   osip_transaction_t * tr);
 
 #ifndef MINISIZE
-	eXosip_event_t *eXosip_event_init_for_subscribe(int type,
+	eXosip_event_t *_eXosip_event_init_for_subscribe(int type,
 													eXosip_subscribe_t * js,
 													eXosip_dialog_t * jd,
 													osip_transaction_t * tr);
-	eXosip_event_t *eXosip_event_init_for_notify(int type,
+	eXosip_event_t *_eXosip_event_init_for_notify(int type,
 												 eXosip_notify_t * jn,
 												 eXosip_dialog_t * jd,
 												 osip_transaction_t * tr);
 #endif
 
-	eXosip_event_t *eXosip_event_init_for_reg(int type, eXosip_reg_t * jr,
+	eXosip_event_t *_eXosip_event_init_for_reg(int type, eXosip_reg_t * jr,
 											  osip_transaction_t * tr);
-	eXosip_event_t *eXosip_event_init_for_message(int type,
+	eXosip_event_t *_eXosip_event_init_for_message(int type,
 												  osip_transaction_t * tr);
 
-	int eXosip_event_init(eXosip_event_t ** je, int type);
-	void report_call_event(struct eXosip_t *excontext, int evt, eXosip_call_t * jc, eXosip_dialog_t * jd,
+	int _eXosip_event_init(eXosip_event_t ** je, int type);
+	void _eXosip_report_call_event(struct eXosip_t *excontext, int evt, eXosip_call_t * jc, eXosip_dialog_t * jd,
 						   osip_transaction_t * tr);
-	void report_event(struct eXosip_t *excontext, eXosip_event_t * je, osip_message_t * sip);
-	int eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je);
+	void _eXosip_report_event(struct eXosip_t *excontext, eXosip_event_t * je, osip_message_t * sip);
+	int _eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je);
 
 	typedef void (*eXosip_callback_t) (int type, eXosip_event_t *);
 
-	char *strdup_printf(const char *fmt, ...);
+	char *_eXosip_strdup_printf(const char *fmt, ...);
 
 #define eXosip_trace(loglevel,args)  do        \
 {                       \
 	char *__strmsg;  \
-	__strmsg=strdup_printf args ;    \
+	__strmsg=_eXosip_strdup_printf args ;    \
 	OSIP_TRACE(osip_trace(__FILE__,__LINE__,(loglevel),NULL,"%s\n",__strmsg)); \
 	osip_free (__strmsg);        \
 }while (0);
@@ -462,50 +462,25 @@ extern "C" {
 		CbSipCallback cbsipCallback;
 	};
 
-#if 0
-	typedef struct jinfo_t jinfo_t;
+	int _eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size);
 
-	struct jinfo_t {
-		eXosip_dialog_t *jd;
-		eXosip_call_t *jc;
-#ifndef MINISIZE
-		eXosip_subscribe_t *js;
-		eXosip_notify_t *jn;
-#endif
-	};
-#endif
-
-	int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size);
-
-/**
- * Prepare addrinfo for socket binding and resolv hostname
- * 
- * @param addrinfo  informations about the connections
- * @param hostname  hostname to resolv.
- * @param service   port number or "sip" SRV record if service=0
- */
-	int eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, const char *hostname,
+	int _eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, const char *hostname,
 							int service, int protocol);
 
-	int eXosip_set_callbacks(osip_t * osip);
+	int _eXosip_set_callbacks(osip_t * osip);
 	int _eXosip_snd_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, char *host,
 			   int port, int out_socket);
-	char *osip_call_id_new_random(void);
-	char *osip_to_tag_new_random(void);
-	char *osip_from_tag_new_random(void);
-	unsigned int via_branch_new_random(void);
+	char *_eXosip_malloc_new_random(void);
 	void _eXosip_delete_reserved(osip_transaction_t * transaction);
 
-	int eXosip_dialog_init_as_uac(eXosip_dialog_t ** jd, osip_message_t * _200Ok);
-	int eXosip_dialog_init_as_uas(eXosip_dialog_t ** jd,
+	int _eXosip_dialog_init_as_uac(eXosip_dialog_t ** jd, osip_message_t * _200Ok);
+	int _eXosip_dialog_init_as_uas(eXosip_dialog_t ** jd,
 								  osip_message_t * _invite,
 								  osip_message_t * _200Ok);
 	void _eXosip_dialog_free(struct eXosip_t *excontext,eXosip_dialog_t * jd);
-	void eXosip_dialog_set_state(eXosip_dialog_t * jd, int state);
+	void _eXosip_dialog_set_state(eXosip_dialog_t * jd, int state);
 
 
-	int isrfc1918(char *ipaddr);
-	void eXosip_get_localip_from_via(osip_message_t *, char *localip, int size);
 	int _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_message_t ** dest,
 										 const char *method, const char *to,
 										 const char *transport,
@@ -517,19 +492,19 @@ extern "C" {
 	int _eXosip_generating_bye(struct eXosip_t *excontext, osip_message_t ** bye, osip_dialog_t * dialog,
 					   char *transport);
 
-	int eXosip_update_top_via(osip_message_t * sip);
+	int _eXosip_update_top_via(osip_message_t * sip);
 	int _eXosip_request_add_via(struct eXosip_t *excontext, osip_message_t * request, const char *transport,
 								const char *locip);
 
-	void eXosip_mark_all_registrations_expired (struct eXosip_t *excontext);
+	void _eXosip_mark_all_registrations_expired (struct eXosip_t *excontext);
 
-	int eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t * req,
+	int _eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t * req,
 											  osip_message_t * last_response);
 	int _eXosip_reg_find(struct eXosip_t *excontext, eXosip_reg_t ** reg, osip_transaction_t * tr);
 	int _eXosip_reg_find_id(struct eXosip_t *excontext, eXosip_reg_t ** reg, int rid);
 	int _eXosip_reg_init(struct eXosip_t *excontext, eXosip_reg_t ** jr, const char *from,
 						const char *proxy, const char *contact);
-	void eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg);
+	void _eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg);
 	int _eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osip_message_t ** reg,
 							char *transport, char *from, char *proxy,
 							char *contact, int expires);
@@ -549,16 +524,16 @@ extern "C" {
 												eXosip_notify_t ** jn,
 												eXosip_dialog_t ** jd,
 												osip_transaction_t ** tr);
-	int eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t ** jn,
+	int _eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t ** jn,
 								  eXosip_dialog_t ** jd);
 	int _eXosip_subscribe_transaction_find(struct eXosip_t *excontext, int tid, eXosip_subscribe_t ** js,
 										   eXosip_dialog_t ** jd,
 										   osip_transaction_t ** tr);
-	int eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int nid, eXosip_subscribe_t ** js,
+	int _eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int nid, eXosip_subscribe_t ** js,
 									 eXosip_dialog_t ** jd);
 #endif
-	int eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc);
-	int eXosip_dialog_set_200ok(eXosip_dialog_t * _jd, osip_message_t * _200Ok);
+	int _eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc);
+	int _eXosip_dialog_set_200ok(eXosip_dialog_t * _jd, osip_message_t * _200Ok);
 
 	int _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, eXosip_dialog_t * jd,
 									   int code, osip_message_t ** answer,
@@ -572,7 +547,6 @@ extern "C" {
 											 eXosip_dialog_t * jd, int code);
 #endif
 
-	int eXosip_build_response_default(int jid, int status);
 	int _eXosip_build_response_default(struct eXosip_t *excontext, osip_message_t ** dest,
 									   osip_dialog_t * dialog, int status,
 									   osip_message_t * request);
@@ -582,59 +556,59 @@ extern "C" {
 											const char *method,
 											osip_dialog_t * dialog,
 											const char *transport);
-	void eXosip_kill_transaction(osip_list_t * transactions);
-	int eXosip_remove_transaction_from_call(osip_transaction_t * tr,
+	void _eXosip_kill_transaction(osip_list_t * transactions);
+	int _eXosip_remove_transaction_from_call(osip_transaction_t * tr,
 											eXosip_call_t * jc);
 #ifndef MINISIZE
-	osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t * jn,
+	osip_transaction_t *_eXosip_find_last_inc_notify(eXosip_subscribe_t * jn,
 													eXosip_dialog_t * jd);
-	osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t * jn,
+	osip_transaction_t *_eXosip_find_last_out_notify(eXosip_notify_t * jn,
 													eXosip_dialog_t * jd);
-	osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
+	osip_transaction_t *_eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
 													   eXosip_dialog_t * jd);
-	osip_transaction_t *eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
+	osip_transaction_t *_eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
 													   eXosip_dialog_t * jd);
 #endif
 
-	osip_transaction_t *eXosip_find_last_transaction(eXosip_call_t * jc,
+	osip_transaction_t *_eXosip_find_last_transaction(eXosip_call_t * jc,
 													 eXosip_dialog_t * jd,
 													 const char *method);
-	osip_transaction_t *eXosip_find_last_inc_transaction(eXosip_call_t * jc,
+	osip_transaction_t *_eXosip_find_last_inc_transaction(eXosip_call_t * jc,
 														 eXosip_dialog_t * jd,
 														 const char *method);
-	osip_transaction_t *eXosip_find_last_out_transaction(eXosip_call_t * jc,
+	osip_transaction_t *_eXosip_find_last_out_transaction(eXosip_call_t * jc,
 														 eXosip_dialog_t * jd,
 														 const char *method);
-	osip_transaction_t *eXosip_find_last_invite(eXosip_call_t * jc,
+	osip_transaction_t *_eXosip_find_last_invite(eXosip_call_t * jc,
 												eXosip_dialog_t * jd);
-	osip_transaction_t *eXosip_find_last_inc_invite(eXosip_call_t * jc,
+	osip_transaction_t *_eXosip_find_last_inc_invite(eXosip_call_t * jc,
 													eXosip_dialog_t * jd);
-	osip_transaction_t *eXosip_find_last_out_invite(eXosip_call_t * jc,
+	osip_transaction_t *_eXosip_find_last_out_invite(eXosip_call_t * jc,
 													eXosip_dialog_t * jd);
-	osip_transaction_t *eXosip_find_previous_invite(eXosip_call_t * jc,
+	osip_transaction_t *_eXosip_find_previous_invite(eXosip_call_t * jc,
 													eXosip_dialog_t * jd,
 													osip_transaction_t *
 													last_invite);
 
 
-	int eXosip_call_init(eXosip_call_t ** jc);
-	void eXosip_call_renew_expire_time(eXosip_call_t * jc);
+	int _eXosip_call_init(eXosip_call_t ** jc);
+	void _eXosip_call_renew_expire_time(eXosip_call_t * jc);
 	void _eXosip_call_free(struct eXosip_t *excontext, eXosip_call_t * jc);
-	void __eXosip_call_remove_dialog_reference_in_call(eXosip_call_t * jc,
+	void _eXosip_call_remove_dialog_reference_in_call(eXosip_call_t * jc,
 													   eXosip_dialog_t * jd);
-	int eXosip_read_message(struct eXosip_t *excontext, int max_message_nb, int sec_max, int usec_max);
-	void eXosip_release_terminated_calls(struct eXosip_t *excontext);
-	void eXosip_release_terminated_registrations(struct eXosip_t *excontext);
-	void eXosip_release_terminated_publications(struct eXosip_t *excontext);
+	int _eXosip_read_message(struct eXosip_t *excontext, int max_message_nb, int sec_max, int usec_max);
+	void _eXosip_release_terminated_calls(struct eXosip_t *excontext);
+	void _eXosip_release_terminated_registrations(struct eXosip_t *excontext);
+	void _eXosip_release_terminated_publications(struct eXosip_t *excontext);
 
 #ifndef MINISIZE
-	void eXosip_release_terminated_subscriptions(struct eXosip_t *excontext);
-	void eXosip_release_terminated_in_subscriptions(struct eXosip_t *excontext);
-	int eXosip_subscribe_init(eXosip_subscribe_t ** js);
+	void _eXosip_release_terminated_subscriptions(struct eXosip_t *excontext);
+	void _eXosip_release_terminated_in_subscriptions(struct eXosip_t *excontext);
+	int _eXosip_subscribe_init(eXosip_subscribe_t ** js);
 	void _eXosip_subscribe_free(struct eXosip_t *excontext, eXosip_subscribe_t * js);
 	int _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t * js,
 											   osip_message_t * inc_subscribe);
-	int eXosip_subscribe_need_refresh(eXosip_subscribe_t * js,
+	int _eXosip_subscribe_need_refresh(eXosip_subscribe_t * js,
 									  eXosip_dialog_t * jd, int now);
 	int _eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosip_subscribe_t * js,
 													   eXosip_dialog_t * jd,
@@ -643,7 +617,7 @@ extern "C" {
 	int _eXosip_subscribe_automatic_refresh(struct eXosip_t *excontext, eXosip_subscribe_t * js,
 											eXosip_dialog_t * jd,
 											osip_transaction_t * out_tr);
-	int eXosip_notify_init(eXosip_notify_t ** jn, osip_message_t * inc_subscribe);
+	int _eXosip_notify_init(eXosip_notify_t ** jn, osip_message_t * inc_subscribe);
 	void _eXosip_notify_free(struct eXosip_t *excontext, eXosip_notify_t * jn);
 	int _eXosip_notify_set_contact_info(eXosip_notify_t * jn, char *uri);
 	int _eXosip_notify_set_refresh_interval(eXosip_notify_t * jn,
@@ -659,9 +633,9 @@ extern "C" {
 															* out_tr);
 #endif
 
-	int eXosip_is_public_address(const char *addr);
+	int _eXosip_is_public_address(const char *addr);
 
-	void eXosip_retransmit_lost200ok(struct eXosip_t *excontext);
+	void _eXosip_retransmit_lost200ok(struct eXosip_t *excontext);
 	int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * request,
 								   osip_message_t * answer);
 

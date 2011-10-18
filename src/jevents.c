@@ -58,7 +58,7 @@ _eXosip_event_fill_messages(eXosip_event_t * je, osip_transaction_t * tr)
 	return OSIP_SUCCESS;
 }
 
-eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t * jc,
+eXosip_event_t *_eXosip_event_init_for_call(int type, eXosip_call_t * jc,
 										   eXosip_dialog_t * jd,
 										   osip_transaction_t * tr)
 {
@@ -66,7 +66,7 @@ eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t * jc,
 
 	if (jc == NULL)
 		return NULL;
-	eXosip_event_init(&je, type);
+	_eXosip_event_init(&je, type);
 	if (je == NULL)
 		return NULL;
 
@@ -84,7 +84,7 @@ eXosip_event_t *eXosip_event_init_for_call(int type, eXosip_call_t * jc,
 
 #ifndef MINISIZE
 
-eXosip_event_t *eXosip_event_init_for_subscribe(int type, eXosip_subscribe_t * js,
+eXosip_event_t *_eXosip_event_init_for_subscribe(int type, eXosip_subscribe_t * js,
 												eXosip_dialog_t * jd,
 												osip_transaction_t * tr)
 {
@@ -92,7 +92,7 @@ eXosip_event_t *eXosip_event_init_for_subscribe(int type, eXosip_subscribe_t * j
 
 	if (js == NULL)
 		return NULL;
-	eXosip_event_init(&je, type);
+	_eXosip_event_init(&je, type);
 	if (je == NULL)
 		return NULL;
 
@@ -112,7 +112,7 @@ eXosip_event_t *eXosip_event_init_for_subscribe(int type, eXosip_subscribe_t * j
 	return je;
 }
 
-eXosip_event_t *eXosip_event_init_for_notify(int type, eXosip_notify_t * jn,
+eXosip_event_t *_eXosip_event_init_for_notify(int type, eXosip_notify_t * jn,
 											 eXosip_dialog_t * jd,
 											 osip_transaction_t * tr)
 {
@@ -120,7 +120,7 @@ eXosip_event_t *eXosip_event_init_for_notify(int type, eXosip_notify_t * jn,
 
 	if (jn == NULL)
 		return NULL;
-	eXosip_event_init(&je, type);
+	_eXosip_event_init(&je, type);
 	if (je == NULL)
 		return NULL;
 
@@ -142,14 +142,14 @@ eXosip_event_t *eXosip_event_init_for_notify(int type, eXosip_notify_t * jn,
 
 #endif
 
-eXosip_event_t *eXosip_event_init_for_reg(int type, eXosip_reg_t * jr,
+eXosip_event_t *_eXosip_event_init_for_reg(int type, eXosip_reg_t * jr,
 										  osip_transaction_t * tr)
 {
 	eXosip_event_t *je;
 
 	if (jr == NULL)
 		return NULL;
-	eXosip_event_init(&je, type);
+	_eXosip_event_init(&je, type);
 	if (je == NULL)
 		return NULL;
 	je->rid = jr->r_id;
@@ -158,11 +158,11 @@ eXosip_event_t *eXosip_event_init_for_reg(int type, eXosip_reg_t * jr,
 	return je;
 }
 
-eXosip_event_t *eXosip_event_init_for_message(int type, osip_transaction_t * tr)
+eXosip_event_t *_eXosip_event_init_for_message(int type, osip_transaction_t * tr)
 {
 	eXosip_event_t *je;
 
-	eXosip_event_init(&je, type);
+	_eXosip_event_init(&je, type);
 	if (je == NULL)
 		return NULL;
 
@@ -174,7 +174,7 @@ eXosip_event_t *eXosip_event_init_for_message(int type, osip_transaction_t * tr)
 	return je;
 }
 
-int eXosip_event_init(eXosip_event_t ** je, int type)
+int _eXosip_event_init(eXosip_event_t ** je, int type)
 {
 	*je = (eXosip_event_t *) osip_malloc(sizeof(eXosip_event_t));
 	if (*je == NULL)
@@ -288,24 +288,24 @@ void eXosip_event_free(eXosip_event_t * je)
 	osip_free(je);
 }
 
-void report_event(struct eXosip_t *excontext, eXosip_event_t * je, osip_message_t * sip)
+void _eXosip_report_event(struct eXosip_t *excontext, eXosip_event_t * je, osip_message_t * sip)
 {
 	if (je != NULL) {
-		eXosip_event_add(excontext, je);
+		_eXosip_event_add(excontext, je);
 	}
 }
 
 void
-report_call_event(struct eXosip_t *excontext, int evt, eXosip_call_t * jc,
+_eXosip_report_call_event(struct eXosip_t *excontext, int evt, eXosip_call_t * jc,
 				  eXosip_dialog_t * jd, osip_transaction_t * tr)
 {
 	eXosip_event_t *je;
 
-	je = eXosip_event_init_for_call(evt, jc, jd, tr);
-	report_event(excontext, je, NULL);
+	je = _eXosip_event_init_for_call(evt, jc, jd, tr);
+	_eXosip_report_event(excontext, je, NULL);
 }
 
-int eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je)
+int _eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je)
 {
 	int i = osip_fifo_add(excontext->j_events, (void *) je);
 
@@ -315,7 +315,7 @@ int eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je)
 #endif
 #endif
 
-	__eXosip_wakeup_event(excontext);
+	eXosip_wakeup_event(excontext);
 	return i;
 }
 
@@ -329,7 +329,7 @@ eXosip_event_t *eXosip_event_wait(struct eXosip_t *excontext, int tv_s, int tv_m
 		return je;
 
 	eXosip_lock(excontext);
-	eXosip_retransmit_lost200ok(excontext);
+	_eXosip_retransmit_lost200ok(excontext);
 	eXosip_unlock(excontext);
 
 	return NULL;
@@ -366,7 +366,7 @@ eXosip_event_t *eXosip_event_wait(struct eXosip_t *excontext, int tv_s, int tv_m
 	}
 
 	eXosip_lock(excontext);
-	eXosip_retransmit_lost200ok(excontext);
+	_eXosip_retransmit_lost200ok(excontext);
 	eXosip_unlock(excontext);
 
 	FD_ZERO(&fdset);

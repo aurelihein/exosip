@@ -61,7 +61,7 @@ extern int ipv6_enable;
 
 #if defined(USE_GETHOSTBYNAME)
 
-void eXosip_freeaddrinfo(struct addrinfo *ai)
+void _eXosip_freeaddrinfo(struct addrinfo *ai)
 {
 	struct addrinfo *next;
 
@@ -204,7 +204,7 @@ static int eXosip_inet_pton(int family, const char *src, void *dst)
  *
  */
 int
-eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo,
+_eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo,
 					const char *hostname, int port, int protocol)
 {
 	struct hostent *h = NULL;
@@ -472,7 +472,7 @@ eXosip_dns_get_local_fqdn(char **servername, char **serverip,
 	return OSIP_SUCCESS;
 }
 
-int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size)
+int _eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size)
 {
 	SOCKET sock;
 
@@ -486,9 +486,9 @@ int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *addres
 	sock = socket(family, SOCK_DGRAM, 0);
 
 	if (family == AF_INET) {
-		eXosip_get_addrinfo(excontext, &addrf, excontext->ipv4_for_gateway, 0, IPPROTO_UDP);
+		_eXosip_get_addrinfo(excontext, &addrf, excontext->ipv4_for_gateway, 0, IPPROTO_UDP);
 	} else if (family == AF_INET6) {
-		eXosip_get_addrinfo(excontext, &addrf, excontext->ipv6_for_gateway, 0, IPPROTO_UDP);
+		_eXosip_get_addrinfo(excontext, &addrf, excontext->ipv6_for_gateway, 0, IPPROTO_UDP);
 	}
 
 	if (addrf == NULL) {
@@ -501,13 +501,13 @@ int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *addres
 		(sock, SIO_ROUTING_INTERFACE_QUERY, addrf->ai_addr, addrf->ai_addrlen,
 		 &local_addr, sizeof(local_addr), &local_addr_len, NULL, NULL) != 0) {
 		closesocket(sock);
-		eXosip_freeaddrinfo(addrf);
+		_eXosip_freeaddrinfo(addrf);
 		snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1");
 		return OSIP_NO_NETWORK;
 	}
 
 	closesocket(sock);
-	eXosip_freeaddrinfo(addrf);
+	_eXosip_freeaddrinfo(addrf);
 
 	if (getnameinfo((const struct sockaddr *) &local_addr,
 					local_addr_len, address, size, NULL, 0, NI_NUMERICHOST)) {
@@ -577,7 +577,7 @@ _eXosip_default_gateway_with_getifaddrs(int type, char *address, int size)
 }
 #endif
 
-int eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size)
+int _eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *address, int size)
 {
 	int err;
 
@@ -708,7 +708,7 @@ static int _eXosip_default_gateway_ipv6(struct eXosip_t *excontext, char *addres
 
 #endif
 
-char *strdup_printf(const char *fmt, ...)
+char *_eXosip_strdup_printf(const char *fmt, ...)
 {
 	/* Guess we need no more than 100 bytes. */
 	int n, size = 100;
@@ -744,7 +744,7 @@ char *strdup_printf(const char *fmt, ...)
 #if !defined(USE_GETHOSTBYNAME)
 
 int
-eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, const char *hostname,
+_eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, const char *hostname,
 					int service, int protocol)
 {
 	struct addrinfo hints;
@@ -760,7 +760,7 @@ eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, cons
 		/* obsolete code: make an SRV record? */
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					"eXosip_get_addrinfo: obsolete code?\n"));
+					"_eXosip_get_addrinfo: obsolete code?\n"));
 		return -1;
 	}
 

@@ -29,7 +29,7 @@
 /* some methods to extract transaction information from a eXosip_call_t */
 
 int
-eXosip_remove_transaction_from_call(osip_transaction_t * tr, eXosip_call_t * jc)
+_eXosip_remove_transaction_from_call(osip_transaction_t * tr, eXosip_call_t * jc)
 {
 	osip_transaction_t *inc_tr;
 	osip_transaction_t *out_tr;
@@ -75,15 +75,15 @@ eXosip_remove_transaction_from_call(osip_transaction_t * tr, eXosip_call_t * jc)
 	return OSIP_NOTFOUND;
 }
 
-osip_transaction_t *eXosip_find_last_transaction(eXosip_call_t * jc,
+osip_transaction_t *_eXosip_find_last_transaction(eXosip_call_t * jc,
 												 eXosip_dialog_t * jd,
 												 const char *method)
 {
 	osip_transaction_t *inc_tr;
 	osip_transaction_t *out_tr;
 
-	inc_tr = eXosip_find_last_inc_transaction(jc, jd, method);
-	out_tr = eXosip_find_last_out_transaction(jc, jd, method);
+	inc_tr = _eXosip_find_last_inc_transaction(jc, jd, method);
+	out_tr = _eXosip_find_last_out_transaction(jc, jd, method);
 	if (inc_tr == NULL)
 		return out_tr;
 	if (out_tr == NULL)
@@ -94,7 +94,7 @@ osip_transaction_t *eXosip_find_last_transaction(eXosip_call_t * jc,
 	return out_tr;
 }
 
-osip_transaction_t *eXosip_find_last_inc_transaction(eXosip_call_t * jc,
+osip_transaction_t *_eXosip_find_last_inc_transaction(eXosip_call_t * jc,
 													 eXosip_dialog_t * jd,
 													 const char *method)
 {
@@ -120,7 +120,7 @@ osip_transaction_t *eXosip_find_last_inc_transaction(eXosip_call_t * jc,
 	return inc_tr;
 }
 
-osip_transaction_t *eXosip_find_last_out_transaction(eXosip_call_t * jc,
+osip_transaction_t *_eXosip_find_last_out_transaction(eXosip_call_t * jc,
 													 eXosip_dialog_t * jd,
 													 const char *method)
 {
@@ -148,14 +148,14 @@ osip_transaction_t *eXosip_find_last_out_transaction(eXosip_call_t * jc,
 	return out_tr;
 }
 
-osip_transaction_t *eXosip_find_last_invite(eXosip_call_t * jc,
+osip_transaction_t *_eXosip_find_last_invite(eXosip_call_t * jc,
 											eXosip_dialog_t * jd)
 {
 	osip_transaction_t *inc_tr;
 	osip_transaction_t *out_tr;
 
-	inc_tr = eXosip_find_last_inc_invite(jc, jd);
-	out_tr = eXosip_find_last_out_invite(jc, jd);
+	inc_tr = _eXosip_find_last_inc_invite(jc, jd);
+	out_tr = _eXosip_find_last_out_invite(jc, jd);
 	if (inc_tr == NULL)
 		return out_tr;
 	if (out_tr == NULL)
@@ -166,7 +166,7 @@ osip_transaction_t *eXosip_find_last_invite(eXosip_call_t * jc,
 	return out_tr;
 }
 
-osip_transaction_t *eXosip_find_last_inc_invite(eXosip_call_t * jc,
+osip_transaction_t *_eXosip_find_last_inc_invite(eXosip_call_t * jc,
 												eXosip_dialog_t * jd)
 {
 	osip_transaction_t *inc_tr;
@@ -192,7 +192,7 @@ osip_transaction_t *eXosip_find_last_inc_invite(eXosip_call_t * jc,
 	return inc_tr;
 }
 
-osip_transaction_t *eXosip_find_last_out_invite(eXosip_call_t * jc,
+osip_transaction_t *_eXosip_find_last_out_invite(eXosip_call_t * jc,
 												eXosip_dialog_t * jd)
 {
 	osip_transaction_t *out_tr;
@@ -222,7 +222,7 @@ osip_transaction_t *eXosip_find_last_out_invite(eXosip_call_t * jc,
 
 #ifndef MINISIZE
 
-osip_transaction_t *eXosip_find_previous_invite(eXosip_call_t * jc,
+osip_transaction_t *_eXosip_find_previous_invite(eXosip_call_t * jc,
 												eXosip_dialog_t * jd,
 												osip_transaction_t * last_invite)
 {

@@ -26,7 +26,7 @@
 
 #include "eXosip2.h"
 
-osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
+osip_transaction_t *_eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
 												   eXosip_dialog_t * jd)
 {
 	osip_transaction_t *inc_tr;
@@ -53,7 +53,7 @@ osip_transaction_t *eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
 }
 
 
-osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t * jn,
+osip_transaction_t *_eXosip_find_last_out_notify(eXosip_notify_t * jn,
 												eXosip_dialog_t * jd)
 {
 	osip_transaction_t *out_tr;
@@ -73,7 +73,7 @@ osip_transaction_t *eXosip_find_last_out_notify(eXosip_notify_t * jn,
 	return NULL;
 }
 
-int eXosip_notify_init(eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
+int _eXosip_notify_init(eXosip_notify_t ** jn, osip_message_t * inc_subscribe)
 {
 	osip_contact_t *co;
 

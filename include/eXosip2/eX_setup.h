@@ -332,9 +332,9 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * 
  */
 #ifdef OSIP_MT
-  void __eXosip_wakeup_event (struct eXosip_t *excontext);
+  void eXosip_wakeup_event (struct eXosip_t *excontext);
 #else
-#define __eXosip_wakeup_event(A)   ;
+#define eXosip_wakeup_event(A)   ;
 #endif
 
 #endif

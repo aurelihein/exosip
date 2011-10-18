@@ -24,7 +24,7 @@
 
 #include "eXosip2.h"
 
-void eXosip_dialog_set_state(eXosip_dialog_t * jd, int state)
+void _eXosip_dialog_set_state(eXosip_dialog_t * jd, int state)
 {
 	jd->d_STATE = state;
 }
@@ -49,7 +49,7 @@ int _eXosip_call_dialog_find(struct eXosip_t *excontext, int jid, eXosip_call_t 
 #ifndef MINISIZE
 
 int
-eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
+_eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t ** jn, eXosip_dialog_t ** jd)
 {
 	if (nid <= 0)
 		return OSIP_BADPARAMETER;
@@ -65,7 +65,7 @@ eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t *
 }
 
 int
-eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int sid, eXosip_subscribe_t ** js,
+_eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int sid, eXosip_subscribe_t ** js,
 							 eXosip_dialog_t ** jd)
 {
 	if (sid <= 0)
@@ -86,7 +86,7 @@ eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int sid, eXosip_subscri
 
 #endif
 
-int eXosip_dialog_set_200ok(eXosip_dialog_t * jd, osip_message_t * _200Ok)
+int _eXosip_dialog_set_200ok(eXosip_dialog_t * jd, osip_message_t * _200Ok)
 {
 	int i;
 
@@ -102,7 +102,7 @@ int eXosip_dialog_set_200ok(eXosip_dialog_t * jd, osip_message_t * _200Ok)
 	return OSIP_SUCCESS;
 }
 
-int eXosip_dialog_init_as_uac(eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
+int _eXosip_dialog_init_as_uac(eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 {
 	int i;
 	eXosip_dialog_t *jd;
@@ -157,7 +157,7 @@ int eXosip_dialog_init_as_uac(eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 }
 
 int
-eXosip_dialog_init_as_uas(eXosip_dialog_t ** _jd, osip_message_t * _invite,
+_eXosip_dialog_init_as_uas(eXosip_dialog_t ** _jd, osip_message_t * _invite,
 						  osip_message_t * _200Ok)
 {
 	int i;
@@ -236,5 +236,5 @@ void _eXosip_dialog_free(struct eXosip_t *excontext, eXosip_dialog_t * jd)
 	osip_free(jd->d_inc_trs);
 	osip_free(jd);
 
-	eXosip_update(excontext);
+	_eXosip_update(excontext);
 }

@@ -75,10 +75,10 @@ void eXosip_masquerade_contact(const char *public_address, int port)
 
 int eXosip_guess_localip(struct eXosip_t *excontext, int family, char *address, int size)
 {
-	return eXosip_guess_ip_for_via(excontext, family, address, size);
+	return _eXosip_guess_ip_for_via(excontext, family, address, size);
 }
 
-int eXosip_is_public_address(const char *c_address)
+int _eXosip_is_public_address(const char *c_address)
 {
 	return (0 != strncmp(c_address, "192.168", 7)
 			&& 0 != strncmp(c_address, "10.", 3)
@@ -107,7 +107,7 @@ void eXosip_set_user_agent(struct eXosip_t *excontext, const char *user_agent)
 	excontext->user_agent = osip_strdup(user_agent);
 }
 
-void eXosip_kill_transaction(osip_list_t * transactions)
+void _eXosip_kill_transaction(osip_list_t * transactions)
 {
 	osip_transaction_t *transaction;
 
@@ -154,8 +154,8 @@ void eXosip_quit(struct eXosip_t *excontext)
 	}
 
 	excontext->j_stop_ua = 1;		/* ask to quit the application */
-	__eXosip_wakeup(excontext);
-	__eXosip_wakeup_event(excontext);
+	_eXosip_wakeup(excontext);
+	eXosip_wakeup_event(excontext);
 
 #ifdef OSIP_MT
 	if (excontext->j_thread != NULL) {
@@ -200,7 +200,7 @@ void eXosip_quit(struct eXosip_t *excontext)
 
 	for (jreg = excontext->j_reg; jreg != NULL; jreg = excontext->j_reg) {
 		REMOVE_ELEMENT(excontext->j_reg, jreg);
-		eXosip_reg_free(excontext, jreg);
+		_eXosip_reg_free(excontext, jreg);
 	}
 
 #ifndef MINISIZE
@@ -231,10 +231,10 @@ void eXosip_quit(struct eXosip_t *excontext)
 		}
 	}
 
-	eXosip_kill_transaction(&excontext->j_osip->osip_ict_transactions);
-	eXosip_kill_transaction(&excontext->j_osip->osip_nict_transactions);
-	eXosip_kill_transaction(&excontext->j_osip->osip_ist_transactions);
-	eXosip_kill_transaction(&excontext->j_osip->osip_nist_transactions);
+	_eXosip_kill_transaction(&excontext->j_osip->osip_ict_transactions);
+	_eXosip_kill_transaction(&excontext->j_osip->osip_nict_transactions);
+	_eXosip_kill_transaction(&excontext->j_osip->osip_ist_transactions);
+	_eXosip_kill_transaction(&excontext->j_osip->osip_nist_transactions);
 	osip_release(excontext->j_osip);
 
 	{
@@ -333,17 +333,17 @@ int eXosip_find_free_port(struct eXosip_t *excontext, int free_port, int transpo
 
 	for (count = 0; count < 8; count++) {
 		if (ipv6_enable == 0)
-			res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "0.0.0.0", free_port + count * 2, transport);
+			res1 = _eXosip_get_addrinfo(excontext, &addrinfo_rtp, "0.0.0.0", free_port + count * 2, transport);
 		else
-			res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "::", free_port + count * 2, transport);
+			res1 = _eXosip_get_addrinfo(excontext, &addrinfo_rtp, "::", free_port + count * 2, transport);
 		if (res1 != 0)
 			return res1;
 		if (ipv6_enable == 0)
-			res2 = eXosip_get_addrinfo(excontext, &addrinfo_rtcp, "0.0.0.0", free_port + count * 2 + 1, transport);
+			res2 = _eXosip_get_addrinfo(excontext, &addrinfo_rtcp, "0.0.0.0", free_port + count * 2 + 1, transport);
 		else
-			res2 = eXosip_get_addrinfo(excontext, &addrinfo_rtcp, "::", free_port + count * 2 + 1, transport);
+			res2 = _eXosip_get_addrinfo(excontext, &addrinfo_rtcp, "::", free_port + count * 2 + 1, transport);
 		if (res2 != 0) {
-			eXosip_freeaddrinfo(addrinfo_rtp);
+			_eXosip_freeaddrinfo(addrinfo_rtp);
 			return res2;
 		}
 
@@ -393,10 +393,10 @@ int eXosip_find_free_port(struct eXosip_t *excontext, int free_port, int transpo
 			break;
 		}
 
-		eXosip_freeaddrinfo(addrinfo_rtp);
+		_eXosip_freeaddrinfo(addrinfo_rtp);
 
 		if (sock == -1) {
-			eXosip_freeaddrinfo(addrinfo_rtcp);
+			_eXosip_freeaddrinfo(addrinfo_rtcp);
 			continue;
 		}
 
@@ -448,7 +448,7 @@ int eXosip_find_free_port(struct eXosip_t *excontext, int free_port, int transpo
 			break;
 		}
 
-		eXosip_freeaddrinfo(addrinfo_rtcp);
+		_eXosip_freeaddrinfo(addrinfo_rtcp);
 
 		/* the pair must be free */
 		if (sock == -1)
@@ -461,9 +461,9 @@ int eXosip_find_free_port(struct eXosip_t *excontext, int free_port, int transpo
 
 	/* just get a free port */
 	if (ipv6_enable == 0)
-		res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "0.0.0.0", 0, transport);
+		res1 = _eXosip_get_addrinfo(excontext, &addrinfo_rtp, "0.0.0.0", 0, transport);
 	else
-		res1 = eXosip_get_addrinfo(excontext, &addrinfo_rtp, "::", 0, transport);
+		res1 = _eXosip_get_addrinfo(excontext, &addrinfo_rtp, "::", 0, transport);
 
 	if (res1)
 		return res1;
@@ -525,7 +525,7 @@ int eXosip_find_free_port(struct eXosip_t *excontext, int free_port, int transpo
 
 		close(sock);
 		sock = -1;
-		eXosip_freeaddrinfo(addrinfo_rtp);
+		_eXosip_freeaddrinfo(addrinfo_rtp);
 
 		if (curinfo_rtp->ai_family == AF_INET)
 			return ntohs(((struct sockaddr_in *) &ai_addr)->sin_port);
@@ -533,7 +533,7 @@ int eXosip_find_free_port(struct eXosip_t *excontext, int free_port, int transpo
 			return ntohs(((struct sockaddr_in6 *) &ai_addr)->sin6_port);
 	}
 
-	eXosip_freeaddrinfo(addrinfo_rtp);
+	_eXosip_freeaddrinfo(addrinfo_rtp);
 
 	if (sock != -1) {
 		close(sock);
@@ -701,7 +701,7 @@ int eXosip_init(struct eXosip_t *excontext)
 
 	osip_set_application_context(osip, &excontext);
 
-	eXosip_set_callbacks(osip);
+	_eXosip_set_callbacks(osip);
 
 	excontext->j_osip = osip;
 
@@ -796,7 +796,7 @@ int eXosip_execute(struct eXosip_t *excontext)
 	lower_tv.tv_sec = 0;
 	lower_tv.tv_usec = 0;
 #endif
-	i = eXosip_read_message(excontext, 1, lower_tv.tv_sec, lower_tv.tv_usec);
+	i = _eXosip_read_message(excontext, 1, lower_tv.tv_sec, lower_tv.tv_usec);
 
 	if (i == -2000) {
 		return -2000;
@@ -814,12 +814,12 @@ int eXosip_execute(struct eXosip_t *excontext)
 	osip_ict_execute(excontext->j_osip);
 
 	/* free all Calls that are in the TERMINATED STATE? */
-	eXosip_release_terminated_calls(excontext);
-	eXosip_release_terminated_registrations(excontext);
-	eXosip_release_terminated_publications(excontext);
+	_eXosip_release_terminated_calls(excontext);
+	_eXosip_release_terminated_registrations(excontext);
+	_eXosip_release_terminated_publications(excontext);
 #ifndef MINISIZE
-	eXosip_release_terminated_subscriptions(excontext);
-	eXosip_release_terminated_in_subscriptions(excontext);
+	_eXosip_release_terminated_subscriptions(excontext);
+	_eXosip_release_terminated_in_subscriptions(excontext);
 #endif
 
 	eXosip_unlock(excontext);
@@ -927,13 +927,13 @@ int eXosip_set_option(struct eXosip_t *excontext, int opt, const void *value)
 				struct addrinfo *addrinfo;
 
 				/* create the A record */
-				i = eXosip_get_addrinfo(excontext, &addrinfo, entry->host, 0, IPPROTO_UDP);
+				i = _eXosip_get_addrinfo(excontext, &addrinfo, entry->host, 0, IPPROTO_UDP);
 				if (i!=0)
 					return OSIP_BADPARAMETER;
 
 				memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
 
-				eXosip_freeaddrinfo(addrinfo);
+				_eXosip_freeaddrinfo(addrinfo);
 				switch (((struct sockaddr *) &addr)->sa_family) {
 				case AF_INET:
 					inet_ntop(((struct sockaddr *) &addr)->sa_family,

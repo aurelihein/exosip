@@ -45,14 +45,14 @@
 static jauthinfo_t *eXosip_find_authentication_info(struct eXosip_t *excontext, const char *username,
 													const char *realm);
 
-void __eXosip_wakeup(struct eXosip_t *excontext)
+void _eXosip_wakeup(struct eXosip_t *excontext)
 {
 #ifdef OSIP_MT
 	jpipe_write(excontext->j_socketctl, "w", 1);
 #endif
 }
 
-void __eXosip_wakeup_event(struct eXosip_t *excontext)
+void eXosip_wakeup_event(struct eXosip_t *excontext)
 {
 #ifdef OSIP_MT
 	jpipe_write(excontext->j_socketctl_event, "w", 1);
@@ -170,12 +170,12 @@ _eXosip_retry_with_auth(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	/* increment cseq */
 	cseq = atoi(msg->cseq->number);
 	osip_free(msg->cseq->number);
-	msg->cseq->number = strdup_printf("%i", cseq + 1);
+	msg->cseq->number = _eXosip_strdup_printf("%i", cseq + 1);
 	if (jd != NULL && jd->d_dialog != NULL) {
 		jd->d_dialog->local_cseq++;
 	}
 
-	i = eXosip_update_top_via(msg);
+	i = _eXosip_update_top_via(msg);
 	if (i != 0) {
 		osip_message_free(msg);
 		return i;
@@ -189,13 +189,13 @@ _eXosip_retry_with_auth(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	if (out_tr != NULL && out_tr->last_response != NULL
 		&& (out_tr->last_response->status_code == 401
 			|| out_tr->last_response->status_code == 407)) {
-		i = eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
+		i = _eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
 		if (i < 0) {
 			osip_message_free(msg);
 			return i;
 		}
 	} else {
-		i = eXosip_add_authentication_information(excontext, msg, NULL);
+		i = _eXosip_add_authentication_information(excontext, msg, NULL);
 		if (i < 0) {
 			osip_message_free(msg);
 			return i;
@@ -247,8 +247,8 @@ _eXosip_retry_with_auth(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	if (retry)
 		(*retry)++;
 
-	eXosip_update(excontext);			/* fixed? */
-	__eXosip_wakeup(excontext);
+	_eXosip_update(excontext);			/* fixed? */
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -302,7 +302,7 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	/* increment cseq */
 	cseq = atoi(msg->cseq->number);
 	osip_free(msg->cseq->number);
-	msg->cseq->number = strdup_printf("%i", cseq + 1);
+	msg->cseq->number = _eXosip_strdup_printf("%i", cseq + 1);
 	if (msg->cseq->number == NULL) {
 		osip_message_free(msg);
 		return OSIP_NOMEM;
@@ -311,7 +311,7 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 		jd->d_dialog->local_cseq++;
 	}
 
-	i = eXosip_update_top_via(msg);
+	i = _eXosip_update_top_via(msg);
 	if (i != 0) {
 		osip_message_free(msg);
 		return i;
@@ -325,9 +325,9 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	if (out_tr != NULL && out_tr->last_response != NULL
 		&& (out_tr->last_response->status_code == 401
 			|| out_tr->last_response->status_code == 407)) {
-		eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
+		_eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
 	} else
-		eXosip_add_authentication_information(excontext, msg, NULL);
+		_eXosip_add_authentication_information(excontext, msg, NULL);
 
 	if (out_tr != NULL && out_tr->last_response != NULL
 		&& out_tr->last_response->status_code == 412) {
@@ -394,8 +394,8 @@ _eXosip_publish_refresh(struct eXosip_t *excontext, eXosip_dialog_t * jd, osip_t
 	if (retry)
 		(*retry)++;
 
-	eXosip_update(excontext);			/* fixed? */
-	__eXosip_wakeup(excontext);
+	_eXosip_update(excontext);			/* fixed? */
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -666,7 +666,7 @@ void eXosip_automatic_refresh(struct eXosip_t *excontext)
 }
 #endif
 
-void eXosip_retransmit_lost200ok(struct eXosip_t *excontext)
+void _eXosip_retransmit_lost200ok(struct eXosip_t *excontext)
 {
 	eXosip_call_t *jc;
 	eXosip_dialog_t *jd;
@@ -690,7 +690,7 @@ void eXosip_retransmit_lost200ok(struct eXosip_t *excontext)
 						i = eXosip_call_terminate(excontext, jc->c_id, jd->d_id);
 						if (i == OSIP_SUCCESS)
 						{
-							report_call_event(excontext, EXOSIP_CALL_CLOSED, jc, jd, NULL);
+							_eXosip_report_call_event(excontext, EXOSIP_CALL_CLOSED, jc, jd, NULL);
 						}
 					} else if (jd->d_timer < now) {
 						/* a dialog exist: retransmit lost 200ok */
@@ -1114,7 +1114,7 @@ void eXosip_automatic_action(struct eXosip_t *excontext)
 
 }
 
-void eXosip_update(struct eXosip_t *excontext)
+void _eXosip_update(struct eXosip_t *excontext)
 {
 	static int static_id = 1;
 	eXosip_call_t *jc;
@@ -1273,7 +1273,7 @@ eXosip_add_authentication_info(struct eXosip_t *excontext, const char *username,
 }
 
 int
-eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t * req,
+_eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t * req,
 									  osip_message_t * last_response)
 {
 	osip_authorization_t *aut = NULL;
@@ -1326,7 +1326,7 @@ eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t
 				http_auth->iNonceCount++;
 				if (http_auth->answer_code == 401)
 					/*osip_strcasecmp(req->sip_method, "REGISTER")==0) */
-					i = __eXosip_create_authorization_header(http_auth->wa, uri,
+					i = _eXosip_create_authorization_header(http_auth->wa, uri,
 															 authinfo->userid,
 															 authinfo->passwd,
 															 authinfo->ha1, &aut,
@@ -1334,7 +1334,7 @@ eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t
 															 http_auth->pszCNonce,
 															 http_auth->iNonceCount);
 				else
-					i = __eXosip_create_proxy_authorization_header(http_auth->wa,
+					i = _eXosip_create_proxy_authorization_header(http_auth->wa,
 																   uri,
 																   authinfo->userid,
 																   authinfo->passwd,
@@ -1388,7 +1388,7 @@ eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t
 		if (i != 0)
 			return i;
 
-		i = __eXosip_create_authorization_header(wwwauth, uri,
+		i = _eXosip_create_authorization_header(wwwauth, uri,
 												 authinfo->userid,
 												 authinfo->passwd,
 												 authinfo->ha1, &aut,
@@ -1445,7 +1445,7 @@ eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t
 		if (i != 0)
 			return i;
 
-		i = __eXosip_create_proxy_authorization_header(proxyauth, uri,
+		i = _eXosip_create_proxy_authorization_header(proxyauth, uri,
 													   authinfo->userid,
 													   authinfo->passwd,
 													   authinfo->ha1,
@@ -1485,7 +1485,7 @@ eXosip_add_authentication_information(struct eXosip_t *excontext, osip_message_t
 	return OSIP_SUCCESS;
 }
 
-int eXosip_update_top_via(osip_message_t * sip)
+int _eXosip_update_top_via(osip_message_t * sip)
 {
 	unsigned int number;
 	char tmp[40];
@@ -1517,7 +1517,7 @@ int eXosip_update_top_via(osip_message_t * sip)
 }
 
 /* vivox: mark all registrations as needing refreshing */
-void eXosip_mark_all_registrations_expired(struct eXosip_t *excontext)
+void _eXosip_mark_all_registrations_expired(struct eXosip_t *excontext)
 {
 	eXosip_reg_t *jr;
 	int wakeup = 0;
@@ -1529,6 +1529,6 @@ void eXosip_mark_all_registrations_expired(struct eXosip_t *excontext)
 		}
 	}
 	if (wakeup) {
-		__eXosip_wakeup(excontext);
+		_eXosip_wakeup(excontext);
 	}
 }

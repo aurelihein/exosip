@@ -81,7 +81,7 @@ int eXosip_subscribe_remove(struct eXosip_t *excontext, int did)
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
+		_eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
 	}
 	if (js == NULL) {
 		OSIP_TRACE(osip_trace
@@ -145,7 +145,7 @@ int eXosip_subscribe_send_initial_request(struct eXosip_t *excontext, osip_messa
 	osip_event_t *sipevent;
 	int i;
 
-	i = eXosip_subscribe_init(&js);
+	i = _eXosip_subscribe_init(&js);
 	if (i != 0) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -172,8 +172,8 @@ int eXosip_subscribe_send_initial_request(struct eXosip_t *excontext, osip_messa
 	osip_transaction_add_event(transaction, sipevent);
 
 	ADD_ELEMENT(excontext->j_subscribes, js);
-	eXosip_update(excontext);			/* fixed? */
-	__eXosip_wakeup(excontext);
+	_eXosip_update(excontext);			/* fixed? */
+	_eXosip_wakeup(excontext);
 	return js->s_id;
 }
 
@@ -192,7 +192,7 @@ int eXosip_subscribe_build_refresh_request(struct eXosip_t *excontext, int did, 
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
+		_eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
 	}
 	if (jd == NULL) {
 		OSIP_TRACE(osip_trace
@@ -202,7 +202,7 @@ int eXosip_subscribe_build_refresh_request(struct eXosip_t *excontext, int did, 
 	}
 
 	transaction = NULL;
-	transaction = eXosip_find_last_out_subscribe(js, jd);
+	transaction = _eXosip_find_last_out_subscribe(js, jd);
 
 	if (transaction != NULL) {
 		if (transaction->state != NICT_TERMINATED &&
@@ -247,7 +247,7 @@ int eXosip_subscribe_build_refresh_request(struct eXosip_t *excontext, int did, 
 		}
 	}
 
-	eXosip_add_authentication_information(excontext, *sub, NULL);
+	_eXosip_add_authentication_information(excontext, *sub, NULL);
 
 	return OSIP_SUCCESS;
 }
@@ -265,7 +265,7 @@ int eXosip_subscribe_send_refresh_request(struct eXosip_t *excontext, int did, o
 		return OSIP_BADPARAMETER;
 
 	if (did > 0) {
-		eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
+		_eXosip_subscribe_dialog_find(excontext, did, &js, &jd);
 	}
 	if (jd == NULL) {
 		OSIP_TRACE(osip_trace
@@ -276,7 +276,7 @@ int eXosip_subscribe_send_refresh_request(struct eXosip_t *excontext, int did, o
 	}
 
 	transaction = NULL;
-	transaction = eXosip_find_last_out_subscribe(js, jd);
+	transaction = _eXosip_find_last_out_subscribe(js, jd);
 
 	if (transaction != NULL) {
 		if (transaction->state != NICT_TERMINATED &&
@@ -308,7 +308,7 @@ int eXosip_subscribe_send_refresh_request(struct eXosip_t *excontext, int did, o
 	osip_transaction_set_reserved3(transaction, jd);
 
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -403,7 +403,7 @@ _eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosi
 	}
 
 	if (out_tr == NULL) {
-		out_tr = eXosip_find_last_out_subscribe(js, jd);
+		out_tr = _eXosip_find_last_out_subscribe(js, jd);
 	}
 
 	if (out_tr == NULL
@@ -440,7 +440,7 @@ _eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosi
 	/* increment cseq */
 	cseq = atoi(msg->cseq->number);
 	osip_free(msg->cseq->number);
-	msg->cseq->number = strdup_printf("%i", cseq + 1);
+	msg->cseq->number = _eXosip_strdup_printf("%i", cseq + 1);
 	if (msg->cseq->number == NULL) {
 		osip_message_free(msg);
 		return OSIP_NOMEM;
@@ -450,7 +450,7 @@ _eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosi
 		jd->d_dialog->local_cseq++;
 	}
 
-	i = eXosip_update_top_via(msg);
+	i = _eXosip_update_top_via(msg);
 	if (i != 0) {
 		osip_message_free(msg);
 		return i;
@@ -463,9 +463,9 @@ _eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosi
 
 	if (out_tr->last_response->status_code == 401
 		|| out_tr->last_response->status_code == 407) {
-		eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
+		_eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
 	} else
-		eXosip_add_authentication_information(excontext, msg, NULL);
+		_eXosip_add_authentication_information(excontext, msg, NULL);
 	
 
 	if (out_tr != NULL && out_tr->last_response != NULL
@@ -516,8 +516,8 @@ _eXosip_subscribe_send_request_with_credential(struct eXosip_t *excontext, eXosi
 
 	osip_transaction_add_event(tr, sipevent);
 
-	eXosip_update(excontext);			/* fixed? */
-	__eXosip_wakeup(excontext);
+	_eXosip_update(excontext);			/* fixed? */
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 

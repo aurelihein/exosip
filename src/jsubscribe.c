@@ -26,7 +26,7 @@
 
 #include "eXosip2.h"
 
-osip_transaction_t *eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
+osip_transaction_t *_eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
 												   eXosip_dialog_t * jd)
 {
 	osip_transaction_t *out_tr;
@@ -52,7 +52,7 @@ osip_transaction_t *eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
 	return out_tr;
 }
 
-osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t * js,
+osip_transaction_t *_eXosip_find_last_inc_notify(eXosip_subscribe_t * js,
 												eXosip_dialog_t * jd)
 {
 	osip_transaction_t *out_tr;
@@ -73,7 +73,7 @@ osip_transaction_t *eXosip_find_last_inc_notify(eXosip_subscribe_t * js,
 }
 
 
-int eXosip_subscribe_init(eXosip_subscribe_t ** js)
+int _eXosip_subscribe_init(eXosip_subscribe_t ** js)
 {
 	*js = (eXosip_subscribe_t *) osip_malloc(sizeof(eXosip_subscribe_t));
 	if (*js == NULL)
@@ -134,7 +134,7 @@ _eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t * js,
 }
 
 int
-eXosip_subscribe_need_refresh(eXosip_subscribe_t * js, eXosip_dialog_t * jd,
+_eXosip_subscribe_need_refresh(eXosip_subscribe_t * js, eXosip_dialog_t * jd,
 							  int now)
 {
 	osip_transaction_t *out_tr = NULL;

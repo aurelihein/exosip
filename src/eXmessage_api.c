@@ -67,7 +67,7 @@ int eXosip_message_send_request(struct eXosip_t *excontext, osip_message_t * mes
 
 	osip_transaction_add_event(transaction, sipevent);
 
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -153,6 +153,6 @@ int eXosip_message_send_answer(struct eXosip_t *excontext, int tid, int status, 
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }

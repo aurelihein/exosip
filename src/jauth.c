@@ -591,7 +591,7 @@ void DigestCalcResponseAka(IN const char *pszPassword, IN const char *pszNonce,	
 }
 
 int
-__eXosip_create_authorization_header(osip_www_authenticate_t * wa,
+_eXosip_create_authorization_header(osip_www_authenticate_t * wa,
 									 const char *rquri, const char *username,
 									 const char *passwd, const char *ha1,
 									 osip_authorization_t ** auth,
@@ -840,7 +840,7 @@ __eXosip_create_authorization_header(osip_www_authenticate_t * wa,
 }
 
 int
-__eXosip_create_proxy_authorization_header(osip_proxy_authenticate_t * wa,
+_eXosip_create_proxy_authorization_header(osip_proxy_authenticate_t * wa,
 										   const char *rquri,
 										   const char *username,
 										   const char *passwd,

@@ -64,7 +64,7 @@ int eXosip_refer_send_request(struct eXosip_t *excontext, osip_message_t * refer
 	sipevent->transactionid = transaction->transactionid;
 
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 

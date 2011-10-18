@@ -52,7 +52,7 @@ int eXosip_register_remove(struct eXosip_t *excontext, int rid)
 		return OSIP_NOTFOUND;
 	jr->r_reg_period = 0;
 	REMOVE_ELEMENT(excontext->j_reg, jr);
-	eXosip_reg_free(excontext, jr);
+	_eXosip_reg_free(excontext, jr);
 	jr = NULL;
 	return OSIP_SUCCESS;
 }
@@ -106,7 +106,7 @@ _eXosip_register_build_register(struct eXosip_t *excontext, eXosip_reg_t * jr, o
 									   &osip_proxy_authorization_free);
 
 
-				i = eXosip_update_top_via(reg);
+				i = _eXosip_update_top_via(reg);
 				if (i != 0) {
 					osip_message_free(reg);
 					if (last_response != NULL)
@@ -172,9 +172,9 @@ _eXosip_register_build_register(struct eXosip_t *excontext, eXosip_reg_t * jr, o
 			if (last_response != NULL) {
 				if (last_response->status_code == 401
 					|| last_response->status_code == 407) {
-					eXosip_add_authentication_information(excontext, reg, last_response);
+					_eXosip_add_authentication_information(excontext, reg, last_response);
 				} else
-					eXosip_add_authentication_information(excontext, reg, NULL);
+					_eXosip_add_authentication_information(excontext, reg, NULL);
 				osip_message_free(last_response);
 			}
 		}
@@ -210,7 +210,7 @@ eXosip_register_build_initial_register_withqvalue(struct eXosip_t *excontext, co
 	for (jr = excontext->j_reg; jr != NULL; jr = jr->next) {
 		if (strcmp(jr->r_aor, from) == 0 && strcmp(jr->r_registrar, proxy) == 0) {
 			REMOVE_ELEMENT(excontext->j_reg, jr);
-			eXosip_reg_free(excontext, jr);
+			_eXosip_reg_free(excontext, jr);
 			jr = NULL;
 			break;
 		}
@@ -348,6 +348,6 @@ int eXosip_register_send_register(struct eXosip_t *excontext, int rid, osip_mess
 	osip_message_force_update(reg);
 
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }

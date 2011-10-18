@@ -119,7 +119,7 @@ _eXosip_reg_init(struct eXosip_t *excontext, eXosip_reg_t ** jr, const char *fro
 	return OSIP_SUCCESS;
 }
 
-void eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg)
+void _eXosip_reg_free(struct eXosip_t *excontext, eXosip_reg_t * jreg)
 {
 
 	osip_free(jreg->r_aor);

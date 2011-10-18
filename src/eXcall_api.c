@@ -63,7 +63,7 @@ eXosip_create_transaction(struct eXosip_t *excontext, eXosip_call_t * jc,
 	osip_transaction_set_reserved3(tr, jd);
 
 	osip_transaction_add_event(tr, sipevent);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -89,7 +89,7 @@ eXosip_create_cancel_transaction(struct eXosip_t *excontext, eXosip_call_t * jc,
 	sipevent->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, sipevent);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -173,7 +173,7 @@ int eXosip_call_set_reference(struct eXosip_t *excontext, int id, void *referenc
 	if (id > 0) {
 		_eXosip_call_dialog_find(excontext, id, &jc, &jd);
 		if (jc == NULL) {
-			eXosip_call_find(excontext, id, &jc);
+			_eXosip_call_find(excontext, id, &jc);
 		}
 	}
 	if (jc == NULL) {
@@ -190,7 +190,7 @@ void *eXosip_call_get_reference(struct eXosip_t *excontext, int cid)
 {
 	eXosip_call_t *jc = NULL;
 
-	eXosip_call_find(excontext, cid, &jc);
+	_eXosip_call_find(excontext, cid, &jc);
 	if (jc == NULL) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -260,7 +260,7 @@ int eXosip_call_send_initial_invite(struct eXosip_t *excontext, osip_message_t *
 		return OSIP_BADPARAMETER;
 	}
 
-	i = eXosip_call_init(&jc);
+	i = _eXosip_call_init(&jc);
 	if (i != 0) {
 		osip_message_free(invite);
 		return i;
@@ -284,8 +284,8 @@ int eXosip_call_send_initial_invite(struct eXosip_t *excontext, osip_message_t *
 	jc->external_reference = NULL;
 	ADD_ELEMENT(excontext->j_calls, jc);
 
-	eXosip_update(excontext);			/* fixed? */
-	__eXosip_wakeup(excontext);
+	_eXosip_update(excontext);			/* fixed? */
+	_eXosip_wakeup(excontext);
 	return jc->c_id;
 }
 
@@ -313,7 +313,7 @@ int eXosip_call_build_ack(struct eXosip_t *excontext, int did, osip_message_t **
 		return OSIP_NOTFOUND;
 	}
 
-	tr = eXosip_find_last_invite(jc, jd);
+	tr = _eXosip_find_last_invite(jc, jd);
 
 	if (tr == NULL || tr->orig_request == NULL) {
 		OSIP_TRACE(osip_trace
@@ -481,10 +481,10 @@ eXosip_call_build_request(struct eXosip_t *excontext, int jid, const char *metho
 
 	transaction = NULL;
 	if (0 == osip_strcasecmp(method, "INVITE")) {
-		transaction = eXosip_find_last_invite(jc, jd);
+		transaction = _eXosip_find_last_invite(jc, jd);
 	} else {					/* OPTIONS, UPDATE, INFO, REFER, ?... */
 
-		transaction = eXosip_find_last_transaction(jc, jd, method);
+		transaction = _eXosip_find_last_transaction(jc, jd, method);
 	}
 
 	if (transaction != NULL) {
@@ -508,7 +508,7 @@ eXosip_call_build_request(struct eXosip_t *excontext, int jid, const char *metho
 	if (i != 0)
 		return i;
 
-	eXosip_add_authentication_information(excontext, *request, NULL);
+	_eXosip_add_authentication_information(excontext, *request, NULL);
 
 	return OSIP_SUCCESS;
 }
@@ -548,10 +548,10 @@ int eXosip_call_send_request(struct eXosip_t *excontext, int jid, osip_message_t
 
 	transaction = NULL;
 	if (0 == osip_strcasecmp(request->sip_method, "INVITE")) {
-		transaction = eXosip_find_last_invite(jc, jd);
+		transaction = _eXosip_find_last_invite(jc, jd);
 	} else {					/* OPTIONS, UPDATE, INFO, REFER, ?... */
 
-		transaction = eXosip_find_last_transaction(jc, jd, request->sip_method);
+		transaction = _eXosip_find_last_transaction(jc, jd, request->sip_method);
 	}
 
 	if (transaction != NULL) {
@@ -595,7 +595,7 @@ int eXosip_call_send_request(struct eXosip_t *excontext, int jid, osip_message_t
 	osip_transaction_set_reserved3(transaction, jd);
 
 	osip_transaction_add_event(transaction, sipevent);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -816,7 +816,7 @@ int eXosip_call_send_answer(struct eXosip_t *excontext, int tid, int status, osi
 	if (0 == osip_strcasecmp(tr->orig_request->sip_method, "INVITE")) {
 		if (MSG_IS_STATUS_2XX(answer) && jd != NULL) {
 			if (status >= 200 && status < 300 && jd != NULL) {
-				eXosip_dialog_set_200ok(jd, answer);
+				_eXosip_dialog_set_200ok(jd, answer);
 				/* wait for a ACK */
 				osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
 			}
@@ -932,8 +932,8 @@ int eXosip_call_send_answer(struct eXosip_t *excontext, int tid, int status, osi
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	eXosip_update(excontext);
-	__eXosip_wakeup(excontext);
+	_eXosip_update(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -956,14 +956,14 @@ int eXosip_call_terminate(struct eXosip_t *excontext, int cid, int did)
 			return OSIP_NOTFOUND;
 		}
 	} else {
-		eXosip_call_find(excontext, cid, &jc);
+		_eXosip_call_find(excontext, cid, &jc);
 	}
 
 	if (jc == NULL) {
 		return OSIP_NOTFOUND;
 	}
 
-	tr = eXosip_find_last_out_invite(jc, jd);
+	tr = _eXosip_find_last_out_invite(jc, jd);
 	if (jd != NULL && jd->d_dialog != NULL
 		&& jd->d_dialog->state == DIALOG_CONFIRMED) {
 		/* don't send CANCEL on re-INVITE: send BYE instead */
@@ -987,7 +987,7 @@ int eXosip_call_terminate(struct eXosip_t *excontext, int cid, int did)
 			/*Fix: keep dialog opened after the CANCEL.
 			  osip_dialog_free(jd->d_dialog);
 			  jd->d_dialog = NULL;
-			  eXosip_update(excontext); */
+			  _eXosip_update(excontext); */
 		}
 		return OSIP_SUCCESS+1;
 	}
@@ -1001,7 +1001,7 @@ int eXosip_call_terminate(struct eXosip_t *excontext, int cid, int did)
 
 	if (tr == NULL) {
 		/*this may not be enough if it's a re-INVITE! */
-		tr = eXosip_find_last_inc_invite(jc, jd);
+		tr = _eXosip_find_last_inc_invite(jc, jd);
 		if (tr != NULL && tr->last_response != NULL && MSG_IS_STATUS_1XX(tr->last_response)) {	/* answer with 603 */
 			osip_generic_param_t *to_tag;
 			osip_from_param_get_byname(tr->orig_request->to, "tag", &to_tag);
@@ -1029,7 +1029,7 @@ int eXosip_call_terminate(struct eXosip_t *excontext, int cid, int did)
 		return i;
 	}
 
-	eXosip_add_authentication_information(excontext, request, NULL);
+	_eXosip_add_authentication_information(excontext, request, NULL);
 
 	i = eXosip_create_transaction(excontext, jc, jd, request);
 	if (i != 0) {
@@ -1041,7 +1041,7 @@ int eXosip_call_terminate(struct eXosip_t *excontext, int cid, int did)
 
 	osip_dialog_free(jd->d_dialog);
 	jd->d_dialog = NULL;
-	eXosip_update(excontext);			/* AMD 30/09/05 */
+	_eXosip_update(excontext);			/* AMD 30/09/05 */
 	return OSIP_SUCCESS;
 }
 
@@ -1170,7 +1170,7 @@ int eXosip_call_send_prack(struct eXosip_t *excontext, int tid, osip_message_t *
 	osip_transaction_set_reserved3(tr, jd);
 
 	osip_transaction_add_event(tr, sipevent);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -1312,12 +1312,12 @@ _eXosip_call_retry_request(struct eXosip_t *excontext, eXosip_call_t * jc,
 	/* increment cseq */
 	cseq = atoi(msg->cseq->number);
 	osip_free(msg->cseq->number);
-	msg->cseq->number = strdup_printf("%i", cseq + 1);
+	msg->cseq->number = _eXosip_strdup_printf("%i", cseq + 1);
 	if (jd != NULL && jd->d_dialog != NULL) {
 		jd->d_dialog->local_cseq++;
 	}
 
-	i = eXosip_update_top_via(msg);
+	i = _eXosip_update_top_via(msg);
 	if (i != 0) {
 		osip_message_free(msg);
 		return i;
@@ -1404,9 +1404,9 @@ _eXosip_call_retry_request(struct eXosip_t *excontext, eXosip_call_t * jc,
 
 	if (out_tr->last_response->status_code == 401
 		|| out_tr->last_response->status_code == 407)
-		eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
+		_eXosip_add_authentication_information(excontext, msg, out_tr->last_response);
 	else
-		eXosip_add_authentication_information(excontext, msg, NULL);
+		_eXosip_add_authentication_information(excontext, msg, NULL);
 	osip_message_force_update(msg);
 
 	if (0 != osip_strcasecmp(msg->sip_method, "INVITE")) {
@@ -1443,8 +1443,8 @@ _eXosip_call_retry_request(struct eXosip_t *excontext, eXosip_call_t * jc,
 
 	osip_transaction_add_event(tr, sipevent);
 
-	eXosip_update(excontext);			/* fixed? */
-	__eXosip_wakeup(excontext);
+	_eXosip_update(excontext);			/* fixed? */
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 
@@ -1471,7 +1471,7 @@ int eXosip_call_get_referto(struct eXosip_t *excontext, int did, char *refer_to,
 		return OSIP_NOTFOUND;
 	}
 
-	tr = eXosip_find_last_invite(jc, jd);
+	tr = _eXosip_find_last_invite(jc, jd);
 
 	if (tr == NULL || tr->orig_request == NULL) {
 		OSIP_TRACE(osip_trace

@@ -85,7 +85,7 @@ sdp_message_t *eXosip_get_remote_sdp(struct eXosip_t *excontext, int jid)
 					"eXosip: No call here?\n"));
 		return NULL;
 	}
-	invite_tr = eXosip_find_last_invite(jc, jd);
+	invite_tr = _eXosip_find_last_invite(jc, jd);
 	if (invite_tr == NULL)
 		return NULL;
 
@@ -107,10 +107,10 @@ sdp_message_t *eXosip_get_previous_local_sdp(struct eXosip_t *excontext, int jid
 					"eXosip: No call here?\n"));
 		return NULL;
 	}
-	invite_tr = eXosip_find_last_invite(jc, jd);
+	invite_tr = _eXosip_find_last_invite(jc, jd);
 	if (invite_tr == NULL)
 		return NULL;
-	invite_tr = eXosip_find_previous_invite(jc, jd, invite_tr);
+	invite_tr = _eXosip_find_previous_invite(jc, jd, invite_tr);
 	if (invite_tr == NULL)
 		return NULL;
 
@@ -132,7 +132,7 @@ sdp_message_t *eXosip_get_local_sdp(struct eXosip_t *excontext, int jid)
 					"eXosip: No call here?\n"));
 		return NULL;
 	}
-	invite_tr = eXosip_find_last_invite(jc, jd);
+	invite_tr = _eXosip_find_last_invite(jc, jd);
 	if (invite_tr == NULL)
 		return NULL;
 

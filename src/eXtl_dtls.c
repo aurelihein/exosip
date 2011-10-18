@@ -198,7 +198,7 @@ static int shutdown_free_client_dtls(int pos)
 	if (dtls_socket_tab[pos].ssl_type == 2) {
 		if (dtls_socket_tab[pos].ssl_conn != NULL) {
 
-			i = eXosip_get_addrinfo(NULL, &addrinfo,
+			i = _eXosip_get_addrinfo(NULL, &addrinfo,
 									dtls_socket_tab[pos].remote_ip,
 									dtls_socket_tab[pos].remote_port, IPPROTO_UDP);
 			if (i != 0) {
@@ -206,7 +206,7 @@ static int shutdown_free_client_dtls(int pos)
 			}
 
 			memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-			eXosip_freeaddrinfo(addrinfo);
+			_eXosip_freeaddrinfo(addrinfo);
 
 			rbio = BIO_new_dgram(dtls_socket, BIO_NOCLOSE);
 
@@ -293,7 +293,7 @@ static int dtls_tl_open(struct eXosip_t *excontext)
 	client_ctx = initialize_client_ctx(CLIENT_KEYFILE, CLIENT_CERTFILE, PASSWORD,
 									   IPPROTO_UDP);
 
-	res = eXosip_get_addrinfo(excontext, &addrinfo,
+	res = _eXosip_get_addrinfo(excontext, &addrinfo,
 							  eXtl_dtls.proto_ifs,
 							  eXtl_dtls.proto_port, eXtl_dtls.proto_num);
 	if (res)
@@ -368,7 +368,7 @@ static int dtls_tl_open(struct eXosip_t *excontext)
 		break;
 	}
 
-	eXosip_freeaddrinfo(addrinfo);
+	_eXosip_freeaddrinfo(addrinfo);
 
 	if (sock < 0) {
 		OSIP_TRACE(osip_trace
@@ -745,9 +745,9 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 						n < 10 && naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index].srv[0];
 						srv = &naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index]) {
 							if (srv->ipaddress[0])
-								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
+								i = _eXosip_get_addrinfo(excontext, &addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
 							else
-								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->srv, srv->port, IPPROTO_UDP);
+								i = _eXosip_get_addrinfo(excontext, &addrinfo, srv->srv, srv->port, IPPROTO_UDP);
 							if (i == 0) {
 								host = srv->srv;
 								port = srv->port;
@@ -827,9 +827,9 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 						n < 10 && naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index].srv[0];
 						srv = &naptr_record->sipdtls_record.srventry[naptr_record->sipdtls_record.index]) {
 							if (srv->ipaddress[0])
-								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
+								i = _eXosip_get_addrinfo(excontext, &addrinfo, srv->ipaddress, srv->port, IPPROTO_UDP);
 							else
-								i = eXosip_get_addrinfo(excontext, &addrinfo, srv->srv, srv->port, IPPROTO_UDP);
+								i = _eXosip_get_addrinfo(excontext, &addrinfo, srv->srv, srv->port, IPPROTO_UDP);
 							if (i == 0) {
 								host = srv->srv;
 								port = srv->port;
@@ -866,7 +866,7 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 
 	/* if SRV was used, destination may be already found */
 	if (i != 0) {
-		i = eXosip_get_addrinfo(excontext, &addrinfo, host, port, IPPROTO_UDP);
+		i = _eXosip_get_addrinfo(excontext, &addrinfo, host, port, IPPROTO_UDP);
 	}
 
 	if (i != 0) {
@@ -876,7 +876,7 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 	memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
 	len = addrinfo->ai_addrlen;
 
-	eXosip_freeaddrinfo(addrinfo);
+	_eXosip_freeaddrinfo(addrinfo);
 
 	/* remove preloaded route if there is no tag in the To header
 	 */

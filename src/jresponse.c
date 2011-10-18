@@ -100,7 +100,7 @@ _eXosip_build_response_default(struct eXosip_t *excontext, osip_message_t ** des
 			osip_to_set_tag(response->to, osip_strdup(dialog->local_tag));
 		} else {
 			if (status != 100)
-				osip_to_set_tag(response->to, osip_to_tag_new_random());
+				osip_to_set_tag(response->to, _eXosip_malloc_new_random());
 		}
 	}
 
@@ -197,7 +197,7 @@ _eXosip_complete_answer_that_establish_a_dialog(struct eXosip_t *excontext, osip
 	}
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
+	_eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 
 	if (request->to->url->username == NULL)
 		snprintf(contact, 1000, "<sip:%s:%s>", locip, firewall_port);
@@ -217,10 +217,10 @@ _eXosip_complete_answer_that_establish_a_dialog(struct eXosip_t *excontext, osip
 			struct addrinfo *addrinfo;
 			struct __eXosip_sockaddr addr;
 
-			i = eXosip_get_addrinfo(excontext, &addrinfo, con->url->host, 5060, IPPROTO_UDP);
+			i = _eXosip_get_addrinfo(excontext, &addrinfo, con->url->host, 5060, IPPROTO_UDP);
 			if (i == 0) {
 				memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-				eXosip_freeaddrinfo(addrinfo);
+				_eXosip_freeaddrinfo(addrinfo);
 				c_address = inet_ntoa(((struct sockaddr_in *) &addr)->sin_addr);
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -230,7 +230,7 @@ _eXosip_complete_answer_that_establish_a_dialog(struct eXosip_t *excontext, osip
 
 			/* If c_address is a PUBLIC address, the request was
 			   coming from the PUBLIC network. */
-			if (eXosip_is_public_address(c_address)) {
+			if (_eXosip_is_public_address(c_address)) {
 				if (request->to->url->username == NULL)
 					snprintf(contact, 1000, "<sip:%s:%s>", firewall_ip, firewall_port);
 				else
@@ -281,7 +281,7 @@ _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, e
 	osip_transaction_t *tr;
 
 	*answer = NULL;
-	tr = eXosip_find_last_inc_invite(jc, jd);
+	tr = _eXosip_find_last_inc_invite(jc, jd);
 
 	if (tr == NULL || tr->orig_request == NULL) {
 		OSIP_TRACE(osip_trace
@@ -335,7 +335,7 @@ _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, e
 	if (send == 1) {
 		osip_event_t *evt_answer;
 		if (code >= 200 && code < 300 && jd != NULL) {
-			eXosip_dialog_set_200ok(jd, *answer);
+			_eXosip_dialog_set_200ok(jd, *answer);
 			/* wait for a ACK */
 			osip_dialog_set_state(jd->d_dialog, DIALOG_CONFIRMED);
 		}
@@ -344,7 +344,7 @@ _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, e
 		evt_answer->transactionid = tr->transactionid;
 
 		osip_transaction_add_event(tr, evt_answer);
-		__eXosip_wakeup(excontext);
+		_eXosip_wakeup(excontext);
 		*answer = NULL;
 	}
 
@@ -362,7 +362,7 @@ _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * 
 	int i;
 	osip_transaction_t *tr;
 
-	tr = eXosip_find_last_inc_subscribe(jn, jd);
+	tr = _eXosip_find_last_inc_subscribe(jn, jd);
 	if (tr == NULL) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -392,7 +392,7 @@ _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * 
 		}
 
 		if (jd == NULL) {
-			i = eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
+			i = _eXosip_dialog_init_as_uas(&jd, tr->orig_request, response);
 			if (i != 0) {
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -406,7 +406,7 @@ _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * 
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return i;
 }
 
@@ -419,7 +419,7 @@ _eXosip_insubscription_answer_3456xx(struct eXosip_t *excontext, eXosip_notify_t
 	int i;
 	osip_transaction_t *tr;
 
-	tr = eXosip_find_last_inc_subscribe(jn, jd);
+	tr = _eXosip_find_last_inc_subscribe(jn, jd);
 	if (tr == NULL) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -448,7 +448,7 @@ _eXosip_insubscription_answer_3456xx(struct eXosip_t *excontext, eXosip_notify_t
 	evt_answer->transactionid = tr->transactionid;
 
 	osip_transaction_add_event(tr, evt_answer);
-	__eXosip_wakeup(excontext);
+	_eXosip_wakeup(excontext);
 	return OSIP_SUCCESS;
 }
 

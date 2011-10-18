@@ -42,7 +42,7 @@ static int dialog_fill_route_set(osip_dialog_t * dialog, osip_message_t * reques
 /* should use cryptographically random identifier is RECOMMENDED.... */
 /* by now this should lead to identical call-id when application are
    started at the same time...   */
-char *osip_call_id_new_random()
+char *_eXosip_malloc_new_random()
 {
 	char *tmp = (char *) osip_malloc(33);
 	unsigned int number = osip_build_random_number();
@@ -59,21 +59,6 @@ int eXosip_generate_random(char *buf, int buf_size)
 
 	snprintf(buf, buf_size, "%u", number);
 	return OSIP_SUCCESS;
-}
-
-char *osip_from_tag_new_random(void)
-{
-	return osip_call_id_new_random();
-}
-
-char *osip_to_tag_new_random(void)
-{
-	return osip_call_id_new_random();
-}
-
-unsigned int via_branch_new_random(void)
-{
-	return osip_build_random_number();
 }
 
 int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * request, osip_message_t * answer)
@@ -137,18 +122,18 @@ int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * requ
 		struct __eXosip_sockaddr addr;
 		int i;
 
-		i = eXosip_get_addrinfo(excontext, &addrinfo, request->req_uri->host, 5060,
+		i = _eXosip_get_addrinfo(excontext, &addrinfo, request->req_uri->host, 5060,
 								IPPROTO_TCP);
 		if (i == 0) {
 			memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-			eXosip_freeaddrinfo(addrinfo);
+			_eXosip_freeaddrinfo(addrinfo);
 			c_address = inet_ntoa(((struct sockaddr_in *) &addr)->sin_addr);
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "eXosip: here is the resolved destination host=%s\n",
 								  c_address));
 		}
 
-		if (eXosip_is_public_address(c_address)) {
+		if (_eXosip_is_public_address(c_address)) {
 			memcpy(locip, firewall_ip, sizeof(locip));
 		}
 #else
@@ -157,7 +142,7 @@ int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * requ
 	}
 
 	if (locip[0] == '\0') {
-		eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
+		_eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 		if (locip[0] == '\0') {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -244,14 +229,14 @@ _eXosip_request_add_via(struct eXosip_t *excontext, osip_message_t * request, co
 
 	if (excontext->eXtl->proto_family == AF_INET6)
 		snprintf(tmp, 200, "SIP/2.0/%s [%s]:%s;branch=z9hG4bK%u",
-				 excontext->transport, ip, firewall_port, via_branch_new_random());
+				 excontext->transport, ip, firewall_port, osip_build_random_number());
 	else {
 		if (excontext->use_rport != 0)
 			snprintf(tmp, 200, "SIP/2.0/%s %s:%s;rport;branch=z9hG4bK%u",
-					 excontext->transport, ip, firewall_port, via_branch_new_random());
+					 excontext->transport, ip, firewall_port, osip_build_random_number());
 		else
 			snprintf(tmp, 200, "SIP/2.0/%s %s:%s;branch=z9hG4bK%u",
-					 excontext->transport, ip, firewall_port, via_branch_new_random());
+					 excontext->transport, ip, firewall_port, osip_build_random_number());
 	}
 
 	osip_message_set_via(request, tmp);
@@ -290,7 +275,7 @@ _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_messag
 
 	/*guess the local ip since req uri is known */
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
+	_eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -541,7 +526,7 @@ _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_messag
 	}
 
 	/* add a tag */
-	osip_from_set_tag(request->from, osip_from_tag_new_random());
+	osip_from_set_tag(request->from, _eXosip_malloc_new_random());
 
 	/* set the cseq and call_id header */
 	{
@@ -556,7 +541,7 @@ _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_messag
 			osip_message_free(request);
 			return i;
 		}
-		cidrand = osip_call_id_new_random();
+		cidrand = _eXosip_malloc_new_random();
 		osip_call_id_set_number(callid, cidrand);
 		if (doing_register)
 			register_callid_number = cidrand;
@@ -625,7 +610,7 @@ _eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osi
 		return i;
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
+	_eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
@@ -660,11 +645,11 @@ _eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osi
 				struct addrinfo *addrinfo;
 				struct __eXosip_sockaddr addr;
 
-				i = eXosip_get_addrinfo(excontext, &addrinfo, (*reg)->req_uri->host, 5060,
+				i = _eXosip_get_addrinfo(excontext, &addrinfo, (*reg)->req_uri->host, 5060,
 										IPPROTO_UDP);
 				if (i == 0) {
 					memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-					eXosip_freeaddrinfo(addrinfo);
+					_eXosip_freeaddrinfo(addrinfo);
 					c_address =
 						inet_ntoa(((struct sockaddr_in *) &addr)->sin_addr);
 					OSIP_TRACE(osip_trace
@@ -673,7 +658,7 @@ _eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osi
 								c_address));
 				}
 
-				if (eXosip_is_public_address(c_address)) {
+				if (_eXosip_is_public_address(c_address)) {
 					new_contact_url->host = osip_strdup(firewall_ip);
 					new_contact_url->port = osip_strdup(firewall_port);
 				} else {
@@ -866,7 +851,7 @@ _eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t *
 
 
 	memset(locip, '\0', sizeof(locip));
-	eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
+	_eXosip_guess_ip_for_via(excontext, excontext->eXtl->proto_family, locip, 49);
 	if (locip[0] == '\0') {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -982,11 +967,11 @@ _eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t *
 			struct addrinfo *addrinfo;
 			struct __eXosip_sockaddr addr;
 
-			i = eXosip_get_addrinfo(excontext, &addrinfo, request->req_uri->host, 5060,
+			i = _eXosip_get_addrinfo(excontext, &addrinfo, request->req_uri->host, 5060,
 									IPPROTO_UDP);
 			if (i == 0) {
 				memcpy(&addr, addrinfo->ai_addr, addrinfo->ai_addrlen);
-				eXosip_freeaddrinfo(addrinfo);
+				_eXosip_freeaddrinfo(addrinfo);
 				c_address = inet_ntoa(((struct sockaddr_in *) &addr)->sin_addr);
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
@@ -994,7 +979,7 @@ _eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t *
 							c_address));
 			}
 
-			if (eXosip_is_public_address(c_address)) {
+			if (_eXosip_is_public_address(c_address)) {
 				sprintf(contact, "<sip:%s@%s:%s>",
 						dialog->local_uri->url->username, firewall_ip,
 						firewall_port);

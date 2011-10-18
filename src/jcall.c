@@ -25,7 +25,7 @@
 
 #include "eXosip2.h"
 
-int eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc)
+int _eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc)
 {
 	if (cid <= 0)
 		return OSIP_BADPARAMETER;
@@ -39,25 +39,25 @@ int eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc)
 	return OSIP_NOTFOUND;
 }
 
-void eXosip_call_renew_expire_time(eXosip_call_t * jc)
+void _eXosip_call_renew_expire_time(eXosip_call_t * jc)
 {
 	time_t now = time(NULL);
 	jc->expire_time = now + 180;
 }
 
-int eXosip_call_init(eXosip_call_t ** jc)
+int _eXosip_call_init(eXosip_call_t ** jc)
 {
 	*jc = (eXosip_call_t *) osip_malloc(sizeof(eXosip_call_t));
 	if (*jc == NULL)
 		return OSIP_NOMEM;
 	memset(*jc, 0, sizeof(eXosip_call_t));
 
-	(*jc)->c_id = -1;			/* make sure the eXosip_update will assign a valid id to the call */
+	(*jc)->c_id = -1;			/* make sure the _eXosip_update will assign a valid id to the call */
 	return OSIP_SUCCESS;
 }
 
 void
-__eXosip_call_remove_dialog_reference_in_call(eXosip_call_t * jc,
+_eXosip_call_remove_dialog_reference_in_call(eXosip_call_t * jc,
 											  eXosip_dialog_t * jd)
 {
 	eXosip_dialog_t *_jd;
