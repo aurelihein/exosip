@@ -46,17 +46,17 @@ struct eXtl_protocol {
 	int proto_secure;
 	int proto_reliable;
 
-	int (*tl_init) (void);
-	int (*tl_free) (void);
+	int (*tl_init) (struct eXosip_t *excontext);
+	int (*tl_free) (struct eXosip_t *excontext);
 	int (*tl_open) (struct eXosip_t *excontext);
-	int (*tl_set_fdset) (fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max);
+	int (*tl_set_fdset) (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max);
 	int (*tl_read_message) (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset);
 	int (*tl_send_message) (struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip,
 							char *host, int port, int out_socket);
 	int (*tl_keepalive) (struct eXosip_t *excontext);
-	int (*tl_set_socket) (int socket);
-	int (*tl_masquerade_contact) (const char *ip, int port);
-	int (*tl_get_masquerade_contact) (char *ip, int ip_size, char *port,
+	int (*tl_set_socket) (struct eXosip_t *excontext, int socket);
+	int (*tl_masquerade_contact) (struct eXosip_t *excontext, const char *ip, int port);
+	int (*tl_get_masquerade_contact) (struct eXosip_t *excontext, char *ip, int ip_size, char *port,
 									  int port_size);
 };
 

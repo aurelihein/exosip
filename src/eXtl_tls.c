@@ -86,30 +86,15 @@
 #define MULTITASKING_ENABLED
 #endif
 
-SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
-							   const char *password, int transport);
+SSL_CTX *initialize_client_ctx(const char *certif_client_local_cn_name, eXosip_tls_ctx_t *client_ctx, int transport);
 
-SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
-							   const char *password, int transport);
+SSL_CTX *initialize_server_ctx(const char *certif_local_cn_name, eXosip_tls_ctx_t *srv_ctx, int transport);
 
 int verify_cb(int preverify_ok, X509_STORE_CTX * store);
 
-static int tls_socket;
-static struct sockaddr_storage ai_addr;
-
-static char tls_firewall_ip[64];
-static char tls_firewall_port[10];
-
-static SSL_CTX *server_ctx;
-static SSL_CTX *client_ctx;
-static eXosip_tls_ctx_t eXosip_tls_ctx_params;
-static char tls_local_cn_name[128];
-static char tls_client_local_cn_name[128];
-
-static int tls_verify_client_certificate;
 
 /* persistent connection */
-struct socket_tab {
+struct _tls_stream {
 	int socket;
 	struct sockaddr ai_addr;
 	size_t ai_addrlen;
@@ -142,25 +127,47 @@ struct socket_tab {
 #define EXOSIP_MAX_SOCKETS 100
 #endif
 
-static struct socket_tab tls_socket_tab[EXOSIP_MAX_SOCKETS];
+static int tls_verify_client_certificate;
 
-static int tls_tl_init(void)
+struct eXtltls {
+	eXosip_tls_ctx_t eXosip_tls_ctx_params;
+	char tls_local_cn_name[128];
+	char tls_client_local_cn_name[128];
+
+	int tls_socket;
+	struct sockaddr_storage ai_addr;
+
+	char tls_firewall_ip[64];
+	char tls_firewall_port[10];
+
+	SSL_CTX *server_ctx;
+	SSL_CTX *client_ctx;
+
+	struct _tls_stream socket_tab[EXOSIP_MAX_SOCKETS];
+};
+
+static int tls_tl_init(struct eXosip_t *excontext)
 {
-	tls_socket = 0;
-	server_ctx = NULL;
-	client_ctx = NULL;
-	memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
-	memset(&tls_socket_tab, 0, sizeof(struct socket_tab) * EXOSIP_MAX_SOCKETS);
-	memset(tls_firewall_ip, 0, sizeof(tls_firewall_ip));
-	memset(tls_firewall_port, 0, sizeof(tls_firewall_port));
-	memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
-	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
-	memset(&tls_client_local_cn_name, 0, sizeof(tls_client_local_cn_name));
+	struct eXtltls *reserved = (struct eXtltls *)osip_malloc(sizeof(struct eXtltls));
+	if (reserved==NULL)
+		return OSIP_NOMEM;
+	reserved->tls_socket = 0;
+	reserved->server_ctx = NULL;
+	reserved->client_ctx = NULL;
+	memset(&reserved->ai_addr, 0, sizeof(struct sockaddr_storage));
+	memset(&reserved->socket_tab, 0, sizeof(struct _tls_stream) * EXOSIP_MAX_SOCKETS);
+	memset(reserved->tls_firewall_ip, 0, sizeof(reserved->tls_firewall_ip));
+	memset(reserved->tls_firewall_port, 0, sizeof(reserved->tls_firewall_port));
+	memset(&reserved->eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
+	memset(&reserved->tls_local_cn_name, 0, sizeof(reserved->tls_local_cn_name));
+	memset(&reserved->tls_client_local_cn_name, 0, sizeof(reserved->tls_client_local_cn_name));
 	tls_verify_client_certificate = 0;
+
+	excontext->eXtltls_reserved = reserved;
 	return OSIP_SUCCESS;
 }
 
-static void _tls_tl_close_sockinfo (struct socket_tab *sockinfo)
+static void _tls_tl_close_sockinfo (struct _tls_stream *sockinfo)
 {
 	if (sockinfo->socket>0)
 	{
@@ -192,19 +199,20 @@ static void _tls_tl_close_sockinfo (struct socket_tab *sockinfo)
 	memset(sockinfo, 0, sizeof(*sockinfo));
 }
 
-static int tls_tl_free(void)
+static int tls_tl_free(struct eXosip_t *excontext)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	int pos;
-	if (server_ctx != NULL)
-		SSL_CTX_free(server_ctx);
-	server_ctx = NULL;
+	if (reserved->server_ctx != NULL)
+		SSL_CTX_free(reserved->server_ctx);
+	reserved->server_ctx = NULL;
 
-	if (client_ctx != NULL)
-		SSL_CTX_free(client_ctx);
-	client_ctx = NULL;
+	if (reserved->client_ctx != NULL)
+		SSL_CTX_free(reserved->client_ctx);
+	reserved->client_ctx = NULL;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
+		_tls_tl_close_sockinfo(&reserved->socket_tab[pos]);
 	}
 
 #if 0
@@ -216,20 +224,22 @@ static int tls_tl_free(void)
 	CRYPTO_cleanup_all_ex_data();
 #endif
 
-	memset(&tls_socket_tab, 0, sizeof(struct socket_tab) * EXOSIP_MAX_SOCKETS);
+	memset(&reserved->socket_tab, 0, sizeof(struct _tls_stream) * EXOSIP_MAX_SOCKETS);
 
-	memset(tls_firewall_ip, 0, sizeof(tls_firewall_ip));
-	memset(tls_firewall_port, 0, sizeof(tls_firewall_port));
-	memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
-	if (tls_socket > 0)
-		close(tls_socket);
-	tls_socket = 0;
+	memset(reserved->tls_firewall_ip, 0, sizeof(reserved->tls_firewall_ip));
+	memset(reserved->tls_firewall_port, 0, sizeof(reserved->tls_firewall_port));
+	memset(&reserved->ai_addr, 0, sizeof(struct sockaddr_storage));
+	if (reserved->tls_socket > 0)
+		close(reserved->tls_socket);
+	reserved->tls_socket = 0;
 
-	memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
-	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
-	memset(&tls_client_local_cn_name, 0, sizeof(tls_client_local_cn_name));
+	memset(&reserved->eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
+	memset(&reserved->tls_local_cn_name, 0, sizeof(reserved->tls_local_cn_name));
+	memset(&reserved->tls_client_local_cn_name, 0, sizeof(reserved->tls_client_local_cn_name));
 	
 	tls_verify_client_certificate = 0;
+	osip_free(reserved);
+	excontext->eXtltls_reserved=NULL;
 	return OSIP_SUCCESS;
 }
 
@@ -720,6 +730,7 @@ static X509 *_tls_set_certificate(SSL_CTX * ctx, const char *cn)
 
 int verify_cb(int preverify_ok, X509_STORE_CTX * store)
 {
+	//struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	char buf[256];
 	X509 *err_cert;
 	int err, depth;
@@ -907,10 +918,11 @@ static void generate_eph_rsa_key(SSL_CTX * ctx)
 	}
 }
 
-eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
+eXosip_tls_ctx_error eXosip_set_tls_ctx(struct eXosip_t *excontext, eXosip_tls_ctx_t * ctx)
 {
-	eXosip_tls_credentials_t *ownClient = &eXosip_tls_ctx_params.client;
-	eXosip_tls_credentials_t *ownServer = &eXosip_tls_ctx_params.server;
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
+	eXosip_tls_credentials_t *ownClient = &reserved->eXosip_tls_ctx_params.client;
+	eXosip_tls_credentials_t *ownServer = &reserved->eXosip_tls_ctx_params.server;
 
 	eXosip_tls_credentials_t *client = &ctx->client;
 	eXosip_tls_credentials_t *server = &ctx->server;
@@ -951,7 +963,7 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 	   } */
 
 	/* clean up configuration */
-	memset(&eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
+	memset(&reserved->eXosip_tls_ctx_params, 0, sizeof(eXosip_tls_ctx_t));
 
 	/* check if client has own certificate */
 	if (client->cert[0] != '\0') {
@@ -984,45 +996,46 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 				 client->priv_key_pw);
 	}
 
-	snprintf(eXosip_tls_ctx_params.dh_param, sizeof(ctx->dh_param), "%s",
+	snprintf(reserved->eXosip_tls_ctx_params.dh_param, sizeof(ctx->dh_param), "%s",
 			 ctx->dh_param);
-	snprintf(eXosip_tls_ctx_params.random_file, sizeof(ctx->random_file), "%s",
+	snprintf(reserved->eXosip_tls_ctx_params.random_file, sizeof(ctx->random_file), "%s",
 			 ctx->random_file);
-	snprintf(eXosip_tls_ctx_params.root_ca_cert, sizeof(ctx->root_ca_cert), "%s",
+	snprintf(reserved->eXosip_tls_ctx_params.root_ca_cert, sizeof(ctx->root_ca_cert), "%s",
 			 ctx->root_ca_cert);
 
 	return TLS_OK;
 }
 
-eXosip_tls_ctx_error eXosip_tls_use_server_certificate(const char
+eXosip_tls_ctx_error eXosip_tls_use_server_certificate(struct eXosip_t *excontext, const char
 													   *local_certificate_cn)
 {
-	memset(&tls_local_cn_name, 0, sizeof(tls_local_cn_name));
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
+	memset(&reserved->tls_local_cn_name, 0, sizeof(reserved->tls_local_cn_name));
 	if (local_certificate_cn == NULL)
 		return TLS_OK;
-	osip_strncpy(tls_local_cn_name, local_certificate_cn, sizeof(tls_local_cn_name)-1);
+	osip_strncpy(reserved->tls_local_cn_name, local_certificate_cn, sizeof(reserved->tls_local_cn_name)-1);
 	return TLS_OK;
 }
 
-eXosip_tls_ctx_error eXosip_tls_use_client_certificate(const char
+eXosip_tls_ctx_error eXosip_tls_use_client_certificate(struct eXosip_t *excontext, const char
 													   *local_certificate_cn)
 {
-	memset(&tls_client_local_cn_name, 0, sizeof(tls_client_local_cn_name));
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
+	memset(&reserved->tls_client_local_cn_name, 0, sizeof(reserved->tls_client_local_cn_name));
 	if (local_certificate_cn == NULL)
 		return TLS_OK;
-	osip_strncpy(tls_client_local_cn_name, local_certificate_cn, sizeof(tls_client_local_cn_name)-1);
+	osip_strncpy(reserved->tls_client_local_cn_name, local_certificate_cn, sizeof(reserved->tls_client_local_cn_name)-1);
 	return TLS_OK;
 }
 
-eXosip_tls_ctx_error eXosip_tls_verify_certificate(int
+eXosip_tls_ctx_error eXosip_tls_verify_certificate(struct eXosip_t *excontext, int
 												   _tls_verify_client_certificate)
 {
 	tls_verify_client_certificate = _tls_verify_client_certificate;
 	return TLS_OK;
 }
 
-SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
-							   const char *password, int transport)
+SSL_CTX *initialize_client_ctx(const char *certif_client_local_cn_name, eXosip_tls_ctx_t *client_ctx, int transport)
 {
 	SSL_METHOD *meth = NULL;
 	X509 *cert = NULL;
@@ -1047,34 +1060,34 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 		return NULL;
 	}
 
-	if (password[0] != '\0') {
-		SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) password);
+	if (client_ctx->client.priv_key_pw[0] != '\0') {
+		SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) client_ctx->client.priv_key_pw);
 		SSL_CTX_set_default_passwd_cb(ctx, password_cb);
 	}
 
-	if (tls_client_local_cn_name[0] != '\0') {
-		cert = _tls_set_certificate(ctx, tls_client_local_cn_name);
+	if (certif_client_local_cn_name[0] != '\0') {
+		cert = _tls_set_certificate(ctx, certif_client_local_cn_name);
 	}
 
-	if (cert==NULL && certfile[0] != '\0') {
+	if (cert==NULL && client_ctx->client.cert[0] != '\0') {
 		/* Load our keys and certificates */
-		if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
+		if (!(SSL_CTX_use_certificate_file(ctx, client_ctx->client.cert, SSL_FILETYPE_PEM))) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: Couldn't read client certificate file %s!\n",
-						certfile));
+						client_ctx->client.cert));
 		}
 
-		if (!(SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM)))
+		if (!(SSL_CTX_use_PrivateKey_file(ctx, client_ctx->client.priv_key, SSL_FILETYPE_PEM)))
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Couldn't read client pkey file %s!\n", keyfile));
+						"eXosip: Couldn't read client pkey file %s!\n", client_ctx->client.priv_key));
 
-		if (!(SSL_CTX_use_RSAPrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM)))
+		if (!(SSL_CTX_use_RSAPrivateKey_file(ctx, client_ctx->client.priv_key, SSL_FILETYPE_PEM)))
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: Couldn't read client RSA key file %s!\n",
-						keyfile));
+						client_ctx->client.priv_key));
 	}
 	
 	if (cert!=NULL)
@@ -1128,30 +1141,30 @@ ANDROID
 		HANDLE hSearch; 
 		char szDirPath[1024]; 
 		WCHAR wUnicodeDirPath[2048];
-		snprintf(szDirPath, sizeof(szDirPath), "%s", eXosip_tls_ctx_params.root_ca_cert);
+		snprintf(szDirPath, sizeof(szDirPath), "%s", client_ctx->root_ca_cert);
 		
 		MultiByteToWideChar(CP_UTF8, 0, szDirPath, -1, wUnicodeDirPath, 2048);
 		hSearch = FindFirstFile(wUnicodeDirPath, &FileData);
 		if (hSearch != INVALID_HANDLE_VALUE)
 		{
 			if ((FileData.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
-				caFolder = eXosip_tls_ctx_params.root_ca_cert;
+				caFolder = client_ctx->root_ca_cert;
 			else
-				caFile = eXosip_tls_ctx_params.root_ca_cert;
+				caFile = client_ctx->root_ca_cert;
 		} else {
-				caFile = eXosip_tls_ctx_params.root_ca_cert;
+				caFile = client_ctx->root_ca_cert;
 		}
 #else
-		int fd = open(eXosip_tls_ctx_params.root_ca_cert, O_RDONLY);
+		int fd = open(client_ctx->root_ca_cert, O_RDONLY);
 		if (fd >= 0) {
 			struct stat fileStat;
 			if (fstat(fd, &fileStat) < 0) {
 				
 			} else {
 				if (S_ISDIR(fileStat.st_mode)) {
-					caFolder = eXosip_tls_ctx_params.root_ca_cert;
+					caFolder = client_ctx->root_ca_cert;
 				} else {
-					caFile = eXosip_tls_ctx_params.root_ca_cert;
+					caFile = client_ctx->root_ca_cert;
 				}
 			}
 			close(fd);
@@ -1161,14 +1174,14 @@ ANDROID
 
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO3, NULL,
-					"eXosip: Trusted CA %s : '%s'\n", caFolder?"folder":"file", eXosip_tls_ctx_params.root_ca_cert));
+					"eXosip: Trusted CA %s : '%s'\n", caFolder?"folder":"file", client_ctx->root_ca_cert));
 
 		if (!
 			(SSL_CTX_load_verify_locations
 			 (ctx, caFile, caFolder)))
 			OSIP_TRACE(osip_trace
 						(__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Couldn't read CA list ('%s')\n", eXosip_tls_ctx_params.root_ca_cert));
+						"eXosip: Couldn't read CA list ('%s')\n", client_ctx->root_ca_cert));
 
 		{
 			int verify_mode = SSL_VERIFY_NONE;
@@ -1200,8 +1213,7 @@ ANDROID
 	return ctx;
 }
 
-SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
-							   const char *password, int transport)
+SSL_CTX *initialize_server_ctx(const char *certif_local_cn_name, eXosip_tls_ctx_t *srv_ctx, int transport)
 {
 	SSL_METHOD *meth = NULL;
 	SSL_CTX *ctx;
@@ -1239,11 +1251,11 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 		SSL_CTX_set_read_ahead(ctx, 1);
 	}
 
-	if (tls_local_cn_name[0] != '\0') {
-		cert = _tls_set_certificate(ctx, tls_local_cn_name);
+	if (certif_local_cn_name[0] != '\0') {
+		cert = _tls_set_certificate(ctx, certif_local_cn_name);
 	}
-	if (cert == NULL && certfile[0] != '\0') {
-		if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
+	if (cert == NULL && srv_ctx->server.cert[0] != '\0') {
+		if (!(SSL_CTX_use_certificate_file(ctx, srv_ctx->server.cert, SSL_FILETYPE_PEM))) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: Couldn't read certificate file!\n"));
@@ -1266,15 +1278,15 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 	SSL_CTX_set_session_id_context(ctx, (void *) &s_server_session_id_context,
 								   sizeof s_server_session_id_context);
 
-	if (password[0] != '\0') {
-		SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) password);
+	if (srv_ctx->server.priv_key_pw[0] != '\0') {
+		SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *) srv_ctx->server.priv_key_pw[0]);
 		SSL_CTX_set_default_passwd_cb(ctx, password_cb);
 	}
 
 	/* Load the CAs we trust */
 	if (!
 		(SSL_CTX_load_verify_locations
-		 (ctx, eXosip_tls_ctx_params.root_ca_cert, 0))) {
+		(ctx, srv_ctx->root_ca_cert, 0))) {
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					"eXosip: Couldn't read CA list\n"));
@@ -1291,17 +1303,17 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 						SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION |
 						SSL_OP_CIPHER_SERVER_PREFERENCE);
 
-	if (cert == NULL && keyfile[0] != '\0') {
-		if (!(SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM))) {
+	if (cert == NULL && srv_ctx->server.priv_key[0] != '\0') {
+		if (!(SSL_CTX_use_PrivateKey_file(ctx, srv_ctx->server.priv_key, SSL_FILETYPE_PEM))) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Couldn't read key file: %s\n", keyfile));
+						"eXosip: Couldn't read key file: %s\n", srv_ctx->server.priv_key));
 			SSL_CTX_free(ctx);
 			return NULL;
 		}
 	}
 
-	if (cert != NULL || certfile[0] != '\0') {
+	if (cert != NULL || srv_ctx->server.cert[0] != '\0') {
 		if (!SSL_CTX_check_private_key(ctx)) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -1311,7 +1323,7 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 		}
 	}
 
-	if (cert == NULL && certfile[0] == '\0') {
+	if (cert == NULL && srv_ctx->server.cert[0] == '\0') {
 		if(!SSL_CTX_set_cipher_list(ctx,"ADH")) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -1327,10 +1339,10 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 		cert = NULL;
 	}
 
-	if (cert == NULL && certfile[0] == '\0')
+	if (cert == NULL && srv_ctx->server.cert[0] == '\0')
 		build_dh_params(ctx);
 	else
-		load_dh_params(ctx, eXosip_tls_ctx_params.dh_param);
+		load_dh_params(ctx, srv_ctx->dh_param);
 
 	generate_eph_rsa_key(ctx);
 
@@ -1359,6 +1371,7 @@ SSL_CTX *initialize_server_ctx(const char *keyfile, const char *certfile,
 **/
 static int tls_tl_open(struct eXosip_t *excontext)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	int res;
 	struct addrinfo *addrinfo = NULL;
 	struct addrinfo *curinfo;
@@ -1371,29 +1384,23 @@ static int tls_tl_open(struct eXosip_t *excontext)
 	SSL_library_init();
 	SSL_load_error_strings();
 
-	server_ctx = initialize_server_ctx(eXosip_tls_ctx_params.server.priv_key,
-									   eXosip_tls_ctx_params.server.cert,
-									   eXosip_tls_ctx_params.server.priv_key_pw,
-									   IPPROTO_TCP);
+	reserved->server_ctx = initialize_server_ctx(reserved->tls_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
 
 	/* always initialize the client */
-	client_ctx = initialize_client_ctx(eXosip_tls_ctx_params.client.priv_key,
-									   eXosip_tls_ctx_params.client.cert,
-									   eXosip_tls_ctx_params.client.priv_key_pw,
-									   IPPROTO_TCP);
+	reserved->client_ctx = initialize_client_ctx(reserved->tls_client_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
 
 /*only necessary under Windows-based OS, unix-like systems use /dev/random or /dev/urandom */
 #if defined(WIN32) || defined(_WINDOWS)
 
 #if 0
 	/* check if a file with random data is present --> will be verified when random file is needed */
-	if (eXosip_tls_ctx_params.random_file[0] == '\0') {
+	if (reserved->eXosip_tls_ctx_params.random_file[0] == '\0') {
 		return TLS_ERR_NO_RAND;
 	}
 #endif
 
 	/* Load randomness */
-	if (!(RAND_load_file(eXosip_tls_ctx_params.random_file, 1024 * 1024)))
+	if (!(RAND_load_file(reserved->eXosip_tls_ctx_params.random_file, 1024 * 1024)))
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					"eXosip: Couldn't load randomness\n"));
@@ -1448,13 +1455,13 @@ static int tls_tl_open(struct eXosip_t *excontext)
 			sock = -1;
 			continue;
 		}
-		len = sizeof(ai_addr);
-		res = getsockname(sock, (struct sockaddr *) &ai_addr, &len);
+		len = sizeof(reserved->ai_addr);
+		res = getsockname(sock, (struct sockaddr *) &reserved->ai_addr, &len);
 		if (res != 0) {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 						"eXosip: Cannot get socket name (%s)\n", strerror(ex_errno)));
-			memcpy(&ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
+			memcpy(&reserved->ai_addr, curinfo->ai_addr, curinfo->ai_addrlen);
 		}
 
 		if (eXtl_tls.proto_num == IPPROTO_TCP) {
@@ -1483,44 +1490,45 @@ static int tls_tl_open(struct eXosip_t *excontext)
 		return -1;
 	}
 
-	tls_socket = sock;
+	reserved->tls_socket = sock;
 
 	if (eXtl_tls.proto_port == 0) {
 		/* get port number from socket */
 		if (eXtl_tls.proto_family == AF_INET)
 			eXtl_tls.proto_port =
-				ntohs(((struct sockaddr_in *) &ai_addr)->sin_port);
+				ntohs(((struct sockaddr_in *) &reserved->ai_addr)->sin_port);
 		else
 			eXtl_tls.proto_port =
-				ntohs(((struct sockaddr_in6 *) &ai_addr)->sin6_port);
+				ntohs(((struct sockaddr_in6 *) &reserved->ai_addr)->sin6_port);
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip: Binding on port %i!\n", eXtl_tls.proto_port));
 	}
 
-	snprintf(tls_firewall_port, sizeof(tls_firewall_port), "%i",
+	snprintf(reserved->tls_firewall_port, sizeof(reserved->tls_firewall_port), "%i",
 			 eXtl_tls.proto_port);
 	return OSIP_SUCCESS;
 }
 
-static int tls_tl_set_fdset(fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max)
+static int tls_tl_set_fdset(struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	int pos;
-	if (tls_socket <= 0)
+	if (reserved->tls_socket <= 0)
 		return -1;
 
-	eXFD_SET(tls_socket, osip_fdset);
+	eXFD_SET(reserved->tls_socket, osip_fdset);
 
-	if (tls_socket > *fd_max)
-		*fd_max = tls_socket;
+	if (reserved->tls_socket > *fd_max)
+		*fd_max = reserved->tls_socket;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket > 0) {
-			eXFD_SET(tls_socket_tab[pos].socket, osip_fdset);
-			if (tls_socket_tab[pos].socket > *fd_max)
-				*fd_max = tls_socket_tab[pos].socket;
-			if (tls_socket_tab[pos].sendbuflen > 0)
-				eXFD_SET (tls_socket_tab[pos].socket, osip_wrset);
+		if (reserved->socket_tab[pos].socket > 0) {
+			eXFD_SET(reserved->socket_tab[pos].socket, osip_fdset);
+			if (reserved->socket_tab[pos].socket > *fd_max)
+				*fd_max = reserved->socket_tab[pos].socket;
+			if (reserved->socket_tab[pos].sendbuflen > 0)
+				eXFD_SET (reserved->socket_tab[pos].socket, osip_wrset);
 		}
 	}
 
@@ -1725,32 +1733,33 @@ static int _tls_tl_is_connected(int sock)
 	}
 }
 
-static int _tls_tl_check_connected()
+static int _tls_tl_check_connected(struct eXosip_t *excontext)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	int pos;
 	int res;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket > 0
-			&& tls_socket_tab[pos].ai_addrlen > 0) {
-				if (tls_socket_tab[pos].ssl_state>0)
+		if (reserved->socket_tab[pos].socket > 0
+			&& reserved->socket_tab[pos].ai_addrlen > 0) {
+				if (reserved->socket_tab[pos].ssl_state>0)
 				{
 					/* already connected */
-					tls_socket_tab[pos].ai_addrlen = 0;
+					reserved->socket_tab[pos].ai_addrlen = 0;
 					continue;
 				}
 
-				res = connect(tls_socket_tab[pos].socket, &tls_socket_tab[pos].ai_addr, tls_socket_tab[pos].ai_addrlen);
+				res = connect(reserved->socket_tab[pos].socket, &reserved->socket_tab[pos].ai_addr, reserved->socket_tab[pos].ai_addrlen);
 				if (res < 0) {
 					int status = ex_errno;
 #if defined(_WIN32_WCE) || defined(WIN32)
 					if (status == WSAEISCONN) {
-						tls_socket_tab[pos].ai_addrlen=0; /* already connected */
+						reserved->socket_tab[pos].ai_addrlen=0; /* already connected */
 						continue;
 					}
 #else
 					if (status == EISCONN) {
-						tls_socket_tab[pos].ai_addrlen=0; /* already connected */
+						reserved->socket_tab[pos].ai_addrlen=0; /* already connected */
 						continue;
 					}
 #endif
@@ -1762,50 +1771,50 @@ static int _tls_tl_check_connected()
 						OSIP_TRACE(osip_trace
 							(__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"_tls_tl_check_connected: Cannot connect socket node:%s:%i, socket %d [pos=%d], family:%d, %s[%d]\n",
-							tls_socket_tab[pos].remote_ip,
-							tls_socket_tab[pos].remote_port,
-							tls_socket_tab[pos].socket,
+							reserved->socket_tab[pos].remote_ip,
+							reserved->socket_tab[pos].remote_port,
+							reserved->socket_tab[pos].socket,
 							pos,
-							tls_socket_tab[pos].ai_addr.sa_family,
+							reserved->socket_tab[pos].ai_addr.sa_family,
 							strerror(status),
 							status));
-							_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
+							_tls_tl_close_sockinfo(&reserved->socket_tab[pos]);
 							continue;
 					} else {
-						res = _tls_tl_is_connected(tls_socket_tab[pos].socket);
+						res = _tls_tl_is_connected(reserved->socket_tab[pos].socket);
 						if (res > 0) {
 							OSIP_TRACE(osip_trace
 								(__FILE__, __LINE__, OSIP_INFO2, NULL,
 								"_tls_tl_check_connected: socket node:%s:%i, socket %d [pos=%d], family:%d, in progress\n",
-								tls_socket_tab[pos].remote_ip,
-								tls_socket_tab[pos].remote_port,
-								tls_socket_tab[pos].socket,
+								reserved->socket_tab[pos].remote_ip,
+								reserved->socket_tab[pos].remote_port,
+								reserved->socket_tab[pos].socket,
 								pos,
-								tls_socket_tab[pos].ai_addr.sa_family));
+								reserved->socket_tab[pos].ai_addr.sa_family));
 							continue;
 						} else if (res == 0) {
 							OSIP_TRACE(osip_trace
 								(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								"_tls_tl_check_connected: socket node:%s:%i , socket %d [pos=%d], family:%d, connected\n",
-								tls_socket_tab[pos].remote_ip,
-								tls_socket_tab[pos].remote_port,
-								tls_socket_tab[pos].socket,
+								reserved->socket_tab[pos].remote_ip,
+								reserved->socket_tab[pos].remote_port,
+								reserved->socket_tab[pos].socket,
 								pos,
-								tls_socket_tab[pos].ai_addr.sa_family));
+								reserved->socket_tab[pos].ai_addr.sa_family));
 							/* stop calling "connect()" */
-							tls_socket_tab[pos].ai_addrlen=0;
-							tls_socket_tab[pos].ssl_state=1;
+							reserved->socket_tab[pos].ai_addrlen=0;
+							reserved->socket_tab[pos].ssl_state=1;
 							continue;
 						} else {
 							OSIP_TRACE(osip_trace
 								(__FILE__, __LINE__, OSIP_INFO2, NULL,
 								"_tls_tl_check_connected: socket node:%s:%i, socket %d [pos=%d], family:%d, error\n",
-								tls_socket_tab[pos].remote_ip,
-								tls_socket_tab[pos].remote_port,
-								tls_socket_tab[pos].socket,
+								reserved->socket_tab[pos].remote_ip,
+								reserved->socket_tab[pos].remote_port,
+								reserved->socket_tab[pos].socket,
 								pos,
-								tls_socket_tab[pos].ai_addr.sa_family));
-							_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
+								reserved->socket_tab[pos].ai_addr.sa_family));
+							_tls_tl_close_sockinfo(&reserved->socket_tab[pos]);
 							continue;
 						}
 					}
@@ -1815,31 +1824,28 @@ static int _tls_tl_check_connected()
 					OSIP_TRACE(osip_trace
 						(__FILE__, __LINE__, OSIP_INFO1, NULL,
 						"_tls_tl_check_connected: socket node:%s:%i , socket %d [pos=%d], family:%d, connected (with connect)\n",
-						tls_socket_tab[pos].remote_ip,
-						tls_socket_tab[pos].remote_port,
-						tls_socket_tab[pos].socket,
+						reserved->socket_tab[pos].remote_ip,
+						reserved->socket_tab[pos].remote_port,
+						reserved->socket_tab[pos].socket,
 						pos,
-						tls_socket_tab[pos].ai_addr.sa_family));
+						reserved->socket_tab[pos].ai_addr.sa_family));
 					/* stop calling "connect()" */
-					tls_socket_tab[pos].ai_addrlen=0;
+					reserved->socket_tab[pos].ai_addrlen=0;
 				}
 		}
 	}
 	return 0;
 }
 
-static int _tls_tl_ssl_connect_socket(struct socket_tab *sockinfo)
+static int _tls_tl_ssl_connect_socket(struct eXosip_t *excontext, struct _tls_stream *sockinfo)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	X509 *cert;
 	BIO *sbio;
 	int res;
 
 	if (sockinfo->ssl_ctx == NULL) {
-		sockinfo->ssl_ctx =
-			initialize_client_ctx(eXosip_tls_ctx_params.client.priv_key,
-								  eXosip_tls_ctx_params.client.cert,
-								  eXosip_tls_ctx_params.client.priv_key_pw,
-								  IPPROTO_TCP);
+		sockinfo->ssl_ctx = initialize_client_ctx(reserved->tls_client_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
 
 		/* FIXME: changed parameter from ctx to client_ctx -> works now */
 		sockinfo->ssl_conn = SSL_new(sockinfo->ssl_ctx);
@@ -1931,7 +1937,7 @@ static int _tls_tl_ssl_connect_socket(struct socket_tab *sockinfo)
 								  "Failed to verify remote certificate\n"));
 			tls_dump_verification_failure(cert_err);
 
-			if (eXosip_tls_ctx_params.server.cert[0] != '\0') {
+			if (reserved->eXosip_tls_ctx_params.server.cert[0] != '\0') {
 				X509_free(cert);
 				return -1;
 			} else if (cert_err != X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
@@ -1965,7 +1971,7 @@ static int _tls_tl_ssl_connect_socket(struct socket_tab *sockinfo)
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 							  "No certificate received\n"));
 		/* X509_free is not necessary because no cert-object was created -> cert == NULL */
-		if (eXosip_tls_ctx_params.server.cert[0] == '\0') {
+		if (reserved->eXosip_tls_ctx_params.server.cert[0] == '\0') {
 #ifdef ENABLE_ADH
 			/* how can we guess a user want ADH... specific APIs.. */
 			sockinfo->ssl_state = 3;
@@ -2009,7 +2015,7 @@ static char *buffer_find(const char *haystack, size_t haystack_len, const char *
 
 /* consume any complete messages in sockinfo->buf and
    return the total number of bytes consumed */
-static int handle_messages(struct eXosip_t *excontext, struct socket_tab *sockinfo)
+static int handle_messages(struct eXosip_t *excontext, struct _tls_stream *sockinfo)
 {
 	int consumed = 0;
 	char *buf = sockinfo->buf;
@@ -2079,7 +2085,7 @@ static int handle_messages(struct eXosip_t *excontext, struct socket_tab *sockin
 	return consumed;
 }
 
-static int _tls_tl_recv(struct eXosip_t *excontext, struct socket_tab *sockinfo)
+static int _tls_tl_recv(struct eXosip_t *excontext, struct _tls_stream *sockinfo)
 {
 	int r;
 	int rlen, err;
@@ -2137,7 +2143,7 @@ static int _tls_tl_recv(struct eXosip_t *excontext, struct socket_tab *sockinfo)
 	}
 
 	if (sockinfo->ssl_state == 1) {
-		r = _tls_tl_ssl_connect_socket(sockinfo);
+		r = _tls_tl_ssl_connect_socket(excontext, sockinfo);
 		if (r < 0) {
 			_tls_tl_close_sockinfo(sockinfo);
 			return OSIP_SUCCESS;
@@ -2234,9 +2240,10 @@ static int _tls_tl_recv(struct eXosip_t *excontext, struct socket_tab *sockinfo)
 
 static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	int pos = 0;
 
-	if (FD_ISSET(tls_socket, osip_fdset)) {
+	if (FD_ISSET(reserved->tls_socket, osip_fdset)) {
 		/* accept incoming connection */
 		char src6host[NI_MAXHOST];
 		int recvport = 0;
@@ -2260,21 +2267,21 @@ static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 			slen = sizeof(struct sockaddr_in6);
 
 		for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-			if (tls_socket_tab[pos].socket <= 0)
+			if (reserved->socket_tab[pos].socket <= 0)
 				break;
 		}
 		if (pos == EXOSIP_MAX_SOCKETS) {
 			/* delete an old one! */
 			pos = 0;
-			if (tls_socket_tab[pos].socket > 0) {
-				_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
+			if (reserved->socket_tab[pos].socket > 0) {
+				_tls_tl_close_sockinfo(&reserved->socket_tab[pos]);
 			}
-			memset(&tls_socket_tab[pos], 0, sizeof(struct socket_tab));
+			memset(&reserved->socket_tab[pos], 0, sizeof(struct _tls_stream));
 		}
 
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO3, NULL,
 							  "creating TLS socket at index: %i\n", pos));
-		sock = accept(tls_socket, (struct sockaddr *) &sa, &slen);
+		sock = accept(reserved->tls_socket, (struct sockaddr *) &sa, &slen);
 		if (sock < 0) {
 #if defined(EBADF)
 			int status = ex_errno;
@@ -2286,26 +2293,26 @@ static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 			{
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 									  "Error accepting TLS socket: EBADF\n"));
-				memset(&ai_addr, 0, sizeof(struct sockaddr_storage));
-				if (tls_socket > 0)
-					closesocket(tls_socket);
+				memset(&reserved->ai_addr, 0, sizeof(struct sockaddr_storage));
+				if (reserved->tls_socket > 0)
+					closesocket(reserved->tls_socket);
 				tls_tl_open(excontext);
 			}
 #endif
 		} else {
-			if (server_ctx == NULL) {
+			if (reserved->server_ctx == NULL) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 									  "TLS connection rejected\n"));
 				close(sock);
 				return -1;
 			}
 
-			if (!SSL_CTX_check_private_key(server_ctx)) {
+			if (!SSL_CTX_check_private_key(reserved->server_ctx)) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 									  "SSL CTX private key check error\n"));
 			}
 
-			ssl = SSL_new(server_ctx);
+			ssl = SSL_new(reserved->server_ctx);
 			if (ssl == NULL) {
 				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
 									  "Cannot create ssl connection context\n"));
@@ -2343,9 +2350,9 @@ static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "New TLS connection accepted\n"));
 
-			tls_socket_tab[pos].socket = sock;
-			tls_socket_tab[pos].ssl_conn = ssl;
-			tls_socket_tab[pos].ssl_state = 2;
+			reserved->socket_tab[pos].socket = sock;
+			reserved->socket_tab[pos].ssl_conn = ssl;
+			reserved->socket_tab[pos].ssl_state = 2;
 
 
 			memset(src6host, 0, sizeof(src6host));
@@ -2371,9 +2378,9 @@ static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 							   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 								"Message received from: %s:%i\n", src6host,
 								recvport));
-					osip_strncpy(tls_socket_tab[pos].remote_ip, src6host,
-								 sizeof(tls_socket_tab[pos].remote_ip) - 1);
-					tls_socket_tab[pos].remote_port = recvport;
+					osip_strncpy(reserved->socket_tab[pos].remote_ip, src6host,
+								 sizeof(reserved->socket_tab[pos].remote_ip) - 1);
+					reserved->socket_tab[pos].remote_port = recvport;
 				}
 			}
 #else
@@ -2390,18 +2397,18 @@ static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 							"Message received from: %s:%i\n", src6host, recvport));
-				osip_strncpy(tls_socket_tab[pos].remote_ip, src6host,
-							 sizeof(tls_socket_tab[pos].remote_ip) - 1);
-				tls_socket_tab[pos].remote_port = recvport;
+				osip_strncpy(reserved->socket_tab[pos].remote_ip, src6host,
+							 sizeof(reserved->socket_tab[pos].remote_ip) - 1);
+				reserved->socket_tab[pos].remote_port = recvport;
 			}
 #endif
 		}
 	}
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket > 0) {
-			if (FD_ISSET(tls_socket_tab[pos].socket, osip_fdset))
-				_tls_tl_recv(excontext, &tls_socket_tab[pos]);
+		if (reserved->socket_tab[pos].socket > 0) {
+			if (FD_ISSET(reserved->socket_tab[pos].socket, osip_fdset))
+				_tls_tl_recv(excontext, &reserved->socket_tab[pos]);
 		}
 	}
 
@@ -2409,14 +2416,15 @@ static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 }
 
 
-static int _tls_tl_find_socket(char *host, int port)
+static int _tls_tl_find_socket(struct eXosip_t *excontext, char *host, int port)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	int pos;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket != 0) {
-			if (0 == osip_strcasecmp(tls_socket_tab[pos].remote_ip, host)
-				&& port == tls_socket_tab[pos].remote_port)
+		if (reserved->socket_tab[pos].socket != 0) {
+			if (0 == osip_strcasecmp(reserved->socket_tab[pos].remote_ip, host)
+				&& port == reserved->socket_tab[pos].remote_port)
 				return pos;
 		}
 	}
@@ -2426,6 +2434,7 @@ static int _tls_tl_find_socket(char *host, int port)
 
 static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int port)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	int pos;
 	int res;
 	struct addrinfo *addrinfo = NULL;
@@ -2442,7 +2451,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 	memset(&selected_ai_addr, 0, sizeof(struct sockaddr));
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket == 0) {
+		if (reserved->socket_tab[pos].socket == 0) {
 			break;
 		}
 	}
@@ -2468,7 +2477,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 						src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 
 		if (res == 0) {
-			int i = _tls_tl_find_socket(src6host, port);
+			int i = _tls_tl_find_socket(excontext, src6host, port);
 			if (i >= 0) {
 				_eXosip_freeaddrinfo(addrinfo);
 				return i;
@@ -2621,22 +2630,22 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 					break;
 				} else if (res == 0) {
 #ifdef MULTITASKING_ENABLED
-					tls_socket_tab[pos].readStream = NULL;
-					tls_socket_tab[pos].writeStream = NULL;
+					reserved->socket_tab[pos].readStream = NULL;
+					reserved->socket_tab[pos].writeStream = NULL;
 					CFStreamCreatePairWithSocket(kCFAllocatorDefault, sock,
-												 &tls_socket_tab[pos].readStream, &tls_socket_tab[pos].writeStream);
-					if (tls_socket_tab[pos].readStream!=NULL)
-						CFReadStreamSetProperty(tls_socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-					if (tls_socket_tab[pos].writeStream!=NULL)
-						CFWriteStreamSetProperty(tls_socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-					if (CFReadStreamOpen (tls_socket_tab[pos].readStream))
+												 &reserved->socket_tab[pos].readStream, &reserved->socket_tab[pos].writeStream);
+					if (reserved->socket_tab[pos].readStream!=NULL)
+						CFReadStreamSetProperty(reserved->socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+					if (reserved->socket_tab[pos].writeStream!=NULL)
+						CFWriteStreamSetProperty(reserved->socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+					if (CFReadStreamOpen (reserved->socket_tab[pos].readStream))
 					{ 
 						OSIP_TRACE(osip_trace
 								   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 									"CFReadStreamOpen Succeeded!\n"));
 					}
 					
-					CFWriteStreamOpen (tls_socket_tab[pos].writeStream) ;
+					CFWriteStreamOpen (reserved->socket_tab[pos].writeStream) ;
 #endif
 					OSIP_TRACE(osip_trace
 							   (__FILE__, __LINE__, OSIP_INFO2, NULL,
@@ -2658,29 +2667,29 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 	_eXosip_freeaddrinfo(addrinfo);
 
 	if (sock > 0) {
-		tls_socket_tab[pos].socket = sock;
+		reserved->socket_tab[pos].socket = sock;
 
-		tls_socket_tab[pos].ai_addrlen = selected_ai_addrlen;
-		memset(&tls_socket_tab[pos].ai_addr, 0, sizeof(struct sockaddr));
+		reserved->socket_tab[pos].ai_addrlen = selected_ai_addrlen;
+		memset(&reserved->socket_tab[pos].ai_addr, 0, sizeof(struct sockaddr));
 		if (selected_ai_addrlen>0)
-			memcpy(&tls_socket_tab[pos].ai_addr, &selected_ai_addr, selected_ai_addrlen);
+			memcpy(&reserved->socket_tab[pos].ai_addr, &selected_ai_addr, selected_ai_addrlen);
 
 		if (src6host[0] == '\0')
-			osip_strncpy(tls_socket_tab[pos].remote_ip, host,
-						 sizeof(tls_socket_tab[pos].remote_ip) - 1);
+			osip_strncpy(reserved->socket_tab[pos].remote_ip, host,
+						 sizeof(reserved->socket_tab[pos].remote_ip) - 1);
 		else
-			osip_strncpy(tls_socket_tab[pos].remote_ip, src6host,
-						 sizeof(tls_socket_tab[pos].remote_ip) - 1);
+			osip_strncpy(reserved->socket_tab[pos].remote_ip, src6host,
+						 sizeof(reserved->socket_tab[pos].remote_ip) - 1);
 
-		tls_socket_tab[pos].remote_port = port;
-		tls_socket_tab[pos].ssl_conn = NULL;
-		tls_socket_tab[pos].ssl_state = ssl_state;
-		tls_socket_tab[pos].ssl_ctx = NULL;
+		reserved->socket_tab[pos].remote_port = port;
+		reserved->socket_tab[pos].ssl_conn = NULL;
+		reserved->socket_tab[pos].ssl_state = ssl_state;
+		reserved->socket_tab[pos].ssl_ctx = NULL;
 
-		if (tls_socket_tab[pos].ssl_state == 1) {	/* TCP connected but not TLS connected */
-			res = _tls_tl_ssl_connect_socket(&tls_socket_tab[pos]);
+		if (reserved->socket_tab[pos].ssl_state == 1) {	/* TCP connected but not TLS connected */
+			res = _tls_tl_ssl_connect_socket(excontext, &reserved->socket_tab[pos]);
 			if (res < 0) {
-				_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
+				_tls_tl_close_sockinfo(&reserved->socket_tab[pos]);
 				return -1;
 			}
 		}
@@ -2694,6 +2703,7 @@ static int
 tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, char *host,
 					int port, int out_socket)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	size_t length = 0;
 	char *message;
 	int i;
@@ -2847,18 +2857,18 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 	}
 
 	/* verify all current connections */
-	_tls_tl_check_connected();
+	_tls_tl_check_connected(excontext);
 
 	if (out_socket > 0) {
 		for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-			if (tls_socket_tab[pos].socket != 0) {
-				if (tls_socket_tab[pos].socket == out_socket) {
-					out_socket = tls_socket_tab[pos].socket;
-					ssl = tls_socket_tab[pos].ssl_conn;
+			if (reserved->socket_tab[pos].socket != 0) {
+				if (reserved->socket_tab[pos].socket == out_socket) {
+					out_socket = reserved->socket_tab[pos].socket;
+					ssl = reserved->socket_tab[pos].ssl_conn;
 					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 										  "reusing REQUEST connection (to dest=%s:%i)\n",
-										  tls_socket_tab[pos].remote_ip,
-										  tls_socket_tab[pos].remote_port));
+										  reserved->socket_tab[pos].remote_ip,
+										  reserved->socket_tab[pos].remote_port));
 					break;
 				}
 			}
@@ -2869,15 +2879,15 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 
 	/* Step 1: find existing socket to send message */
 	if (out_socket <= 0) {
-		pos = _tls_tl_find_socket(host, port);
+		pos = _tls_tl_find_socket(excontext, host, port);
 
 		/* Step 2: create new socket with host:port */
 		if (pos < 0) {
 			pos = _tls_tl_connect_socket(excontext, host, port);
 		}
 		if (pos >= 0) {
-			out_socket = tls_socket_tab[pos].socket;
-			ssl = tls_socket_tab[pos].ssl_conn;
+			out_socket = reserved->socket_tab[pos].socket;
+			ssl = reserved->socket_tab[pos].ssl_conn;
 		}
 	}
 
@@ -2886,7 +2896,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		return -1;
 	}
 
-	if (tls_socket_tab[pos].ssl_state == 0) {
+	if (reserved->socket_tab[pos].ssl_state == 0) {
 		i = _tls_tl_is_connected(out_socket);
 		if (i > 0) {
 			time_t now;
@@ -2919,8 +2929,8 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"socket node:%s , socket %d [pos=%d], connected\n",
 						host, out_socket, pos));
-			tls_socket_tab[pos].ssl_state = 1;
-			tls_socket_tab[pos].ai_addrlen = 0;
+			reserved->socket_tab[pos].ssl_state = 1;
+			reserved->socket_tab[pos].ai_addrlen = 0;
 		} else {
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
@@ -2931,10 +2941,10 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		}
 	}
 
-	if (tls_socket_tab[pos].ssl_state == 1) {	/* TCP connected but not TLS connected */
-		i = _tls_tl_ssl_connect_socket(&tls_socket_tab[pos]);
+	if (reserved->socket_tab[pos].ssl_state == 1) {	/* TCP connected but not TLS connected */
+		i = _tls_tl_ssl_connect_socket(excontext, &reserved->socket_tab[pos]);
 		if (i < 0) {
-			_tls_tl_close_sockinfo(&tls_socket_tab[pos]);
+			_tls_tl_close_sockinfo(&reserved->socket_tab[pos]);
 			osip_free(message);
 			return -1;
 		} else if (i > 0) {
@@ -2945,7 +2955,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 			osip_free(message);
 			return 1;
 		}
-		ssl = tls_socket_tab[pos].ssl_conn;
+		ssl = reserved->socket_tab[pos].ssl_conn;
 	}
 
 	if (ssl == NULL) {
@@ -2954,24 +2964,24 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 	}
 
 #ifdef MULTITASKING_ENABLED
-	if (tls_socket_tab[pos].readStream==NULL)
+	if (reserved->socket_tab[pos].readStream==NULL)
 	{
-		tls_socket_tab[pos].readStream = NULL;
-		tls_socket_tab[pos].writeStream = NULL;
-		CFStreamCreatePairWithSocket(kCFAllocatorDefault, tls_socket_tab[pos].socket,
-									 &tls_socket_tab[pos].readStream, &tls_socket_tab[pos].writeStream);
-		if (tls_socket_tab[pos].readStream!=NULL)
-			CFReadStreamSetProperty(tls_socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-		if (tls_socket_tab[pos].writeStream!=NULL)
-			CFWriteStreamSetProperty(tls_socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
-		if (CFReadStreamOpen (tls_socket_tab[pos].readStream))
+		reserved->socket_tab[pos].readStream = NULL;
+		reserved->socket_tab[pos].writeStream = NULL;
+		CFStreamCreatePairWithSocket(kCFAllocatorDefault, reserved->socket_tab[pos].socket,
+									 &reserved->socket_tab[pos].readStream, &reserved->socket_tab[pos].writeStream);
+		if (reserved->socket_tab[pos].readStream!=NULL)
+			CFReadStreamSetProperty(reserved->socket_tab[pos].readStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		if (reserved->socket_tab[pos].writeStream!=NULL)
+			CFWriteStreamSetProperty(reserved->socket_tab[pos].writeStream, kCFStreamNetworkServiceType, kCFStreamNetworkServiceTypeVoIP);
+		if (CFReadStreamOpen (reserved->socket_tab[pos].readStream))
 		{ 
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"CFReadStreamOpen Succeeded!\n"));
 		}
 		
-		CFWriteStreamOpen (tls_socket_tab[pos].writeStream) ;
+		CFWriteStreamOpen (reserved->socket_tab[pos].writeStream) ;
 	}
 #endif
 	
@@ -3002,6 +3012,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 
 static int tls_tl_keepalive(struct eXosip_t *excontext)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	char buf[5] = "\r\n\r\n";
 	int pos;
 	int i;
@@ -3010,18 +3021,18 @@ static int tls_tl_keepalive(struct eXosip_t *excontext)
 		return 0;
 	}
 
-	if (tls_socket <= 0)
+	if (reserved->tls_socket <= 0)
 		return OSIP_UNDEFINED_ERROR;
 
 	for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
-		if (tls_socket_tab[pos].socket > 0 && tls_socket_tab[pos].ssl_state > 2) {
-			SSL_set_mode(tls_socket_tab[pos].ssl_conn, SSL_MODE_AUTO_RETRY);
+		if (reserved->socket_tab[pos].socket > 0 && reserved->socket_tab[pos].ssl_state > 2) {
+			SSL_set_mode(reserved->socket_tab[pos].ssl_conn, SSL_MODE_AUTO_RETRY);
 
 			while (1) {
-				i = SSL_write(tls_socket_tab[pos].ssl_conn, (const void *) buf, 4);
+				i = SSL_write(reserved->socket_tab[pos].ssl_conn, (const void *) buf, 4);
 
 				if (i <= 0) {
-					i = SSL_get_error(tls_socket_tab[pos].ssl_conn, i);
+					i = SSL_get_error(reserved->socket_tab[pos].ssl_conn, i);
 					if (i == SSL_ERROR_WANT_READ || i == SSL_ERROR_WANT_WRITE)
 						continue;
 					print_ssl_error(i);
@@ -3033,41 +3044,44 @@ static int tls_tl_keepalive(struct eXosip_t *excontext)
 	return OSIP_SUCCESS;
 }
 
-static int tls_tl_set_socket(int socket)
+static int tls_tl_set_socket(struct eXosip_t *excontext, int socket)
 {
-	tls_socket = socket;
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
+	reserved->tls_socket = socket;
 
 	return OSIP_SUCCESS;
 }
 
-static int tls_tl_masquerade_contact(const char *public_address, int port)
+static int tls_tl_masquerade_contact(struct eXosip_t *excontext, const char *public_address, int port)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	if (public_address == NULL || public_address[0] == '\0') {
-		memset(tls_firewall_ip, '\0', sizeof(tls_firewall_ip));
-		memset(tls_firewall_port, '\0', sizeof(tls_firewall_port));
+		memset(reserved->tls_firewall_ip, '\0', sizeof(reserved->tls_firewall_ip));
+		memset(reserved->tls_firewall_port, '\0', sizeof(reserved->tls_firewall_port));
 		if (eXtl_tls.proto_port > 0)
-			snprintf(tls_firewall_port, sizeof(tls_firewall_port), "%i",
+			snprintf(reserved->tls_firewall_port, sizeof(reserved->tls_firewall_port), "%i",
 					 eXtl_tls.proto_port);
 		return OSIP_SUCCESS;
 	}
-	snprintf(tls_firewall_ip, sizeof(tls_firewall_ip), "%s", public_address);
+	snprintf(reserved->tls_firewall_ip, sizeof(reserved->tls_firewall_ip), "%s", public_address);
 	if (port > 0) {
-		snprintf(tls_firewall_port, sizeof(tls_firewall_port), "%i", port);
+		snprintf(reserved->tls_firewall_port, sizeof(reserved->tls_firewall_port), "%i", port);
 	}
 	return OSIP_SUCCESS;
 }
 
 static int
-tls_tl_get_masquerade_contact(char *ip, int ip_size, char *port, int port_size)
+tls_tl_get_masquerade_contact(struct eXosip_t *excontext, char *ip, int ip_size, char *port, int port_size)
 {
+	struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	memset(ip, 0, ip_size);
 	memset(port, 0, port_size);
 
-	if (tls_firewall_ip[0] != '\0')
-		snprintf(ip, ip_size, "%s", tls_firewall_ip);
+	if (reserved->tls_firewall_ip[0] != '\0')
+		snprintf(ip, ip_size, "%s", reserved->tls_firewall_ip);
 
-	if (tls_firewall_port[0] != '\0')
-		snprintf(port, port_size, "%s", tls_firewall_port);
+	if (reserved->tls_firewall_port[0] != '\0')
+		snprintf(port, port_size, "%s", reserved->tls_firewall_port);
 	return OSIP_SUCCESS;
 }
 
@@ -3095,26 +3109,26 @@ struct eXtl_protocol eXtl_tls = {
 
 #else
 
-eXosip_tls_ctx_error eXosip_tls_verify_certificate(int
+eXosip_tls_ctx_error eXosip_tls_verify_certificate(struct eXosip_t *excontext, int
 												   _tls_verify_client_certificate)
 {
 	return -1; /* NOT IMPLEMENTED */
 }
 
-eXosip_tls_ctx_error eXosip_tls_use_server_certificate(const char
+eXosip_tls_ctx_error eXosip_tls_use_server_certificate(struct eXosip_t *excontext, const char
 													   *local_certificate_cn)
 {
 	return -1; /* NOT IMPLEMENTED */
 }
 
-eXosip_tls_ctx_error eXosip_tls_use_client_certificate(const char
+eXosip_tls_ctx_error eXosip_tls_use_client_certificate(struct eXosip_t *excontext, const char
 													   *local_certificate_cn)
 {
 	return -1; /* NOT IMPLEMENTED */
 }
 
 
-eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
+eXosip_tls_ctx_error eXosip_set_tls_ctx(struct eXosip_t *excontext, eXosip_tls_ctx_t * ctx)
 {
 	return -1; /* NOT IMPLEMENTED */
 }

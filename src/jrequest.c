@@ -79,7 +79,7 @@ int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * requ
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
 	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
-		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+		excontext->eXtl->tl_get_masquerade_contact(excontext, firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -211,7 +211,7 @@ _eXosip_request_add_via(struct eXosip_t *excontext, osip_message_t * request, co
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
 	if (excontext->eXtl != NULL && excontext->eXtl->tl_get_masquerade_contact != NULL) {
-		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+		excontext->eXtl->tl_get_masquerade_contact(excontext, firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -599,7 +599,7 @@ _eXosip_generating_register(struct eXosip_t *excontext, eXosip_reg_t * jreg, osi
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
 	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
-		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+		excontext->eXtl->tl_get_masquerade_contact(excontext, firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}
@@ -832,7 +832,7 @@ _eXosip_build_request_within_dialog(struct eXosip_t *excontext, osip_message_t *
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
 	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
-		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+		excontext->eXtl->tl_get_masquerade_contact(excontext, firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}

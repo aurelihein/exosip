@@ -190,7 +190,7 @@ extern "C"
   *
   *	@return  the eXosip_tls_ctx_error code
   */
-  eXosip_tls_ctx_error eXosip_set_tls_ctx (eXosip_tls_ctx_t * ctx);
+  eXosip_tls_ctx_error eXosip_set_tls_ctx (struct eXosip_t *excontext, eXosip_tls_ctx_t * ctx);
 
 /**
   *	Select by CN name the server certificate from OS store.
@@ -201,7 +201,7 @@ extern "C"
   *
   *	@return  the eXosip_tls_ctx_error code
   */
-  eXosip_tls_ctx_error eXosip_tls_use_server_certificate (const char *local_certificate_cn);
+  eXosip_tls_ctx_error eXosip_tls_use_server_certificate (struct eXosip_t *excontext, const char *local_certificate_cn);
 
 /**
   *         Select by CN name the client certificate from OS store.
@@ -212,7 +212,7 @@ extern "C"
   *
   *         @return  the eXosip_tls_ctx_error code
   */
-  eXosip_tls_ctx_error eXosip_tls_use_client_certificate (const char *local_certificate_cn);
+  eXosip_tls_ctx_error eXosip_tls_use_client_certificate (struct eXosip_t *excontext, const char *local_certificate_cn);
 
 /**
   *	Configure to accept/reject self signed and expired certificates.
@@ -222,7 +222,7 @@ extern "C"
   *
   *	@return  the eXosip_tls_ctx_error code
   */
-  eXosip_tls_ctx_error eXosip_tls_verify_certificate (int _tls_verify_client_certificate);
+  eXosip_tls_ctx_error eXosip_tls_verify_certificate (struct eXosip_t *excontext, int _tls_verify_client_certificate);
 
 /**
  * Start and return osip_naptr context.
@@ -314,7 +314,7 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * If set to NULL, then the local ip address will be guessed 
  * automatically (returns to default mode).
  */
-  void eXosip_masquerade_contact (const char *public_address, int port);
+  void eXosip_masquerade_contact (struct eXosip_t *excontext, const char *public_address, int port);
 
 /**
  * This method is used to find out an free IPPROTO_UDP or IPPROTO_TCP port.

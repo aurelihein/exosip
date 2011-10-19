@@ -24,7 +24,6 @@ jauth.c          eXtransport.h    \
 eXosip2.h
 
 libeXosip2_la_SOURCES+= \
-eXtl.c \
 eXtl_udp.c \
 eXtl_tcp.c \
 eXtl_dtls.c \

@@ -175,7 +175,7 @@ _eXosip_complete_answer_that_establish_a_dialog(struct eXosip_t *excontext, osip
 	firewall_ip[0] = '\0';
 	firewall_port[0] = '\0';
 	if (excontext->eXtl->tl_get_masquerade_contact != NULL) {
-		excontext->eXtl->tl_get_masquerade_contact(firewall_ip, sizeof(firewall_ip),
+		excontext->eXtl->tl_get_masquerade_contact(excontext, firewall_ip, sizeof(firewall_ip),
 											   firewall_port,
 											   sizeof(firewall_port));
 	}

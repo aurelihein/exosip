@@ -406,6 +406,12 @@ extern "C" {
 
 	struct eXosip_t {
 		struct eXtl_protocol *eXtl;
+		void *eXtludp_reserved;
+		void *eXtltcp_reserved;
+#ifndef DISABLE_TLS
+		void *eXtltls_reserved;
+		void *eXtldtls_reserved;
+#endif
 		char transport[10];
 		char *user_agent;
 

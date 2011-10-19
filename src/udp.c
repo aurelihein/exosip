@@ -1581,13 +1581,13 @@ int _eXosip_read_message(struct eXosip_t *excontext, int max_message_nb, int sec
 
 		FD_ZERO(&osip_fdset);
 		FD_ZERO(&osip_wrset);
-		eXtl_udp.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
-		eXtl_tcp.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
+		eXtl_udp.tl_set_fdset(excontext, &osip_fdset, &osip_wrset, &max);
+		eXtl_tcp.tl_set_fdset(excontext, &osip_fdset, &osip_wrset, &max);
 #ifdef HAVE_OPENSSL_SSL_H
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-		eXtl_dtls.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
+		eXtl_dtls.tl_set_fdset(excontext, &osip_fdset, &osip_wrset, &max);
 #endif
-		eXtl_tls.tl_set_fdset(&osip_fdset, &osip_wrset, &max);
+		eXtl_tls.tl_set_fdset(excontext, &osip_fdset, &osip_wrset, &max);
 #endif
 
 #ifdef OSIP_MT

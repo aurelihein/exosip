@@ -60,14 +60,14 @@ int eXosip_set_cbsip_message(struct eXosip_t *excontext, CbSipCallback cbsipCall
 	return 0;
 }
 
-void eXosip_masquerade_contact(const char *public_address, int port)
+void eXosip_masquerade_contact(struct eXosip_t *excontext, const char *public_address, int port)
 {
-	eXtl_udp.tl_masquerade_contact(public_address, port);
-	eXtl_tcp.tl_masquerade_contact(public_address, port);
+	eXtl_udp.tl_masquerade_contact(excontext, public_address, port);
+	eXtl_tcp.tl_masquerade_contact(excontext, public_address, port);
 #ifdef HAVE_OPENSSL_SSL_H
-	eXtl_tls.tl_masquerade_contact(public_address, port);
+	eXtl_tls.tl_masquerade_contact(excontext, public_address, port);
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-	eXtl_dtls.tl_masquerade_contact(public_address, port);
+	eXtl_dtls.tl_masquerade_contact(excontext, public_address, port);
 #endif
 #endif
 	return;
@@ -267,13 +267,13 @@ void eXosip_quit(struct eXosip_t *excontext)
 		}
 	}
 
-	eXtl_udp.tl_free();
-	eXtl_tcp.tl_free();
+	eXtl_udp.tl_free(excontext);
+	eXtl_tcp.tl_free(excontext);
 #ifdef HAVE_OPENSSL_SSL_H
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-	eXtl_dtls.tl_free();
+	eXtl_dtls.tl_free(excontext);
 #endif
-	eXtl_tls.tl_free();
+	eXtl_tls.tl_free(excontext);
 #endif
 
 	memset(excontext, 0, sizeof(eXosip_t));
@@ -287,12 +287,12 @@ int eXosip_set_socket(struct eXosip_t *excontext, int transport, int socket, int
 	excontext->eXtl = NULL;
 	if (transport == IPPROTO_UDP) {
 		eXtl_udp.proto_port = port;
-		eXtl_udp.tl_set_socket(socket);
+		eXtl_udp.tl_set_socket(excontext, socket);
 		excontext->eXtl = &eXtl_udp;
 		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "UDP");
 	} else if (transport == IPPROTO_TCP) {
 		eXtl_tcp.proto_port = port;
-		eXtl_tcp.tl_set_socket(socket);
+		eXtl_tcp.tl_set_socket(excontext, socket);
 		excontext->eXtl = &eXtl_tcp;
 		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "TCP");
 	} else
@@ -727,13 +727,13 @@ int eXosip_init(struct eXosip_t *excontext)
 	excontext->keep_alive = 17000;
 	excontext->keep_alive_options = 0;
 
-	eXtl_udp.tl_init();
-	eXtl_tcp.tl_init();
+	eXtl_udp.tl_init(excontext);
+	eXtl_tcp.tl_init(excontext);
 #ifdef HAVE_OPENSSL_SSL_H
 #if !(OPENSSL_VERSION_NUMBER < 0x00908000L)
-	eXtl_dtls.tl_init();
+	eXtl_dtls.tl_init(excontext);
 #endif
-	eXtl_tls.tl_init();
+	eXtl_tls.tl_init(excontext);
 #endif
 	return OSIP_SUCCESS;
 }
