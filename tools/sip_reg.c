@@ -115,6 +115,8 @@ typedef struct regparam_t {
 	int auth;
 } regparam_t;
 
+struct eXosip_t *context_eXosip;
+
 #ifdef OSIP_MT
 static void *register_proc(void *arg)
 {
@@ -127,8 +129,8 @@ static void *register_proc(void *arg)
 #else
 		sleep(regparam->expiry / 2);
 #endif
-		eXosip_lock();
-		reg = eXosip_register_send_register(regparam->regid, NULL);
+		eXosip_lock(context_eXosip);
+		reg = eXosip_register_send_register(context_eXosip, regparam->regid, NULL);
 		if (0 > reg) {
 #ifdef _WIN32_WCE
 			fprintf(stdout, "eXosip_register: error while registring");
@@ -138,7 +140,7 @@ static void *register_proc(void *arg)
 			exit(1);
 		}
 		regparam->auth = 0;
-		eXosip_unlock();
+		eXosip_unlock(context_eXosip);
 	}
 	return NULL;
 }
@@ -284,32 +286,33 @@ int main(int argc, char *argv[])
 	if (debug > 0)
 		TRACE_INITIALIZE(6, NULL);
 
-	if (eXosip_init()) {
+	context_eXosip = eXosip_malloc();
+	if (eXosip_init(context_eXosip)) {
 		syslog_wrapper(LOG_ERR, "eXosip_init failed");
 		exit(1);
 	}
-	if (eXosip_listen_addr(IPPROTO_UDP, NULL, port, AF_INET, 0)) {
+	if (eXosip_listen_addr(context_eXosip, IPPROTO_UDP, NULL, port, AF_INET, 0)) {
 		syslog_wrapper(LOG_ERR, "eXosip_listen_addr failed");
 		exit(1);
 	}
 
 	if (localip) {
 		syslog_wrapper(LOG_INFO, "local address: %s", localip);
-		eXosip_masquerade_contact(localip, port);
+		eXosip_masquerade_contact(context_eXosip, localip, port);
 	}
 
 	if (firewallip) {
 		syslog_wrapper(LOG_INFO, "firewall address: %s:%i", firewallip, port);
-		eXosip_masquerade_contact(firewallip, port);
+		eXosip_masquerade_contact(context_eXosip, firewallip, port);
 	}
 
-	eXosip_set_user_agent(UA_STRING);
+	eXosip_set_user_agent(context_eXosip, UA_STRING);
 
 	if (username && password) {
 		syslog_wrapper(LOG_INFO, "username: %s", username);
 		syslog_wrapper(LOG_INFO, "password: [removed]");
 		if (eXosip_add_authentication_info
-			(username, username, password, NULL, NULL)) {
+			(context_eXosip, username, username, password, NULL, NULL)) {
 			syslog_wrapper(LOG_ERR, "eXosip_add_authentication_info failed");
 			exit(1);
 		}
@@ -320,14 +323,14 @@ int main(int argc, char *argv[])
 		int i;
 
 		regparam.regid =
-			eXosip_register_build_initial_register(fromuser, proxy, contact,
+			eXosip_register_build_initial_register(context_eXosip, fromuser, proxy, contact,
 												   regparam.expiry * 2, &reg);
 		if (regparam.regid < 1) {
 			syslog_wrapper(LOG_ERR,
 						   "eXosip_register_build_initial_register failed");
 			exit(1);
 		}
-		i = eXosip_register_send_register(regparam.regid, reg);
+		i = eXosip_register_send_register(context_eXosip, regparam.regid, reg);
 		if (i != 0) {
 			syslog_wrapper(LOG_ERR, "eXosip_register_send_register failed");
 			exit(1);
@@ -345,19 +348,19 @@ int main(int argc, char *argv[])
 	for (;;) {
 		eXosip_event_t *event;
 
-		if (!(event = eXosip_event_wait(0, 1))) {
+		if (!(event = eXosip_event_wait(context_eXosip, 0, 1))) {
 #ifndef OSIP_MT
-			eXosip_execute();
-			eXosip_automatic_action();
+			eXosip_execute(context_eXosip);
+			eXosip_automatic_action(context_eXosip);
 #endif
 			osip_usleep(10000);
 			continue;
 		}
 #ifndef OSIP_MT
-		eXosip_execute();
+		eXosip_execute(context_eXosip);
 #endif
 
-		eXosip_automatic_action();
+		eXosip_automatic_action(context_eXosip);
 		switch (event->type) {
 		case EXOSIP_REGISTRATION_NEW:
 			syslog_wrapper(LOG_INFO, "received new registration");
