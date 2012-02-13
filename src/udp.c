@@ -1576,7 +1576,13 @@ _eXosip_handle_incoming_message(char *buf, size_t length, int socket,
 		else
 			se->type = RCV_REQUEST;
 	} else {
-		if (MSG_IS_STATUS_1XX(se->sip))
+                if (se->sip->status_code < 100 || se->sip->status_code > 699)
+		{
+			osip_message_free(se->sip);
+			osip_free(se);
+			return OSIP_SYNTAXERROR;
+		}
+		else if (MSG_IS_STATUS_1XX(se->sip))
 			se->type = RCV_STATUS_1XX;
 		else if (MSG_IS_STATUS_2XX(se->sip))
 			se->type = RCV_STATUS_2XX;

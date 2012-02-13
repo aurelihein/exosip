@@ -178,7 +178,7 @@ static int udp_tl_open(void)
 		res = setsockopt(udp_socket, IPPROTO_IPV6, IPV6_TCLASS,
 			(SOCKET_OPTION_VALUE)&tos, sizeof(tos));
 #else
-		retval = setsockopt(udp_socket, IPPROTO_IPV6, IP_TOS,
+		res = setsockopt(udp_socket, IPPROTO_IPV6, IP_TOS,
 			(SOCKET_OPTION_VALUE)&tos, sizeof(tos));
 #endif
 	}
