@@ -41,6 +41,19 @@
 #include <wincrypt.h>
 #endif
 
+#ifdef __APPLE_CC__
+#include "TargetConditionals.h"
+#endif
+
+#ifdef __APPLE__
+#if (TARGET_OS_MAC==1)
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreServices/CoreServices.h>
+#include <Security/Security.h>
+#endif
+#endif
+
+
 #if defined(_WIN32_WCE) || defined(WIN32)
 #define strerror(X) "-1"
 #define ex_errno WSAGetLastError()
@@ -77,10 +90,6 @@
 #define DHFILE PATH"dh1024.pem"*/
 
 extern eXosip_t eXosip;
-
-#ifdef __APPLE_CC__
-#include "TargetConditionals.h"
-#endif
 
 #if TARGET_OS_IPHONE
 #include <CoreFoundation/CFStream.h>
@@ -342,6 +351,87 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 	}
 
 	CertCloseStore(hStore, 0);
+#elif (TARGET_OS_MAC==1)
+	SecKeychainSearchRef pSecKeychainSearch = NULL;
+	SecKeychainRef pSecKeychain;
+	OSStatus status = noErr;
+	X509 *cert = NULL;
+	SInt32 osx_version = 0;
+	
+	if (Gestalt(gestaltSystemVersion, &osx_version) != noErr) {
+		OSIP_TRACE(osip_trace
+							 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+								"macosx certificate store: can't get osx version"));
+		return 0;
+	}
+	if (osx_version >= 0x1050) {
+		//Leopard store location
+		status = SecKeychainOpen("/System/Library/Keychains/SystemRootCertificates.keychain", &pSecKeychain);
+	} else {
+		//Tiger and below store location
+		status = SecKeychainOpen("/System/Library/Keychains/X509Anchors", &pSecKeychain);
+	}
+	if (status != noErr)
+	{
+		OSIP_TRACE(osip_trace
+							 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+								"macosx certificate store: can't get osx version"));
+		return 0;
+	}
+	
+	status = SecKeychainSearchCreateFromAttributes(pSecKeychain,kSecCertificateItemClass,
+																								 NULL, &pSecKeychainSearch);
+	for (;;)
+	{
+		SecKeychainItemRef pSecKeychainItem = nil;
+		status = SecKeychainSearchCopyNext(pSecKeychainSearch, &pSecKeychainItem);
+		if (status == errSecItemNotFound)
+		{
+			break;
+		}
+		
+		if (status == noErr)
+		{
+			void *_pCertData;
+			UInt32 _pCertLength;
+			status = SecKeychainItemCopyAttributesAndData(pSecKeychainItem, NULL, NULL,
+																										NULL, &_pCertLength, &_pCertData);
+			
+			if (status == noErr && _pCertData != NULL)
+			{
+				unsigned char *ptr;
+				ptr=_pCertData; /*required because d2i_X509 is modifying pointer */
+				cert = d2i_X509(NULL, (const unsigned char **) &ptr,
+												_pCertLength);
+				if (cert == NULL) {
+					continue;
+				}
+				/*tls_dump_cert_info("ROOT", cert); */
+				
+				if (!X509_STORE_add_cert(ctx->cert_store, cert)) {
+					continue;
+				}
+				count++;
+				X509_free(cert);
+				
+				status = SecKeychainItemFreeAttributesAndData(NULL, _pCertData);
+			}
+		}
+		
+		if (pSecKeychainItem != NULL)
+			CFRelease(pSecKeychainItem);
+		
+		if (status != noErr)
+		{
+			OSIP_TRACE(osip_trace
+								 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+									"macosx certificate store: can't add certificate (%i)", status));
+		}
+	}
+	
+	CFRelease(pSecKeychainSearch);
+	CFRelease(pSecKeychain);
+	
 #endif
 	return count;
 }
@@ -810,6 +900,7 @@ int verify_cb(int preverify_ok, X509_STORE_CTX * store)
 	  X509_STORE_CTX_set_error(store, X509_V_OK);
 	}
 	
+	preverify_ok=1; /* configured to accept anyway! */
 	return preverify_ok;
 }
 
