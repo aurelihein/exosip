@@ -1033,7 +1033,7 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 	eXosip_tls_credentials_t *server = &ctx->server;
 
 	/* check if public AND private keys are valid */
-	if ((client->cert[0] != '\0' && client->priv_key[0] == '\0') ||
+	if (//(client->cert[0] != '\0' && client->priv_key[0] == '\0') ||
 		(client->cert[0] == '\0' && client->priv_key[0] != '\0')) {
 		/* no, one is missing */
 		return TLS_ERR_MISSING_AUTH_PART;
@@ -1043,7 +1043,7 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 		return TLS_ERR_NO_PW;
 	}
 	/* check if public AND private keys are valid */
-	if ((server->cert[0] != '\0' && server->priv_key[0] == '\0') ||
+	if (//(server->cert[0] != '\0' && server->priv_key[0] == '\0') ||
 		(server->cert[0] == '\0' && server->priv_key[0] != '\0')) {
 		/* no, one is missing */
 		return TLS_ERR_MISSING_AUTH_PART;
@@ -1077,14 +1077,8 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 				 client->priv_key);
 		snprintf(ownClient->priv_key_pw, sizeof(ownClient->priv_key_pw), "%s",
 				 client->priv_key_pw);
-	} else if (server->cert[0] != '\0') {
-		/* no, has no certificates -> copy the chars of the server */
-		snprintf(ownClient->cert, sizeof(ownClient->cert), "%s", server->cert);
-		snprintf(ownClient->priv_key, sizeof(ownClient->priv_key), "%s",
-				 server->priv_key);
-		snprintf(ownClient->priv_key_pw, sizeof(ownClient->priv_key_pw), "%s",
-				 server->priv_key_pw);
 	}
+
 	/* check if server has own certificate */
 	if (server->cert[0] != '\0') {
 		snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", server->cert);
@@ -1092,13 +1086,6 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 				 server->priv_key);
 		snprintf(ownServer->priv_key_pw, sizeof(ownServer->priv_key_pw), "%s",
 				 server->priv_key_pw);
-	} else if (client->cert[0] != '\0') {
-		/* no, has no certificates -> copy the chars of the client */
-		snprintf(ownServer->cert, sizeof(ownServer->cert), "%s", client->cert);
-		snprintf(ownServer->priv_key, sizeof(ownServer->priv_key), "%s",
-				 client->priv_key);
-		snprintf(ownServer->priv_key_pw, sizeof(ownServer->priv_key_pw), "%s",
-				 client->priv_key_pw);
 	}
 
 	snprintf(eXosip_tls_ctx_params.dh_param, sizeof(ctx->dh_param), "%s",
@@ -1175,23 +1162,39 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 
 	if (cert==NULL && certfile[0] != '\0') {
 		/* Load our keys and certificates */
-		if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
-			OSIP_TRACE(osip_trace
-					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Couldn't read client certificate file %s!\n",
-						certfile));
-		}
+	  if (eXosip_tls_ctx_params.root_ca_cert[0] != '\0') {
+	    if (!(SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM))) {
+	      OSIP_TRACE(osip_trace
+			 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			  "eXosip: Couldn't read client certificate file %s!\n",
+			  certfile));
+	    }
+	    if (!(SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM)))
+	      OSIP_TRACE(osip_trace
+			 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			  "eXosip: Couldn't read client pkey file %s!\n", keyfile));
+	    
+	    if (!(SSL_CTX_use_RSAPrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM)))
+	      OSIP_TRACE(osip_trace
+			 (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			  "eXosip: Couldn't read client RSA key file %s!\n",
+			  keyfile));
+	  } else {
+	    BIO *bio=BIO_new_file(certfile, "r");
 
-		if (!(SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM)))
-			OSIP_TRACE(osip_trace
-					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Couldn't read client pkey file %s!\n", keyfile));
-
-		if (!(SSL_CTX_use_RSAPrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM)))
-			OSIP_TRACE(osip_trace
-					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: Couldn't read client RSA key file %s!\n",
-						keyfile));
+	    if (bio != NULL) {
+	      PEM_read_bio_X509(bio, &cert, 0, NULL);
+	      if (cert==NULL) {
+		OSIP_TRACE(osip_trace
+			   (__FILE__, __LINE__, OSIP_ERROR, NULL,
+			    "eXosip: Couldn't read client certificate file %s!\n",
+			    certfile));
+	      } else {
+		X509_STORE_add_cert(ctx->cert_store, cert);
+	      }
+	      BIO_free(bio);
+	    }
+	  }
 	}
 	
 	if (cert!=NULL)
@@ -1199,42 +1202,6 @@ SSL_CTX *initialize_client_ctx(const char *keyfile, const char *certfile,
 		X509_free(cert);
 		cert = NULL;
 	}
-
-#if 0
-ANDROID
-	BIO *bio = BIO_new_file("/system/etc/security/cacerts.bks", "r");
-
-	unsigned char* p = d2i_PKCS7_bio(NULL, bio, 
-
-	//BIO_from_keystore("/system/etc/security/cacerts.bks");
-	STACK_OF(X509_INFO) *stack = NULL;
-	int i;
-	if (bio) {
-		stack = PEM_X509_INFO_read_bio(bio, NULL, NULL, NULL);
-		BIO_free(bio);
-	}
-	if (!stack) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Couldn't keystore from /system/etc/security/cacerts.bks\n"));	
-	} else {
-		int count = sk_X509_INFO_num(stack);
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Loading %d X509 certificates\n", count));	
-		for (i = 0; i < count; ++i) {
-			X509_INFO *info = sk_X509_INFO_value(stack, i);
-			if (info->x509) {
-				X509_STORE_add_cert(ctx->cert_store, info->x509);
-			}
-			if (info->crl) {
-				X509_STORE_add_crl(ctx->cert_store, info->crl);
-			}
-			sk_X509_INFO_pop_free(stack, X509_INFO_free);
-		}
-	}
-#endif
-
 
 	/* Load the CAs we trust */
 	{
