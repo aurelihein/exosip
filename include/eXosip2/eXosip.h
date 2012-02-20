@@ -103,6 +103,15 @@ extern "C"
                                       const char *realm);
 
 /**
+ * Remove authentication credentials.
+ *
+ * @param username     username
+ * @param realm        realm must be exact same arg as for eXosip_add_authentication_info
+ */
+  int eXosip_remove_authentication_info(const char *username,
+                                        const char *realm);
+
+/**
  * Clear all authentication credentials stored in eXosip.
  *
  */

@@ -1224,6 +1224,28 @@ int eXosip_clear_authentication_info()
 	return OSIP_SUCCESS;
 }
 
+int eXosip_remove_authentication_info(const char *username, const char *realm)
+{
+  jauthinfo_t *authinfo;
+  
+  if (username==NULL || username[0] == '\0')
+    return OSIP_BADPARAMETER;
+  
+  for (authinfo = eXosip.authinfos; authinfo != NULL; authinfo = authinfo->next) {
+    if (osip_strcasecmp(username, authinfo->username) == 0) {
+      if (realm!=NULL && osip_strcasecmp(realm, authinfo->realm) != 0)
+	continue;
+      if (realm==NULL && authinfo->realm[0] != '\0')
+	continue;
+      REMOVE_ELEMENT(eXosip.authinfos, authinfo);
+      osip_free(authinfo);
+      return OSIP_SUCCESS;
+    }
+  }
+  return OSIP_NOTFOUND;
+}
+
+
 int
 eXosip_add_authentication_info(const char *username, const char *userid,
 							   const char *passwd, const char *ha1,
