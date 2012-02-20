@@ -1224,7 +1224,6 @@ static jauthinfo_t *eXosip_find_authentication_info(struct eXosip_t *excontext, 
 	return fallback;
 }
 
-
 int eXosip_clear_authentication_info(struct eXosip_t *excontext)
 {
 	jauthinfo_t *jauthinfo;
@@ -1270,6 +1269,28 @@ eXosip_add_authentication_info(struct eXosip_t *excontext, const char *username,
 
 	ADD_ELEMENT(excontext->authinfos, authinfos);
 	return OSIP_SUCCESS;
+}
+
+int eXosip_remove_authentication_info(struct eXosip_t *excontext, const char *username,
+	const char *realm)
+{
+	jauthinfo_t *authinfo;
+
+	if (username==NULL || username[0] == '\0')
+		return OSIP_BADPARAMETER;
+
+	for (authinfo = excontext->authinfos; authinfo != NULL; authinfo = authinfo->next) {
+		if (osip_strcasecmp(username, authinfo->username) == 0) {
+			if (realm!=NULL && osip_strcasecmp(realm, authinfo->realm) != 0)
+				continue;
+			if (realm==NULL && authinfo->realm[0] != '\0')
+				continue;
+			REMOVE_ELEMENT(excontext->authinfos, authinfo);
+			osip_free(authinfo);
+			return OSIP_SUCCESS;
+		}
+	}
+	return OSIP_NOTFOUND;
 }
 
 int
