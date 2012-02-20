@@ -363,10 +363,10 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 		return 0;
 	}
 	if (osx_version >= 0x1050) {
-		//Leopard store location
+		/* Leopard store location */
 		status = SecKeychainOpen("/System/Library/Keychains/SystemRootCertificates.keychain", &pSecKeychain);
 	} else {
-		//Tiger and below store location
+		/* Tiger and below store location */
 		status = SecKeychainOpen("/System/Library/Keychains/X509Anchors", &pSecKeychain);
 	}
 	if (status != noErr)
@@ -1031,8 +1031,7 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 	eXosip_tls_credentials_t *server = &ctx->server;
 
 	/* check if public AND private keys are valid */
-	if (//(client->cert[0] != '\0' && client->priv_key[0] == '\0') ||
-		(client->cert[0] == '\0' && client->priv_key[0] != '\0')) {
+	if (client->cert[0] == '\0' && client->priv_key[0] != '\0') {
 		/* no, one is missing */
 		return TLS_ERR_MISSING_AUTH_PART;
 	}
@@ -1041,8 +1040,7 @@ eXosip_tls_ctx_error eXosip_set_tls_ctx(eXosip_tls_ctx_t * ctx)
 		return TLS_ERR_NO_PW;
 	}
 	/* check if public AND private keys are valid */
-	if (//(server->cert[0] != '\0' && server->priv_key[0] == '\0') ||
-		(server->cert[0] == '\0' && server->priv_key[0] != '\0')) {
+	if (server->cert[0] == '\0' && server->priv_key[0] != '\0') {
 		/* no, one is missing */
 		return TLS_ERR_MISSING_AUTH_PART;
 	}
