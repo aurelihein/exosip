@@ -45,12 +45,10 @@
 #include "TargetConditionals.h"
 #endif
 
-#ifdef __APPLE__
-#if (TARGET_OS_MAC==1)
+#if defined(__APPLE__) && (TARGET_OS_IPHONE==0)
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreServices/CoreServices.h>
 #include <Security/Security.h>
-#endif
 #endif
 
 
@@ -351,7 +349,7 @@ static int _tls_add_certificates(SSL_CTX * ctx)
 	}
 
 	CertCloseStore(hStore, 0);
-#elif (TARGET_OS_MAC==1)
+#elif defined(__APPLE__) && (TARGET_OS_IPHONE==0)
 	SecKeychainSearchRef pSecKeychainSearch = NULL;
 	SecKeychainRef pSecKeychain;
 	OSStatus status = noErr;
