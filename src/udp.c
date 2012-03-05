@@ -17,24 +17,19 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
 #ifndef WIN32
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #ifdef __APPLE_CC__
 #include <unistd.h>
 #endif
 #else
 #include <windows.h>
+#endif
+
+#ifndef _WIN32_WCE
+#include <errno.h>
 #endif
 
 /* Private functions */
@@ -1581,7 +1576,7 @@ int _eXosip_read_message(struct eXosip_t *excontext, int max_message_nb, int sec
 	while (max_message_nb != 0 && excontext->j_stop_ua == 0) {
 		int i;
 		int max = 0;
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 		int wakeup_socket = jpipe_get_read_descr(excontext->j_socketctl);
 #endif
 
@@ -1596,7 +1591,7 @@ int _eXosip_read_message(struct eXosip_t *excontext, int max_message_nb, int sec
 		eXtl_tls.tl_set_fdset(excontext, &osip_fdset, &osip_wrset, &max);
 #endif
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 		eXFD_SET(wakeup_socket, &osip_fdset);
 		if (wakeup_socket > max)
 			max = wakeup_socket;
@@ -1615,7 +1610,7 @@ int _eXosip_read_message(struct eXosip_t *excontext, int max_message_nb, int sec
 		if ((i == -1) && (errno == EINTR || errno == EAGAIN))
 			continue;
 #endif
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 		if ((i > 0) && FD_ISSET(wakeup_socket, &osip_fdset)) {
 			char buf2[500];
 

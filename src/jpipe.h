@@ -21,7 +21,7 @@
 #ifndef _JPIPE_H_
 #define _JPIPE_H_
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 
 #include <eXosip2/eXosip.h>
 

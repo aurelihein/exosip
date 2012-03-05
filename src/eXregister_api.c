@@ -17,12 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
-
 #include "eXosip2.h"
 
 static int _eXosip_register_build_register(struct eXosip_t *excontext, eXosip_reg_t * jr,
@@ -96,7 +90,7 @@ _eXosip_register_build_register(struct eXosip_t *excontext, eXosip_reg_t * jr, o
 			/* modify the REGISTER request */
 			{
 				int osip_cseq_num = osip_atoi(reg->cseq->number);
-				int length = strlen(reg->cseq->number);
+				int length = (int)strlen(reg->cseq->number);
 
 
 				osip_list_special_free(&reg->authorizations, (void (*)(void *))

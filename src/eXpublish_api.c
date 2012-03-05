@@ -17,14 +17,10 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
+#include "eXosip2.h"
 
 #ifndef MINISIZE
 
-#include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
 int
@@ -140,7 +136,7 @@ int eXosip_publish(struct eXosip_t *excontext, osip_message_t * message, const c
 		if (pub->p_last_tr != NULL && pub->p_last_tr->cseq != NULL
 			&& pub->p_last_tr->cseq->number != NULL) {
 			int osip_cseq_num = osip_atoi(pub->p_last_tr->cseq->number);
-			int length = strlen(pub->p_last_tr->cseq->number);
+			int length = (int)strlen(pub->p_last_tr->cseq->number);
 
 			osip_cseq_num++;
 			osip_free(message->cseq->number);

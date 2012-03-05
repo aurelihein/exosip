@@ -17,10 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
@@ -35,7 +31,7 @@
 
 int ipv6_enable = 0;
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 static void *_eXosip_thread(void *arg);
 #endif
 static void _eXosip_keep_alive(struct eXosip_t *excontext);
@@ -139,7 +135,7 @@ void eXosip_quit(struct eXosip_t *excontext)
 	eXosip_subscribe_t *js;
 	eXosip_pub_t *jpub;
 #endif
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	int i;
 #endif
 
@@ -157,7 +153,7 @@ void eXosip_quit(struct eXosip_t *excontext)
 	_eXosip_wakeup(excontext);
 	eXosip_wakeup_event(excontext);
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	if (excontext->j_thread != NULL) {
 		i = osip_thread_join((struct osip_thread *) excontext->j_thread);
 		if (i != 0) {
@@ -191,7 +187,7 @@ void eXosip_quit(struct eXosip_t *excontext)
 	}
 #endif
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	osip_mutex_destroy((struct osip_mutex *) excontext->j_mutexlock);
 #if !defined (_WIN32_WCE)
 	osip_cond_destroy((struct osip_cond *) excontext->j_cond);
@@ -298,7 +294,7 @@ int eXosip_set_socket(struct eXosip_t *excontext, int transport, int socket, int
 	} else
 		return OSIP_BADPARAMETER;
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	excontext->j_thread = (void *) osip_thread_create(20000, _eXosip_thread, excontext);
 	if (excontext->j_thread == NULL) {
 		OSIP_TRACE(osip_trace
@@ -601,7 +597,7 @@ eXosip_listen_addr(struct eXosip_t *excontext, int transport, const char *addr, 
 	else if (transport == IPPROTO_TCP)
 		snprintf(excontext->transport, sizeof(excontext->transport), "%s", "TLS");
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	if (excontext->j_thread == NULL) {
 		excontext->j_thread = (void *) osip_thread_create(20000, _eXosip_thread, excontext);
 		if (excontext->j_thread == NULL) {
@@ -636,9 +632,6 @@ int eXosip_init(struct eXosip_t *excontext)
 	snprintf(excontext->ipv4_for_gateway, 256, "%s", "217.12.3.11");
 	snprintf(excontext->ipv6_for_gateway, 256, "%s",
 			 "2001:638:500:101:2e0:81ff:fe24:37c6");
-#ifndef MINISIZE
-	snprintf(excontext->event_package, 256, "%s", "dialog");
-#endif
 
 #ifdef WIN32
 	/* Initializing windows socket library */
@@ -663,13 +656,13 @@ int eXosip_init(struct eXosip_t *excontext)
 
 	excontext->j_calls = NULL;
 	excontext->j_stop_ua = 0;
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	excontext->j_thread = NULL;
 #endif
 	i = osip_list_init(&excontext->j_transactions);
 	excontext->j_reg = NULL;
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 #if !defined (_WIN32_WCE)
 	excontext->j_cond = (struct osip_cond *) osip_cond_init();
 	if (excontext->j_cond == NULL) {
@@ -705,7 +698,7 @@ int eXosip_init(struct eXosip_t *excontext)
 
 	excontext->j_osip = osip;
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	/* open a TCP socket to wake up the application when needed. */
 	excontext->j_socketctl = jpipe();
 	if (excontext->j_socketctl == NULL)
@@ -744,7 +737,7 @@ int eXosip_execute(struct eXosip_t *excontext)
 	struct timeval lower_tv;
 	int i;
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	osip_timers_gettimeout(excontext->j_osip, &lower_tv);
 	if (lower_tv.tv_sec > 10) {
 		eXosip_reg_t *jr;
@@ -796,7 +789,7 @@ int eXosip_execute(struct eXosip_t *excontext)
 	lower_tv.tv_sec = 0;
 	lower_tv.tv_usec = 0;
 #endif
-	i = _eXosip_read_message(excontext, 1, lower_tv.tv_sec, lower_tv.tv_usec);
+	i = _eXosip_read_message(excontext, 1, (int)lower_tv.tv_sec, (int)lower_tv.tv_usec);
 
 	if (i == -2000) {
 		return -2000;
@@ -1008,40 +1001,6 @@ int eXosip_set_option(struct eXosip_t *excontext, int opt, const void *value)
 		val = *((int *) value);
 		excontext->learn_port = val;	/* 1 to learn port */
 		break;
-#ifndef MINISIZE
-	case EXOSIP_OPT_SET_HTTP_TUNNEL_PORT:
-		val = *((int *) value);
-		excontext->http_port = val;	/* value in ms */
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					"eXosip option set: http_port:%i!\n", excontext->http_port));
-		break;
-	case EXOSIP_OPT_SET_HTTP_TUNNEL_PROXY:
-		tmp = (char *) value;
-		memset(excontext->http_proxy, '\0', sizeof(excontext->http_proxy));
-		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(excontext->http_proxy, tmp, sizeof(excontext->http_proxy)-1);	/* value in proxy:port */
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					"eXosip option set: http_proxy:%s!\n", excontext->http_proxy));
-		break;
-	case EXOSIP_OPT_SET_HTTP_OUTBOUND_PROXY:
-		tmp = (char *) value;
-		memset(excontext->http_outbound_proxy, '\0',
-			   sizeof(excontext->http_outbound_proxy));
-		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(excontext->http_outbound_proxy, tmp, sizeof(excontext->http_outbound_proxy)-1);	/* value in proxy:port */
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					"eXosip option set: http_outbound_proxy:%s!\n",
-					excontext->http_outbound_proxy));
-		break;
-
-	case EXOSIP_OPT_DONT_SEND_101:
-		val = *((int *) value);
-		excontext->dontsend_101 = val;	/* 0 to disable */
-		break;
-#endif
 
 	case EXOSIP_OPT_USE_RPORT:
 		val = *((int *) value);
@@ -1068,16 +1027,6 @@ int eXosip_set_option(struct eXosip_t *excontext, int opt, const void *value)
 				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
 					"eXosip option set: ipv6_for_gateway:%s!\n",
 					excontext->ipv6_for_gateway));
-		break;
-	case EXOSIP_OPT_EVENT_PACKAGE:
-		tmp = (char *) value;
-		memset(excontext->event_package, '\0', sizeof(excontext->event_package));
-		if (tmp != NULL && tmp[0] != '\0')
-			osip_strncpy(excontext->event_package, tmp, sizeof(excontext->event_package)-1);
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_INFO1, NULL,
-					"eXosip option set: event_package:%s!\n",
-					excontext->event_package));
 		break;
 #endif
 	case EXOSIP_OPT_DNS_CAPABILITIES:	/*EXOSIP_OPT_SRV_WITH_NAPTR: */
@@ -1132,7 +1081,7 @@ static void _eXosip_keep_alive(struct eXosip_t *excontext)
 #endif
 }
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 void *_eXosip_thread(void *arg)
 {
 	struct eXosip_t *excontext=(struct eXosip_t *)arg;

@@ -17,11 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include "eXtransport.h"
 
@@ -33,6 +28,10 @@
 
 #if defined(_WIN32_WCE)
 #define strerror(X) "-1"
+#endif
+
+#ifndef _WIN32_WCE
+#include <errno.h>
 #endif
 
 void udp_tl_learn_port_from_via(struct eXosip_t *excontext, osip_message_t * sip);
@@ -274,12 +273,7 @@ static int udp_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 
 	if (FD_ISSET(reserved->udp_socket, osip_fdset)) {
 		struct sockaddr_storage sa;
-
-#ifdef __linux
 		socklen_t slen;
-#else
-		int slen;
-#endif
 		if (eXtl_udp.proto_family == AF_INET)
 			slen = sizeof(struct sockaddr_in);
 		else
@@ -289,7 +283,7 @@ static int udp_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 		if (buf == NULL)
 			return OSIP_NOMEM;
 
-		i = recvfrom(reserved->udp_socket, buf,
+		i = (int)recvfrom(reserved->udp_socket, buf,
 					 SIP_MESSAGE_MAX_LENGTH, 0, (struct sockaddr *) &sa, &slen);
 
 		if (i > 5) {

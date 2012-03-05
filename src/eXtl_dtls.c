@@ -17,13 +17,22 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include "eXtransport.h"
+
+#ifdef _WIN32_WCE
+#include "inet_ntop.h"
+#elif WIN32
+#include "inet_ntop.h"
+#endif
+
+#if defined(_WIN32_WCE)
+#define strerror(X) "-1"
+#endif
+
+#ifndef _WIN32_WCE
+#include <errno.h>
+#endif
 
 #ifdef HAVE_OPENSSL_SSL_H
 
@@ -50,16 +59,6 @@
 #define RANDOM  "random.pem"
 #define DHFILE "dh1024.pem"
 
-#if defined(_WIN32_WCE)
-#define strerror(X) "-1"
-#endif
-
-#ifdef _WIN32_WCE
-#include "inet_ntop.h"
-#elif WIN32
-#include "inet_ntop.h"
-#endif
-
 SSL_CTX *initialize_client_ctx(const char *certif_client_local_cn_name, eXosip_tls_ctx_t *client_ctx, int transport);
 SSL_CTX *initialize_server_ctx(const char *certif_local_cn_name, eXosip_tls_ctx_t *srv_ctx, int transport);
 
@@ -74,7 +73,7 @@ struct _dtls_stream {
 
 
 #ifndef EXOSIP_MAX_SOCKETS
-#define EXOSIP_MAX_SOCKETS
+#define EXOSIP_MAX_SOCKETS 200
 #endif
 
 struct eXtldtls {
@@ -232,7 +231,8 @@ static int shutdown_free_client_dtls(struct eXosip_t *excontext, int pos)
 
 			rbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
 
-			BIO_dgram_set_peer(rbio, &addr);
+			//BIO_dgram_set_peer(rbio, &addr);
+			BIO_ctrl(rbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&addr);
 
 			(reserved->socket_tab[pos].ssl_conn)->rbio = rbio;
 
@@ -455,11 +455,7 @@ static int dtls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset,
 	if (FD_ISSET(reserved->dtls_socket, osip_fdset)) {
 		struct sockaddr_storage sa;
 
-#ifdef __linux
 		socklen_t slen;
-#else
-		int slen;
-#endif
 		if (eXtl_dtls.proto_family == AF_INET)
 			slen = sizeof(struct sockaddr_in);
 		else
@@ -469,7 +465,7 @@ static int dtls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset,
 		if (enc_buf == NULL)
 			return OSIP_NOMEM;
 
-		enc_buf_len = recvfrom(reserved->dtls_socket, enc_buf,
+		enc_buf_len = (int)recvfrom(reserved->dtls_socket, enc_buf,
 							   SIP_MESSAGE_MAX_LENGTH, 0,
 							   (struct sockaddr *) &sa, &slen);
 
@@ -597,7 +593,8 @@ static int dtls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset,
 								SSL_OP_COOKIE_EXCHANGE);
 #endif
 				wbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-				BIO_dgram_set_peer(wbio, &sa);
+				//BIO_dgram_set_peer(wbio, &sa);
+				BIO_ctrl(wbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&sa);
 				SSL_set_bio(reserved->socket_tab[pos].ssl_conn, NULL, wbio);
 
 				SSL_set_accept_state(reserved->socket_tab[pos].ssl_conn);
@@ -969,7 +966,8 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 				BIO *rbio;
 				_dtls_stream_used = &reserved->socket_tab[pos];
 				rbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-				BIO_dgram_set_peer(rbio, &addr);
+				//BIO_dgram_set_peer(rbio, &addr);
+				BIO_ctrl(rbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&addr);
 				reserved->socket_tab[pos].ssl_conn->rbio = rbio;
 				break;
 			}
@@ -984,7 +982,8 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 					BIO *rbio;
 					_dtls_stream_used = &reserved->socket_tab[pos];
 					rbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-					BIO_dgram_set_peer(rbio, &addr);
+					//BIO_dgram_set_peer(rbio, &addr);
+					BIO_ctrl(rbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&addr);
 					reserved->socket_tab[pos].ssl_conn->rbio = rbio;
 					break;
 				}
@@ -1041,7 +1040,8 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 		SSL_set_mtu(reserved->socket_tab[pos].ssl_conn, 2000);
 		SSL_set_connect_state(reserved->socket_tab[pos].ssl_conn);
 		sbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-		BIO_ctrl_set_connected(sbio, 1, (struct sockaddr *) &addr);
+		//BIO_ctrl_set_connected(sbio, 1, (struct sockaddr *) &addr);
+		BIO_ctrl(sbio, BIO_CTRL_DGRAM_SET_CONNECTED, 1, (char *)&addr);
 		SSL_set_bio(reserved->socket_tab[pos].ssl_conn, sbio, sbio);
 
 		reserved->socket_tab[pos].ssl_type = 2;
@@ -1052,7 +1052,7 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 		reserved->socket_tab[pos].remote_port = port;
 	}
 
-	i = SSL_write(reserved->socket_tab[pos].ssl_conn, message, length);
+	i = SSL_write(reserved->socket_tab[pos].ssl_conn, message, (int)length);
 
 	if (i < 0) {
 		i = SSL_get_error(reserved->socket_tab[pos].ssl_conn, i);

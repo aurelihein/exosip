@@ -23,6 +23,8 @@
 typedef unsigned char u8;
 typedef unsigned int u32;
 
+#include "rijndael.h"
+
 /* Circular byte rotates of 32 bit values */
 
 #define rot1(x) ((x <<  8) | (x >> 24))

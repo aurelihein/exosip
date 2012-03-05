@@ -17,10 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 
 #ifndef WIN32
@@ -105,11 +101,9 @@ int _eXosip_dialog_add_contact(struct eXosip_t *excontext, osip_message_t * requ
 	memset(locip, '\0', sizeof(locip));
 
 	if (a_from->url->username != NULL)
-		len =
-			2 + 4 + (strlen(a_from->url->username)*3) + 1 + 100 + 6 + 10 +
-			strlen(excontext->transport);
+		len = (int)(2 + 4 + (strlen(a_from->url->username)*3) + 1 + 100 + 6 + 10 + strlen(excontext->transport));
 	else
-		len = 2 + 4 + 100 + 6 + 10 + strlen(excontext->transport);
+		len = (int)(2 + 4 + 100 + 6 + 10 + strlen(excontext->transport));
 
 	contact = (char *) osip_malloc(len + 1);
 	if (contact == NULL)

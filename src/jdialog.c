@@ -17,18 +17,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
-
-void _eXosip_dialog_set_state(eXosip_dialog_t * jd, int state)
-{
-	jd->d_STATE = state;
-}
-
 
 int _eXosip_call_dialog_find(struct eXosip_t *excontext, int jid, eXosip_call_t ** jc, eXosip_dialog_t ** jd)
 {
@@ -114,7 +103,6 @@ int _eXosip_dialog_init_as_uac(eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 	memset(jd, 0, sizeof(eXosip_dialog_t));
 
 	jd->d_id = -1;				/* not yet available to user */
-	jd->d_STATE = JD_EMPTY;
 
 	if (MSG_IS_REQUEST(_200Ok)) {
 		i = osip_dialog_init_as_uac_with_remote_request(&(jd->d_dialog), _200Ok,
@@ -169,7 +157,6 @@ _eXosip_dialog_init_as_uas(eXosip_dialog_t ** _jd, osip_message_t * _invite,
 		return OSIP_NOMEM;
 	memset(jd, 0, sizeof(eXosip_dialog_t));
 	jd->d_id = -1;				/* not yet available to user */
-	jd->d_STATE = JD_EMPTY;
 	i = osip_dialog_init_as_uas(&(jd->d_dialog), _invite, _200Ok);
 	if (i != 0) {
 		osip_free(jd);

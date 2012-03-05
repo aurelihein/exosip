@@ -41,7 +41,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <syslog.h>
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 #include <pthread.h>
 #endif
 #endif
@@ -87,7 +87,7 @@ static void syslog_wrapper(int a, const char *fmt, ...)
 
 
 static void usage(void);
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 static void *register_proc(void *arg);
 #endif
 
@@ -117,7 +117,7 @@ typedef struct regparam_t {
 
 struct eXosip_t *context_eXosip;
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 static void *register_proc(void *arg)
 {
 	struct regparam_t *regparam = arg;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 	char *username = NULL;
 	char *password = NULL;
 	struct regparam_t regparam = { 0, 3600, 0 };
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	struct osip_thread *register_thread;
 #endif
 	int debug = 0;
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	register_thread = osip_thread_create(20000, register_proc, &regparam);
 	if (register_thread == NULL) {
 		syslog_wrapper(LOG_ERR, "pthread_create failed");
@@ -349,14 +349,14 @@ int main(int argc, char *argv[])
 		eXosip_event_t *event;
 
 		if (!(event = eXosip_event_wait(context_eXosip, 0, 1))) {
-#ifndef OSIP_MT
+#ifdef OSIP_MONOTHREAD
 			eXosip_execute(context_eXosip);
 			eXosip_automatic_action(context_eXosip);
 #endif
 			osip_usleep(10000);
 			continue;
 		}
-#ifndef OSIP_MT
+#ifdef OSIP_MONOTHREAD
 		eXosip_execute(context_eXosip);
 #endif
 

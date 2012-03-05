@@ -17,12 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
-
 #include "eXosip2.h"
 
 int _eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc)

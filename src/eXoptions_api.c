@@ -18,13 +18,9 @@
 */
 
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
+#include "eXosip2.h"
 
 #ifndef MINISIZE
-
-#include "eXosip2.h"
 
 int
 eXosip_options_build_request(struct eXosip_t *excontext, osip_message_t ** options, const char *to,

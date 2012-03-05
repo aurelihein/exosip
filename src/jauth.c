@@ -17,11 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
@@ -135,19 +130,19 @@ DigestCalcHA1(IN const char *pszAlg,
 	HASH HA1;
 
 	osip_MD5Init(&Md5Ctx);
-	osip_MD5Update(&Md5Ctx, (unsigned char *) pszUserName, strlen(pszUserName));
+	osip_MD5Update(&Md5Ctx, (unsigned char *) pszUserName, (unsigned int)strlen(pszUserName));
 	osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-	osip_MD5Update(&Md5Ctx, (unsigned char *) pszRealm, strlen(pszRealm));
+	osip_MD5Update(&Md5Ctx, (unsigned char *) pszRealm, (unsigned int)strlen(pszRealm));
 	osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-	osip_MD5Update(&Md5Ctx, (unsigned char *) pszPassword, strlen(pszPassword));
+	osip_MD5Update(&Md5Ctx, (unsigned char *) pszPassword, (unsigned int)strlen(pszPassword));
 	osip_MD5Final((unsigned char *) HA1, &Md5Ctx);
 	if ((pszAlg != NULL) && osip_strcasecmp(pszAlg, "md5-sess") == 0) {
 		osip_MD5Init(&Md5Ctx);
 		osip_MD5Update(&Md5Ctx, (unsigned char *) HA1, HASHLEN);
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonce, strlen(pszNonce));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonce, (unsigned int)strlen(pszNonce));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) pszCNonce, strlen(pszCNonce));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) pszCNonce, (unsigned int)strlen(pszCNonce));
 		osip_MD5Final((unsigned char *) HA1, &Md5Ctx);
 	}
 	CvtHex(HA1, SessionKey);
@@ -173,9 +168,9 @@ static void DigestCalcResponse(IN HASHHEX HA1,	/* H(A1) */
 
 	/* calculate H(A2) */
 	osip_MD5Init(&Md5Ctx);
-	osip_MD5Update(&Md5Ctx, (unsigned char *) pszMethod, strlen(pszMethod));
+	osip_MD5Update(&Md5Ctx, (unsigned char *) pszMethod, (unsigned int)strlen(pszMethod));
 	osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-	osip_MD5Update(&Md5Ctx, (unsigned char *) pszDigestUri, strlen(pszDigestUri));
+	osip_MD5Update(&Md5Ctx, (unsigned char *) pszDigestUri, (unsigned int)strlen(pszDigestUri));
 
 	if (pszQop == NULL) {
 		goto auth_withoutqop;
@@ -193,7 +188,7 @@ static void DigestCalcResponse(IN HASHHEX HA1,	/* H(A1) */
 	osip_MD5Init(&Md5Ctx);
 	osip_MD5Update(&Md5Ctx, (unsigned char *) HA1, HASHHEXLEN);
 	osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-	osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonce, strlen(pszNonce));
+	osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonce, (unsigned int)strlen(pszNonce));
 	osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
 
 	goto end;
@@ -211,15 +206,14 @@ static void DigestCalcResponse(IN HASHHEX HA1,	/* H(A1) */
 	osip_MD5Init(&Md5Ctx);
 	osip_MD5Update(&Md5Ctx, (unsigned char *) HA1, HASHHEXLEN);
 	osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-	osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonce, strlen(pszNonce));
+	osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonce, (unsigned int)strlen(pszNonce));
 	osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
 	if (Aka == 0) {
-		osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonceCount,
-					   strlen(pszNonceCount));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) pszNonceCount, (unsigned int)strlen(pszNonceCount));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) pszCNonce, strlen(pszCNonce));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) pszCNonce, (unsigned int)strlen(pszCNonce));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) pszQop, strlen(pszQop));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) pszQop, (unsigned int)strlen(pszQop));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
 	}
   end:
@@ -489,7 +483,7 @@ static char *base64_encode_string(const char *buf, unsigned int len, int *newlen
 	}
 
 	*ptr = '\0';
-	*newlen = ptr - out;
+	*newlen = (int)(ptr - out);
 	return out;
 }
 
@@ -528,7 +522,7 @@ void DigestCalcResponseAka(IN const char *pszPassword, IN const char *pszNonce,	
 	snprintf(tmp, MAX_HEADER_LEN-1,  "%s", pszNonce);
 	tmp[MAX_HEADER_LEN-1] = 0;
 	nonce64 = tmp;
-	nonce = base64_decode_string(nonce64, strlen(tmp), &noncelen);
+	nonce = base64_decode_string(nonce64, (unsigned int)strlen(tmp), &noncelen);
 	if (nonce == NULL)
 		return;
 
@@ -544,7 +538,7 @@ void DigestCalcResponseAka(IN const char *pszPassword, IN const char *pszNonce,	
 
 	osip_free(nonce);
 
-	j = strlen(pszPassword);
+	j = (int)strlen(pszPassword);
 	memcpy(k, pszPassword, j);
 	memset(k + j, 0, KLEN - j);
 

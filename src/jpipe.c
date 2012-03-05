@@ -17,12 +17,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "eXosip2.h"
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 
 #include "jpipe.h"
 
@@ -70,7 +67,7 @@ int jpipe_write(jpipe_t * apipe, const void *buf, int count)
 {
 	if (apipe == NULL)
 		return OSIP_BADPARAMETER;
-	return write(apipe->pipes[1], buf, count);
+	return (int)write(apipe->pipes[1], buf, count);
 }
 
 /**
@@ -80,7 +77,7 @@ int jpipe_read(jpipe_t * apipe, void *buf, int count)
 {
 	if (apipe == NULL)
 		return OSIP_BADPARAMETER;
-	return read(apipe->pipes[0], buf, count);
+	return (int)read(apipe->pipes[0], buf, count);
 }
 
 /**

@@ -36,10 +36,9 @@
  * SOFTWARE.
  */
 
-#if defined(WIN32) || defined(_WIN32_WCE)
-
-#include <osipparser2/osip_port.h>
 #include "eXosip2.h"
+
+#if defined(WIN32) || defined(_WIN32_WCE)
 
 #include <windowsx.h>
 #include <winsock2.h>

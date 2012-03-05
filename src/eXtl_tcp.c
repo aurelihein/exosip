@@ -17,11 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include "eXtransport.h"
 
@@ -31,6 +26,10 @@
 
 #ifdef WIN32
 #include <Mstcpip.h>
+#endif
+
+#ifndef _WIN32_WCE
+#include <errno.h>
 #endif
 
 #if defined(_WIN32_WCE) || defined(WIN32)
@@ -61,7 +60,7 @@
 struct _tcp_stream {
 	int socket;
 	struct sockaddr ai_addr;
-	size_t ai_addrlen;
+	socklen_t ai_addrlen;
 	char remote_ip[65];
 	int remote_port;
 	char *buf;      /* recv buffer */
@@ -83,7 +82,7 @@ struct _tcp_stream {
 #endif
 
 #ifndef EXOSIP_MAX_SOCKETS
-#define EXOSIP_MAX_SOCKETS 100
+#define EXOSIP_MAX_SOCKETS 200
 #endif
 
 static int _tcp_tl_send_sockinfo (struct _tcp_stream *sockinfo, const char *msg, int msglen);
@@ -379,7 +378,7 @@ static int handle_messages(struct eXosip_t *excontext, struct _tcp_stream *socki
 		end_headers += const_strlen(END_HEADERS_STR);
 
 		/* do we have the whole message? */
-		msglen = end_headers - buf + clen;
+		msglen = (int)(end_headers - buf + clen);
 		if (msglen > buflen) {
 			/* nope */
 			return consumed;
@@ -425,7 +424,7 @@ static int _tcp_tl_recv(struct eXosip_t *excontext, struct _tcp_stream *sockinfo
 		sockinfo->bufsize = SIP_MESSAGE_MAX_LENGTH;
 	}
 
-	r = recv(sockinfo->socket, sockinfo->buf + sockinfo->buflen, sockinfo->bufsize - sockinfo->buflen, 0);
+	r = (int)recv(sockinfo->socket, sockinfo->buf + sockinfo->buflen, sockinfo->bufsize - sockinfo->buflen, 0);
 	if (r == 0) {
 		OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 							  "socket %s:%i: eof\n", sockinfo->remote_ip, sockinfo->remote_port));
@@ -476,11 +475,7 @@ static int tcp_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 		int sock;
 		int i;
 
-#ifdef __linux
 		socklen_t slen;
-#else
-		int slen;
-#endif
 		if (eXtl_tcp.proto_family == AF_INET)
 			slen = sizeof(struct sockaddr_in);
 		else
@@ -768,7 +763,7 @@ static int _tcp_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 	struct addrinfo *curinfo;
 	int sock = -1;
 	struct sockaddr selected_ai_addr;
-	size_t selected_ai_addrlen;
+	socklen_t selected_ai_addrlen;
 
 	char src6host[NI_MAXHOST];
 	memset(src6host, 0, sizeof(src6host));
@@ -1022,7 +1017,7 @@ _tcp_tl_send_sockinfo (struct _tcp_stream *sockinfo, const char *msg, int msglen
 {
 	int i;
 	while (1) {
-		i = send(sockinfo->socket, (const void *) msg, msglen, 0);
+		i = (int)send(sockinfo->socket, (const void *) msg, msglen, 0);
 		if (i < 0) {
 			int status = ex_errno;
 			if (is_wouldblock_error(status)) {
@@ -1354,7 +1349,7 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 	OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 						  "Message sent: (to dest=%s:%i) \n%s\n",
 						  host, port, message));
-	i = _tcp_tl_send(excontext, out_socket, (const void *)message, length);
+	i = _tcp_tl_send(excontext, out_socket, (const void *)message, (int)length);
 	osip_free(message);
 	return i;
 }
@@ -1503,7 +1498,7 @@ static int tcp_tl_keepalive(struct eXosip_t *excontext)
 					continue;
 				}
 #endif
-				i = send(reserved->socket_tab[pos].socket, (const void *) buf, 4, 0);
+				i = (int)send(reserved->socket_tab[pos].socket, (const void *) buf, 4, 0);
 			}
 		}
 	}

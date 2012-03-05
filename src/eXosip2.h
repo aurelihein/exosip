@@ -18,28 +18,114 @@
 */
 
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #ifndef __EXOSIP2_H__
 #define __EXOSIP2_H__
 
+#if defined(WIN32)
+#if !defined(_WIN32_WINNT) && defined(WINVER)
+#define _WIN32_WINNT WINVER
+#elif !defined(_WIN32_WINNT)
+#define _WIN32_WINNT 0x0403
+#endif
+#endif
+
+#if defined (HAVE_CONFIG_H)
+#include <exosip-config.h>
+#endif
+
+#if defined(__PALMOS__) && (__PALMOS__ >= 0x06000000)
+#define HAVE_CTYPE_H 1
+#define HAVE_STRING_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_TIME_H 1
+#define HAVE_STDARG_H 1
+
+#elif defined(__VXWORKS_OS__) || defined(__rtems__)
+#define HAVE_STRING_H 1
+#define HAVE_TIME_H 1
+#define HAVE_SYS_TIME_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_STDARG_H 1
+
+#elif defined _WIN32_WCE
+
+#define HAVE_CTYPE_H 1
+#define HAVE_STRING_H 1
+#define HAVE_TIME_H 1
+#define HAVE_STDARG_H 1
+
+#define snprintf  _snprintf
+#define EBUSY           16
+
+#elif defined(WIN32)
+
+#define HAVE_CTYPE_H 1
+#define HAVE_STRING_H 1
+#define HAVE_SYS_TYPES_H 1
+#define HAVE_TIME_H 1
+#define HAVE_STDARG_H 1
+
+#define snprintf _snprintf
+
+/* use win32 crypto routines for random number generation */
+/* only use for vs .net (compiler v. 1300) or greater */
+#if _MSC_VER >= 1300
+#define WIN32_USE_CRYPTO 1
+#endif
+
+#endif
+
+#if defined (HAVE_STRING_H)
+#include <string.h>
+#elif defined (HAVE_STRINGS_H)
+#include <strings.h>
+#else
+#include <string.h>
+#endif
+
 #include <stdio.h>
-#ifndef _WIN32_WCE
-#include <errno.h>
+#include <stdlib.h>
+
+#if defined (HAVE_SYS_TYPES_H)
+#  include <sys/types.h>
+#endif
+
+#ifdef HAVE_TIME_H
+#  include <time.h>
+#endif
+
+#if defined (HAVE_SYS_TIME_H)
+#  include <sys/time.h>
+#endif
+
+#if defined(__arc__)
+#include "includes_api.h"
+#include "os_cfg_pub.h"
+#include <posix_time_pub.h>
+#define USE_GETHOSTBYNAME
+#endif
+
+#ifdef __PSOS__
+#define VA_START(a, f)  va_start(a, f)
+#include "pna.h"
+#include "stdlib.h"
+#include "time.h"
+#define timercmp(tvp, uvp, cmp) \
+((tvp)->tv_sec cmp (uvp)->tv_sec || \
+(tvp)->tv_sec == (uvp)->tv_sec && (tvp)->tv_usec cmp (uvp)->tv_usec)
+#define snprintf  osip_snprintf
+#ifndef INT_MAX
+#define INT_MAX 0x7FFFFFFF
+#endif
 #endif
 
 #ifdef _WIN32_WCE
-#include <stdio.h>
-#include <stdlib.h>
+#include <errno.h>
 #include <winsock2.h>
 #include <osipparser2/osip_port.h>
 #include <ws2tcpip.h>
 #define close(s) closesocket(s)
 #elif WIN32
-#include <stdio.h>
-#include <stdlib.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #define close(s) closesocket(s)
@@ -51,8 +137,6 @@
 #include <netdb.h>
 #endif
 
-#include <stdio.h>
-
 #include <osip2/osip.h>
 #include <osip2/osip_dialog.h>
 
@@ -61,33 +145,10 @@
 
 #include "jpipe.h"
 
-#ifndef JD_EMPTY
-
-#define JD_EMPTY          0
-#define JD_INITIALIZED    1
-#define JD_TRYING         2
-#define JD_QUEUED         3
-#define JD_RINGING        4
-#define JD_ESTABLISHED    5
-#define JD_REDIRECTED     6
-#define JD_AUTH_REQUIRED  7
-#define JD_CLIENTERROR    8
-#define JD_SERVERERROR    9
-#define JD_GLOBALFAILURE  10
-#define JD_TERMINATED     11
-
-#define JD_MAX            11
-
-#endif
-
 #define EXOSIP_VERSION	"3.6.0"
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#if defined(__arc__)
-#define USE_GETHOSTBYNAME
 #endif
 
 #if defined(USE_GETHOSTBYNAME)
@@ -124,7 +185,7 @@ extern "C" {
 #endif
 
 	void _eXosip_update(struct eXosip_t *excontext);
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	void _eXosip_wakeup(struct eXosip_t *excontext);
 #else
 #define _eXosip_wakeup(A)  ;
@@ -145,7 +206,6 @@ extern "C" {
 	struct eXosip_dialog_t {
 
 		int d_id;
-		int d_STATE;
 		osip_dialog_t *d_dialog;	/* active dialog */
 
 		time_t d_session_timer_start;	/* session-timer helper */
@@ -165,47 +225,6 @@ extern "C" {
 		eXosip_dialog_t *next;
 		eXosip_dialog_t *parent;
 	};
-
-#ifndef MINISIZE
-
-	typedef struct eXosip_subscribe_t eXosip_subscribe_t;
-
-	struct eXosip_subscribe_t {
-
-		int s_id;
-		int s_ss_status;
-		int s_ss_reason;
-		int s_reg_period;
-		eXosip_dialog_t *s_dialogs;
-
-		int s_retry;			/* avoid too many unsuccessfull retry */
-		osip_transaction_t *s_inc_tr;
-		osip_transaction_t *s_out_tr;
-
-		eXosip_subscribe_t *next;
-		eXosip_subscribe_t *parent;
-	};
-
-	typedef struct eXosip_notify_t eXosip_notify_t;
-
-	struct eXosip_notify_t {
-
-		int n_id;
-		int n_online_status;
-
-		int n_ss_status;
-		int n_ss_reason;
-		time_t n_ss_expires;
-		eXosip_dialog_t *n_dialogs;
-
-		osip_transaction_t *n_inc_tr;
-		osip_transaction_t *n_out_tr;
-
-		eXosip_notify_t *next;
-		eXosip_notify_t *parent;
-	};
-
-#endif
 
 	typedef struct eXosip_call_t eXosip_call_t;
 
@@ -251,6 +270,43 @@ extern "C" {
 
 
 #ifndef MINISIZE
+
+	typedef struct eXosip_subscribe_t eXosip_subscribe_t;
+	
+	struct eXosip_subscribe_t {
+		
+		int s_id;
+		int s_ss_status;
+		int s_ss_reason;
+		int s_reg_period;
+		eXosip_dialog_t *s_dialogs;
+		
+		int s_retry;			/* avoid too many unsuccessfull retry */
+		osip_transaction_t *s_inc_tr;
+		osip_transaction_t *s_out_tr;
+		
+		eXosip_subscribe_t *next;
+		eXosip_subscribe_t *parent;
+	};
+	
+	typedef struct eXosip_notify_t eXosip_notify_t;
+	
+	struct eXosip_notify_t {
+		
+		int n_id;
+		int n_online_status;
+		
+		int n_ss_status;
+		int n_ss_reason;
+		time_t n_ss_expires;
+		eXosip_dialog_t *n_dialogs;
+		
+		osip_transaction_t *n_inc_tr;
+		osip_transaction_t *n_out_tr;
+		
+		eXosip_notify_t *next;
+		eXosip_notify_t *parent;
+	};
 
 	typedef struct eXosip_pub_t eXosip_pub_t;
 
@@ -340,56 +396,13 @@ extern "C" {
 
 	char *_eXosip_strdup_printf(const char *fmt, ...);
 
-#define eXosip_trace(loglevel,args)  do        \
-{                       \
-	char *__strmsg;  \
-	__strmsg=_eXosip_strdup_printf args ;    \
-	OSIP_TRACE(osip_trace(__FILE__,__LINE__,(loglevel),NULL,"%s\n",__strmsg)); \
-	osip_free (__strmsg);        \
-}while (0);
-
-#ifndef EXOSIP_MAX_SOCKETS
-#define EXOSIP_MAX_SOCKETS 200
-#endif
-
-#if 0
-	/* structure used for keepalive management with connected protocols (TCP or TLS) */
-	struct eXosip_socket {
-		int socket;
-		char remote_ip[65];
-		int remote_port;
-	};
-
-	struct eXosip_net {
-		char net_firewall_ip[65];	/* ip address to use for masquerading contacts */
-		int net_ip_family;		/* AF_INET6 or AF_INET */
-		struct sockaddr_storage ai_addr;
-		char net_port[20];		/* port for receiving message/connection */
-		int net_socket;			/* initial socket for receiving message/connection */
-		int net_protocol;		/* initial socket for receiving message/connection */
-		struct eXosip_socket net_socket_tab[EXOSIP_MAX_SOCKETS];
-	};
-#endif
-
 	char *_eXosip_transport_protocol(osip_message_t * msg);
 	int _eXosip_find_protocol(osip_message_t * msg);
 	int _eXosip_tcp_find_socket(char *host, int port);
 	int _eXosip_tcp_connect_socket(char *host, int port);
 	int setsockopt_ipv6only(int sock);
 
-#ifndef MINISIZE
 
-	int _eXosip_recvfrom(struct eXosip_t *excontext, int s, char *buf, int len, unsigned int flags,
-						 struct sockaddr *from, socklen_t * fromlen);
-	int _eXosip_sendto(struct eXosip_t *excontext, int s, const void *buf, size_t len, int flags,
-					   const struct sockaddr *to, socklen_t tolen);
-
-#else
-
-#define _eXosip_recvfrom(excontext, A, B, C, D, E, F)  recvfrom(A, B, C, D, E, F)
-#define _eXosip_sendto(excontext, A, B, C, D, E, FG)    sendto(A, B, C, D, E, F)
-
-#endif
 #ifndef MAX_EXOSIP_DNS_ENTRY
 #define MAX_EXOSIP_DNS_ENTRY 10
 #endif
@@ -415,26 +428,20 @@ extern "C" {
 		char transport[10];
 		char *user_agent;
 
+		eXosip_reg_t *j_reg;	/* my registrations */
 		eXosip_call_t *j_calls;	/* my calls        */
 #ifndef MINISIZE
 		eXosip_subscribe_t *j_subscribes;	/* my friends      */
 		eXosip_notify_t *j_notifies;	/* my susbscribers */
+		eXosip_pub_t *j_pub;	/* my publications  */
 #endif
 		osip_list_t j_transactions;
 
-		eXosip_reg_t *j_reg;	/* my registrations */
-#ifndef MINISIZE
-		eXosip_pub_t *j_pub;	/* my publications  */
-#endif
-
-#ifdef OSIP_MT
-		void *j_cond;
-		void *j_mutexlock;
-#endif
-
 		osip_t *j_osip;
 		int j_stop_ua;
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
+		void *j_cond;
+		void *j_mutexlock;
 		void *j_thread;
 		jpipe_t *j_socketctl;
 		jpipe_t *j_socketctl_event;
@@ -447,20 +454,11 @@ extern "C" {
 		int keep_alive;
 		int keep_alive_options;
 		int learn_port;
-#ifndef MINISIZE
-		int http_port;
-		char http_proxy[256];
-		char http_outbound_proxy[256];
-		int dontsend_101;
-#endif
 		int use_rport;
 		int dns_capabilities;
 		int dscp;
 		char ipv4_for_gateway[256];
 		char ipv6_for_gateway[256];
-#ifndef MINISIZE
-		char event_package[256];
-#endif
 		struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
 		struct eXosip_account_info account_entries[MAX_EXOSIP_ACCOUNT_INFO];
 		struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
@@ -484,8 +482,6 @@ extern "C" {
 								  osip_message_t * _invite,
 								  osip_message_t * _200Ok);
 	void _eXosip_dialog_free(struct eXosip_t *excontext,eXosip_dialog_t * jd);
-	void _eXosip_dialog_set_state(eXosip_dialog_t * jd, int state);
-
 
 	int _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_message_t ** dest,
 										 const char *method, const char *to,
@@ -524,34 +520,12 @@ extern "C" {
 	int _eXosip_transaction_find(struct eXosip_t *excontext, int tid, osip_transaction_t ** transaction);
 	int _eXosip_call_dialog_find(struct eXosip_t *excontext, int jid, eXosip_call_t ** jc,
 								eXosip_dialog_t ** jd);
-#ifndef MINISIZE
-	int _eXosip_insubscription_transaction_find(struct eXosip_t *excontext, 
-												int tid,
-												eXosip_notify_t ** jn,
-												eXosip_dialog_t ** jd,
-												osip_transaction_t ** tr);
-	int _eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t ** jn,
-								  eXosip_dialog_t ** jd);
-	int _eXosip_subscribe_transaction_find(struct eXosip_t *excontext, int tid, eXosip_subscribe_t ** js,
-										   eXosip_dialog_t ** jd,
-										   osip_transaction_t ** tr);
-	int _eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int nid, eXosip_subscribe_t ** js,
-									 eXosip_dialog_t ** jd);
-#endif
 	int _eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc);
 	int _eXosip_dialog_set_200ok(eXosip_dialog_t * _jd, osip_message_t * _200Ok);
 
 	int _eXosip_answer_invite_123456xx(struct eXosip_t *excontext, eXosip_call_t * jc, eXosip_dialog_t * jd,
 									   int code, osip_message_t ** answer,
 									   int send);
-#ifndef MINISIZE
-	int _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * jc,
-										  eXosip_dialog_t * jd, int code);
-	int _eXosip_insubscription_answer_2xx(eXosip_notify_t * jn,
-										  eXosip_dialog_t * jd, int code);
-	int _eXosip_insubscription_answer_3456xx(struct eXosip_t *excontext, eXosip_notify_t * jn,
-											 eXosip_dialog_t * jd, int code);
-#endif
 
 	int _eXosip_build_response_default(struct eXosip_t *excontext, osip_message_t ** dest,
 									   osip_dialog_t * dialog, int status,
@@ -565,16 +539,6 @@ extern "C" {
 	void _eXosip_kill_transaction(osip_list_t * transactions);
 	int _eXosip_remove_transaction_from_call(osip_transaction_t * tr,
 											eXosip_call_t * jc);
-#ifndef MINISIZE
-	osip_transaction_t *_eXosip_find_last_inc_notify(eXosip_subscribe_t * jn,
-													eXosip_dialog_t * jd);
-	osip_transaction_t *_eXosip_find_last_out_notify(eXosip_notify_t * jn,
-													eXosip_dialog_t * jd);
-	osip_transaction_t *_eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
-													   eXosip_dialog_t * jd);
-	osip_transaction_t *_eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
-													   eXosip_dialog_t * jd);
-#endif
 
 	osip_transaction_t *_eXosip_find_last_transaction(eXosip_call_t * jc,
 													 eXosip_dialog_t * jd,
@@ -608,6 +572,32 @@ extern "C" {
 	void _eXosip_release_terminated_publications(struct eXosip_t *excontext);
 
 #ifndef MINISIZE
+	int _eXosip_insubscription_transaction_find(struct eXosip_t *excontext, 
+																							int tid,
+																							eXosip_notify_t ** jn,
+																							eXosip_dialog_t ** jd,
+																							osip_transaction_t ** tr);
+	int _eXosip_notify_dialog_find(struct eXosip_t *excontext, int nid, eXosip_notify_t ** jn,
+																 eXosip_dialog_t ** jd);
+	int _eXosip_subscribe_transaction_find(struct eXosip_t *excontext, int tid, eXosip_subscribe_t ** js,
+																				 eXosip_dialog_t ** jd,
+																				 osip_transaction_t ** tr);
+	int _eXosip_subscribe_dialog_find(struct eXosip_t *excontext, int nid, eXosip_subscribe_t ** js,
+																		eXosip_dialog_t ** jd);
+	int _eXosip_insubscription_answer_1xx(struct eXosip_t *excontext, eXosip_notify_t * jc,
+																				eXosip_dialog_t * jd, int code);
+	int _eXosip_insubscription_answer_2xx(eXosip_notify_t * jn,
+																				eXosip_dialog_t * jd, int code);
+	int _eXosip_insubscription_answer_3456xx(struct eXosip_t *excontext, eXosip_notify_t * jn,
+																					 eXosip_dialog_t * jd, int code);
+	osip_transaction_t *_eXosip_find_last_inc_notify(eXosip_subscribe_t * jn,
+																									 eXosip_dialog_t * jd);
+	osip_transaction_t *_eXosip_find_last_out_notify(eXosip_notify_t * jn,
+																									 eXosip_dialog_t * jd);
+	osip_transaction_t *_eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
+																											eXosip_dialog_t * jd);
+	osip_transaction_t *_eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
+																											eXosip_dialog_t * jd);
 	void _eXosip_release_terminated_subscriptions(struct eXosip_t *excontext);
 	void _eXosip_release_terminated_in_subscriptions(struct eXosip_t *excontext);
 	int _eXosip_subscribe_init(eXosip_subscribe_t ** js);

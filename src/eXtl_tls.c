@@ -23,10 +23,6 @@
 #endif
 #endif
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include "eXtransport.h"
 
@@ -39,6 +35,10 @@
 #ifdef WIN32
 #include <Mstcpip.h>
 #include <wincrypt.h>
+#endif
+
+#ifndef _WIN32_WCE
+#include <errno.h>
 #endif
 
 #if defined(_WIN32_WCE) || defined(WIN32)
@@ -103,7 +103,7 @@ int verify_cb(int preverify_ok, X509_STORE_CTX * store);
 struct _tls_stream {
 	int socket;
 	struct sockaddr ai_addr;
-	size_t ai_addrlen;
+	socklen_t ai_addrlen;
 	char remote_ip[65];
 	int remote_port;
 	char *previous_content;
@@ -130,7 +130,7 @@ struct _tls_stream {
 #endif
 
 #ifndef EXOSIP_MAX_SOCKETS
-#define EXOSIP_MAX_SOCKETS 100
+#define EXOSIP_MAX_SOCKETS 200
 #endif
 
 static int tls_verify_client_certificate;
@@ -917,7 +917,7 @@ static int password_cb(char *buf, int num, int rwflag, void *userdata)
 	}
 	strncpy(buf, passwd, num);
 	buf[num - 1] = '\0';
-	return strlen(buf);
+	return (int)strlen(buf);
 }
 
 static void load_dh_params(SSL_CTX * ctx, char *file)
@@ -2041,7 +2041,7 @@ static int _tls_tl_ssl_connect_socket(struct eXosip_t *excontext, struct _tls_st
 
 	cert = SSL_get_peer_certificate(sockinfo->ssl_conn);
 	if (cert != 0) {
-		int cert_err;
+		long cert_err;
 		tls_dump_cert_info("tls_connect: remote certificate: ", cert);
 
 		cert_err = SSL_get_verify_result(sockinfo->ssl_conn);
@@ -2182,7 +2182,7 @@ static int handle_messages(struct eXosip_t *excontext, struct _tls_stream *socki
 		end_headers += const_strlen(END_HEADERS_STR);
 
 		/* do we have the whole message? */
-		msglen = end_headers - buf + clen;
+		msglen = (int)(end_headers - buf + clen);
 		if (msglen > buflen) {
 			/* nope */
 			return consumed;
@@ -2285,7 +2285,7 @@ static int _tls_tl_recv(struct eXosip_t *excontext, struct _tls_stream *sockinfo
 
 	do {
 		r = SSL_read(sockinfo->ssl_conn, sockinfo->buf + sockinfo->buflen + rlen,
-						sockinfo->bufsize - sockinfo->buflen - rlen);
+						(int)(sockinfo->bufsize - sockinfo->buflen - rlen));
 		if (r <= 0) {
 			err = SSL_get_error(sockinfo->ssl_conn, r);
 			if (err == SSL_ERROR_WANT_READ || err == SSL_ERROR_WANT_WRITE) {
@@ -2364,11 +2364,7 @@ static int tls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 		int sock;
 		int i;
 
-#ifdef __linux
 		socklen_t slen;
-#else
-		int slen;
-#endif
 
 		SSL *ssl = NULL;
 		BIO *sbio;
@@ -2555,7 +2551,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 	int sock = -1;
 	int ssl_state = 0;
 	struct sockaddr selected_ai_addr;
-	size_t selected_ai_addrlen;
+	socklen_t selected_ai_addrlen;
 
 	char src6host[NI_MAXHOST];
 	memset(src6host, 0, sizeof(src6host));
@@ -2603,7 +2599,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 		sock = (int) socket(curinfo->ai_family, curinfo->ai_socktype,
 							curinfo->ai_protocol);
 		if (sock < 0) {
-#if !defined(OSIP_MT) || defined(_WIN32_WCE)
+#if defined(OSIP_MONOTHREAD) || defined(_WIN32_WCE)
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"eXosip: Cannot create socket!\n"));
@@ -2620,7 +2616,7 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 			if (setsockopt_ipv6only(sock)) {
 				close(sock);
 				sock = -1;
-#if !defined(OSIP_MT) || defined(_WIN32_WCE)
+#if defined(OSIP_MONOTHREAD) || defined(_WIN32_WCE)
 				OSIP_TRACE(osip_trace
 						   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 							"eXosip: Cannot set socket option!\n"));
@@ -3105,7 +3101,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 	SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
 
 	while (1) {
-		i = SSL_write(ssl, (const void *) message, length);
+		i = SSL_write(ssl, (const void *) message, (int)length);
 
 		if (i <= 0) {
 			i = SSL_get_error(ssl, i);

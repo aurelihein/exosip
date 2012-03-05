@@ -17,11 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 #include <osip2/osip_condv.h>
@@ -309,7 +304,7 @@ int _eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je)
 {
 	int i = osip_fifo_add(excontext->j_events, (void *) je);
 
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 #if !defined (_WIN32_WCE)
 	osip_cond_signal((struct osip_cond *) excontext->j_cond);
 #endif
@@ -319,7 +314,7 @@ int _eXosip_event_add(struct eXosip_t *excontext, eXosip_event_t * je)
 	return i;
 }
 
-#ifndef OSIP_MT
+#ifdef OSIP_MONOTHREAD
 
 eXosip_event_t *eXosip_event_wait(struct eXosip_t *excontext, int tv_s, int tv_ms)
 {

@@ -18,13 +18,10 @@
 */
 
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
+#include "eXosip2.h"
 
 #ifndef MINISIZE
 
-#include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
 int

@@ -17,11 +17,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
-
 #include "eXosip2.h"
 
 #include <osipparser2/osip_md5.h>
@@ -91,24 +86,21 @@ _eXosip_reg_init(struct eXosip_t *excontext, eXosip_reg_t ** jr, const char *fro
 		}
 
 		osip_MD5Init(&Md5Ctx);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) from, strlen(from));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) from, (unsigned int)strlen(from));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) proxy, strlen(proxy));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) proxy, (unsigned int)strlen(proxy));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) localip, strlen(localip));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) localip, (unsigned int)strlen(localip));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) firewall_ip,
-					   strlen(firewall_ip));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) firewall_ip, (unsigned int)strlen(firewall_ip));
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) firewall_port,
-					   strlen(firewall_port));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) firewall_port, (unsigned int)strlen(firewall_port));
 
 		/* previously, "line" was common accross several identical restart. */
 		/* including random will help to read a correct "expires" parameter */
 		/* from 2xx REGISTER answers */
 		osip_MD5Update(&Md5Ctx, (unsigned char *) ":", 1);
-		osip_MD5Update(&Md5Ctx, (unsigned char *) somerandom,
-					   strlen(somerandom));
+		osip_MD5Update(&Md5Ctx, (unsigned char *) somerandom, (unsigned int)strlen(somerandom));
 		
 		osip_MD5Final((unsigned char *) hval, &Md5Ctx);
 		CvtHex(hval, key_line);

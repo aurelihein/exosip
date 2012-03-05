@@ -17,16 +17,12 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
+#include "eXosip2.h"
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
 #endif
 
-#include "eXosip2.h"
 #include <eXosip2/eXosip.h>
 
 
@@ -47,33 +43,33 @@ static jauthinfo_t *eXosip_find_authentication_info(struct eXosip_t *excontext, 
 
 void _eXosip_wakeup(struct eXosip_t *excontext)
 {
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	jpipe_write(excontext->j_socketctl, "w", 1);
 #endif
 }
 
 void eXosip_wakeup_event(struct eXosip_t *excontext)
 {
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	jpipe_write(excontext->j_socketctl_event, "w", 1);
 #endif
 }
 
 int eXosip_lock(struct eXosip_t *excontext)
 {
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	return osip_mutex_lock((struct osip_mutex *) excontext->j_mutexlock);
 #else
-	return OSIP_WRONG_STATE; /* NOT COMPILE WITH OSIP_MT */
+	return OSIP_WRONG_STATE; /* COMPILED WITH OSIP_MONOTHREAD */
 #endif
 }
 
 int eXosip_unlock(struct eXosip_t *excontext)
 {
-#ifdef OSIP_MT
+#ifndef OSIP_MONOTHREAD
 	return osip_mutex_unlock((struct osip_mutex *) excontext->j_mutexlock);
 #else
-	return OSIP_WRONG_STATE; /* NOT COMPILE WITH OSIP_MT */
+	return OSIP_WRONG_STATE; /* COMPILED WITH OSIP_MONOTHREAD */
 #endif
 }
 

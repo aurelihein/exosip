@@ -17,13 +17,22 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "eXosip2.h"
 
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
+#if defined(HAVE_STDARG_H)
+#  include <stdarg.h>
+#  define VA_START(a, f)  va_start(a, f)
+#else
+#  if defined(HAVE_VARARGS_H)
+#    include <varargs.h>
+#    define VA_START(a, f) va_start(a)
+#  else
+#    include <stdarg.h>
+#    define VA_START(a, f)  va_start(a, f)
+#  endif
 #endif
 
 #include <osipparser2/osip_port.h>
-#include "eXosip2.h"
 
 #if defined(_WIN32_WCE)
 #elif defined(WIN32)
@@ -598,11 +607,7 @@ int _eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *addre
  */
 static int _eXosip_default_gateway_ipv4(struct eXosip_t *excontext, char *address, int size)
 {
-#ifdef __APPLE_CC__
-	int len;
-#else
-	unsigned int len;
-#endif
+	socklen_t len;
 	int sock_rt, on = 1;
 
 	struct sockaddr_in iface_out;
@@ -656,11 +661,7 @@ static int _eXosip_default_gateway_ipv4(struct eXosip_t *excontext, char *addres
  */
 static int _eXosip_default_gateway_ipv6(struct eXosip_t *excontext, char *address, int size)
 {
-#ifdef __APPLE_CC__
-	int len;
-#else
-	unsigned int len;
-#endif
+	socklen_t len;
 	int sock_rt, on = 1;
 
 	struct sockaddr_in6 iface_out;
@@ -721,7 +722,7 @@ char *_eXosip_strdup_printf(const char *fmt, ...)
 		return NULL;
 	while (1) {
 		/* Try to print in the allocated space. */
-		va_start(ap, fmt);
+		VA_START(ap, fmt);
 #ifdef WIN32
 		n = _vsnprintf(p, size, fmt, ap);
 #else
@@ -3171,7 +3172,7 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
 		srventry->priority = pref;
 		srventry->weight = weight;
 		if (weight)
-			srventry->rweight = 1 + random() % (10000 * srventry->weight);
+			srventry->rweight = (int)(1 + random() % (10000 * srventry->weight));
 		else
 			srventry->rweight = 0;
 		srventry->port = port;

@@ -17,14 +17,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
-#ifdef ENABLE_MPATROL
-#include <mpatrol.h>
-#endif
+#include "eXosip2.h"
 
 #ifndef MINISIZE
-
-#include "eXosip2.h"
 
 osip_transaction_t *_eXosip_find_last_inc_subscribe(eXosip_notify_t * jn,
 												   eXosip_dialog_t * jd)
