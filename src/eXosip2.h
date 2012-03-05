@@ -21,14 +21,6 @@
 #ifndef __EXOSIP2_H__
 #define __EXOSIP2_H__
 
-#if defined(WIN32)
-#if !defined(_WIN32_WINNT) && defined(WINVER)
-#define _WIN32_WINNT WINVER
-#elif !defined(_WIN32_WINNT)
-#define _WIN32_WINNT 0x0403
-#endif
-#endif
-
 #if defined (HAVE_CONFIG_H)
 #include <exosip-config.h>
 #endif
@@ -55,7 +47,6 @@
 #define HAVE_STDARG_H 1
 
 #define snprintf  _snprintf
-#define EBUSY           16
 
 #elif defined(WIN32)
 
@@ -64,6 +55,7 @@
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_TIME_H 1
 #define HAVE_STDARG_H 1
+#define HAVE_SYS_STAT_H
 
 #define snprintf _snprintf
 
@@ -120,7 +112,6 @@
 #endif
 
 #ifdef _WIN32_WCE
-#include <errno.h>
 #include <winsock2.h>
 #include <osipparser2/osip_port.h>
 #include <ws2tcpip.h>

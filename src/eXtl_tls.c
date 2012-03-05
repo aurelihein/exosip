@@ -26,7 +26,9 @@
 #include "eXosip2.h"
 #include "eXtransport.h"
 
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -37,9 +39,7 @@
 #include <wincrypt.h>
 #endif
 
-#ifndef _WIN32_WCE
 #include <errno.h>
-#endif
 
 #if defined(_WIN32_WCE) || defined(WIN32)
 #define strerror(X) "-1"

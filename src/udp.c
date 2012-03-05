@@ -28,9 +28,7 @@
 #include <windows.h>
 #endif
 
-#ifndef _WIN32_WCE
 #include <errno.h>
-#endif
 
 /* Private functions */
 

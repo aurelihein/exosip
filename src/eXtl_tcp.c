@@ -28,9 +28,7 @@
 #include <Mstcpip.h>
 #endif
 
-#ifndef _WIN32_WCE
 #include <errno.h>
-#endif
 
 #if defined(_WIN32_WCE) || defined(WIN32)
 #define strerror(X) "-1"

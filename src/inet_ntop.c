@@ -40,14 +40,11 @@
 
 #if defined(WIN32) || defined(_WIN32_WCE)
 
-#include <windowsx.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <iphlpapi.h>
-
 #include "inet_ntop.h"
 
-/* added by adm */
+#include <errno.h>
+
+/* added by amd */
 /*
  * the definitions below are valid for 32-bit architectures and will have to
  * be adjusted for 16- or 64-bit architectures
