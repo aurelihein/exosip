@@ -820,13 +820,11 @@ int verify_cb(int preverify_ok, X509_STORE_CTX * store)
 	char buf[256];
 	X509 *err_cert;
 	int err, depth;
-	SSL *ssl;
 
 	err_cert = X509_STORE_CTX_get_current_cert(store);
 	err = X509_STORE_CTX_get_error(store);
 	depth = X509_STORE_CTX_get_error_depth(store);
 
-	ssl = X509_STORE_CTX_get_ex_data(store, SSL_get_ex_data_X509_STORE_CTX_idx());
 	X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
 
 	if (depth > ex_verify_depth /* depth -1 */ ) {
