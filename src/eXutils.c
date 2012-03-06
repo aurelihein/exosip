@@ -863,11 +863,7 @@ int
 _eXosip_srv_lookup(struct eXosip_t *excontext, osip_message_t * sip, osip_naptr_t **naptr_record) 
 {
 	int use_srv = 1;
-
-	int port;
-
 	char *host;
-
 	osip_via_t *via;
 
 	via = (osip_via_t *) osip_list_get(&sip->vias, 0);
@@ -890,9 +886,7 @@ _eXosip_srv_lookup(struct eXosip_t *excontext, osip_message_t * sip, osip_naptr_
 		}
 
 		if (route != NULL) {
-			port = 5060;
 			if (route->url->port != NULL) {
-				port = osip_atoi(route->url->port);
 				use_srv = 0;
 			}
 			host = route->url->host;
@@ -905,10 +899,8 @@ _eXosip_srv_lookup(struct eXosip_t *excontext, osip_message_t * sip, osip_naptr_
 			if (maddr_param != NULL && maddr_param->gvalue != NULL)
 				host = maddr_param->gvalue;
 
-			port = 5060;
 			if (sip->req_uri->port != NULL) {
 				use_srv = 0;
-				port = osip_atoi(sip->req_uri->port);
 			}
 
 			if (host == NULL)
@@ -933,13 +925,6 @@ _eXosip_srv_lookup(struct eXosip_t *excontext, osip_message_t * sip, osip_naptr_
 
 		if (via->port == NULL)
 			use_srv = 0;
-		if (rport == NULL || rport->gvalue == NULL) {
-			if (via->port != NULL)
-				port = osip_atoi(via->port);
-			else
-				port = 5060;
-		} else
-			port = osip_atoi(rport->gvalue);
 	}
 
 	if (host == NULL) {
@@ -1107,7 +1092,8 @@ static const unsigned char *save_A(osip_naptr_t *output_record,
 								   const unsigned char *abuf, int alen)
 {
 	char rr_name[512];
-	int type, dnsclass, ttl, dlen, status;
+	/* int dnsclass, ttl; */
+	int type, dlen, status;
 	long len;
 	char addr[46];
 	union {
@@ -1128,8 +1114,8 @@ static const unsigned char *save_A(osip_naptr_t *output_record,
 	}
 
 	type = DNS_RR_TYPE(aptr);
-	dnsclass = DNS_RR_CLASS(aptr);
-	ttl = DNS_RR_TTL(aptr);
+	/* dnsclass = DNS_RR_CLASS(aptr); */
+	/* ttl = DNS_RR_TTL(aptr); */
 	dlen = DNS_RR_LEN(aptr);
 	aptr += RRFIXEDSZ;
 	if (aptr + dlen > abuf + alen)
@@ -1213,7 +1199,8 @@ static const unsigned char *save_SRV(osip_naptr_t *output_record,
 									 const unsigned char *abuf, int alen)
 {
 	char rr_name[512];
-	int type, dnsclass, ttl, dlen, status;
+	/* int dnsclass, ttl; */
+	int type, dlen, status;
 	long len;
 	union {
 		unsigned char * as_uchar;
@@ -1232,8 +1219,8 @@ static const unsigned char *save_SRV(osip_naptr_t *output_record,
 	}
 
 	type = DNS_RR_TYPE(aptr);
-	dnsclass = DNS_RR_CLASS(aptr);
-	ttl = DNS_RR_TTL(aptr);
+	/* dnsclass = DNS_RR_CLASS(aptr); */
+	/* ttl = DNS_RR_TTL(aptr); */
 	dlen = DNS_RR_LEN(aptr);
 	aptr += RRFIXEDSZ;
 	if (aptr + dlen > abuf + alen)
@@ -1315,7 +1302,8 @@ static const unsigned char *save_NAPTR(osip_naptr_t *output_record,
 {
 	char rr_name[512];
 	const unsigned char *p;
-	int type, dnsclass, ttl, dlen, status;
+	/* int dnsclass, ttl; */
+	int type, dlen, status;
 	long len;
 	union {
 		unsigned char * as_uchar;
@@ -1334,8 +1322,8 @@ static const unsigned char *save_NAPTR(osip_naptr_t *output_record,
 	}
 
 	type = DNS_RR_TYPE(aptr);
-	dnsclass = DNS_RR_CLASS(aptr);
-	ttl = DNS_RR_TTL(aptr);
+	/* dnsclass = DNS_RR_CLASS(aptr); */
+	/* ttl = DNS_RR_TTL(aptr); */
 	dlen = DNS_RR_LEN(aptr);
 	aptr += RRFIXEDSZ;
 	if (aptr + dlen > abuf + alen)

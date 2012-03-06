@@ -257,7 +257,6 @@ _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_messag
 	osip_message_t *request;
 	char locip[65];
 	int doing_register;
-	char *register_callid_number = NULL;
 
 	*dest = NULL;
 
@@ -537,8 +536,6 @@ _eXosip_generating_request_out_of_dialog(struct eXosip_t *excontext, osip_messag
 		}
 		cidrand = _eXosip_malloc_new_random();
 		osip_call_id_set_number(callid, cidrand);
-		if (doing_register)
-			register_callid_number = cidrand;
 
 		request->call_id = callid;
 

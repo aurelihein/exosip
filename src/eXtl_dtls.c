@@ -229,7 +229,6 @@ static int shutdown_free_client_dtls(struct eXosip_t *excontext, int pos)
 
 			rbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
 
-			//BIO_dgram_set_peer(rbio, &addr);
 			BIO_ctrl(rbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&addr);
 
 			(reserved->socket_tab[pos].ssl_conn)->rbio = rbio;
@@ -591,7 +590,6 @@ static int dtls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset,
 								SSL_OP_COOKIE_EXCHANGE);
 #endif
 				wbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-				//BIO_dgram_set_peer(wbio, &sa);
 				BIO_ctrl(wbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&sa);
 				SSL_set_bio(reserved->socket_tab[pos].ssl_conn, NULL, wbio);
 
@@ -964,7 +962,6 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 				BIO *rbio;
 				_dtls_stream_used = &reserved->socket_tab[pos];
 				rbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-				//BIO_dgram_set_peer(rbio, &addr);
 				BIO_ctrl(rbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&addr);
 				reserved->socket_tab[pos].ssl_conn->rbio = rbio;
 				break;
@@ -980,7 +977,6 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 					BIO *rbio;
 					_dtls_stream_used = &reserved->socket_tab[pos];
 					rbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-					//BIO_dgram_set_peer(rbio, &addr);
 					BIO_ctrl(rbio, BIO_CTRL_DGRAM_SET_PEER, 0, (char *)&addr);
 					reserved->socket_tab[pos].ssl_conn->rbio = rbio;
 					break;
@@ -1038,7 +1034,6 @@ dtls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 		SSL_set_mtu(reserved->socket_tab[pos].ssl_conn, 2000);
 		SSL_set_connect_state(reserved->socket_tab[pos].ssl_conn);
 		sbio = BIO_new_dgram(reserved->dtls_socket, BIO_NOCLOSE);
-		//BIO_ctrl_set_connected(sbio, 1, (struct sockaddr *) &addr);
 		BIO_ctrl(sbio, BIO_CTRL_DGRAM_SET_CONNECTED, 1, (char *)&addr);
 		SSL_set_bio(reserved->socket_tab[pos].ssl_conn, sbio, sbio);
 

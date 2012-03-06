@@ -1281,9 +1281,7 @@ static void _eXosip_process_response_out_of_transaction(struct eXosip_t *exconte
 {
 	eXosip_call_t *jc = NULL;
 	eXosip_dialog_t *jd = NULL;
-	time_t now;
 
-	now = time(NULL);
 	if (evt->sip == NULL
 		|| evt->sip->cseq == NULL
 		|| evt->sip->cseq->number == NULL

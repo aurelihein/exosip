@@ -410,6 +410,7 @@ static char *base64_decode_string(const char *buf, unsigned int len, int *newlen
 	return out;
 }
 
+#if 0
 char base64[65] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static char *base64_encode_string(const char *buf, unsigned int len, int *newlen)
@@ -486,7 +487,7 @@ static char *base64_encode_string(const char *buf, unsigned int len, int *newlen
 	*newlen = (int)(ptr - out);
 	return out;
 }
-
+#endif
 
 
 char hexa[16] = "0123456789abcdef";

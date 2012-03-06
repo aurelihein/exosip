@@ -817,7 +817,6 @@ static X509 *_tls_set_certificate(SSL_CTX * ctx, const char *cn)
 
 int verify_cb(int preverify_ok, X509_STORE_CTX * store)
 {
-	//struct eXtltls *reserved = (struct eXtltls *)excontext->eXtltls_reserved;
 	char buf[256];
 	X509 *err_cert;
 	int err, depth;
@@ -1208,42 +1207,6 @@ SSL_CTX *initialize_client_ctx(const char *certif_client_local_cn_name, eXosip_t
 		X509_free(cert);
 		cert = NULL;
 	}
-
-#if 0
-ANDROID
-	BIO *bio = BIO_new_file("/system/etc/security/cacerts.bks", "r");
-
-	unsigned char* p = d2i_PKCS7_bio(NULL, bio, 
-
-	//BIO_from_keystore("/system/etc/security/cacerts.bks");
-	STACK_OF(X509_INFO) *stack = NULL;
-	int i;
-	if (bio) {
-		stack = PEM_X509_INFO_read_bio(bio, NULL, NULL, NULL);
-		BIO_free(bio);
-	}
-	if (!stack) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Couldn't keystore from /system/etc/security/cacerts.bks\n"));	
-	} else {
-		int count = sk_X509_INFO_num(stack);
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: Loading %d X509 certificates\n", count));	
-		for (i = 0; i < count; ++i) {
-			X509_INFO *info = sk_X509_INFO_value(stack, i);
-			if (info->x509) {
-				X509_STORE_add_cert(ctx->cert_store, info->x509);
-			}
-			if (info->crl) {
-				X509_STORE_add_crl(ctx->cert_store, info->crl);
-			}
-			sk_X509_INFO_pop_free(stack, X509_INFO_free);
-		}
-	}
-#endif
-
 
 	/* Load the CAs we trust */
 	{
@@ -2315,21 +2278,8 @@ static int _tls_tl_recv(struct eXosip_t *excontext, struct _tls_stream *sockinfo
 	while (SSL_pending(sockinfo->ssl_conn));
 
 	if (r == 0) {
-		//OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
-		//					  "socket %s:%i: eof\n", sockinfo->remote_ip, sockinfo->remote_port));
-		//_tls_tl_close_sockinfo(sockinfo);
-		//_eXosip_mark_all_registrations_expired();
 		return OSIP_UNDEFINED_ERROR;
 	} else if (r < 0) {
-		//int status = ex_errno;
-		//if (is_wouldblock_error(status))
-		//	return OSIP_SUCCESS;
-		/* Do we need next line ? */
-		/* else if (is_connreset_error(status)) */
-		//_eXosip_mark_all_registrations_expired();
-		//OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
-		//					  "socket %s:%i: error %d\n", sockinfo->remote_ip, sockinfo->remote_port, status));
-		//_tls_tl_close_sockinfo(sockinfo);
 		return OSIP_UNDEFINED_ERROR;
 	} else {
 		int consumed;

@@ -405,7 +405,7 @@ eXosip_event_t *eXosip_event_get(struct eXosip_t *excontext)
 	eXosip_event_t *je;
 	fd_set fdset;
 	struct timeval tv;
-	int max, i;
+	int max;
 
 	FD_ZERO(&fdset);
 #if defined (WIN32) || defined (_WIN32_WCE)
@@ -417,7 +417,7 @@ eXosip_event_t *eXosip_event_get(struct eXosip_t *excontext)
 
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
-	i = select(max + 1, &fdset, NULL, NULL, &tv);
+	select(max + 1, &fdset, NULL, NULL, &tv);
 	if (FD_ISSET(jpipe_get_read_descr(excontext->j_socketctl_event), &fdset)) {
 		char buf[500];
 		jpipe_read(excontext->j_socketctl_event, buf, 499);

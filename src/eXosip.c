@@ -1119,12 +1119,10 @@ void _eXosip_update(struct eXosip_t *excontext)
 	eXosip_notify_t *jn;
 #endif
 	eXosip_dialog_t *jd;
-	time_t now;
 
 	if (static_id == 32767)
 		static_id = 1;			/* loop */
 
-	now = time(NULL);
 	for (jc = excontext->j_calls; jc != NULL; jc = jc->next) {
 		if (jc->c_id < 1) {
 			jc->c_id = static_id;
