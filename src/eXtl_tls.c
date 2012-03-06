@@ -903,6 +903,7 @@ int verify_cb(int preverify_ok, X509_STORE_CTX * store)
 		X509_STORE_CTX_set_error(store, X509_V_OK);
 	}
 	
+	preverify_ok=1; /* configured to accept anyway! */
 	return preverify_ok;
 }
 
