@@ -30,6 +30,10 @@
 
 #include <errno.h>
 
+#if defined(HAVE_NETINET_TCP_H)
+#include <netinet/tcp.h>
+#endif
+
 #if defined(_WIN32_WCE) || defined(WIN32)
 #define strerror(X) "-1"
 #define ex_errno WSAGetLastError()
@@ -904,9 +908,9 @@ static int _tcp_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 			}
 #if 0
 			val = 1;
-			if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) ==
-				-1)
-				val = 30;		/* 30 sec before starting probes */
+			if (setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) == -1) {
+			}
+			val = 30;		/* 30 sec before starting probes */
 			setsockopt(sock, SOL_TCP, TCP_KEEPIDLE, &val, sizeof(val));
 			val = 2;			/* 2 probes max */
 			setsockopt(sock, SOL_TCP, TCP_KEEPCNT, &val, sizeof(val));
@@ -916,6 +920,15 @@ static int _tcp_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 #if SO_NOSIGPIPE
 			val = 1;
 			setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&val, sizeof(int));
+#endif
+			
+#if TCP_NODELAY
+			val = 1;
+			if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&val, sizeof(int)) != 0) {
+			  OSIP_TRACE(osip_trace
+				     (__FILE__, __LINE__, OSIP_INFO2, NULL,
+				      "Cannot set socket flag (TCP_NODELAY)\n"));
+			}
 #endif
 		}
 #endif
@@ -1271,7 +1284,6 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		osip_free(message);
 		return -1;
 	}
-
 	i = _tcp_tl_is_connected(out_socket);
 	if (i > 0) {
 		time_t now;
