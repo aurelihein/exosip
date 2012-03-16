@@ -30,7 +30,9 @@
 #define strerror(X) "-1"
 #endif
 
+#if !defined(_WIN32_WCE)
 #include <errno.h>
+#endif
 
 void udp_tl_learn_port_from_via(struct eXosip_t *excontext, osip_message_t * sip);
 

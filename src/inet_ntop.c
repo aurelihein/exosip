@@ -42,7 +42,9 @@
 
 #include "inet_ntop.h"
 
+#if !defined(_WIN32_WCE)
 #include <errno.h>
+#endif
 
 /* added by amd */
 /*

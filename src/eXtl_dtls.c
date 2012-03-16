@@ -30,7 +30,9 @@
 #define strerror(X) "-1"
 #endif
 
+#if !defined(_WIN32_WCE)
 #include <errno.h>
+#endif
 
 #ifdef HAVE_OPENSSL_SSL_H
 

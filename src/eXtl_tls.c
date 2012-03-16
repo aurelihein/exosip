@@ -39,7 +39,9 @@
 #include <wincrypt.h>
 #endif
 
+#if !defined(_WIN32_WCE)
 #include <errno.h>
+#endif
 
 #if defined(HAVE_NETINET_TCP_H)
 #include <netinet/tcp.h>
