@@ -136,7 +136,7 @@
 
 #include "jpipe.h"
 
-#define EXOSIP_VERSION	"3.6.0"
+#define EXOSIP_VERSION	"4.0.0"
 
 #ifdef __cplusplus
 extern "C" {
