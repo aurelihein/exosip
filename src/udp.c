@@ -630,7 +630,7 @@ _eXosip_process_subscribe_within_call(struct eXosip_t *excontext, eXosip_notify_
 
 	/* if subscribe request contains expires="0", close the subscription */
 	{
-		time_t now = time(NULL);
+		time_t now = osip_getsystemtime(NULL);
 
 		if (jn->n_ss_expires - now <= 0) {
 			jn->n_ss_status = EXOSIP_SUBCRSTATE_TERMINATED;
@@ -1641,7 +1641,7 @@ static int
 _eXosip_pendingosip_transaction_exist(struct eXosip_t *excontext, eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
 	osip_transaction_t *tr;
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 
 	tr = _eXosip_find_last_inc_transaction(jc, jd, "BYE");
 	if (tr != NULL && tr->state != NIST_TERMINATED) {	/* Don't want to wait forever on broken transaction!! */
@@ -1707,7 +1707,7 @@ _eXosip_pendingosip_transaction_exist(struct eXosip_t *excontext, eXosip_call_t 
 static int
 _eXosip_release_finished_transactions(struct eXosip_t *excontext, eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 	osip_transaction_t *inc_tr;
 	osip_transaction_t *out_tr;
 	osip_transaction_t *last_invite;
@@ -1835,7 +1835,7 @@ static void _eXosip_release_call(struct eXosip_t *excontext, eXosip_call_t * jc,
 
 static int _eXosip_release_aborted_calls(struct eXosip_t *excontext, eXosip_call_t * jc, eXosip_dialog_t * jd)
 {
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 	osip_transaction_t *tr;
 
 	/* close calls only when the initial INVITE failed */
@@ -1954,7 +1954,7 @@ void _eXosip_release_terminated_calls(struct eXosip_t *excontext)
 	eXosip_dialog_t *jdnext;
 	eXosip_call_t *jc;
 	eXosip_call_t *jcnext;
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 	int pos;
 
 
@@ -2055,7 +2055,7 @@ void _eXosip_release_terminated_registrations(struct eXosip_t *excontext)
 {
 	eXosip_reg_t *jr;
 	eXosip_reg_t *jrnext;
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 
 	for (jr = excontext->j_reg; jr != NULL;) {
 		jrnext = jr->next;
@@ -2085,7 +2085,7 @@ void _eXosip_release_terminated_publications(struct eXosip_t *excontext)
 {
 	eXosip_pub_t *jpub;
 	eXosip_pub_t *jpubnext;
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 
 	for (jpub = excontext->j_pub; jpub != NULL;) {
 		jpubnext = jpub->next;
@@ -2115,7 +2115,7 @@ void _eXosip_release_terminated_publications(struct eXosip_t *excontext)
 static int
 _eXosip_release_finished_transactions_for_subscription(struct eXosip_t *excontext, eXosip_dialog_t * jd)
 {
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 	osip_transaction_t *inc_tr;
 	osip_transaction_t *out_tr;
 	int skip_first = 0;
@@ -2181,7 +2181,7 @@ _eXosip_release_finished_transactions_for_subscription(struct eXosip_t *excontex
 
 void _eXosip_release_terminated_subscriptions(struct eXosip_t *excontext)
 {
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 	eXosip_dialog_t *jd;
 	eXosip_dialog_t *jdnext;
 	eXosip_subscribe_t *js;

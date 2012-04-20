@@ -883,7 +883,7 @@ int eXosip_call_send_answer(struct eXosip_t *excontext, int tid, int status, osi
 									else
 										jd->d_refresher = 1;
 								}
-								jd->d_session_timer_start = time(NULL);
+								jd->d_session_timer_start = osip_getsystemtime(NULL);
 								jd->d_session_timer_length = atoi(exp_h->element);
 								if (jd->d_session_timer_length <= 90)
 									jd->d_session_timer_length = 90;

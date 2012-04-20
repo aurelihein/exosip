@@ -2973,7 +2973,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		i = _tls_tl_is_connected(out_socket);
 		if (i > 0) {
 			time_t now;
-			now = time(NULL);
+			now = osip_getsystemtime(NULL);
 			OSIP_TRACE(osip_trace
 					   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 						"socket node:%s, socket %d [pos=%d], in progress\n",

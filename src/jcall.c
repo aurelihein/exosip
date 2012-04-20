@@ -35,7 +35,7 @@ int _eXosip_call_find(struct eXosip_t *excontext, int cid, eXosip_call_t ** jc)
 
 void _eXosip_call_renew_expire_time(eXosip_call_t * jc)
 {
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 	jc->expire_time = now + 180;
 }
 

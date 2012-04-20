@@ -121,7 +121,7 @@ _eXosip_notify_set_refresh_interval(eXosip_notify_t * jn,
 	osip_header_t *exp;
 	time_t now;
 
-	now = time(NULL);
+	now = osip_getsystemtime(NULL);
 	if (jn == NULL || inc_subscribe == NULL)
 		return -1;
 
@@ -146,7 +146,7 @@ _eXosip_notify_add_expires_in_2XX_for_subscribe(eXosip_notify_t * jn,
 	char tmp[20];
 	time_t now;
 
-	now = time(NULL);
+	now = osip_getsystemtime(NULL);
 
 	if (jn->n_ss_expires - now < 0) {
 		tmp[0] = '0';

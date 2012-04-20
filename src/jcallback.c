@@ -799,7 +799,7 @@ static void cb_rcv2xx_4invite(osip_transaction_t * tr, osip_message_t * sip)
 						else
 							jd->d_refresher = 1;
 					}
-					jd->d_session_timer_start = time(NULL);
+					jd->d_session_timer_start = osip_getsystemtime(NULL);
 					jd->d_session_timer_length = atoi(exp_h->element);
 					if (jd->d_session_timer_length <= 90)
 						jd->d_session_timer_length = 90;
@@ -1093,7 +1093,7 @@ static void cb_rcv2xx(int type, osip_transaction_t * tr, osip_message_t * sip)
 								else
 									jd->d_refresher = 1;
 							}
-							jd->d_session_timer_start = time(NULL);
+							jd->d_session_timer_start = osip_getsystemtime(NULL);
 							jd->d_session_timer_length = atoi(exp_h->element);
 							if (jd->d_session_timer_length <= 90)
 								jd->d_session_timer_length = 90;

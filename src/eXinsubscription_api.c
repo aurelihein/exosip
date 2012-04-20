@@ -241,7 +241,7 @@ eXosip_insubscription_build_notify(struct eXosip_t *excontext, int did, int subs
 
 	char subscription_state[50];
 	char *tmp;
-	time_t now = time(NULL);
+	time_t now = osip_getsystemtime(NULL);
 
 	int i;
 

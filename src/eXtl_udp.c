@@ -735,7 +735,7 @@ udp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		{
 			/* failover for outgoing transaction */
 			time_t now;
-			now = time(NULL);
+			now = osip_getsystemtime(NULL);
 			OSIP_TRACE(osip_trace
 				(__FILE__, __LINE__, OSIP_INFO2, NULL,
 				"not yet answered\n"));

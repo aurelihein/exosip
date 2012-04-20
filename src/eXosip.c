@@ -611,7 +611,7 @@ void eXosip_automatic_refresh(struct eXosip_t *excontext)
 	eXosip_reg_t *jr;
 	time_t now;
 
-	now = time(NULL);
+	now = osip_getsystemtime(NULL);
 
 	for (js = excontext->j_subscribes; js != NULL; js = js->next) {
 		for (jd = js->s_dialogs; jd != NULL; jd = jd->next) {
@@ -668,7 +668,7 @@ void _eXosip_retransmit_lost200ok(struct eXosip_t *excontext)
 	eXosip_dialog_t *jd;
 	time_t now;
 
-	now = time(NULL);
+	now = osip_getsystemtime(NULL);
 
 	for (jc = excontext->j_calls; jc != NULL; jc = jc->next) {
 		if (jc->c_id >= 1 && jc->c_dialogs != NULL) {
@@ -692,11 +692,11 @@ void _eXosip_retransmit_lost200ok(struct eXosip_t *excontext)
 						/* a dialog exist: retransmit lost 200ok */
 						jd->d_count++;
 						if (jd->d_count == 1)
-							jd->d_timer = time(NULL) + 1;
+							jd->d_timer = osip_getsystemtime(NULL) + 1;
 						if (jd->d_count == 2)
-							jd->d_timer = time(NULL) + 2;
+							jd->d_timer = osip_getsystemtime(NULL) + 2;
 						if (jd->d_count >= 3)
-							jd->d_timer = time(NULL) + 4;
+							jd->d_timer = osip_getsystemtime(NULL) + 4;
 						jd = jc->c_dialogs;
 						/* TU retransmission */
 						_eXosip_snd_message(excontext, NULL, jd->d_200Ok, NULL, 0, -1);
@@ -723,7 +723,7 @@ void eXosip_automatic_action(struct eXosip_t *excontext)
 #endif
 	time_t now;
 
-	now = time(NULL);
+	now = osip_getsystemtime(NULL);
 
 	for (jc = excontext->j_calls; jc != NULL; jc = jc->next) {
 		if (jc->c_id < 1) {
@@ -900,7 +900,7 @@ void eXosip_automatic_action(struct eXosip_t *excontext)
 								if (i == 0) {
 									/* update timer */
 									jd->d_session_timer_start =
-										time(NULL) + jd->d_session_timer_length;
+										osip_getsystemtime(NULL) + jd->d_session_timer_length;
 								}
 							}
 						}

@@ -83,7 +83,7 @@ int _eXosip_dialog_set_200ok(eXosip_dialog_t * jd, osip_message_t * _200Ok)
 		return OSIP_BADPARAMETER;
 	if (jd->d_200Ok != NULL)
 		osip_message_free(jd->d_200Ok);
-	jd->d_timer = time(NULL) + 1;
+	jd->d_timer = osip_getsystemtime(NULL) + 1;
 	jd->d_count = 0;
 	i = osip_message_clone(_200Ok, &(jd->d_200Ok));
 	if (i != 0)
@@ -119,7 +119,7 @@ int _eXosip_dialog_init_as_uac(eXosip_dialog_t ** _jd, osip_message_t * _200Ok)
 	jd->d_session_timer_start = 0;
 	jd->d_session_timer_length = 0;
 	jd->d_refresher = -1;		/* 0 -> me / 1 -> remote */
-	jd->d_timer = time(NULL);
+	jd->d_timer = osip_getsystemtime(NULL);
 	jd->d_200Ok = NULL;
 	jd->d_ack = NULL;
 	jd->next = NULL;
@@ -167,7 +167,7 @@ _eXosip_dialog_init_as_uas(eXosip_dialog_t ** _jd, osip_message_t * _invite,
 	jd->d_session_timer_start = 0;
 	jd->d_session_timer_length = 0;
 	jd->d_refresher = -1;		/* 0 -> me / 1 -> remote */
-	jd->d_timer = time(NULL);
+	jd->d_timer = osip_getsystemtime(NULL);
 	jd->d_200Ok = NULL;
 	jd->d_ack = NULL;
 	jd->next = NULL;
