@@ -34,6 +34,10 @@
 #include <errno.h>
 #endif
 
+#ifdef __APPLE_CC__
+#include "TargetConditionals.h"
+#endif
+
 void udp_tl_learn_port_from_via(struct eXosip_t *excontext, osip_message_t * sip);
 
 
@@ -130,6 +134,14 @@ static int udp_tl_open(struct eXosip_t *excontext)
 #endif							/* IPV6_V6ONLY */
 		}
 
+#if SO_NOSIGPIPE
+		{
+			int val;
+      val = 1;
+      setsockopt(sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&val, sizeof(int));
+    }
+#endif
+    
 		res = bind(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
 			OSIP_TRACE(osip_trace
@@ -209,6 +221,12 @@ static int udp_tl_open(struct eXosip_t *excontext)
 	return OSIP_SUCCESS;
 }
 
+static int _udp_tl_reset(struct eXosip_t *excontext) {
+	struct eXtludp *reserved = (struct eXtludp *)excontext->eXtludp_reserved;
+  if (reserved->udp_socket > 0)
+    close(reserved->udp_socket);
+  return udp_tl_open(excontext);
+}
 
 static int udp_tl_set_fdset(struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max)
 {
@@ -347,8 +365,13 @@ static int udp_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 		}
 #ifndef MINISIZE
 		else if (i < 0) {
-			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
-								  "Could not read socket\n"));
+      int my_errno = errno;
+      OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_ERROR, NULL,
+                            "Could not read socket (%i) (%i) (%s)\n", i, my_errno, strerror(my_errno)));
+      if (my_errno==57)
+      {
+        _udp_tl_reset(excontext);
+      }
 		} else {
 			OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 								  "Dummy SIP message received\n"));
