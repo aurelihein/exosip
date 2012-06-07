@@ -501,6 +501,14 @@ int _eXosip_guess_ip_for_via(struct eXosip_t *excontext, int family, char *addre
 	}
 
 	if (addrf == NULL) {
+	  if (family == AF_INET) {
+		  _eXosip_get_addrinfo(excontext, &addrf, "217.12.3.11", 0, IPPROTO_UDP);
+	  } else if (family == AF_INET6) {
+		  _eXosip_get_addrinfo(excontext, &addrf, "2001:638:500:101:2e0:81ff:fe24:37c6", 0, IPPROTO_UDP);
+	  }
+  }
+
+	if (addrf == NULL) {
 		closesocket(sock);
 		snprintf(address, size, (family == AF_INET) ? "127.0.0.1" : "::1");
 		return OSIP_NO_NETWORK;
