@@ -229,6 +229,12 @@ jpipe_t *jpipe()
 	/* set the socket to non-blocking to avoid a deadly embrace problem. */
 	setNonBlocking(my_pipe->pipes[1]);
 
+#if defined(__arc__)
+		close(s);
+#else
+		closesocket(s);
+#endif
+
 	return my_pipe;
 }
 
