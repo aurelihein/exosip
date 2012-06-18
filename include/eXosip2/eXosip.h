@@ -387,7 +387,11 @@ extern "C"
 
 /**
  * Wait for next eXosip event.
- * 
+ * **DEPRECATED API**
+ * This API will block // You should use eXosip_event_wait instead which is
+ * more convenient.
+ * limitation: This method will not process automatic 200ok retransmission
+ * for INVITE transaction.
  */
   eXosip_event_t *eXosip_event_get (struct eXosip_t *excontext);
 
