@@ -1260,6 +1260,26 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		}
 		if (pos == EXOSIP_MAX_SOCKETS)
 			out_socket = 0;
+
+    if (out_socket>0) {
+      int pos2;
+      //If we have SEVERAL sockets to same destination with different port
+      // number, we search for the one with "SAME port" number.
+      //The specification is not clear about re-using the existing transaction
+      // in that use-case...
+      //Such test, will help mainly with server having 2 sockets: one for
+      // incoming transaction and one for outgoing transaction?
+      pos2 = _tcp_tl_find_socket(excontext, host, port);
+      if (pos2>=0)
+      {
+        out_socket = reserved->socket_tab[pos2].socket;
+        pos=pos2;
+        OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
+                              "reusing connection --with exact port--: (to dest=%s:%i)\n",
+                              reserved->socket_tab[pos].remote_ip,
+                              reserved->socket_tab[pos].remote_port));
+      }
+    }
 	}
 	
 	/* Step 1: find existing socket to send message */
