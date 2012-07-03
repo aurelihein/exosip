@@ -1861,7 +1861,8 @@ static int _eXosip_release_aborted_calls(struct eXosip_t *excontext, eXosip_call
 								  "eXosip: _eXosip_release_aborted_calls remove a dialog for an unfinished transaction\n"));
 			_eXosip_call_remove_dialog_reference_in_call(jc, jd);
 			REMOVE_ELEMENT(jc->c_dialogs, jd);
-			_eXosip_report_call_event(excontext, EXOSIP_CALL_NOANSWER, jc, jd, NULL);
+			/* _eXosip_report_call_event(excontext, EXOSIP_CALL_NOANSWER, jc, jd, NULL); */
+			_eXosip_report_call_event(excontext, EXOSIP_CALL_NOANSWER, jc, jd, tr);
 			_eXosip_dialog_free(excontext, jd);
 			_eXosip_wakeup(excontext);
 			return OSIP_SUCCESS;
