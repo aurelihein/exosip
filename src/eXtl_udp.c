@@ -754,7 +754,7 @@ udp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 #ifndef MINISIZE
 	if (naptr_record!=NULL)
 	{
-		if (tr!=NULL && MSG_IS_REGISTER(sip) && tr->last_response==NULL)
+		if (tr!=NULL && (MSG_IS_REGISTER(sip) || MSG_IS_OPTIONS(sip)) && tr->last_response==NULL)
 		{
 			/* failover for outgoing transaction */
 			time_t now;

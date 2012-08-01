@@ -3002,7 +3002,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 			if (tr != NULL && now - tr->birth_time > 10 && now - tr->birth_time < 13)
 			{
 				/* avoid doing this twice... */
-				if (naptr_record!=NULL && MSG_IS_REGISTER(sip))
+				if (naptr_record!=NULL && (MSG_IS_REGISTER(sip) || MSG_IS_OPTIONS(sip)))
 				{
 					if (eXosip_dnsutils_rotate_srv(&naptr_record->siptls_record)>0)
 					{
