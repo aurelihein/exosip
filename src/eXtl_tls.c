@@ -1526,6 +1526,11 @@ static int tls_tl_open(struct eXosip_t *excontext)
 #endif							/* IPV6_V6ONLY */
 		}
 
+    {
+      int valopt=1;
+      setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void*)&valopt, sizeof(valopt));
+    }
+    
 		res = bind(sock, curinfo->ai_addr, curinfo->ai_addrlen);
 		if (res < 0) {
 			OSIP_TRACE(osip_trace
