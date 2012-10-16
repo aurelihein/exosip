@@ -742,6 +742,9 @@ int eXosip_execute(struct eXosip_t *excontext)
 	if (lower_tv.tv_sec > 10) {
 		eXosip_reg_t *jr;
 		time_t now;
+
+		osip_compensatetime();
+
 		now = osip_getsystemtime(NULL);
 
 		lower_tv.tv_sec = 10;
