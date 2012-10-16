@@ -129,6 +129,7 @@ struct _tls_stream {
 #endif
 	char natted_ip[65];
 	int natted_port;
+	int ephemeral_port;
 };
 
 #ifndef SOCKET_TIMEOUT
@@ -2767,6 +2768,22 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 		reserved->socket_tab[pos].ssl_state = ssl_state;
 		reserved->socket_tab[pos].ssl_ctx = NULL;
 
+    {
+      struct sockaddr_storage local_ai_addr;
+      socklen_t selected_ai_addrlen;
+      memset(&local_ai_addr, 0, sizeof(struct sockaddr_storage));
+      selected_ai_addrlen = sizeof(struct sockaddr_storage);
+      res = getsockname(sock, (struct sockaddr *) &local_ai_addr, &selected_ai_addrlen);
+      if (res == 0) {
+        if (local_ai_addr.ss_family== AF_INET)
+          reserved->socket_tab[pos].ephemeral_port = ntohs(((struct sockaddr_in *) &local_ai_addr)->sin_port);
+        else
+          reserved->socket_tab[pos].ephemeral_port = ntohs(((struct sockaddr_in6 *) &local_ai_addr)->sin6_port);
+        OSIP_TRACE(osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "Outgoing socket created on port %i!\n", reserved->socket_tab[pos].ephemeral_port));
+      }
+    }
+
+
 		if (reserved->socket_tab[pos].ssl_state == 1) {	/* TCP connected but not TLS connected */
 			res = _tls_tl_ssl_connect_socket(excontext, &reserved->socket_tab[pos]);
 			if (res < 0) {
@@ -2778,6 +2795,29 @@ static int _tls_tl_connect_socket(struct eXosip_t *excontext, char *host, int po
 	}
 
 	return -1;
+}
+
+static int
+_tls_tl_update_local_target_use_ephemeral_port(struct eXosip_t *excontext, osip_message_t * req, int ephemeral_port)
+{
+  int pos = 0;
+
+  while (!osip_list_eol(&req->contacts, pos)) {
+    osip_contact_t *co;
+
+    co = (osip_contact_t *) osip_list_get(&req->contacts, pos);
+    pos++;
+    if (co != NULL && co->url != NULL && co->url->host != NULL) {
+      if (ephemeral_port>0) {
+        if (co->url->port)
+          osip_free(co->url->port);
+        co->url->port = osip_malloc(10);
+        snprintf(co->url->port, 9, "%i", ephemeral_port);
+      }
+    }
+  }
+
+  return OSIP_SUCCESS;
 }
 
 static int
@@ -2959,6 +2999,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 										  "reusing REQUEST connection (to dest=%s:%i)\n",
 										  reserved->socket_tab[pos].remote_ip,
 										  reserved->socket_tab[pos].remote_port));
+					_tls_tl_update_local_target_use_ephemeral_port(excontext, sip, reserved->socket_tab[pos].ephemeral_port);
 					if (reserved->tls_firewall_ip[0] != '\0')
 						_tls_tl_update_local_target(excontext, sip, reserved->socket_tab[pos].natted_ip, reserved->socket_tab[pos].natted_port);
 					break;
@@ -3000,6 +3041,7 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		if (pos >= 0) {
 			out_socket = reserved->socket_tab[pos].socket;
 			ssl = reserved->socket_tab[pos].ssl_conn;
+			_tls_tl_update_local_target_use_ephemeral_port(excontext, sip, reserved->socket_tab[pos].ephemeral_port);
 			if (reserved->tls_firewall_ip[0] != '\0')
 				_tls_tl_update_local_target(excontext, sip, reserved->socket_tab[pos].natted_ip, reserved->socket_tab[pos].natted_port);
 		}
