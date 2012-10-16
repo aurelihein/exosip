@@ -829,14 +829,11 @@ _eXosip_get_addrinfo(struct eXosip_t *excontext, struct addrinfo **addrinfo, con
 
 		char porttmp[10];
 
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-					"getaddrinfo returned the following addresses:\n"));
 		for (elem = *addrinfo; elem != NULL; elem = elem->ai_next) {
 			getnameinfo(elem->ai_addr, elem->ai_addrlen, tmp, sizeof(tmp), porttmp,
 						sizeof(porttmp), NI_NUMERICHOST | NI_NUMERICSERV);
 			OSIP_TRACE(osip_trace
-					   (__FILE__, __LINE__, OSIP_INFO2, NULL, "%s port %s\n", tmp,
+					   (__FILE__, __LINE__, OSIP_INFO2, NULL, "getaddrinfo returned: %s port %s\n", tmp,
 						porttmp));
 		}
 	}

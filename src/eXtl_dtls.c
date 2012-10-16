@@ -633,7 +633,7 @@ static int dtls_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset,
 				dec_buf[i] = '\0';
 
 				_eXosip_handle_incoming_message(excontext, dec_buf, i, reserved->dtls_socket, src6host,
-												recvport);
+												recvport, NULL, NULL);
 
 			}
 #ifndef MINISIZE

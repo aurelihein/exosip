@@ -77,6 +77,8 @@ struct _tcp_stream {
 	CFReadStreamRef readStream;
 	CFWriteStreamRef writeStream;
 #endif
+	char natted_ip[65];
+	int natted_port;
 };
 
 #ifndef SOCKET_TIMEOUT
@@ -394,7 +396,7 @@ static int handle_messages(struct eXosip_t *excontext, struct _tcp_stream *socki
 		}
 		/* yep; handle the message */
 		_eXosip_handle_incoming_message(excontext, buf, msglen, sockinfo->socket,
-										sockinfo->remote_ip, sockinfo->remote_port);
+			sockinfo->remote_ip, sockinfo->remote_port, sockinfo->natted_ip, &sockinfo->natted_port);
 		consumed += msglen;
 		buflen -= msglen;
 		buf += msglen;
@@ -1095,6 +1097,36 @@ _tcp_tl_send (struct eXosip_t *excontext, int sock, const char *msg, int msglen)
 }
 
 static int
+_tcp_tl_update_local_target(struct eXosip_t *excontext, osip_message_t * req, char *natted_ip, int natted_port)
+{
+  int pos = 0;
+
+  if ((natted_ip!=NULL && natted_ip[0]!='\0') || natted_port>0) {
+
+    while (!osip_list_eol(&req->contacts, pos)) {
+      osip_contact_t *co;
+
+      co = (osip_contact_t *) osip_list_get(&req->contacts, pos);
+      pos++;
+      if (co != NULL && co->url != NULL && co->url->host != NULL) {
+        if (natted_port>0) {
+          if (co->url->port)
+            osip_free(co->url->port);
+          co->url->port = osip_malloc(10);
+          snprintf(co->url->port, 9, "%i", natted_port);
+        }
+        if (natted_ip!=NULL && natted_ip[0]!='\0') {
+          osip_free(co->url->host);
+          co->url->host = osip_strdup(natted_ip);
+        }
+      }
+    }
+  }
+
+  return OSIP_SUCCESS;
+}
+
+static int
 tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip, char *host,
 					int port, int out_socket)
 {
@@ -1225,28 +1257,6 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 	}
 #endif
 
-	/* remove preloaded route if there is no tag in the To header
-	 */
-	{
-		osip_route_t *route = NULL;
-		osip_generic_param_t *tag = NULL;
-		osip_message_get_route(sip, 0, &route);
-
-		osip_to_get_tag(sip->to, &tag);
-		if (tag == NULL && route != NULL && route->url != NULL) {
-			osip_list_remove(&sip->routes, 0);
-		}
-		i = osip_message_to_str(sip, &message, &length);
-		if (tag == NULL && route != NULL && route->url != NULL) {
-			osip_list_add(&sip->routes, route, 0);
-		}
-	}
-
-	if (i != 0 || length <= 0) {
-		osip_free(message);
-		return -1;
-	}
-
 	/* verify all current connections */
 	_tcp_tl_check_connected(excontext);
 
@@ -1254,11 +1264,12 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
 			if (reserved->socket_tab[pos].socket != 0) {
 				if (reserved->socket_tab[pos].socket == out_socket) {
-					out_socket = reserved->socket_tab[pos].socket;
 					OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 										  "reusing REQUEST connection (to dest=%s:%i)\n",
 										  reserved->socket_tab[pos].remote_ip,
 										  reserved->socket_tab[pos].remote_port));
+					if (reserved->tcp_firewall_ip[0] != '\0')
+						_tcp_tl_update_local_target(excontext, sip, reserved->socket_tab[pos].natted_ip, reserved->socket_tab[pos].natted_port);
 					break;
 				}
 			}
@@ -1302,13 +1313,15 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 		if (pos < 0) {
 			pos = _tcp_tl_connect_socket(excontext, host, port);
 		}
-		if (pos>=0)
+		if (pos>=0) {
 			out_socket = reserved->socket_tab[pos].socket;
+			if (reserved->tcp_firewall_ip[0] != '\0')
+				_tcp_tl_update_local_target(excontext, sip, reserved->socket_tab[pos].natted_ip, reserved->socket_tab[pos].natted_port);
+		}
 	}
 	
 
 	if (out_socket <= 0) {
-		osip_free(message);
 		return -1;
 	}
 	i = _tcp_tl_is_connected(out_socket);
@@ -1319,7 +1332,6 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 					"socket node:%s, socket %d [pos=%d], in progress\n",
 					host, out_socket, pos));
-		osip_free(message);
 		if (tr != NULL && now - tr->birth_time > 10 && now - tr->birth_time < 13)
 		{
 			/* avoid doing this twice... */
@@ -1349,7 +1361,6 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
 					"socket node:%s, socket %d [pos=%d], socket error\n",
 					host, out_socket, pos));
-		osip_free(message);
 		return -1;
 	}
 
@@ -1383,6 +1394,28 @@ tcp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 	}
 #endif
 	
+	/* remove preloaded route if there is no tag in the To header
+	 */
+	{
+		osip_route_t *route = NULL;
+		osip_generic_param_t *tag = NULL;
+		osip_message_get_route(sip, 0, &route);
+
+		osip_to_get_tag(sip->to, &tag);
+		if (tag == NULL && route != NULL && route->url != NULL) {
+			osip_list_remove(&sip->routes, 0);
+		}
+		i = osip_message_to_str(sip, &message, &length);
+		if (tag == NULL && route != NULL && route->url != NULL) {
+			osip_list_add(&sip->routes, route, 0);
+		}
+	}
+
+	if (i != 0 || length <= 0) {
+		osip_free(message);
+		return -1;
+	}
+
 	OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO1, NULL,
 						  "Message sent: (to dest=%s:%i) \n%s\n",
 						  host, port, message));

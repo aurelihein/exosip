@@ -1456,8 +1456,44 @@ static void _eXosip_process_response_out_of_transaction(struct eXosip_t *exconte
 }
 
 int
+  _eXosip_handle_received_rport(osip_message_t *response, char *host, int port, char *received_host, int *rport_port)
+{
+  osip_generic_param_t *rport;
+  osip_generic_param_t *received;
+  osip_via_t *via;
+
+  /* get Top most Via header: */
+  if (response == NULL)
+    return OSIP_BADPARAMETER;
+  if (MSG_IS_REQUEST(response))
+    return OSIP_SUCCESS;
+  if (received_host==NULL)
+    return OSIP_SUCCESS;
+  if (rport_port==NULL)
+    return OSIP_SUCCESS;
+
+  via = osip_list_get(&response->vias, 0);
+  if (via == NULL || via->host == NULL)
+    return OSIP_BADPARAMETER;
+
+  osip_via_param_get_byname(via, "rport", &rport);
+  if (rport != NULL) {
+    if (rport->gvalue != NULL) {
+      *rport_port=atoi(rport->gvalue);
+    }
+  }
+  osip_via_param_get_byname(via, "received", &received);
+  if (received != NULL) {
+    if (received->gvalue != NULL && strlen(received->gvalue)>0) {
+      snprintf(received_host, 65, "%s", received->gvalue);
+    }
+  }
+  return 0;
+}
+
+int
 _eXosip_handle_incoming_message(struct eXosip_t *excontext, char *buf, size_t length, int socket,
-								char *host, int port)
+								char *host, int port, char *received_host, int *rport_port)
 {
 	int i;
 	osip_event_t *se;
@@ -1530,8 +1566,10 @@ _eXosip_handle_incoming_message(struct eXosip_t *excontext, char *buf, size_t le
 				"Message received from: %s:%i\n", host, port));
 
 	osip_message_fix_last_via_header(se->sip, host, port);
+
 	if (MSG_IS_RESPONSE(se->sip))
 	{
+			_eXosip_handle_received_rport(se->sip, host, port, received_host, rport_port);
 			udp_tl_learn_port_from_via(excontext, se->sip);
 	}
 

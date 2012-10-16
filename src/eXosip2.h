@@ -635,7 +635,7 @@ extern "C" {
 	void _eXosip_dnsutils_release(osip_naptr_t *naptr_record);
 
 	int _eXosip_handle_incoming_message(struct eXosip_t *excontext, char *buf, size_t len, int socket,
-										char *host, int port);
+										char *host, int port, char *received_host, int *rport_port);
 
 #ifdef __cplusplus
 }

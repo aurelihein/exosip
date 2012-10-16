@@ -360,7 +360,7 @@ static int udp_tl_read_message(struct eXosip_t *excontext, fd_set * osip_fdset, 
 						"Message received from: %s:%i\n", src6host, recvport));
 
 			_eXosip_handle_incoming_message(excontext, buf, i, reserved->udp_socket, src6host,
-											recvport);
+											recvport, NULL, NULL);
 
 		}
 #ifndef MINISIZE
@@ -759,9 +759,6 @@ udp_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
 			/* failover for outgoing transaction */
 			time_t now;
 			now = osip_getsystemtime(NULL);
-			OSIP_TRACE(osip_trace
-				(__FILE__, __LINE__, OSIP_INFO2, NULL,
-				"not yet answered\n"));
 			if (tr != NULL && now - tr->birth_time > 10 && now - tr->birth_time < 13)
 			{
 				/* avoid doing this twice... */
