@@ -780,10 +780,12 @@ int eXosip_execute(struct eXosip_t *excontext)
 			lower_tv.tv_usec = 10000;	/* add 10ms */
 			lower_tv.tv_sec++;
 		}
+#if 0
 		OSIP_TRACE(osip_trace
 				   (__FILE__, __LINE__, OSIP_INFO2, NULL,
 					"eXosip: timer sec:%i usec:%i!\n",
 					lower_tv.tv_sec, lower_tv.tv_usec));
+#endif
 	}
 #else
 	lower_tv.tv_sec = 0;
@@ -1062,10 +1064,6 @@ static void _eXosip_keep_alive(struct eXosip_t *excontext)
 	if (osip_timercmp(&now, &mtimer, <)) {
 		return;					/* not yet time */
 	}
-
-	OSIP_TRACE(osip_trace
-			   (__FILE__, __LINE__, OSIP_INFO2, NULL,
-				"keep alive: %i\n", now.tv_sec - mtimer.tv_sec));
 
 	/* reset timer */
 	osip_gettimeofday(&mtimer, NULL);
