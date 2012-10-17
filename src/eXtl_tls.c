@@ -3011,12 +3011,13 @@ tls_tl_send_message(struct eXosip_t *excontext, osip_transaction_t * tr, osip_me
     
     if (out_socket>0) {
       int pos2;
-      //If we have SEVERAL sockets to same destination with different port
-      // number, we search for the one with "SAME port" number.
-      //The specification is not clear about re-using the existing transaction
-      // in that use-case...
-      //Such test, will help mainly with server having 2 sockets: one for
-      // incoming transaction and one for outgoing transaction?
+      /* If we have SEVERAL sockets to same destination with different port
+	 number, we search for the one with "SAME port" number.
+	 The specification is not clear about re-using the existing transaction
+	 in that use-case...
+	 Such test, will help mainly with server having 2 sockets: one for
+	 incoming transaction and one for outgoing transaction?
+      */
       pos2 = _tls_tl_find_socket(excontext, host, port);
       if (pos2>=0)
       {
