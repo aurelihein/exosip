@@ -1046,10 +1046,13 @@ int eXosip_call_build_prack(struct eXosip_t *excontext, int tid, osip_message_t 
 	eXosip_dialog_t *jd = NULL;
 	eXosip_call_t *jc = NULL;
 	osip_transaction_t *tr = NULL;
+	osip_transaction_t *old_prack_tr = NULL;
+	char tmp[128];
 
 	osip_header_t *rseq;
 	char *transport;
 	int i;
+	int pos;
 
 	*prack = NULL;
 
@@ -1080,6 +1083,28 @@ int eXosip_call_build_prack(struct eXosip_t *excontext, int tid, osip_message_t 
 		|| tr->orig_request->cseq->method == NULL)
 		return OSIP_SYNTAXERROR;
 
+	osip_message_header_get_byname(tr->last_response, "RSeq", 0, &rseq);
+	if (rseq == NULL && rseq->hvalue == NULL) {
+		return OSIP_WRONG_FORMAT;
+	}
+
+	memset(tmp, '\0', sizeof(tmp));
+	snprintf(tmp, 127, "%s %s %s", rseq->hvalue, tr->orig_request->cseq->number, tr->orig_request->cseq->method);
+
+	pos = 0;
+	while (!osip_list_eol(jd->d_out_trs, pos)) {
+		old_prack_tr = (osip_transaction_t *) osip_list_get(jd->d_out_trs, pos);
+		if (old_prack_tr != NULL && 0==osip_strcasecmp(old_prack_tr->orig_request->sip_method,"PRACK")) {
+			osip_header_t *rack_header=NULL;
+			osip_message_header_get_byname(old_prack_tr->orig_request, "RAck", 0, &rack_header);
+			if (rack_header!=NULL && rack_header->hvalue!=NULL && 0==osip_strcasecmp(rack_header->hvalue, tmp)) {
+				OSIP_TRACE(osip_trace(__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: PRACK already active for last answer answer.\n"));
+				return OSIP_WRONG_STATE;
+			}
+		}
+		pos++;
+	}
+
 	transport = NULL;
 	if (tr != NULL && tr->orig_request != NULL)
 		transport = _eXosip_transport_protocol(tr->orig_request);
@@ -1094,15 +1119,7 @@ int eXosip_call_build_prack(struct eXosip_t *excontext, int tid, osip_message_t 
 	if (i != 0)
 		return i;
 
-	osip_message_header_get_byname(tr->last_response, "RSeq", 0, &rseq);
-	if (rseq != NULL && rseq->hvalue != NULL) {
-		char tmp[128];
-
-		memset(tmp, '\0', sizeof(tmp));
-		snprintf(tmp, 127, "%s %s %s", rseq->hvalue,
-				 tr->orig_request->cseq->number, tr->orig_request->cseq->method);
-		osip_message_set_header(*prack, "RAck", tmp);
-	}
+	osip_message_set_header(*prack, "RAck", tmp);
 
 	return OSIP_SUCCESS;
 }
