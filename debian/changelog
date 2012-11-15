@@ -6,7 +6,7 @@ libexosip2 (3.0.3-1) unstable; urgency=high
   * add missing *_REQUESTFAILURE events on no answer.
   * Update registration interval when Expires header is in 200ok.
 
- -- Aymeric MOIZARD <jack@atosc.org>  Tue, 17 Jul 2006 00:06:32 +0200
+ -- Aymeric MOIZARD <amoizard@antisip.com>  Tue, 17 Jul 2006 00:06:32 +0200
 
 libexosip2 (2.2.3-1) unstable; urgency=high
   * announce NOTIFY answers to application.
@@ -14,7 +14,7 @@ libexosip2 (2.2.3-1) unstable; urgency=high
   * fix TCP bug
   * fix using code 699
 
- -- Aymeric MOIZARD <jack@atosc.org>  Tue, 18 Apr 2006 13:04:32 +0100
+ -- Aymeric MOIZARD <amoizard@antisip.com>  Tue, 18 Apr 2006 13:04:32 +0100
 	
 libexosip2 (1.9.1-pre16-1) unstable; urgency=low
 

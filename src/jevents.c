@@ -1,6 +1,6 @@
 /*
   eXosip - This is the eXtended osip library.
-  Copyright (C) 2001-2012 Aymeric MOIZARD amoizard_at_osip.org
+  Copyright (C) 2001-2012 Aymeric MOIZARD amoizard@antisip.com
   
   eXosip is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
