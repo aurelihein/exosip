@@ -1,3 +1,14 @@
+eXosip2 (4.0.0)
+	* fix bug: do not create new PRACK if it already exist for an answer.
+	* update to latest osip // test time compensation for android.
+	* use ephemaral port in standard TCP and TLS version.
+	* return tid number so that we can match the response event.
+	* use system independant time for osip_gettimeofday on unix platform.
+	* major API update: several "struct eXosip_t" can be
+	  handled at the same time. This can be used to have several
+	  transport layer running at the same time.
+	* many tiny other change.
+
 eXosip2 (3.6.0)
 	* use optionnal c-ares DNS library for non blocking DNS access
 	  as well as improvments over DNS operation such as NAPTR and
@@ -26,14 +37,14 @@ eXosip2 (3.4.0)
 	* initial code for TCP fragmentation.
 	* osip_list prototypes and warnings fix
 	* fix transport matching for redirection using other transport than udp
-	
+
 eXosip2 (3.3.0)
 	* Fix when 200ok include a contact with an empty line parameter.
 	* Fix for replaces header longuer than 256 char.
 	* Fix SRV record with more than 10 answers.
 	* Sort SRV record.
 	* Option to disable NAPTR requests.
-	
+
 eXosip2 (3.2.0)
 	* Improve TLS support and add an API for ssl information & files.
 	* return new error code for all API.
@@ -52,7 +63,7 @@ eXosip2 (3.0.4)
 	* handle the "expires" parameter to update registration interval.
 	* handle the "expires" parameter to update publication interval.
 	* handle automatically publish refresh, and some error codes (423).
-	
+
 eXosip2 (3.0.3)
 	* Add TLS support.
 	* rewrite transport layer.
@@ -60,7 +71,7 @@ eXosip2 (3.0.3)
 	* a few changes related to interop. issues.
 	* add missing *_REQUESTFAILURE events on no answer.
 	* Update registration interval when Expires header is in 200ok.
-	
+
 eXosip2 (3.0.2)
 	* fix call transfer issue with "Replaces" header.
 	* allow build/run eXosip in non-threaded model (without -DOSIP_MT).
@@ -70,20 +81,20 @@ eXosip2 (3.0.2)
 	* TCP: fix missing Contact in INVITE sent.
 	* TCP: fix missing "transport" in Contact for answers within dialog.
 	* TCP: fix possible race conditions.
-	
+
 eXosip2 (3.0.1)
 	* add Windows CE support with Visual Studio 2005
 	  (WM5.0,PocketPC 2003/2005, Smartphone)
 	* Update to osip2-3.0.1
 	* Add SRV record capabilities.
 	* add new OPTIONS: do not send 101, remove pre-route set from message.
-	
+
 eXosip2 (2.2.3)
 	* announce NOTIFY answers to application.
 	* fix authentication bugs from previous patch.
 	* fix TCP bug
 	* fix using code 699
-	
+
 eXosip2 (2.2.2)
 	* new version synchronized with osip2
 	* total rewrite of eXosip.
@@ -92,7 +103,7 @@ eXosip2 (2.2.2)
 
 eXosip (0.9.1)
 	* add publish support through a nice API.
-	
+
 eXosip (0.9.0)
 	* improve presence support (busy, away, onthephone...).
 	* new eXosip_automatic_refresh() to refresh SUBSCRIBE and REGISTER.
@@ -104,15 +115,15 @@ eXosip (0.9.0)
 	*   redirection of calls (3XX) : OK
 	*   SUB/NOTIFY for presence : nearly OK (usable)
 	*   authenthication (REGISTER and INVITE only) : ok
-	
+
 eXosip (0.8.0)
 	* fix processing of 180 Ringing?
 	* fix bug when BYE is processed before a 2xx for INVITE.
-	
+
 eXosip (0.7.7)
 	* memory leaks.
 	* tiny bugs, code clean-up.
-	
+
 eXosip (0.7.6)
 	* fix bug when 1st proxy is using strict routing.
 	* support for IPv4 and IPv6.
@@ -120,7 +131,7 @@ eXosip (0.7.6)
 	* close correctly rtp streams in josua.
 	* improve the eXosip_event_wait method.
 	* performance updated on win32 for event handling.
-	
+
 eXosip (0.7.5)
 	* small improvements for josua.
 	* patch for IPv6 (uncomplete)
@@ -128,32 +139,32 @@ eXosip (0.7.5)
 	* improve configure.in file
 	* allow fancy reason phrase in SIP answer.
 	* allow to NAT traversal (firewall IP in SDP packet).
-	
+
 eXosip (0.7.3)
 	* warning fix.
 	* support for multiple registrations.
 	* support for authentifications for REGISTER.
-	
+
 eXosip (0.7.2)
 	* add RTP support with common ucl library.
 	* fix some memory leak.
 	* improve facility to change the local_sdp_port.
 	* add an event when ACK for 2xx is received.
-	
+
 eXosip (0.7.1)
 	* rewrite of header files and new directory architecture.
 	* support for INFO and OPTIONS within calls.
 	* support for AUDIO.
-	
+
 eXosip (0.6.3)
 	* use of event oriented interface in josua.
-	
+
 eXosip (0.6.2)
 	* New Event oriented interface with applications.
 	* support for both MSN or compliant UAs.
 	* SUBSCRIBE/NOTIFY for SIMPLE support.
 	* script for adding/updating subscribers. (eXosip_addsubscriber.sh)
-	
+
 eXosip (0.6.1)
 	* INVITE, CANCEL, BYE, REGISTER, MESSAGE, REFER
 	* script for adding/updating contact. (eXosip_addfreind.sh)
