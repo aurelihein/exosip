@@ -57,6 +57,7 @@ extern "C" {
 /**
  * Build a default REFER message for a blind transfer outside of any calls.
  * 
+ * @param excontext    eXosip_t instance.
  * @param refer     Pointer for the SIP element to hold.
  * @param refer_to  SIP url for transfer.
  * @param from      SIP url for caller.
@@ -68,6 +69,7 @@ extern "C" {
 /**
  * Initiate a blind tranfer outside of any call.
  * 
+ * @param excontext    eXosip_t instance.
  * @param refer     SIP REFER message to send.
  */
   int eXosip_refer_send_request (struct eXosip_t *excontext, osip_message_t * refer);

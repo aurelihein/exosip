@@ -207,9 +207,6 @@ _eXosip_event_init (eXosip_event_t ** je, int type)
   else if (type == EXOSIP_CALL_CANCELLED) {
     sprintf ((*je)->textinfo, "Call has been cancelled!");
   }
-  else if (type == EXOSIP_CALL_TIMEOUT) {
-    sprintf ((*je)->textinfo, "Timeout. Gave up!");
-  }
   else if (type == EXOSIP_CALL_REINVITE) {
     sprintf ((*je)->textinfo, "INVITE within call received!");
   }
@@ -291,14 +288,8 @@ _eXosip_event_init (eXosip_event_t ** je, int type)
   else if (type == EXOSIP_SUBSCRIPTION_NOTIFY) {
     sprintf ((*je)->textinfo, "NOTIFY request for subscription!");
   }
-  else if (type == EXOSIP_SUBSCRIPTION_RELEASED) {
-    sprintf ((*je)->textinfo, "Subscription has terminate!");
-  }
   else if (type == EXOSIP_IN_SUBSCRIPTION_NEW) {
     sprintf ((*je)->textinfo, "New incoming SUBSCRIBE!");
-  }
-  else if (type == EXOSIP_IN_SUBSCRIPTION_RELEASED) {
-    sprintf ((*je)->textinfo, "Incoming Subscription has terminate!");
   }
   else {
     (*je)->textinfo[0] = '\0';

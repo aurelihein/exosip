@@ -90,6 +90,7 @@ extern "C" {
  * Add authentication credentials. These are used when an outgoing
  * request comes back with an authorization required response.
  *
+ * @param excontext    eXosip_t instance.
  * @param username	username
  * @param userid	login (usually equals the username)
  * @param passwd	password
@@ -102,6 +103,7 @@ extern "C" {
 /**
  * Remove authentication credentials.
  *
+ * @param excontext    eXosip_t instance.
  * @param username	username
  * @param realm		realm must be exact same arg as for eXosip_add_authentication_info
  */
@@ -110,6 +112,7 @@ extern "C" {
 /**
  * Clear all authentication credentials stored in eXosip
  *
+ * @param excontext    eXosip_t instance.
  */
   int eXosip_clear_authentication_info (struct eXosip_t *excontext);
 
@@ -118,12 +121,23 @@ extern "C" {
  *
  *  Retry with credentials upon reception of 401/407.
  *  Retry with Contact header upon reception of 3xx request.
+ *
+ *  Usefull & required when eXosip_automatic_action() can't do the automatic action:
+ *  1/ if you receive a 401 or 407 for BYE (event EXOSIP_CALL_MESSAGE_REQUESTFAILURE).
+ *  2/ if you receive 401 or 407 for any sip request outside of dialog (EXOSIP_MESSAGE_REQUESTFAILURE)
  * 
+ * @param excontext    eXosip_t instance.
  */
   int eXosip_default_action (struct eXosip_t *excontext, eXosip_event_t * je);
 
 /**
+ * Initiate some automatic actions:
+ * 
  *  Refresh REGISTER and SUBSCRIBE before the expiration delay.
+ *  Those actions are already done by eXosip_automatic_action();
+ *  Prefer eXosip_automatic_action instead of this method.
+ *
+ * @param excontext    eXosip_t instance.
  */
   void eXosip_automatic_refresh (struct eXosip_t *excontext);
 
@@ -131,17 +145,21 @@ extern "C" {
  * Initiate some automatic actions:
  *
  *  Retry with credentials upon reception of 401/407.
+ *  Retry with higher Session-Expires upon reception of 422.
  *  Refresh REGISTER and SUBSCRIBE before the expiration delay.
  *  Retry with Contact header upon reception of 3xx request.
+ *  Send automatic UPDATE for session-timer feature.
  * 
+ * @param excontext    eXosip_t instance.
  */
   void eXosip_automatic_action (struct eXosip_t *excontext);
 
 #ifndef MINISIZE
   /**
- * Automatic internal handling of known package.
+ * Automatic internal handling of dialog package.
  * 
- * @param evt          event related to an incoming subscription.
+ * @param excontext    eXosip_t instance.
+ * @param evt          Incoming SUBSCRIBE for dialog package.
  */
   int eXosip_insubscription_automatic (struct eXosip_t *excontext, eXosip_event_t * evt);
 #endif
@@ -166,6 +184,7 @@ extern "C" {
 /**
  * Get remote SDP body for the latest INVITE of call.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did          dialog id of call.
  */
   sdp_message_t *eXosip_get_remote_sdp (struct eXosip_t *excontext, int did);
@@ -173,6 +192,7 @@ extern "C" {
 /**
  * Get local SDP body for the latest INVITE of call.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did          dialog id of call.
  */
   sdp_message_t *eXosip_get_local_sdp (struct eXosip_t *excontext, int did);
@@ -180,6 +200,7 @@ extern "C" {
 /**
  * Get local SDP body for the previous latest INVITE of call.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did          dialog id of call.
  */
   sdp_message_t *eXosip_get_previous_local_sdp (struct eXosip_t *excontext, int did);
@@ -187,6 +208,7 @@ extern "C" {
 /**
  * Get remote SDP body for the latest INVITE of call.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid          transction id of transaction.
  */
   sdp_message_t *eXosip_get_remote_sdp_from_tid (struct eXosip_t *excontext, int tid);
@@ -194,6 +216,7 @@ extern "C" {
 /**
  * Get local SDP body for the latest INVITE of call.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid          transction id of transaction.
  */
   sdp_message_t *eXosip_get_local_sdp_from_tid (struct eXosip_t *excontext, int tid);
@@ -263,11 +286,8 @@ extern "C" {
  */
   typedef enum eXosip_event_type {
     /* REGISTER related events */
-    EXOSIP_REGISTRATION_NEW,           /**< announce new registration.       */
     EXOSIP_REGISTRATION_SUCCESS,       /**< user is successfully registred.  */
     EXOSIP_REGISTRATION_FAILURE,       /**< user is not registred.           */
-    EXOSIP_REGISTRATION_REFRESHED,     /**< registration has been refreshed. */
-    EXOSIP_REGISTRATION_TERMINATED,    /**< UA is not registred any more.    */
 
     /* INVITE related events within calls */
     EXOSIP_CALL_INVITE,            /**< announce a new call                   */
@@ -284,7 +304,6 @@ extern "C" {
     EXOSIP_CALL_ACK,               /**< ACK received for 200ok to INVITE      */
 
     EXOSIP_CALL_CANCELLED,         /**< announce that call has been cancelled */
-    EXOSIP_CALL_TIMEOUT,           /**< announce that call has failed         */
 
     /* request related events within calls (except INVITE) */
     EXOSIP_CALL_MESSAGE_NEW,              /**< announce new incoming request. */
@@ -310,9 +329,6 @@ extern "C" {
     EXOSIP_MESSAGE_GLOBALFAILURE,    /**< announce a failure. */
 
     /* Presence and Instant Messaging */
-    EXOSIP_SUBSCRIPTION_UPDATE,         /**< announce incoming SUBSCRIBE.      */
-    EXOSIP_SUBSCRIPTION_CLOSED,         /**< announce end of subscription.     */
-
     EXOSIP_SUBSCRIPTION_NOANSWER,          /**< announce no answer              */
     EXOSIP_SUBSCRIPTION_PROCEEDING,        /**< announce a 1xx                  */
     EXOSIP_SUBSCRIPTION_ANSWERED,          /**< announce a 200ok                */
@@ -322,10 +338,7 @@ extern "C" {
     EXOSIP_SUBSCRIPTION_GLOBALFAILURE,     /**< announce a global failure       */
     EXOSIP_SUBSCRIPTION_NOTIFY,            /**< announce new NOTIFY request     */
 
-    EXOSIP_SUBSCRIPTION_RELEASED,          /**< call context is cleared.        */
-
     EXOSIP_IN_SUBSCRIPTION_NEW,            /**< announce new incoming SUBSCRIBE.*/
-    EXOSIP_IN_SUBSCRIPTION_RELEASED,       /**< announce end of subscription.   */
 
     EXOSIP_NOTIFICATION_NOANSWER,          /**< announce no answer              */
     EXOSIP_NOTIFICATION_PROCEEDING,        /**< announce a 1xx                  */
@@ -373,6 +386,7 @@ extern "C" {
 /**
  * Wait for an eXosip event.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tv_s      timeout value (seconds).
  * @param tv_ms     timeout value (mseconds).
  */
@@ -386,6 +400,8 @@ extern "C" {
  * more convenient.
  * limitation: This method will not process automatic 200ok retransmission
  * for INVITE transaction.
+ *
+ * @param excontext    eXosip_t instance.
  */
   eXosip_event_t *eXosip_event_get (struct eXosip_t *excontext);
 
@@ -394,6 +410,7 @@ extern "C" {
  * NOTE: you must call eXosip_event_wait until there is no more events
  * in the fifo.
  * 
+ * @param excontext    eXosip_t instance.
  */
   int eXosip_event_geteventsocket (struct eXosip_t *excontext);
 

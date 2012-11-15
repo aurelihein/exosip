@@ -61,6 +61,7 @@ extern "C" {
  * argument.
  *
  *
+ * @param excontext    eXosip_t instance.
  * @param message   Pointer for the SIP request to build.
  * @param method    request method. (like "MESSAGE" or "PING"...)
  * @param to        SIP url for callee.
@@ -72,6 +73,7 @@ extern "C" {
 /**
  * Send an request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param message          SIP request to send.
  */
   int eXosip_message_send_request (struct eXosip_t *excontext, osip_message_t * message);
@@ -79,6 +81,7 @@ extern "C" {
 /**
  * Build answer for a request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid             id of transaction.
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
@@ -88,6 +91,7 @@ extern "C" {
 /**
  * Send answer for a request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid             id of transaction.
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)

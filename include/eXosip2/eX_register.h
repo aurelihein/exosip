@@ -58,6 +58,7 @@ extern "C" {
 /**
  * Build initial REGISTER request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param from      SIP url for caller.
  * @param proxy     Proxy used for registration.
  * @param contact   Contact address. (optional)
@@ -69,6 +70,7 @@ extern "C" {
 /**
  * Build initial REGISTER request with qvalue for contact.
  * 
+ * @param excontext    eXosip_t instance.
  * @param from      SIP url for caller.
  * @param proxy     Proxy used for registration.
  * @param contact   Contact address. (optional)
@@ -81,6 +83,7 @@ extern "C" {
 /**
  * Build a new REGISTER request for an existing registration.
  * 
+ * @param excontext    eXosip_t instance.
  * @param rid       A unique identifier for the registration context
  * @param expires   The expires value for registration.
  * @param reg       The SIP request to build.
@@ -90,6 +93,7 @@ extern "C" {
 /**
  * Send a REGISTER request for an existing registration.
  * 
+ * @param excontext    eXosip_t instance.
  * @param rid       A unique identifier for the registration context
  * @param reg       The SIP request to build. (NULL for default REGISTER)
  */
@@ -98,6 +102,7 @@ extern "C" {
 /**
  * Remove existing registration without sending REGISTER.
  * 
+ * @param excontext    eXosip_t instance.
  * @param rid       A unique identifier for the registration context
  */
   int eXosip_register_remove (struct eXosip_t *excontext, int rid);

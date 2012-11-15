@@ -56,36 +56,42 @@ extern "C" {
 /**
  * Allocate an eXosip context.
  * 
+ * @return  a new allocated eXosip_t instance.
  */
   struct eXosip_t *eXosip_malloc (void);
 
 /**
  * Initiate the eXtented oSIP library.
  * 
+ * @param excontext    eXosip_t instance.
  */
   int eXosip_init (struct eXosip_t *excontext);
 
 /**
  * Release ressource used by the eXtented oSIP library.
  * 
+ * @param excontext    eXosip_t instance.
  */
   void eXosip_quit (struct eXosip_t *excontext);
 
 /**
  * Lock the eXtented oSIP library.
  * 
+ * @param excontext    eXosip_t instance.
  */
   int eXosip_lock (struct eXosip_t *excontext);
 
 /**
  * UnLock the eXtented oSIP library.
  * 
+ * @param excontext    eXosip_t instance.
  */
   int eXosip_unlock (struct eXosip_t *excontext);
 
 /**
  * Process (non-threaded mode ONLY) eXosip events.
  * 
+ * @param excontext    eXosip_t instance.
  */
   int eXosip_execute (struct eXosip_t *excontext);
 
@@ -127,6 +133,7 @@ extern "C" {
  * Set eXosip options.
  * See eXosip_option for available options.
  *
+ * @param excontext    eXosip_t instance.
  * @param opt     option to configure.
  * @param value   value for options.
  * 
@@ -173,6 +180,7 @@ extern "C" {
  /**
   *	sets the parameters for the TLS context, which is used for encrypted connections
   *	
+  * @param excontext    eXosip_t instance.
   *	@param ctx, IN
   *		a struct which holds the necessary parameters
   *
@@ -185,6 +193,7 @@ extern "C" {
   *
   *	12/11/2009 -> implemented only for "Windows Certificate Store"
   *
+  * @param excontext    eXosip_t instance.
   *	@param local_certificate_cn  CN name of the certificate to send on incoming connection
   *
   *	@return  the eXosip_tls_ctx_error code
@@ -192,13 +201,14 @@ extern "C" {
   eXosip_tls_ctx_error eXosip_tls_use_server_certificate (struct eXosip_t *excontext, const char *local_certificate_cn);
 
 /**
-  *         Select by CN name the client certificate from OS store.
+  * Select by CN name the client certificate from OS store.
   *
-  *         31/1/2011 -> implemented only for "Windows Certificate Store"
+  * 31/1/2011 -> implemented only for "Windows Certificate Store"
   *
-  *         @param local_certificate_cn  CN name of the certificate to send on outgoing connection
+  * @param excontext    eXosip_t instance.
+  * @param local_certificate_cn  CN name of the certificate to send on outgoing connection
   *
-  *         @return  the eXosip_tls_ctx_error code
+  * @return  the eXosip_tls_ctx_error code
   */
   eXosip_tls_ctx_error eXosip_tls_use_client_certificate (struct eXosip_t *excontext, const char *local_certificate_cn);
 
@@ -206,6 +216,7 @@ extern "C" {
   *	Configure to accept/reject self signed and expired certificates.
   * NOTE: default is to accept (0)
   *
+  * @param excontext    eXosip_t instance.
   *	@param _tls_verify_client_certificate  ">0": refuse self signed and expired certificates
   *
   *	@return  the eXosip_tls_ctx_error code
@@ -216,6 +227,7 @@ extern "C" {
  * Start and return osip_naptr context.
  * Note that DNS results might not yet be available.
  * 
+ * @param excontext    eXosip_t instance.
  * @param domain         domain name for NAPTR record
  * @param protocol       protocol to use ("SIP")
  * @param transport      transport to use ("UDP")
@@ -241,6 +253,7 @@ extern "C" {
 /**
  * Listen on a specified socket.
  * 
+ * @param excontext    eXosip_t instance.
  * @param transport IPPROTO_UDP for udp. (soon to come: TCP/TLS?)
  * @param addr      the address to bind (NULL for all interface)
  * @param port      the listening port. (0 for random port)
@@ -252,6 +265,7 @@ extern "C" {
 /**
  * Listen on a specified socket.
  * 
+ * @param excontext    eXosip_t instance.
  * @param transport IPPROTO_UDP for udp. (soon to come: TCP/TLS?)
  * @param socket socket to use for listening to UDP sip messages.
  * @param port the listening port for masquerading.
@@ -261,6 +275,7 @@ extern "C" {
 /**
  * Set the SIP User-Agent: header string.
  *
+ * @param excontext    eXosip_t instance.
  * @param user_agent the User-Agent header to insert in messages.
  */
   void eXosip_set_user_agent (struct eXosip_t *excontext, const char *user_agent);
@@ -276,6 +291,7 @@ extern "C" {
 /**
  * Set a callback to get sent and received SIP messages.
  *
+ * @param excontext    eXosip_t instance.
  * @param cbsipCallback the callback to retreive messages.
  */
   int eXosip_set_cbsip_message (struct eXosip_t *excontext, CbSipCallback cbsipCallback);
@@ -294,6 +310,7 @@ extern "C" {
  * This address will only be used when the remote
  * correspondant appears to be on an DIFFERENT LAN.
  *
+ * @param excontext    eXosip_t instance.
  * @param public_address 	the ip address.
  * @param port          	the port for masquerading.
  * 
@@ -305,6 +322,7 @@ extern "C" {
 /**
  * This method is used to find out an free IPPROTO_UDP or IPPROTO_TCP port.
  *
+ * @param excontext    eXosip_t instance.
  * @param free_port          	initial port for search.
  * @param transport          	IPPROTO_UDP or IPPROTO_TCP protocol.
  * 
@@ -316,6 +334,7 @@ extern "C" {
 /**
  * Wake Up the eXosip_event_wait method.
  * 
+ * @param excontext    eXosip_t instance.
  */
 #ifndef OSIP_MONOTHREAD
   void eXosip_wakeup_event (struct eXosip_t *excontext);
@@ -345,6 +364,7 @@ extern "C" {
 /**
  * Find the current localip (interface with default route).
  * 
+ * @param excontext    eXosip_t instance.
  * @param family    AF_INET or AF_INET6
  * @param address   a string containing the local IP address.
  * @param size      The size of the string

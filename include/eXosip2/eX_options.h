@@ -58,6 +58,7 @@ extern "C" {
 /**
  * Build a default OPTIONS message.
  * 
+ * @param excontext    eXosip_t instance.
  * @param options   Pointer for the SIP request to build.
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
@@ -68,6 +69,7 @@ extern "C" {
 /**
  * Send an OPTIONS request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param options          SIP OPTIONS message to send.
  */
   int eXosip_options_send_request (struct eXosip_t *excontext, osip_message_t * options);
@@ -75,6 +77,7 @@ extern "C" {
 /**
  * Build answer for an OPTIONS request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid             id of OPTIONS transaction.
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
@@ -84,6 +87,7 @@ extern "C" {
 /**
  * Send answer for an OPTIONS request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid             id of OPTIONS transaction.
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)

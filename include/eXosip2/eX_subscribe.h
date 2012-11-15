@@ -89,6 +89,7 @@ extern "C" {
 /**
  * Build a default initial SUBSCRIBE request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param subscribe Pointer for the SIP request to build.
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
@@ -101,6 +102,7 @@ extern "C" {
 /**
  * Send an initial SUBSCRIBE request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param subscribe          SIP SUBSCRIBE message to send.
  */
   int eXosip_subscribe_send_initial_request (struct eXosip_t *excontext, osip_message_t * subscribe);
@@ -108,6 +110,7 @@ extern "C" {
 /**
  * Build a default new SUBSCRIBE message.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did      identifier of the subscription.
  * @param sub      Pointer for the SIP request to build.
  */
@@ -116,6 +119,7 @@ extern "C" {
 /**
  * Send a new SUBSCRIBE request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did          identifier of the subscription.
  * @param sub          SIP SUBSCRIBE message to send.
  */
@@ -124,6 +128,7 @@ extern "C" {
 /**
  * Remove outgoing subscription context.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did          identifier of the subscription.
  */
   int eXosip_subscribe_remove (struct eXosip_t *excontext, int did);
@@ -139,6 +144,7 @@ extern "C" {
 /**
  * Build answer for an SUBSCRIBE request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid             id of SUBSCRIBE transaction.
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
@@ -148,6 +154,7 @@ extern "C" {
 /**
  * Send answer for an SUBSCRIBE request.
  * 
+ * @param excontext    eXosip_t instance.
  * @param tid             id of SUBSCRIBE transaction.
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)
@@ -157,6 +164,7 @@ extern "C" {
 /**
  * Build a request within subscription.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did             id of incoming subscription.
  * @param method          request method to build.
  * @param request         The SIP request to build.
@@ -166,6 +174,7 @@ extern "C" {
 /**
  * Build a NOTIFY request within subscription.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did                  id of incoming subscription.
  * @param subscription_status  subscription status (pending, active, terminated)
  * @param subscription_reason  subscription reason
@@ -176,6 +185,7 @@ extern "C" {
 /**
  * Send a request within subscription.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did             id of incoming subscription.
  * @param request         The SIP request to send.
  */
@@ -184,6 +194,7 @@ extern "C" {
 /**
  * Remove incoming subscription context.
  * 
+ * @param excontext    eXosip_t instance.
  * @param did          identifier of the subscription.
  */
   int eXosip_insubscription_remove (struct eXosip_t *excontext, int did);

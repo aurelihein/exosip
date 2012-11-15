@@ -56,6 +56,7 @@ extern "C" {
 /**
  * build publication for a user. (PUBLISH request)
  * 
+ * @param excontext    eXosip_t instance.
  * @param message   returned published request.
  * @param to        SIP url for callee.
  * @param from      SIP url for caller.
@@ -70,6 +71,7 @@ extern "C" {
 /**
  * Send an Publication Message (PUBLISH request).
  * 
+ * @param excontext    eXosip_t instance.
  * @param message is a ready to be sent publish message .
  * @param to the aor of the publish request 
  */
