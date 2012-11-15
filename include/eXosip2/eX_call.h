@@ -30,8 +30,7 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -76,7 +75,7 @@ extern "C"
  * @param cid            id of the call.
  * @return               Application context reference
  */
-  void* eXosip_call_get_reference (struct eXosip_t *excontext, int cid);
+  void *eXosip_call_get_reference (struct eXosip_t *excontext, int cid);
 
 /**
  * Build a default INVITE message for a new call.
@@ -87,9 +86,7 @@ extern "C"
  * @param route     Route header for INVITE. (optional)
  * @param subject   Subject for the call.
  */
-  int eXosip_call_build_initial_invite (struct eXosip_t *excontext, osip_message_t ** invite, const char *to,
-                                        const char *from, const char *route,
-                                        const char *subject);
+  int eXosip_call_build_initial_invite (struct eXosip_t *excontext, osip_message_t ** invite, const char *to, const char *from, const char *route, const char *subject);
 
 /**
  * Initiate a call.
@@ -105,8 +102,7 @@ extern "C"
  * @param method       request type to build.
  * @param request      The sip request to build.
  */
-  int eXosip_call_build_request (struct eXosip_t *excontext, int did, const char *method,
-                                 osip_message_t ** request);
+  int eXosip_call_build_request (struct eXosip_t *excontext, int did, const char *method, osip_message_t ** request);
 
 /**
  * Build a default ACK for a 200ok received.
@@ -131,8 +127,7 @@ extern "C"
  * @param refer_to     url for call transfer (Refer-To header).
  * @param request      The sip request to build.
  */
-  int eXosip_call_build_refer (struct eXosip_t *excontext, int did, const char *refer_to,
-                               osip_message_t ** request);
+  int eXosip_call_build_refer (struct eXosip_t *excontext, int did, const char *refer_to, osip_message_t ** request);
 
 /**
  * Build a default INFO within a call.
@@ -165,8 +160,7 @@ extern "C"
  * @param subscription_status   Subscription status of the request.
  * @param request               The sip request to build.
  */
-  int eXosip_call_build_notify (struct eXosip_t *excontext, int did, int subscription_status,
-                                osip_message_t ** request);
+  int eXosip_call_build_notify (struct eXosip_t *excontext, int did, int subscription_status, osip_message_t ** request);
 
 /**
  * send the request within call. (INVITE, OPTIONS, INFO, REFER, UPDATE)
@@ -255,5 +249,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #endif

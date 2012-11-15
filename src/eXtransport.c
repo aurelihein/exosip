@@ -19,45 +19,46 @@
 
 #include "eXosip2.h"
 
-char *_eXosip_transport_protocol(osip_message_t * msg)
+char *
+_eXosip_transport_protocol (osip_message_t * msg)
 {
-	osip_via_t *via;
+  osip_via_t *via;
 
-	via = (osip_via_t *) osip_list_get(&msg->vias, 0);
-	if (via == NULL || via->protocol == NULL)
-		return NULL;
-	return via->protocol;
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
+  if (via == NULL || via->protocol == NULL)
+    return NULL;
+  return via->protocol;
 }
 
-int _eXosip_find_protocol(osip_message_t * msg)
+int
+_eXosip_find_protocol (osip_message_t * msg)
 {
-	osip_via_t *via;
+  osip_via_t *via;
 
-	via = (osip_via_t *) osip_list_get(&msg->vias, 0);
-	if (via == NULL || via->protocol == NULL)
-		return -1;
-	else if (0 == osip_strcasecmp(via->protocol, "UDP"))
-		return IPPROTO_UDP;
-	else if (0 == osip_strcasecmp(via->protocol, "TCP"))
-		return IPPROTO_TCP;
-	return -1;;
-}
-
-
-int eXosip_transport_set(osip_message_t * msg, const char *transport)
-{
-	osip_via_t *via;
-
-	via = (osip_via_t *) osip_list_get(&msg->vias, 0);
-	if (via == NULL || via->protocol == NULL)
-		return -1;
-
-	if (0 == osip_strcasecmp(via->protocol, transport))
-		return OSIP_SUCCESS;
-
-	osip_free(via->protocol);
-	via->protocol = osip_strdup(transport);
-	return OSIP_SUCCESS;
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
+  if (via == NULL || via->protocol == NULL)
+    return -1;
+  else if (0 == osip_strcasecmp (via->protocol, "UDP"))
+    return IPPROTO_UDP;
+  else if (0 == osip_strcasecmp (via->protocol, "TCP"))
+    return IPPROTO_TCP;
+  return -1;;
 }
 
 
+int
+eXosip_transport_set (osip_message_t * msg, const char *transport)
+{
+  osip_via_t *via;
+
+  via = (osip_via_t *) osip_list_get (&msg->vias, 0);
+  if (via == NULL || via->protocol == NULL)
+    return -1;
+
+  if (0 == osip_strcasecmp (via->protocol, transport))
+    return OSIP_SUCCESS;
+
+  osip_free (via->protocol);
+  via->protocol = osip_strdup (transport);
+  return OSIP_SUCCESS;
+}

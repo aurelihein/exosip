@@ -71,8 +71,7 @@
  */
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -98,9 +97,7 @@ extern "C"
  * @param realm		realm within which credentials apply, or NULL
  *			to apply credentials to unrecognized realms
  */
-  int eXosip_add_authentication_info (struct eXosip_t *excontext, const char *username, const char *userid,
-                                      const char *passwd, const char *ha1,
-                                      const char *realm);
+  int eXosip_add_authentication_info (struct eXosip_t *excontext, const char *username, const char *userid, const char *passwd, const char *ha1, const char *realm);
 
 /**
  * Remove authentication credentials.
@@ -108,8 +105,7 @@ extern "C"
  * @param username	username
  * @param realm		realm must be exact same arg as for eXosip_add_authentication_info
  */
-  int eXosip_remove_authentication_info(struct eXosip_t *excontext, const char *username,
-	const char *realm);
+  int eXosip_remove_authentication_info (struct eXosip_t *excontext, const char *username, const char *realm);
 
 /**
  * Clear all authentication credentials stored in eXosip
@@ -265,8 +261,7 @@ extern "C"
  * Structure for event type description
  * @var eXosip_event_type
  */
-  typedef enum eXosip_event_type
-  {
+  typedef enum eXosip_event_type {
     /* REGISTER related events */
     EXOSIP_REGISTRATION_NEW,           /**< announce new registration.       */
     EXOSIP_REGISTRATION_SUCCESS,       /**< user is successfully registred.  */
@@ -347,8 +342,7 @@ extern "C"
  * Structure for event description
  * @struct eXosip_event
  */
-  struct eXosip_event
-  {
+  struct eXosip_event {
     eXosip_event_type_t type;               /**< type of the event */
     char textinfo[256];                     /**< text description of event */
     void *external_reference;               /**< external reference (for calls) */
@@ -408,5 +402,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #endif

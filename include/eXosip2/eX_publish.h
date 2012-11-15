@@ -31,8 +31,7 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -66,13 +65,7 @@ extern "C"
  * @param ctype     Content-Type of body.
  * @param body     body for publication.
  */
-  int eXosip_build_publish (struct eXosip_t *excontext, osip_message_t ** message,
-                            const char *to,
-                            const char *from,
-                            const char *route,
-                            const char *event,
-                            const char *expires,
-                            const char *ctype, const char *body);
+  int eXosip_build_publish (struct eXosip_t *excontext, osip_message_t ** message, const char *to, const char *from, const char *route, const char *event, const char *expires, const char *ctype, const char *body);
 
 /**
  * Send an Publication Message (PUBLISH request).
@@ -89,7 +82,5 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-
 #endif

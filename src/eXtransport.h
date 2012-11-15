@@ -32,36 +32,35 @@
 #endif
 
 #if defined (HAVE_SYS_SELECT_H)
-#  include <sys/select.h>
+#include <sys/select.h>
 #endif
 
 struct eXtl_protocol {
-	int enabled;
+  int enabled;
 
-	int proto_port;
-	char proto_name[10];
-	char proto_ifs[20];
-	int proto_num;
-	int proto_family;
-	int proto_secure;
-	int proto_reliable;
+  int proto_port;
+  char proto_name[10];
+  char proto_ifs[20];
+  int proto_num;
+  int proto_family;
+  int proto_secure;
+  int proto_reliable;
 
-	int (*tl_init) (struct eXosip_t *excontext);
-	int (*tl_free) (struct eXosip_t *excontext);
-	int (*tl_open) (struct eXosip_t *excontext);
-	int (*tl_set_fdset) (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max);
-	int (*tl_read_message) (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip_wrset);
-	int (*tl_send_message) (struct eXosip_t *excontext, osip_transaction_t * tr, osip_message_t * sip,
-							char *host, int port, int out_socket);
-	int (*tl_keepalive) (struct eXosip_t *excontext);
-	int (*tl_set_socket) (struct eXosip_t *excontext, int socket);
-	int (*tl_masquerade_contact) (struct eXosip_t *excontext, const char *ip, int port);
-	int (*tl_get_masquerade_contact) (struct eXosip_t *excontext, char *ip, int ip_size, char *port,
-									  int port_size);
+  int (*tl_init) (struct eXosip_t * excontext);
+  int (*tl_free) (struct eXosip_t * excontext);
+  int (*tl_open) (struct eXosip_t * excontext);
+  int (*tl_set_fdset) (struct eXosip_t * excontext, fd_set * osip_fdset, fd_set * osip_wrset, int *fd_max);
+  int (*tl_read_message) (struct eXosip_t * excontext, fd_set * osip_fdset, fd_set * osip_wrset);
+  int (*tl_send_message) (struct eXosip_t * excontext, osip_transaction_t * tr, osip_message_t * sip, char *host, int port, int out_socket);
+  int (*tl_keepalive) (struct eXosip_t * excontext);
+  int (*tl_set_socket) (struct eXosip_t * excontext, int socket);
+  int (*tl_masquerade_contact) (struct eXosip_t * excontext, const char *ip, int port);
+  int (*tl_get_masquerade_contact) (struct eXosip_t * excontext, char *ip, int ip_size, char *port, int port_size);
 };
 
 extern struct eXtl_protocol eXtl_udp;
 extern struct eXtl_protocol eXtl_tcp;
+
 #ifndef DISABLE_TLS
 extern struct eXtl_protocol eXtl_tls;
 extern struct eXtl_protocol eXtl_dtls;

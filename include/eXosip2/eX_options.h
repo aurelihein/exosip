@@ -31,8 +31,7 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -64,8 +63,7 @@ extern "C"
  * @param from      SIP url for caller.
  * @param route     Route header for INVITE. (optional)
  */
-  int eXosip_options_build_request (struct eXosip_t *excontext, osip_message_t ** options, const char *to,
-                                    const char *from, const char *route);
+  int eXosip_options_build_request (struct eXosip_t *excontext, osip_message_t ** options, const char *to, const char *from, const char *route);
 
 /**
  * Send an OPTIONS request.
@@ -98,7 +96,5 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-
 #endif

@@ -22,15 +22,15 @@
 
 /*--------- Operator Variant Algorithm Configuration Field --------*/
 
-			/*------- Insert your value of OP here -------*/
+                        /*------- Insert your value of OP here -------*/
 /*u8 OP[16] = {0x63, 0xbf, 0xa5, 0x0e, 0xe6, 0x52, 0x33, 0x65,
              0xff, 0x14, 0xc1, 0xf4, 0x5f, 0x88, 0x73, 0x7d};
 */
 u8 OP[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-			/*------- Insert your value of OP here -------*/
+                        /*------- Insert your value of OP here -------*/
 
 
 /*--------------------------- prototypes --------------------------*/
@@ -47,52 +47,53 @@ u8 OP[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
  *
  *-----------------------------------------------------------------*/
 
-void f1(u8 k[16], u8 rand[16], u8 sqn[6], u8 amf[2], u8 mac_a[8])
+void
+f1 (u8 k[16], u8 rand[16], u8 sqn[6], u8 amf[2], u8 mac_a[8])
 {
-	u8 op_c[16];
-	u8 temp[16];
-	u8 in1[16];
-	u8 out1[16];
-	u8 rijndaelInput[16];
-	u8 i;
+  u8 op_c[16];
+  u8 temp[16];
+  u8 in1[16];
+  u8 out1[16];
+  u8 rijndaelInput[16];
+  u8 i;
 
-	RijndaelKeySchedule(k);
+  RijndaelKeySchedule (k);
 
-	ComputeOPc(op_c);
+  ComputeOPc (op_c);
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[i] = rand[i] ^ op_c[i];
-	RijndaelEncrypt(rijndaelInput, temp);
+  for (i = 0; i < 16; i++)
+    rijndaelInput[i] = rand[i] ^ op_c[i];
+  RijndaelEncrypt (rijndaelInput, temp);
 
-	for (i = 0; i < 6; i++) {
-		in1[i] = sqn[i];
-		in1[i + 8] = sqn[i];
-	}
-	for (i = 0; i < 2; i++) {
-		in1[i + 6] = amf[i];
-		in1[i + 14] = amf[i];
-	}
+  for (i = 0; i < 6; i++) {
+    in1[i] = sqn[i];
+    in1[i + 8] = sqn[i];
+  }
+  for (i = 0; i < 2; i++) {
+    in1[i + 6] = amf[i];
+    in1[i + 14] = amf[i];
+  }
 
-	/* XOR op_c and in1, rotate by r1=64, and XOR *
-	 * on the constant c1 (which is all zeroes)   */
+  /* XOR op_c and in1, rotate by r1=64, and XOR *
+   * on the constant c1 (which is all zeroes)   */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[(i + 8) % 16] = in1[i] ^ op_c[i];
+  for (i = 0; i < 16; i++)
+    rijndaelInput[(i + 8) % 16] = in1[i] ^ op_c[i];
 
-	/* XOR on the value temp computed before */
+  /* XOR on the value temp computed before */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[i] ^= temp[i];
+  for (i = 0; i < 16; i++)
+    rijndaelInput[i] ^= temp[i];
 
-	RijndaelEncrypt(rijndaelInput, out1);
-	for (i = 0; i < 16; i++)
-		out1[i] ^= op_c[i];
+  RijndaelEncrypt (rijndaelInput, out1);
+  for (i = 0; i < 16; i++)
+    out1[i] ^= op_c[i];
 
-	for (i = 0; i < 8; i++)
-		mac_a[i] = out1[i];
+  for (i = 0; i < 8; i++)
+    mac_a[i] = out1[i];
 
-	return;
-}								/* end of function f1 */
+  return;
+}                               /* end of function f1 */
 
 
 
@@ -105,71 +106,72 @@ void f1(u8 k[16], u8 rand[16], u8 sqn[6], u8 amf[2], u8 mac_a[8])
  *
  *-----------------------------------------------------------------*/
 
-void f2345(u8 k[16], u8 rand[16], u8 res[8], u8 ck[16], u8 ik[16], u8 ak[6])
+void
+f2345 (u8 k[16], u8 rand[16], u8 res[8], u8 ck[16], u8 ik[16], u8 ak[6])
 {
-	u8 op_c[16];
-	u8 temp[16];
-	u8 out[16];
-	u8 rijndaelInput[16];
-	u8 i;
+  u8 op_c[16];
+  u8 temp[16];
+  u8 out[16];
+  u8 rijndaelInput[16];
+  u8 i;
 
-	RijndaelKeySchedule(k);
+  RijndaelKeySchedule (k);
 
-	ComputeOPc(op_c);
+  ComputeOPc (op_c);
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[i] = rand[i] ^ op_c[i];
-	RijndaelEncrypt(rijndaelInput, temp);
+  for (i = 0; i < 16; i++)
+    rijndaelInput[i] = rand[i] ^ op_c[i];
+  RijndaelEncrypt (rijndaelInput, temp);
 
-	/* To obtain output block OUT2: XOR OPc and TEMP,    *
-	 * rotate by r2=0, and XOR on the constant c2 (which *
-	 * is all zeroes except that the last bit is 1).     */
+  /* To obtain output block OUT2: XOR OPc and TEMP,    *
+   * rotate by r2=0, and XOR on the constant c2 (which *
+   * is all zeroes except that the last bit is 1).     */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[i] = temp[i] ^ op_c[i];
-	rijndaelInput[15] ^= 1;
+  for (i = 0; i < 16; i++)
+    rijndaelInput[i] = temp[i] ^ op_c[i];
+  rijndaelInput[15] ^= 1;
 
-	RijndaelEncrypt(rijndaelInput, out);
-	for (i = 0; i < 16; i++)
-		out[i] ^= op_c[i];
+  RijndaelEncrypt (rijndaelInput, out);
+  for (i = 0; i < 16; i++)
+    out[i] ^= op_c[i];
 
-	for (i = 0; i < 8; i++)
-		res[i] = out[i + 8];
-	for (i = 0; i < 6; i++)
-		ak[i] = out[i];
+  for (i = 0; i < 8; i++)
+    res[i] = out[i + 8];
+  for (i = 0; i < 6; i++)
+    ak[i] = out[i];
 
-	/* To obtain output block OUT3: XOR OPc and TEMP,        *
-	 * rotate by r3=32, and XOR on the constant c3 (which    *
-	 * is all zeroes except that the next to last bit is 1). */
+  /* To obtain output block OUT3: XOR OPc and TEMP,        *
+   * rotate by r3=32, and XOR on the constant c3 (which    *
+   * is all zeroes except that the next to last bit is 1). */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[(i + 12) % 16] = temp[i] ^ op_c[i];
-	rijndaelInput[15] ^= 2;
+  for (i = 0; i < 16; i++)
+    rijndaelInput[(i + 12) % 16] = temp[i] ^ op_c[i];
+  rijndaelInput[15] ^= 2;
 
-	RijndaelEncrypt(rijndaelInput, out);
-	for (i = 0; i < 16; i++)
-		out[i] ^= op_c[i];
+  RijndaelEncrypt (rijndaelInput, out);
+  for (i = 0; i < 16; i++)
+    out[i] ^= op_c[i];
 
-	for (i = 0; i < 16; i++)
-		ck[i] = out[i];
+  for (i = 0; i < 16; i++)
+    ck[i] = out[i];
 
-	/* To obtain output block OUT4: XOR OPc and TEMP,         *
-	 * rotate by r4=64, and XOR on the constant c4 (which     *
-	 * is all zeroes except that the 2nd from last bit is 1). */
+  /* To obtain output block OUT4: XOR OPc and TEMP,         *
+   * rotate by r4=64, and XOR on the constant c4 (which     *
+   * is all zeroes except that the 2nd from last bit is 1). */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[(i + 8) % 16] = temp[i] ^ op_c[i];
-	rijndaelInput[15] ^= 4;
+  for (i = 0; i < 16; i++)
+    rijndaelInput[(i + 8) % 16] = temp[i] ^ op_c[i];
+  rijndaelInput[15] ^= 4;
 
-	RijndaelEncrypt(rijndaelInput, out);
-	for (i = 0; i < 16; i++)
-		out[i] ^= op_c[i];
+  RijndaelEncrypt (rijndaelInput, out);
+  for (i = 0; i < 16; i++)
+    out[i] ^= op_c[i];
 
-	for (i = 0; i < 16; i++)
-		ik[i] = out[i];
+  for (i = 0; i < 16; i++)
+    ik[i] = out[i];
 
-	return;
-}								/* end of function f2345 */
+  return;
+}                               /* end of function f2345 */
 
 
 /*-------------------------------------------------------------------
@@ -182,52 +184,53 @@ void f2345(u8 k[16], u8 rand[16], u8 res[8], u8 ck[16], u8 ik[16], u8 ak[6])
  *
  *-----------------------------------------------------------------*/
 
-void f1star(u8 k[16], u8 rand[16], u8 sqn[6], u8 amf[2], u8 mac_s[8])
+void
+f1star (u8 k[16], u8 rand[16], u8 sqn[6], u8 amf[2], u8 mac_s[8])
 {
-	u8 op_c[16];
-	u8 temp[16];
-	u8 in1[16];
-	u8 out1[16];
-	u8 rijndaelInput[16];
-	u8 i;
+  u8 op_c[16];
+  u8 temp[16];
+  u8 in1[16];
+  u8 out1[16];
+  u8 rijndaelInput[16];
+  u8 i;
 
-	RijndaelKeySchedule(k);
+  RijndaelKeySchedule (k);
 
-	ComputeOPc(op_c);
+  ComputeOPc (op_c);
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[i] = rand[i] ^ op_c[i];
-	RijndaelEncrypt(rijndaelInput, temp);
+  for (i = 0; i < 16; i++)
+    rijndaelInput[i] = rand[i] ^ op_c[i];
+  RijndaelEncrypt (rijndaelInput, temp);
 
-	for (i = 0; i < 6; i++) {
-		in1[i] = sqn[i];
-		in1[i + 8] = sqn[i];
-	}
-	for (i = 0; i < 2; i++) {
-		in1[i + 6] = amf[i];
-		in1[i + 14] = amf[i];
-	}
+  for (i = 0; i < 6; i++) {
+    in1[i] = sqn[i];
+    in1[i + 8] = sqn[i];
+  }
+  for (i = 0; i < 2; i++) {
+    in1[i + 6] = amf[i];
+    in1[i + 14] = amf[i];
+  }
 
-	/* XOR op_c and in1, rotate by r1=64, and XOR *
-	 * on the constant c1 (which is all zeroes)   */
+  /* XOR op_c and in1, rotate by r1=64, and XOR *
+   * on the constant c1 (which is all zeroes)   */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[(i + 8) % 16] = in1[i] ^ op_c[i];
+  for (i = 0; i < 16; i++)
+    rijndaelInput[(i + 8) % 16] = in1[i] ^ op_c[i];
 
-	/* XOR on the value temp computed before */
+  /* XOR on the value temp computed before */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[i] ^= temp[i];
+  for (i = 0; i < 16; i++)
+    rijndaelInput[i] ^= temp[i];
 
-	RijndaelEncrypt(rijndaelInput, out1);
-	for (i = 0; i < 16; i++)
-		out1[i] ^= op_c[i];
+  RijndaelEncrypt (rijndaelInput, out1);
+  for (i = 0; i < 16; i++)
+    out1[i] ^= op_c[i];
 
-	for (i = 0; i < 8; i++)
-		mac_s[i] = out1[i + 8];
+  for (i = 0; i < 8; i++)
+    mac_s[i] = out1[i + 8];
 
-	return;
-}								/* end of function f1star */
+  return;
+}                               /* end of function f1star */
 
 
 /*-------------------------------------------------------------------
@@ -239,39 +242,40 @@ void f1star(u8 k[16], u8 rand[16], u8 sqn[6], u8 amf[2], u8 mac_s[8])
  *
  *-----------------------------------------------------------------*/
 
-void f5star(u8 k[16], u8 rand[16], u8 ak[6])
+void
+f5star (u8 k[16], u8 rand[16], u8 ak[6])
 {
-	u8 op_c[16];
-	u8 temp[16];
-	u8 out[16];
-	u8 rijndaelInput[16];
-	u8 i;
+  u8 op_c[16];
+  u8 temp[16];
+  u8 out[16];
+  u8 rijndaelInput[16];
+  u8 i;
 
-	RijndaelKeySchedule(k);
+  RijndaelKeySchedule (k);
 
-	ComputeOPc(op_c);
+  ComputeOPc (op_c);
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[i] = rand[i] ^ op_c[i];
-	RijndaelEncrypt(rijndaelInput, temp);
+  for (i = 0; i < 16; i++)
+    rijndaelInput[i] = rand[i] ^ op_c[i];
+  RijndaelEncrypt (rijndaelInput, temp);
 
-	/* To obtain output block OUT5: XOR OPc and TEMP,         *
-	 * rotate by r5=96, and XOR on the constant c5 (which     *
-	 * is all zeroes except that the 3rd from last bit is 1). */
+  /* To obtain output block OUT5: XOR OPc and TEMP,         *
+   * rotate by r5=96, and XOR on the constant c5 (which     *
+   * is all zeroes except that the 3rd from last bit is 1). */
 
-	for (i = 0; i < 16; i++)
-		rijndaelInput[(i + 4) % 16] = temp[i] ^ op_c[i];
-	rijndaelInput[15] ^= 8;
+  for (i = 0; i < 16; i++)
+    rijndaelInput[(i + 4) % 16] = temp[i] ^ op_c[i];
+  rijndaelInput[15] ^= 8;
 
-	RijndaelEncrypt(rijndaelInput, out);
-	for (i = 0; i < 16; i++)
-		out[i] ^= op_c[i];
+  RijndaelEncrypt (rijndaelInput, out);
+  for (i = 0; i < 16; i++)
+    out[i] ^= op_c[i];
 
-	for (i = 0; i < 6; i++)
-		ak[i] = out[i];
+  for (i = 0; i < 6; i++)
+    ak[i] = out[i];
 
-	return;
-}								/* end of function f5star */
+  return;
+}                               /* end of function f5star */
 
 
 /*-------------------------------------------------------------------
@@ -279,13 +283,14 @@ void f5star(u8 k[16], u8 rand[16], u8 ak[6])
     already been performed.
  *-----------------------------------------------------------------*/
 
-void ComputeOPc(u8 op_c[16])
+void
+ComputeOPc (u8 op_c[16])
 {
-	u8 i;
+  u8 i;
 
-	RijndaelEncrypt(OP, op_c);
-	for (i = 0; i < 16; i++)
-		op_c[i] ^= OP[i];
+  RijndaelEncrypt (OP, op_c);
+  for (i = 0; i < 16; i++)
+    op_c[i] ^= OP[i];
 
-	return;
-}								/* end of function ComputeOPc */
+  return;
+}                               /* end of function ComputeOPc */

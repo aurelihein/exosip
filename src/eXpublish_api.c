@@ -24,147 +24,139 @@
 #include <eXosip2/eXosip.h>
 
 int
-eXosip_build_publish(struct eXosip_t *excontext, osip_message_t ** message,
-					 const char *to,
-					 const char *from,
-					 const char *route,
-					 const char *event,
-					 const char *expires, const char *ctype, const char *body)
+eXosip_build_publish (struct eXosip_t *excontext, osip_message_t ** message, const char *to, const char *from, const char *route, const char *event, const char *expires, const char *ctype, const char *body)
 {
-	int i;
+  int i;
 
-	*message = NULL;
+  *message = NULL;
 
-	if (to == NULL || to[0] == '\0')
-		return OSIP_BADPARAMETER;
-	if (from == NULL || from[0] == '\0')
-		return OSIP_BADPARAMETER;
-	if (event == NULL || event[0] == '\0')
-		return OSIP_BADPARAMETER;
-	if (ctype == NULL || ctype[0] == '\0') {
-		if (body != NULL && body[0] != '\0')
-			return OSIP_BADPARAMETER;
-	} else {
-		if (body == NULL || body[0] == '\0')
-			return OSIP_BADPARAMETER;
-	}
+  if (to == NULL || to[0] == '\0')
+    return OSIP_BADPARAMETER;
+  if (from == NULL || from[0] == '\0')
+    return OSIP_BADPARAMETER;
+  if (event == NULL || event[0] == '\0')
+    return OSIP_BADPARAMETER;
+  if (ctype == NULL || ctype[0] == '\0') {
+    if (body != NULL && body[0] != '\0')
+      return OSIP_BADPARAMETER;
+  }
+  else {
+    if (body == NULL || body[0] == '\0')
+      return OSIP_BADPARAMETER;
+  }
 
-	i = _eXosip_generating_publish(excontext, message, to, from, route);
-	if (i != 0) {
-		OSIP_TRACE(osip_trace
-				   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-					"eXosip: cannot send message (cannot build PUBLISH)! "));
-		return i;
-	}
+  i = _eXosip_generating_publish (excontext, message, to, from, route);
+  if (i != 0) {
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "eXosip: cannot send message (cannot build PUBLISH)! "));
+    return i;
+  }
 
-	if (body != NULL && body[0] != '\0' && ctype != NULL && ctype[0] != '\0') {
-		osip_message_set_content_type(*message, ctype);
-		osip_message_set_body(*message, body, strlen(body));
-		/*
-		   osip_message_set_header (*message, "Content-Disposition",
-		   "render;handling=required");
-		 */
-	}
-	if (expires != NULL && expires[0] != '\0')
-		osip_message_set_expires(*message, expires);
-	else
-		osip_message_set_expires(*message, "3600");
+  if (body != NULL && body[0] != '\0' && ctype != NULL && ctype[0] != '\0') {
+    osip_message_set_content_type (*message, ctype);
+    osip_message_set_body (*message, body, strlen (body));
+    /*
+       osip_message_set_header (*message, "Content-Disposition",
+       "render;handling=required");
+     */
+  }
+  if (expires != NULL && expires[0] != '\0')
+    osip_message_set_expires (*message, expires);
+  else
+    osip_message_set_expires (*message, "3600");
 
-	osip_message_set_header(*message, "Event", event);
+  osip_message_set_header (*message, "Event", event);
 
-	return OSIP_SUCCESS;
+  return OSIP_SUCCESS;
 }
 
-int eXosip_publish(struct eXosip_t *excontext, osip_message_t * message, const char *to)
+int
+eXosip_publish (struct eXosip_t *excontext, osip_message_t * message, const char *to)
 {
-	osip_transaction_t *transaction;
-	osip_event_t *sipevent;
-	int i;
-	eXosip_pub_t *pub = NULL;
+  osip_transaction_t *transaction;
+  osip_event_t *sipevent;
+  int i;
+  eXosip_pub_t *pub = NULL;
 
-	if (message == NULL)
-		return OSIP_BADPARAMETER;
-	if (message->cseq == NULL || message->cseq->number == NULL) {
-		osip_message_free(message);
-		return OSIP_SYNTAXERROR;
-	}
-	if (to == NULL) {
-		osip_message_free(message);
-		return OSIP_BADPARAMETER;
-	}
+  if (message == NULL)
+    return OSIP_BADPARAMETER;
+  if (message->cseq == NULL || message->cseq->number == NULL) {
+    osip_message_free (message);
+    return OSIP_SYNTAXERROR;
+  }
+  if (to == NULL) {
+    osip_message_free (message);
+    return OSIP_BADPARAMETER;
+  }
 
-	i = _eXosip_pub_find_by_aor(excontext, &pub, to);
-	if (i != 0 || pub == NULL) {
-		osip_header_t *expires;
+  i = _eXosip_pub_find_by_aor (excontext, &pub, to);
+  if (i != 0 || pub == NULL) {
+    osip_header_t *expires;
 
-		osip_message_get_expires(message, 0, &expires);
-		if (expires == NULL || expires->hvalue == NULL) {
-			OSIP_TRACE(osip_trace
-					   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-						"eXosip: missing expires header in PUBLISH!"));
-			osip_message_free(message);
-			return OSIP_SYNTAXERROR;
-		} else {
-			/* start a new publication context */
-			i = _eXosip_pub_init(&pub, to, expires->hvalue);
-			if (i != 0) {
-				osip_message_free(message);
-				return i;
-			}
-			ADD_ELEMENT(excontext->j_pub, pub);
-		}
-	} else {
-		if (pub->p_sip_etag != NULL && pub->p_sip_etag[0] != '\0') {
-			/* increase cseq */
-			osip_message_set_header(message, "SIP-If-Match", pub->p_sip_etag);
-		}
+    osip_message_get_expires (message, 0, &expires);
+    if (expires == NULL || expires->hvalue == NULL) {
+      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "eXosip: missing expires header in PUBLISH!"));
+      osip_message_free (message);
+      return OSIP_SYNTAXERROR;
+    }
+    else {
+      /* start a new publication context */
+      i = _eXosip_pub_init (&pub, to, expires->hvalue);
+      if (i != 0) {
+        osip_message_free (message);
+        return i;
+      }
+      ADD_ELEMENT (excontext->j_pub, pub);
+    }
+  }
+  else {
+    if (pub->p_sip_etag != NULL && pub->p_sip_etag[0] != '\0') {
+      /* increase cseq */
+      osip_message_set_header (message, "SIP-If-Match", pub->p_sip_etag);
+    }
 
-		{
-			osip_header_t *expires;
+    {
+      osip_header_t *expires;
 
-			osip_message_get_expires(message, 0, &expires);
-			if (expires == NULL || expires->hvalue == NULL) {
-				OSIP_TRACE(osip_trace
-						   (__FILE__, __LINE__, OSIP_ERROR, NULL,
-							"eXosip: missing expires header in PUBLISH!"));
-				osip_message_free(message);
-				return OSIP_SYNTAXERROR;
-			}
-			pub->p_period = atoi(expires->hvalue);
-		}
+      osip_message_get_expires (message, 0, &expires);
+      if (expires == NULL || expires->hvalue == NULL) {
+        OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "eXosip: missing expires header in PUBLISH!"));
+        osip_message_free (message);
+        return OSIP_SYNTAXERROR;
+      }
+      pub->p_period = atoi (expires->hvalue);
+    }
 
-		if (pub->p_last_tr != NULL && pub->p_last_tr->cseq != NULL
-			&& pub->p_last_tr->cseq->number != NULL) {
-			int osip_cseq_num = osip_atoi(pub->p_last_tr->cseq->number);
-			int length = (int)strlen(pub->p_last_tr->cseq->number);
+    if (pub->p_last_tr != NULL && pub->p_last_tr->cseq != NULL && pub->p_last_tr->cseq->number != NULL) {
+      int osip_cseq_num = osip_atoi (pub->p_last_tr->cseq->number);
+      int length = (int) strlen (pub->p_last_tr->cseq->number);
 
-			osip_cseq_num++;
-			osip_free(message->cseq->number);
-			message->cseq->number = (char *) osip_malloc(length + 2);	/* +2 like for 9 to 10 */
-			if (message->cseq->number == NULL) {
-				osip_message_free(message);
-				return OSIP_NOMEM;
-			}
-			snprintf(message->cseq->number, length+2, "%i", osip_cseq_num);
-		}
-	}
+      osip_cseq_num++;
+      osip_free (message->cseq->number);
+      message->cseq->number = (char *) osip_malloc (length + 2);        /* +2 like for 9 to 10 */
+      if (message->cseq->number == NULL) {
+        osip_message_free (message);
+        return OSIP_NOMEM;
+      }
+      snprintf (message->cseq->number, length + 2, "%i", osip_cseq_num);
+    }
+  }
 
-	i = _eXosip_transaction_init(excontext, &transaction, NICT, excontext->j_osip, message);
-	if (i != 0) {
-		osip_message_free(message);
-		return i;
-	}
+  i = _eXosip_transaction_init (excontext, &transaction, NICT, excontext->j_osip, message);
+  if (i != 0) {
+    osip_message_free (message);
+    return i;
+  }
 
-	if (pub->p_last_tr != NULL)
-		osip_list_add(&excontext->j_transactions, pub->p_last_tr, 0);
-	pub->p_last_tr = transaction;
+  if (pub->p_last_tr != NULL)
+    osip_list_add (&excontext->j_transactions, pub->p_last_tr, 0);
+  pub->p_last_tr = transaction;
 
-	sipevent = osip_new_outgoing_sipmessage(message);
-	sipevent->transactionid = transaction->transactionid;
+  sipevent = osip_new_outgoing_sipmessage (message);
+  sipevent->transactionid = transaction->transactionid;
 
-	osip_transaction_add_event(transaction, sipevent);
-	_eXosip_wakeup(excontext);
-	return OSIP_SUCCESS;
+  osip_transaction_add_event (transaction, sipevent);
+  _eXosip_wakeup (excontext);
+  return OSIP_SUCCESS;
 }
 
 #endif

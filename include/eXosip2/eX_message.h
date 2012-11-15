@@ -29,8 +29,7 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -68,9 +67,7 @@ extern "C"
  * @param from      SIP url for caller.
  * @param route     Route header for request. (optional)
  */
-  int eXosip_message_build_request (struct eXosip_t *excontext, osip_message_t ** message, const char *method,
-                                    const char *to, const char *from,
-                                    const char *route);
+  int eXosip_message_build_request (struct eXosip_t *excontext, osip_message_t ** message, const char *method, const char *to, const char *from, const char *route);
 
 /**
  * Send an request.
@@ -103,5 +100,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #endif

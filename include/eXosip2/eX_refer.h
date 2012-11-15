@@ -31,8 +31,7 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -64,9 +63,7 @@ extern "C"
  * @param to        SIP url for callee.
  * @param route     Route header for REFER. (optional)
  */
-  int eXosip_refer_build_request (struct eXosip_t *excontext, osip_message_t ** refer, const char *refer_to,
-                                  const char *from, const char *to,
-                                  const char *route);
+  int eXosip_refer_build_request (struct eXosip_t *excontext, osip_message_t ** refer, const char *refer_to, const char *from, const char *to, const char *route);
 
 /**
  * Initiate a blind tranfer outside of any call.
@@ -81,7 +78,5 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-
 #endif

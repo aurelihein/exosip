@@ -21,127 +21,125 @@
 
 #ifndef MINISIZE
 
-osip_transaction_t *_eXosip_find_last_out_subscribe(eXosip_subscribe_t * js,
-												   eXosip_dialog_t * jd)
+osip_transaction_t *
+_eXosip_find_last_out_subscribe (eXosip_subscribe_t * js, eXosip_dialog_t * jd)
 {
-	osip_transaction_t *out_tr;
-	int pos;
+  osip_transaction_t *out_tr;
+  int pos;
 
-	out_tr = NULL;
-	pos = 0;
-	if (jd != NULL) {
-		while (!osip_list_eol(jd->d_out_trs, pos)) {
-			out_tr = osip_list_get(jd->d_out_trs, pos);
-			if (0 == strcmp(out_tr->cseq->method, "SUBSCRIBE"))
-				break;
-			else
-				out_tr = NULL;
-			pos++;
-		}
-	} else
-		out_tr = NULL;
+  out_tr = NULL;
+  pos = 0;
+  if (jd != NULL) {
+    while (!osip_list_eol (jd->d_out_trs, pos)) {
+      out_tr = osip_list_get (jd->d_out_trs, pos);
+      if (0 == strcmp (out_tr->cseq->method, "SUBSCRIBE"))
+        break;
+      else
+        out_tr = NULL;
+      pos++;
+    }
+  }
+  else
+    out_tr = NULL;
 
-	if (out_tr == NULL)
-		return js->s_out_tr;	/* can be NULL */
+  if (out_tr == NULL)
+    return js->s_out_tr;        /* can be NULL */
 
-	return out_tr;
+  return out_tr;
 }
 
-osip_transaction_t *_eXosip_find_last_inc_notify(eXosip_subscribe_t * js,
-												eXosip_dialog_t * jd)
+osip_transaction_t *
+_eXosip_find_last_inc_notify (eXosip_subscribe_t * js, eXosip_dialog_t * jd)
 {
-	osip_transaction_t *out_tr;
-	int pos;
+  osip_transaction_t *out_tr;
+  int pos;
 
-	out_tr = NULL;
-	pos = 0;
-	if (jd != NULL) {
-		while (!osip_list_eol(jd->d_out_trs, pos)) {
-			out_tr = osip_list_get(jd->d_out_trs, pos);
-			if (0 == strcmp(out_tr->cseq->method, "NOTIFY"))
-				return out_tr;
-			pos++;
-		}
-	}
+  out_tr = NULL;
+  pos = 0;
+  if (jd != NULL) {
+    while (!osip_list_eol (jd->d_out_trs, pos)) {
+      out_tr = osip_list_get (jd->d_out_trs, pos);
+      if (0 == strcmp (out_tr->cseq->method, "NOTIFY"))
+        return out_tr;
+      pos++;
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 
-int _eXosip_subscribe_init(eXosip_subscribe_t ** js)
+int
+_eXosip_subscribe_init (eXosip_subscribe_t ** js)
 {
-	*js = (eXosip_subscribe_t *) osip_malloc(sizeof(eXosip_subscribe_t));
-	if (*js == NULL)
-		return OSIP_NOMEM;
-	memset(*js, 0, sizeof(eXosip_subscribe_t));
-	return OSIP_SUCCESS;
+  *js = (eXosip_subscribe_t *) osip_malloc (sizeof (eXosip_subscribe_t));
+  if (*js == NULL)
+    return OSIP_NOMEM;
+  memset (*js, 0, sizeof (eXosip_subscribe_t));
+  return OSIP_SUCCESS;
 }
 
-void _eXosip_subscribe_free(struct eXosip_t *excontext, eXosip_subscribe_t * js)
+void
+_eXosip_subscribe_free (struct eXosip_t *excontext, eXosip_subscribe_t * js)
 {
-	/* ... */
+  /* ... */
 
-	eXosip_dialog_t *jd;
+  eXosip_dialog_t *jd;
 
-	if (js->s_inc_tr != NULL && js->s_inc_tr->orig_request != NULL
-		&& js->s_inc_tr->orig_request->call_id != NULL
-		&& js->s_inc_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(excontext, js->s_inc_tr->orig_request->call_id->number);
-	else if (js->s_out_tr != NULL && js->s_out_tr->orig_request != NULL
-			 && js->s_out_tr->orig_request->call_id != NULL
-			 && js->s_out_tr->orig_request->call_id->number != NULL)
-		_eXosip_delete_nonce(excontext, js->s_out_tr->orig_request->call_id->number);
+  if (js->s_inc_tr != NULL && js->s_inc_tr->orig_request != NULL && js->s_inc_tr->orig_request->call_id != NULL && js->s_inc_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (excontext, js->s_inc_tr->orig_request->call_id->number);
+  else if (js->s_out_tr != NULL && js->s_out_tr->orig_request != NULL && js->s_out_tr->orig_request->call_id != NULL && js->s_out_tr->orig_request->call_id->number != NULL)
+    _eXosip_delete_nonce (excontext, js->s_out_tr->orig_request->call_id->number);
 
-	for (jd = js->s_dialogs; jd != NULL; jd = js->s_dialogs) {
-		REMOVE_ELEMENT(js->s_dialogs, jd);
-		_eXosip_dialog_free(excontext, jd);
-	}
+  for (jd = js->s_dialogs; jd != NULL; jd = js->s_dialogs) {
+    REMOVE_ELEMENT (js->s_dialogs, jd);
+    _eXosip_dialog_free (excontext, jd);
+  }
 
-	_eXosip_delete_reserved(js->s_inc_tr);
-	_eXosip_delete_reserved(js->s_out_tr);
-	if (js->s_inc_tr != NULL)
-		osip_list_add(&excontext->j_transactions, js->s_inc_tr, 0);
-	if (js->s_out_tr != NULL)
-		osip_list_add(&excontext->j_transactions, js->s_out_tr, 0);
+  _eXosip_delete_reserved (js->s_inc_tr);
+  _eXosip_delete_reserved (js->s_out_tr);
+  if (js->s_inc_tr != NULL)
+    osip_list_add (&excontext->j_transactions, js->s_inc_tr, 0);
+  if (js->s_out_tr != NULL)
+    osip_list_add (&excontext->j_transactions, js->s_out_tr, 0);
 
-	osip_free(js);
+  osip_free (js);
 }
 
 int
-_eXosip_subscribe_set_refresh_interval(eXosip_subscribe_t * js,
-									   osip_message_t * out_subscribe)
+_eXosip_subscribe_set_refresh_interval (eXosip_subscribe_t * js, osip_message_t * out_subscribe)
 {
-	osip_header_t *exp;
+  osip_header_t *exp;
 
-	if (js == NULL || out_subscribe == NULL)
-		return OSIP_BADPARAMETER;
+  if (js == NULL || out_subscribe == NULL)
+    return OSIP_BADPARAMETER;
 
-	osip_message_get_expires(out_subscribe, 0, &exp);
-	if (exp != NULL && exp->hvalue != NULL) {
-		int val = osip_atoi(exp->hvalue);
-		if (val==0)
-			js->s_reg_period = 0;
-		else if (val < js->s_reg_period - 15)
-			js->s_reg_period = val;
-	}
+  osip_message_get_expires (out_subscribe, 0, &exp);
+  if (exp != NULL && exp->hvalue != NULL) {
+    int val = osip_atoi (exp->hvalue);
 
-	return OSIP_SUCCESS;
+    if (val == 0)
+      js->s_reg_period = 0;
+    else if (val < js->s_reg_period - 15)
+      js->s_reg_period = val;
+  }
+
+  return OSIP_SUCCESS;
 }
 
 int
-_eXosip_subscribe_need_refresh(eXosip_subscribe_t * js, eXosip_dialog_t * jd,
-							  int now)
+_eXosip_subscribe_need_refresh (eXosip_subscribe_t * js, eXosip_dialog_t * jd, int now)
 {
-	osip_transaction_t *out_tr = NULL;
+  osip_transaction_t *out_tr = NULL;
 
-	if (jd != NULL)
-		out_tr = osip_list_get(jd->d_out_trs, 0);
-	if (out_tr == NULL)
-		out_tr = js->s_out_tr;
+  if (jd != NULL)
+    out_tr = osip_list_get (jd->d_out_trs, 0);
+  if (out_tr == NULL)
+    out_tr = js->s_out_tr;
 
-	if (now - out_tr->birth_time > js->s_reg_period - 15)
-		return OSIP_SUCCESS;
-	return OSIP_UNDEFINED_ERROR;
+  if (now - out_tr->birth_time > js->s_reg_period - 15)
+    return OSIP_SUCCESS;
+  return OSIP_UNDEFINED_ERROR;
 }
 
 #endif

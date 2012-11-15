@@ -29,8 +29,7 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -54,16 +53,14 @@ extern "C"
  * @{
  */
 
-  typedef enum eXosip_ss
-  {
+  typedef enum eXosip_ss {
     EXOSIP_SUBCRSTATE_UNKNOWN,    /**< unknown subscription-state */
     EXOSIP_SUBCRSTATE_PENDING,    /**< pending subscription-state */
     EXOSIP_SUBCRSTATE_ACTIVE,     /**< active subscription-state */
     EXOSIP_SUBCRSTATE_TERMINATED  /**< terminated subscription-state */
   } eXosip_ss_t;
 
-  typedef enum eXosip_ss_reason
-  {
+  typedef enum eXosip_ss_reason {
     DEACTIVATED,                 /**< deactivated for subscription-state */
     PROBATION,                   /**< probation for subscription-state */
     REJECTED,                    /**< rejected for subscription-state */
@@ -73,8 +70,7 @@ extern "C"
   } eXosip_ss_reason_t;
 
 
-  typedef enum eXosip_ss_status
-  {
+  typedef enum eXosip_ss_status {
     EXOSIP_NOTIFY_UNKNOWN,   /**< unknown state for subscription */
     EXOSIP_NOTIFY_PENDING,   /**< subscription not yet accepted */
     EXOSIP_NOTIFY_ONLINE,    /**< online status */
@@ -100,10 +96,7 @@ extern "C"
  * @param event     Event header for SUBSCRIBE.
  * @param expires   Expires header for SUBSCRIBE.
  */
-  int eXosip_subscribe_build_initial_request (struct eXosip_t *excontext, osip_message_t ** subscribe,
-                                              const char *to, const char *from,
-                                              const char *route, const char *event,
-                                              int expires);
+  int eXosip_subscribe_build_initial_request (struct eXosip_t *excontext, osip_message_t ** subscribe, const char *to, const char *from, const char *route, const char *event, int expires);
 
 /**
  * Send an initial SUBSCRIBE request.
@@ -150,8 +143,7 @@ extern "C"
  * @param status          status for SIP answer to build.
  * @param answer          The SIP answer to build.
  */
-  int eXosip_insubscription_build_answer (struct eXosip_t *excontext, int tid, int status,
-                                          osip_message_t ** answer);
+  int eXosip_insubscription_build_answer (struct eXosip_t *excontext, int tid, int status, osip_message_t ** answer);
 
 /**
  * Send answer for an SUBSCRIBE request.
@@ -160,8 +152,7 @@ extern "C"
  * @param status          status for SIP answer to send.
  * @param answer          The SIP answer to send. (default will be sent if NULL)
  */
-  int eXosip_insubscription_send_answer (struct eXosip_t *excontext, int tid, int status,
-                                         osip_message_t * answer);
+  int eXosip_insubscription_send_answer (struct eXosip_t *excontext, int tid, int status, osip_message_t * answer);
 
 /**
  * Build a request within subscription.
@@ -170,8 +161,7 @@ extern "C"
  * @param method          request method to build.
  * @param request         The SIP request to build.
  */
-  int eXosip_insubscription_build_request (struct eXosip_t *excontext, int did, const char *method,
-                                           osip_message_t ** request);
+  int eXosip_insubscription_build_request (struct eXosip_t *excontext, int did, const char *method, osip_message_t ** request);
 
 /**
  * Build a NOTIFY request within subscription.
@@ -181,9 +171,7 @@ extern "C"
  * @param subscription_reason  subscription reason
  * @param request              The SIP request to build.
  */
-  int eXosip_insubscription_build_notify (struct eXosip_t *excontext, int did, int subscription_status,
-                                          int subscription_reason,
-                                          osip_message_t ** request);
+  int eXosip_insubscription_build_notify (struct eXosip_t *excontext, int did, int subscription_status, int subscription_reason, osip_message_t ** request);
 
 /**
  * Send a request within subscription.
@@ -209,5 +197,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
 #endif

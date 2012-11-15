@@ -31,8 +31,7 @@
 #include <time.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
   struct eXosip_t;
@@ -58,7 +57,7 @@ extern "C"
  * Allocate an eXosip context.
  * 
  */
-  struct eXosip_t *eXosip_malloc(void);
+  struct eXosip_t *eXosip_malloc (void);
 
 /**
  * Initiate the eXtented oSIP library.
@@ -105,21 +104,18 @@ extern "C"
   /* non standard option: need a compilation flag to activate */
 #define EXOSIP_OPT_KEEP_ALIVE_OPTIONS_METHOD (EXOSIP_OPT_BASE_OPTION+1000)
 
-  struct eXosip_dns_cache
-  {
+  struct eXosip_dns_cache {
     char host[1024];
     char ip[256];
   };
 
-  struct eXosip_account_info
-  {
+  struct eXosip_account_info {
     char proxy[1024];
     char nat_ip[256];
     int nat_port;
   };
 
-  struct eXosip_http_auth
-  {
+  struct eXosip_http_auth {
     char pszCallId[64];
     osip_proxy_authenticate_t *wa;
     char pszCNonce[64];
@@ -143,8 +139,7 @@ extern "C"
   * consists of a certificate, a corresponding private key and its password
   * @struct eXosip_tls_credentials_s
   */
-  typedef struct eXosip_tls_credentials_s
-  {
+  typedef struct eXosip_tls_credentials_s {
     char priv_key[1024];
     char priv_key_pw[1024];
     char cert[1024];
@@ -155,8 +150,7 @@ extern "C"
   * consists of a certificate, a corresponding private key and its password
   * @struct eXosip_tls_ctx_s
   */
-  typedef struct eXosip_tls_ctx_s
-  {
+  typedef struct eXosip_tls_ctx_s {
     char random_file[1024];                                             /**< absolute path to a file with random(!) data */
     char dh_param[1024];                                                /**< absolute path to a file necessary for diffie hellman key exchange */
     char root_ca_cert[1024];                                            /**< absolute path to the file with known rootCAs */
@@ -167,8 +161,7 @@ extern "C"
  /**
   * An enumeration which describes the error which can occur while setting the eXosip_tls_ctx
   */
-  typedef enum
-  {
+  typedef enum {
     TLS_OK = 0,                                                         /**< yippieh, everything is fine :) */
     TLS_ERR_NO_RAND = -1,                               /**< no absolute path to the random file was specified */
     TLS_ERR_NO_DH_PARAM = -2,                           /**< no absolute path to the diifie hellman file was specified */
@@ -228,8 +221,7 @@ extern "C"
  * @param transport      transport to use ("UDP")
  * @param keep_in_cache  keep result in cache if >0
  */
-struct osip_naptr *eXosip_dnsutils_naptr(struct eXosip_t *excontext, const char *domain, const char *protocol,
-                                         const char *transport, int keep_in_cache);
+  struct osip_naptr *eXosip_dnsutils_naptr (struct eXosip_t *excontext, const char *domain, const char *protocol, const char *transport, int keep_in_cache);
 
 /**
  * Continue to process asynchronous DNS request (if implemented).
@@ -237,14 +229,14 @@ struct osip_naptr *eXosip_dnsutils_naptr(struct eXosip_t *excontext, const char 
  * @param output_record  result structure.
  * @param force          force waiting for final answer if >0
  */
-int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
+  int eXosip_dnsutils_dns_process (struct osip_naptr *output_record, int force);
 
 /**
  * Rotate first SRV entry to last SRV entry.
  * 
  * @param output_record  result structure.
  */
-  int eXosip_dnsutils_rotate_srv(struct osip_srv_record *output_record);
+  int eXosip_dnsutils_rotate_srv (struct osip_srv_record *output_record);
 
 /**
  * Listen on a specified socket.
@@ -255,8 +247,7 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
  * @param family    the IP family (AF_INET or AF_INET6).
  * @param secure    0 for UDP or TCP, 1 for TLS (with TCP).
  */
-  int eXosip_listen_addr (struct eXosip_t *excontext, int transport, const char *addr, int port, int family,
-                          int secure);
+  int eXosip_listen_addr (struct eXosip_t *excontext, int transport, const char *addr, int port, int family, int secure);
 
 /**
  * Listen on a specified socket.
@@ -366,5 +357,4 @@ int eXosip_dnsutils_dns_process(struct osip_naptr *output_record, int force);
 #ifdef __cplusplus
 }
 #endif
-
 #endif
