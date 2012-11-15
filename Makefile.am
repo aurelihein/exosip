@@ -13,7 +13,9 @@ upload: dist
 	gpg -b $(PACKAGE)-$(VERSION).tar.gz
 
 indent:
+	indent */*/*.h
 	indent */*.h
 	indent */*.c
+	rm -rf */*/*.h~
 	rm -rf */*.h~
 	rm -rf */*.c~
