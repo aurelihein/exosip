@@ -127,6 +127,7 @@ extern "C" {
  *  2/ if you receive 401 or 407 for any sip request outside of dialog (EXOSIP_MESSAGE_REQUESTFAILURE)
  * 
  * @param excontext    eXosip_t instance.
+ * @param je           event to work on.
  */
   int eXosip_default_action (struct eXosip_t *excontext, eXosip_event_t * je);
 

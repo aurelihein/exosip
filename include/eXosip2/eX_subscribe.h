@@ -53,24 +53,35 @@ extern "C" {
  * @{
  */
 
-  typedef enum eXosip_ss {
+/**
+ * Structure for subscription status
+ * @enum eXosip_ss
+ */
+  enum eXosip_ss {
     EXOSIP_SUBCRSTATE_UNKNOWN,    /**< unknown subscription-state */
     EXOSIP_SUBCRSTATE_PENDING,    /**< pending subscription-state */
     EXOSIP_SUBCRSTATE_ACTIVE,     /**< active subscription-state */
     EXOSIP_SUBCRSTATE_TERMINATED  /**< terminated subscription-state */
-  } eXosip_ss_t;
+  };
 
-  typedef enum eXosip_ss_reason {
+/**
+ * Structure for subscription reason
+ * @enum eXosip_ss_reason
+ */
+  enum eXosip_ss_reason {
     DEACTIVATED,                 /**< deactivated for subscription-state */
     PROBATION,                   /**< probation for subscription-state */
     REJECTED,                    /**< rejected for subscription-state */
     TIMEOUT,                     /**< timeout for subscription-state */
     GIVEUP,                      /**< giveup for subscription-state */
     NORESOURCE                   /**< noresource for subscription-state */
-  } eXosip_ss_reason_t;
+  };
 
-
-  typedef enum eXosip_ss_status {
+/**
+ * Structure for notification status
+ * @enum eXosip_ss_status
+ */
+  enum eXosip_ss_status {
     EXOSIP_NOTIFY_UNKNOWN,   /**< unknown state for subscription */
     EXOSIP_NOTIFY_PENDING,   /**< subscription not yet accepted */
     EXOSIP_NOTIFY_ONLINE,    /**< online status */
@@ -81,8 +92,7 @@ extern "C" {
     EXOSIP_NOTIFY_ONTHEPHONE,/**< on the phone status */
     EXOSIP_NOTIFY_OUTTOLUNCH,/**< out to lunch status */
     EXOSIP_NOTIFY_CLOSED     /**< closed status */
-  } eXosip_ss_status_t;
-
+  };
 
 #ifndef MINISIZE
 

@@ -178,25 +178,24 @@ extern "C" {
   } eXosip_tls_ctx_error;
 
  /**
-  *	sets the parameters for the TLS context, which is used for encrypted connections
-  *	
+  * sets the parameters for the TLS context, which is used for encrypted connections
+  * 
   * @param excontext    eXosip_t instance.
-  *	@param ctx, IN
-  *		a struct which holds the necessary parameters
+  * @param ctx a struct which holds the necessary parameters
   *
-  *	@return  the eXosip_tls_ctx_error code
+  * @return  the eXosip_tls_ctx_error code
   */
   eXosip_tls_ctx_error eXosip_set_tls_ctx (struct eXosip_t *excontext, eXosip_tls_ctx_t * ctx);
 
 /**
-  *	Select by CN name the server certificate from OS store.
+  * Select by CN name the server certificate from OS store.
   *
-  *	12/11/2009 -> implemented only for "Windows Certificate Store"
+  * 12/11/2009 -> implemented only for "Windows Certificate Store"
   *
   * @param excontext    eXosip_t instance.
-  *	@param local_certificate_cn  CN name of the certificate to send on incoming connection
+  * @param local_certificate_cn  CN name of the certificate to send on incoming connection
   *
-  *	@return  the eXosip_tls_ctx_error code
+  * @return  the eXosip_tls_ctx_error code
   */
   eXosip_tls_ctx_error eXosip_tls_use_server_certificate (struct eXosip_t *excontext, const char *local_certificate_cn);
 
@@ -213,13 +212,13 @@ extern "C" {
   eXosip_tls_ctx_error eXosip_tls_use_client_certificate (struct eXosip_t *excontext, const char *local_certificate_cn);
 
 /**
-  *	Configure to accept/reject self signed and expired certificates.
+  * Configure to accept/reject self signed and expired certificates.
   * NOTE: default is to accept (0)
   *
   * @param excontext    eXosip_t instance.
-  *	@param _tls_verify_client_certificate  ">0": refuse self signed and expired certificates
+  * @param _tls_verify_client_certificate  ">0": refuse self signed and expired certificates
   *
-  *	@return  the eXosip_tls_ctx_error code
+  * @return  the eXosip_tls_ctx_error code
   */
   eXosip_tls_ctx_error eXosip_tls_verify_certificate (struct eXosip_t *excontext, int _tls_verify_client_certificate);
 

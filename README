@@ -60,7 +60,7 @@ on any unix and windows systems.
 
    $> ./configure
    $> make
-   $> su -c 'make install'
+   $> sudo make install
 
 Contact information:
 --------------------

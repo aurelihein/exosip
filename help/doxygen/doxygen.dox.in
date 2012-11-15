@@ -72,7 +72,7 @@
  * @section what_thanks Thanks
  *
  * Thanks to all the contributors and to all bug reporters.
- * Enjoy osip!
+ * Enjoy eXosip2/osip!
  *
  */
 
@@ -110,7 +110,3 @@
  * @verbinclude ChangeLog
  */
 
-/**
- * @page eXosip2_faq FAQ
- * @htmlinclude FAQ.html
- */

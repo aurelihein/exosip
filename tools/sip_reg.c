@@ -361,17 +361,11 @@ main (int argc, char *argv[])
 
     eXosip_automatic_action (context_eXosip);
     switch (event->type) {
-    case EXOSIP_REGISTRATION_NEW:
-      syslog_wrapper (LOG_INFO, "received new registration");
-      break;
     case EXOSIP_REGISTRATION_SUCCESS:
       syslog_wrapper (LOG_INFO, "registrered successfully");
       break;
     case EXOSIP_REGISTRATION_FAILURE:
       regparam.auth = 1;
-      break;
-    case EXOSIP_REGISTRATION_TERMINATED:
-      printf ("Registration terminated\n");
       break;
     default:
       syslog_wrapper (LOG_DEBUG, "recieved unknown eXosip event (type, did, cid) = (%d, %d, %d)", event->type, event->did, event->cid);
