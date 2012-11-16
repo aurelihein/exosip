@@ -1,15 +1,18 @@
 Project    : eXosip2 - the eXtended osip Library.
 Email      : amoizard@antisip.com
-License    : GPL
+License    : GPL OR Commercial -same version-
 Home Page  : http://savannah.gnu.org/projects/exosip
+Company    : Antisip at http://www.antisip.com
 
 eXosip is a GPL library that  extend  the  capability  of
 the oSIP library. It aims  to  implement  a  simple  high
-layer API to control the SIP for sessions establishements
+layer API to control SIP (rfc3261) for sessions establishements
 and common extensions.
 
-Once completed, this eXtended library should  provide  an
-API for call management, messaging and presence features.
+This eXtended library should  provide  an API for call management,
+messaging, presence features and everything you need with SIP.
+
+It's flexible, interoperable, stable and portable!
 
 Other license:
 --------------
@@ -55,8 +58,11 @@ eXosip2 does not contain:
 Installation procedure:
 -----------------------
 
-The program is known to run on linux, but might work
-on any unix and windows systems.
+The program is known to run on linux, ios, android, windows, unix, macosx,
+windows mobile... might work on any system with libc!
+
+You should install c-ares before for much better DNS management!
+   http://c-ares.haxx.se
 
    $> ./configure
    $> make
@@ -69,7 +75,7 @@ For more information on eXosip, any contributions, or any remarks,
 you can contact me at <amoizard@antisip.com>.
 
 Use the *osip* mailing list for question about eXosip.
-  <osip@atosc.org>.
+  <osip-dev@gnu.org>.
 
 Subscribe by writing to:
-  <osip-request@atosc.org> with a subject set to "subscribe".
+  <osip-dev-request@gnu.org> with a subject set to "subscribe".
