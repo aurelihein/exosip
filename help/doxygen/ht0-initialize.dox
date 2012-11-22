@@ -73,6 +73,49 @@ If you wish to use other transport protocol, you can select:
  i = eXosip_listen_addr (ctx, IPPROTO_UDP, NULL, 5061, AF_INET, 1);
 ~~~~~~~
 
+<H2>Specific setup for TLS</H2>
+
+TLS may requires specific setup. TLS introduce in fact two interesting
+features:
++ Using certiticates and keys, it helps to trust/verify the remote
+server.
++ It also encrypts data so that no man-in-the-middle could read
+the SIP traffic.
+
+If you don't need server verification, TLS is very easy to setup. You
+don't need to configure any certificate, key or root certificate...
+
+Here is the code to disable certificate verification:
+
+~~~~~~~{.c}
+	int val=0;
+	i = eXosip_tls_verify_certificate (val);
+~~~~~~~
+
+If you require validation, a few work still needs to be done.
+What you need depends on your platform/os.
+
++ Certificate on windows:
+
+On windows, exosip has built-in support for "Windows Certificate Store".
+Thus, you only need to add your certifcate and keys in the official
+"Windows Certificate Store".
+
++ Certificate on macosx:
+
+On macosx, exosip has built-in support for the certificate store.
+
++ Certificate on other platforms:
+
+      eXosip_tls_ctx_t tls_info;
+      memset(&tls_info, 0, sizeof(eXosip_tls_ctx_t));
+      snprintf(tls_info.client.cert, sizeof(tls_info.client.cert), "user-cert.crt");
+      snprintf(tls_info.client.priv_key, sizeof(tls_info.client.priv_key), "user-privkey.crt");
+      snprintf(tls_info.client.priv_key_pw, sizeof(tls_info.client.priv_key_pw), "password");
+      snprintf(tls_info.root_ca_cert, sizeof(tls_info.root_ca_cert), "cacert.crt");
+
+      i = eXosip_set_tls_ctx (&tls_info);
+
 <H2>Additionnal setup</H2>
 
 A few options can be modified in eXosip2. However, most default are
