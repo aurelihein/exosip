@@ -1789,6 +1789,7 @@ _tls_tl_ssl_connect_socket (struct eXosip_t *excontext, struct _tls_stream *sock
   X509 *cert;
   BIO *sbio;
   int res;
+  int tries_left=100;
 
   if (sockinfo->ssl_ctx == NULL) {
     sockinfo->ssl_ctx = initialize_client_ctx (reserved->tls_client_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
@@ -1820,7 +1821,6 @@ _tls_tl_ssl_connect_socket (struct eXosip_t *excontext, struct _tls_stream *sock
     struct timeval tv;
     int fd;
     fd_set readfds;
-    int tries_left=100;
 
     res = SSL_connect (sockinfo->ssl_conn);
     res = SSL_get_error (sockinfo->ssl_conn, res);
