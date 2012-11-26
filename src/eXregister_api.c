@@ -52,6 +52,26 @@ eXosip_register_remove (struct eXosip_t *excontext, int rid)
   return OSIP_SUCCESS;
 }
 
+static const char *days[]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+static const char *months[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+
+static void
+_eXosip_register_set_date(osip_message_t *msg){
+	char tmp[256]={0};
+	time_t curtime=time(NULL);
+	struct tm *ret;
+#ifndef WIN32
+	struct tm gmt;
+	ret=gmtime_r(&curtime,&gmt);
+#else
+	ret=gmtime(&curtime);
+#endif
+	/*cannot use strftime because it is locale dependant*/
+	snprintf(tmp,sizeof(tmp)-1,"%s, %i %s %i %02i:%02i:%02i GMT",
+		 days[ret->tm_wday],ret->tm_mday,months[ret->tm_mon],1900+ret->tm_year,ret->tm_hour,ret->tm_min,ret->tm_sec);
+	osip_message_replace_header(msg,"Date",tmp);
+}
+
 static int
 _eXosip_register_build_register (struct eXosip_t *excontext, eXosip_reg_t * jr, osip_message_t ** _reg)
 {
@@ -175,6 +195,10 @@ _eXosip_register_build_register (struct eXosip_t *excontext, eXosip_reg_t * jr, 
       return i;
   }
 
+  if (reg){
+    if (excontext->register_with_date) _eXosip_register_set_date(reg);
+  }
+
   *_reg = reg;
   return OSIP_SUCCESS;
 }
@@ -255,8 +279,6 @@ eXosip_register_build_register (struct eXosip_t *excontext, int rid, int expires
   jr->r_reg_period = expires;
   if (jr->r_reg_period == 0) {
   }                             /* unregistration */
-  else if (jr->r_reg_period > 3600)
-    jr->r_reg_period = 3600;
   else if (jr->r_reg_period < 30)       /* too low */
     jr->r_reg_period = 30;
 

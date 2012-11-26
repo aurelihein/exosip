@@ -87,6 +87,25 @@ udp_tl_free (struct eXosip_t *excontext)
 #define SOCKET_OPTION_VALUE char *
 #endif
 
+int
+_eXosip_transport_set_dscp(struct eXosip_t *excontext, int family, int sock)
+{
+  int res;
+  if (family == AF_INET) {
+    int tos = (excontext->dscp << 2) & 0xFC;
+    res = setsockopt (sock, IPPROTO_IP, IP_TOS, (SOCKET_OPTION_VALUE) & tos, sizeof (tos));
+  }
+  else {
+    int tos = (excontext->dscp << 2) & 0xFC;
+#ifdef IPV6_TCLASS
+    res = setsockopt (sock, IPPROTO_IPV6, IPV6_TCLASS, (SOCKET_OPTION_VALUE) & tos, sizeof (tos));
+#else
+    res = setsockopt (sock, IPPROTO_IPV6, IP_TOS, (SOCKET_OPTION_VALUE) & tos, sizeof (tos));
+#endif
+  }
+  return res;
+}
+
 static int
 udp_tl_open (struct eXosip_t *excontext)
 {
@@ -174,20 +193,7 @@ udp_tl_open (struct eXosip_t *excontext)
 
   reserved->udp_socket = sock;
 
-  if (eXtl_udp.proto_family == AF_INET) {
-    int tos = (excontext->dscp << 2) & 0xFC;
-
-    res = setsockopt (reserved->udp_socket, IPPROTO_IP, IP_TOS, (SOCKET_OPTION_VALUE) & tos, sizeof (tos));
-  }
-  else {
-    int tos = (excontext->dscp << 2) & 0xFC;
-
-#ifdef IPV6_TCLASS
-    res = setsockopt (reserved->udp_socket, IPPROTO_IPV6, IPV6_TCLASS, (SOCKET_OPTION_VALUE) & tos, sizeof (tos));
-#else
-    res = setsockopt (reserved->udp_socket, IPPROTO_IPV6, IP_TOS, (SOCKET_OPTION_VALUE) & tos, sizeof (tos));
-#endif
-  }
+  _eXosip_transport_set_dscp(excontext, eXtl_udp.proto_family, sock);
 
   if (eXtl_udp.proto_port == 0) {
     /* get port number from socket */
@@ -292,7 +298,6 @@ udp_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * o
       int err;
 
       buf[i] = '\0';
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Received message: \n%s\n", buf));
 
       memset (src6host, 0, sizeof (src6host));
 
@@ -327,12 +332,9 @@ udp_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * o
       }
 #endif
 
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Message received from: %s:%i\n", src6host, recvport));
-
       _eXosip_handle_incoming_message (excontext, buf, i, reserved->udp_socket, src6host, recvport, NULL, NULL);
 
     }
-#ifndef MINISIZE
     else if (i < 0) {
       int my_errno = errno;
 
@@ -344,7 +346,6 @@ udp_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * o
     else {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Dummy SIP message received\n"));
     }
-#endif
 
     osip_free (buf);
   }
@@ -800,5 +801,6 @@ struct eXtl_protocol eXtl_udp = {
   &udp_tl_keepalive,
   &udp_tl_set_socket,
   &udp_tl_masquerade_contact,
-  &udp_tl_get_masquerade_contact
+  &udp_tl_get_masquerade_contact,
+  NULL
 };

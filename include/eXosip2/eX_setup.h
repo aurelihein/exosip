@@ -106,6 +106,7 @@ extern "C" {
 #define EXOSIP_OPT_ADD_ACCOUNT_INFO (EXOSIP_OPT_BASE_OPTION+13)
 #define EXOSIP_OPT_DNS_CAPABILITIES (EXOSIP_OPT_BASE_OPTION+14)
 #define EXOSIP_OPT_SET_DSCP (EXOSIP_OPT_BASE_OPTION+15)
+#define EXOSIP_OPT_REGISTER_WITH_DATE (EXOSIP_OPT_BASE_OPTION+16)
 
   /* non standard option: need a compilation flag to activate */
 #define EXOSIP_OPT_KEEP_ALIVE_OPTIONS_METHOD (EXOSIP_OPT_BASE_OPTION+1000)
@@ -260,6 +261,14 @@ extern "C" {
  * @param secure    0 for UDP or TCP, 1 for TLS (with TCP).
  */
   int eXosip_listen_addr (struct eXosip_t *excontext, int transport, const char *addr, int port, int family, int secure);
+
+/**
+ * Reset transport sockets.
+ * 
+ * @param excontext    eXosip_t instance.
+ */
+  int eXosip_reset_transports (struct eXosip_t *excontext);
+
 
 /**
  * Listen on a specified socket.

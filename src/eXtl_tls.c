@@ -30,13 +30,13 @@
 #include <sys/stat.h>
 #endif
 
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
 #ifdef WIN32
 #include <Mstcpip.h>
 #include <wincrypt.h>
+#else
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
 #endif
 
 #if !defined(_WIN32_WCE)
@@ -128,8 +128,10 @@ struct _tls_stream {
   CFWriteStreamRef writeStream;
 #endif
   char natted_ip[65];
-   int natted_port;
-   int ephemeral_port;
+  int natted_port;
+  int ephemeral_port;
+  int invalid;
+  int is_server;
 };
 
 #ifndef SOCKET_TIMEOUT
@@ -257,6 +259,18 @@ tls_tl_free (struct eXosip_t *excontext)
   tls_verify_client_certificate = 0;
   osip_free (reserved);
   excontext->eXtltls_reserved = NULL;
+  return OSIP_SUCCESS;
+}
+
+static int
+tls_tl_reset (struct eXosip_t *excontext)
+{
+  struct eXtltls *reserved = (struct eXtltls *) excontext->eXtltls_reserved;
+  int pos;
+  for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
+    if (reserved->socket_tab[pos].socket>0)
+      reserved->socket_tab[pos].invalid=1;
+  }
   return OSIP_SUCCESS;
 }
 
@@ -1415,6 +1429,7 @@ tls_tl_open (struct eXosip_t *excontext)
       setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, (void *) &valopt, sizeof (valopt));
     }
 
+#ifndef DISABLE_MAIN_SOCKET
     res = bind (sock, curinfo->ai_addr, curinfo->ai_addrlen);
     if (res < 0) {
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "eXosip: Cannot bind socket node:%s family:%d %s\n", eXtl_tls.proto_ifs, curinfo->ai_family, strerror (ex_errno)));
@@ -1438,6 +1453,7 @@ tls_tl_open (struct eXosip_t *excontext)
         continue;
       }
     }
+#endif
 
     break;
   }
@@ -1470,6 +1486,7 @@ tls_tl_set_fdset (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip
   struct eXtltls *reserved = (struct eXtltls *) excontext->eXtltls_reserved;
   int pos;
 
+#ifndef DISABLE_MAIN_SOCKET
   if (reserved->tls_socket <= 0)
     return -1;
 
@@ -1477,6 +1494,7 @@ tls_tl_set_fdset (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * osip
 
   if (reserved->tls_socket > *fd_max)
     *fd_max = reserved->tls_socket;
+#endif
 
   for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
     if (reserved->socket_tab[pos].socket > 0) {
@@ -1679,6 +1697,15 @@ _tls_tl_check_connected (struct eXosip_t *excontext)
   int res;
 
   for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
+    if (reserved->socket_tab[pos].invalid > 0) {
+          OSIP_TRACE (osip_trace
+                      (__FILE__, __LINE__, OSIP_INFO2, NULL,
+                       "_tls_tl_check_connected: socket node is in invalid state:%s:%i, socket %d [pos=%d], family:%d\n",
+                       reserved->socket_tab[pos].remote_ip, reserved->socket_tab[pos].remote_port, reserved->socket_tab[pos].socket, pos, reserved->socket_tab[pos].ai_addr.sa_family));
+          _tls_tl_close_sockinfo (&reserved->socket_tab[pos]);
+          continue;
+    }
+
     if (reserved->socket_tab[pos].socket > 0 && reserved->socket_tab[pos].ai_addrlen > 0) {
       if (reserved->socket_tab[pos].ssl_state > 0) {
         /* already connected */
@@ -1793,6 +1820,7 @@ _tls_tl_ssl_connect_socket (struct eXosip_t *excontext, struct _tls_stream *sock
     struct timeval tv;
     int fd;
     fd_set readfds;
+    int tries_left=100;
 
     res = SSL_connect (sockinfo->ssl_conn);
     res = SSL_get_error (sockinfo->ssl_conn, res);
@@ -1826,7 +1854,7 @@ _tls_tl_ssl_connect_socket (struct eXosip_t *excontext, struct _tls_stream *sock
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "SSL_connect (timeout not data to read) (%d ms)\n", SOCKET_TIMEOUT));
       return 1;
     }
-  } while (!SSL_is_init_finished (sockinfo->ssl_conn));
+  } while (!SSL_is_init_finished (sockinfo->ssl_conn) && ((tries_left--) > 0));
 
   if (SSL_is_init_finished (sockinfo->ssl_conn)) {
     OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "SSL_is_init_finished done\n"));
@@ -2090,6 +2118,7 @@ _tls_tl_recv (struct eXosip_t *excontext, struct _tls_stream *sockinfo)
     }
     else {
       rlen += r;
+      break;
     }
   }
   while (SSL_pending (sockinfo->ssl_conn));
@@ -2171,8 +2200,13 @@ tls_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * o
       if (status == EBADF) {
         OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "Error accepting TLS socket: EBADF\n"));
         memset (&reserved->ai_addr, 0, sizeof (struct sockaddr_storage));
-        if (reserved->tls_socket > 0)
+        if (reserved->tls_socket > 0) {
           closesocket (reserved->tls_socket);
+	  for (i = 0; i < EXOSIP_MAX_SOCKETS; i++) {
+	    if (reserved->socket_tab[i].socket > 0 && reserved->socket_tab[i].is_server > 0)
+	      _tls_tl_close_sockinfo (&reserved->socket_tab[i]);
+	  }
+	}
         tls_tl_open (excontext);
       }
 #endif
@@ -2221,9 +2255,14 @@ tls_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * o
       OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "New TLS connection accepted\n"));
 
       reserved->socket_tab[pos].socket = sock;
+      reserved->socket_tab[pos].is_server=1;
       reserved->socket_tab[pos].ssl_conn = ssl;
       reserved->socket_tab[pos].ssl_state = 2;
 
+      {
+	int valopt = 1;
+	setsockopt (sock, SOL_SOCKET, SO_REUSEADDR, (void *) &valopt, sizeof (valopt));
+      }
 
       memset (src6host, 0, sizeof (src6host));
 
@@ -2231,6 +2270,8 @@ tls_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * o
         recvport = ntohs (((struct sockaddr_in *) &sa)->sin_port);
       else
         recvport = ntohs (((struct sockaddr_in6 *) &sa)->sin6_port);
+
+      _eXosip_transport_set_dscp(excontext, eXtl_tls.proto_family, sock);
 
 #if defined(__arc__)
       {
@@ -2325,6 +2366,19 @@ _tls_tl_connect_socket (struct eXosip_t *excontext, char *host, int port)
   if (res)
     return -1;
 
+  for (curinfo = addrinfo; curinfo; curinfo = curinfo->ai_next) {
+    int i;
+    if (curinfo->ai_protocol && curinfo->ai_protocol != IPPROTO_TCP) continue;
+
+    res = getnameinfo ((struct sockaddr *) curinfo->ai_addr, curinfo->ai_addrlen, src6host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+    if (res != 0) continue;
+
+    i = _tls_tl_find_socket (excontext, src6host, port);
+    if (i >= 0) {
+      _eXosip_freeaddrinfo (addrinfo);
+      return i;
+    }
+  }
 
   for (curinfo = addrinfo; curinfo; curinfo = curinfo->ai_next) {
     if (curinfo->ai_protocol && curinfo->ai_protocol != IPPROTO_TCP) {
@@ -2383,7 +2437,7 @@ _tls_tl_connect_socket (struct eXosip_t *excontext, char *host, int port)
         continue;
       }
     }
-#if !defined(_WIN32_WCE)
+#if !defined(_WIN32_WCE) && defined(_MSC_VER)
     {
       DWORD err = 0L;
       DWORD dwBytes = 0L;
@@ -2440,6 +2494,8 @@ _tls_tl_connect_socket (struct eXosip_t *excontext, char *host, int port)
 #endif
     }
 #endif
+
+    _eXosip_transport_set_dscp(excontext, eXtl_tls.proto_family, sock);
 
     OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO2, NULL, "eXosip: socket node:%s , socket %d, family:%d set to non blocking mode\n", host, sock, curinfo->ai_family));
     res = connect (sock, curinfo->ai_addr, curinfo->ai_addrlen);
@@ -2602,6 +2658,7 @@ tls_tl_send_message (struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
   struct eXtltls *reserved = (struct eXtltls *) excontext->eXtltls_reserved;
   size_t length = 0;
   char *message;
+  char *ptr;
   int i;
 
   int pos;
@@ -2869,9 +2926,14 @@ tls_tl_send_message (struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
 
   SSL_set_mode (ssl, SSL_MODE_AUTO_RETRY);
 
-  while (1) {
-    i = SSL_write (ssl, (const void *) message, (int) length);
-
+  ptr=message;
+  while (length>0) {
+#if TARGET_OS_IPHONE /* avoid ssl error on large message */
+    int max=(length>500)?500:length;
+    i = SSL_write (ssl, (const void *) ptr, (int) max);
+#else
+    i = SSL_write (ssl, (const void *) ptr, (int) length);
+#endif
     if (i <= 0) {
       i = SSL_get_error (ssl, i);
       if (i == SSL_ERROR_WANT_READ || i == SSL_ERROR_WANT_WRITE)
@@ -2881,7 +2943,8 @@ tls_tl_send_message (struct eXosip_t *excontext, osip_transaction_t * tr, osip_m
       osip_free (message);
       return -1;
     }
-    break;
+    length=length-i;
+    ptr+=i;
   }
 
   osip_free (message);
@@ -2987,7 +3050,8 @@ struct eXtl_protocol eXtl_tls = {
   &tls_tl_keepalive,
   &tls_tl_set_socket,
   &tls_tl_masquerade_contact,
-  &tls_tl_get_masquerade_contact
+  &tls_tl_get_masquerade_contact,
+  &tls_tl_reset
 };
 
 #else

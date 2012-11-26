@@ -574,6 +574,16 @@ eXosip_listen_addr (struct eXosip_t *excontext, int transport, const char *addr,
   return OSIP_SUCCESS;
 }
 
+int eXosip_reset_transports (struct eXosip_t *excontext)
+{
+  int i = OSIP_WRONG_STATE;
+  if (excontext->eXtl) {
+    if (excontext->eXtl->tl_reset)
+      i = excontext->eXtl->tl_reset(excontext);
+  }
+  return i;
+}
+
 struct eXosip_t *
 eXosip_malloc (void)
 {
@@ -959,6 +969,10 @@ eXosip_set_option (struct eXosip_t *excontext, int opt, const void *value)
     /* 0x1A by default */
     excontext->dscp = val;
     break;
+  case EXOSIP_OPT_REGISTER_WITH_DATE:
+    val = *((int *) value);
+    excontext->register_with_date = val;
+    break;
   default:
     return OSIP_BADPARAMETER;
   }
@@ -1015,3 +1029,4 @@ _eXosip_thread (void *arg)
 }
 
 #endif
+

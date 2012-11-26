@@ -56,6 +56,7 @@ struct eXtl_protocol {
   int (*tl_set_socket) (struct eXosip_t * excontext, int socket);
   int (*tl_masquerade_contact) (struct eXosip_t * excontext, const char *ip, int port);
   int (*tl_get_masquerade_contact) (struct eXosip_t * excontext, char *ip, int ip_size, char *port, int port_size);
+  int (*tl_reset) (struct eXosip_t * excontext);
 };
 
 extern struct eXtl_protocol eXtl_udp;

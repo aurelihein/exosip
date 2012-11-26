@@ -361,8 +361,6 @@ extern "C" {
 
   char *_eXosip_transport_protocol (osip_message_t * msg);
   int _eXosip_find_protocol (osip_message_t * msg);
-  int _eXosip_tcp_find_socket (char *host, int port);
-  int _eXosip_tcp_connect_socket (char *host, int port);
   int setsockopt_ipv6only (int sock);
 
 
@@ -420,6 +418,7 @@ extern "C" {
     int use_rport;
     int dns_capabilities;
     int dscp;
+    int register_with_date;
     char ipv4_for_gateway[256];
     char ipv6_for_gateway[256];
     struct eXosip_dns_cache dns_entries[MAX_EXOSIP_DNS_ENTRY];
@@ -532,6 +531,8 @@ extern "C" {
   void _eXosip_dnsutils_release (osip_naptr_t * naptr_record);
 
   int _eXosip_handle_incoming_message (struct eXosip_t *excontext, char *buf, size_t len, int socket, char *host, int port, char *received_host, int *rport_port);
+
+  int _eXosip_transport_set_dscp(struct eXosip_t *excontext, int family, int sock);
 
 #ifdef __cplusplus
 }

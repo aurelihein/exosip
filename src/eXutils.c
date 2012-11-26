@@ -420,11 +420,13 @@ eXosip_dns_get_local_fqdn (char **servername, char **serverip, char **netmask, u
     PMIB_IFROW ifrow;
 
     if (GetIpAddrTable (NULL, &size_of_iptable, TRUE) == ERROR_INSUFFICIENT_BUFFER) {
-      ifrow = (PMIB_IFROW) _alloca (sizeof (MIB_IFROW));
-      ipt = (PMIB_IPADDRTABLE) _alloca (size_of_iptable);
+      ifrow = (PMIB_IFROW) osip_malloc (sizeof (MIB_IFROW));
+      ipt = (PMIB_IPADDRTABLE) osip_malloc (size_of_iptable);
       if (ifrow == NULL || ipt == NULL) {
         /* not very usefull to continue */
         OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO4, NULL, "ERROR alloca failed\r\n"));
+	if (ifrow!=NULL) osip_free(ifrow);
+	if (ipt!=NULL) osip_free(ipt);
         return OSIP_NOMEM;
       }
 
@@ -457,6 +459,8 @@ eXosip_dns_get_local_fqdn (char **servername, char **serverip, char **netmask, u
           }
         }
       }
+      osip_free(ifrow);
+      osip_free(ipt);
     }
   }
 
@@ -2858,8 +2862,10 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
     aclass = _get_short (cp);
     cp += sizeof (u_short);
 #elif defined(__APPLE_CC__)
+    aclass++; /* get rid of compiler warning... who cares */
     GETSHORT (aclass, cp);
 #else
+    aclass++; /* get rid of compiler warning... who cares */
     NS_GET16 (aclass, cp);
 #endif
 
@@ -2868,8 +2874,10 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
     ttl = _get_long (cp);
     cp += sizeof (u_long);
 #elif defined(__APPLE_CC__)
+    ttl++; /* get rid of compiler warning... who cares */
     GETLONG (ttl, cp);
 #else
+    ttl++; /* get rid of compiler warning... who cares */
     NS_GET32 (ttl, cp);
 #endif
 
@@ -2989,7 +2997,7 @@ eXosip_dnsutils_naptr_lookup (osip_naptr_t * output_record, const char *domain)
   querybuf answer;              /* answer buffer from nameserver */
   int n;
   int ancount, qdcount;         /* answer count and query count */
-  int nscount, arcount;         /* ns count and ar count */
+  /* int nscount, arcount;         ns count and ar count */
   HEADER *hp;                   /* answer buffer header */
   char hostbuf[256];
   unsigned char *msg, *eom, *cp;        /* answer buffer positions */
@@ -3029,8 +3037,8 @@ eXosip_dnsutils_naptr_lookup (osip_naptr_t * output_record, const char *domain)
   hp = (HEADER *) & answer;
   qdcount = ntohs (hp->qdcount);
   ancount = ntohs (hp->ancount);
-  nscount = ntohs (hp->ancount);
-  arcount = ntohs (hp->arcount);
+  /* nscount = ntohs (hp->ancount); */
+  /* arcount = ntohs (hp->arcount); */
 
   msg = (unsigned char *) (&answer);
   eom = (unsigned char *) (&answer) + n;
@@ -3089,8 +3097,10 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
     aclass = _get_short (cp);
     cp += sizeof (u_short);
 #elif defined(__APPLE_CC__)
+    aclass++; /* get rid of compiler warning... who cares */
     GETSHORT (aclass, cp);
 #else
+    aclass++; /* get rid of compiler warning... who cares */
     NS_GET16 (aclass, cp);
 #endif
 
@@ -3099,8 +3109,10 @@ defined(OLD_NAMESER) || defined(__FreeBSD__)
     ttl = _get_long (cp);
     cp += sizeof (u_long);
 #elif defined(__APPLE_CC__)
+    ttl++; /* get rid of compiler warning... who cares */
     GETLONG (ttl, cp);
 #else
+    ttl++; /* get rid of compiler warning... who cares */
     NS_GET32 (ttl, cp);
 #endif
 

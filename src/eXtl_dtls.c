@@ -448,7 +448,6 @@ dtls_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * 
       int pos;
 
       enc_buf[enc_buf_len] = '\0';
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Received message: \n%s\n", enc_buf));
 
       memset (src6host, 0, sizeof (src6host));
 
@@ -482,8 +481,6 @@ dtls_tl_read_message (struct eXosip_t *excontext, fd_set * osip_fdset, fd_set * 
         OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Message received from: %s:%i\n", src6host, recvport));
       }
 #endif
-
-      OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Message received from: %s:%i\n", src6host, recvport));
 
       for (pos = 0; pos < EXOSIP_MAX_SOCKETS; pos++) {
         if (reserved->socket_tab[pos].ssl_conn != NULL) {
@@ -1087,7 +1084,8 @@ struct eXtl_protocol eXtl_dtls = {
   &dtls_tl_keepalive,
   &dtls_tl_set_socket,
   &dtls_tl_masquerade_contact,
-  &dtls_tl_get_masquerade_contact
+  &dtls_tl_get_masquerade_contact,
+  NULL
 };
 
 #endif

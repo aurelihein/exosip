@@ -1365,6 +1365,7 @@ _eXosip_handle_incoming_message (struct eXosip_t *excontext, char *buf, size_t l
 {
   int i;
   osip_event_t *se;
+  int tmp;
 
   se = (osip_event_t *) osip_malloc (sizeof (osip_event_t));
   if (se == NULL)
@@ -1372,6 +1373,11 @@ _eXosip_handle_incoming_message (struct eXosip_t *excontext, char *buf, size_t l
   se->type = UNKNOWN_EVT;
   se->sip = NULL;
   se->transactionid = 0;
+
+  tmp=buf[length];
+  buf[length]=0;
+  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Received message from %s:%i:\n%s\n",host,port,buf));
+  buf[length]=tmp;
 
   /* parse message and set up an event */
   i = osip_message_init (&(se->sip));
@@ -1425,8 +1431,6 @@ _eXosip_handle_incoming_message (struct eXosip_t *excontext, char *buf, size_t l
       se->type = RCV_STATUS_3456XX;
   }
 
-  OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "Message received from: %s:%i\n", host, port));
-
   osip_message_fix_last_via_header (se->sip, host, port);
 
   if (MSG_IS_RESPONSE (se->sip)) {
@@ -1437,7 +1441,7 @@ _eXosip_handle_incoming_message (struct eXosip_t *excontext, char *buf, size_t l
   i = osip_find_transaction_and_add_event (excontext->j_osip, se);
   if (i != 0) {
     /* this event has no transaction, */
-    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "This is a request\n", buf));
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_INFO1, NULL, "no transaction for message\n"));
     eXosip_lock (excontext);
     if (MSG_IS_REQUEST (se->sip))
       _eXosip_process_newrequest (excontext, se, socket);
