@@ -98,9 +98,9 @@
 #define MULTITASKING_ENABLED
 #endif
 
-SSL_CTX *initialize_client_ctx (const char *certif_client_local_cn_name, eXosip_tls_ctx_t * client_ctx, int transport);
+SSL_CTX *initialize_client_ctx (struct eXosip_t *excontext, const char *certif_client_local_cn_name, eXosip_tls_ctx_t * client_ctx, int transport);
 
-SSL_CTX *initialize_server_ctx (const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_ctx, int transport);
+SSL_CTX *initialize_server_ctx (struct eXosip_t *excontext, const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_ctx, int transport);
 
 int verify_cb (int preverify_ok, X509_STORE_CTX * store);
 
@@ -144,8 +144,6 @@ struct _tls_stream {
 #define EXOSIP_MAX_SOCKETS 200
 #endif
 
-static int tls_verify_client_certificate;
-
 struct eXtltls {
   eXosip_tls_ctx_t eXosip_tls_ctx_params;
   char tls_local_cn_name[128];
@@ -180,7 +178,6 @@ tls_tl_init (struct eXosip_t *excontext)
   memset (&reserved->eXosip_tls_ctx_params, 0, sizeof (eXosip_tls_ctx_t));
   memset (&reserved->tls_local_cn_name, 0, sizeof (reserved->tls_local_cn_name));
   memset (&reserved->tls_client_local_cn_name, 0, sizeof (reserved->tls_client_local_cn_name));
-  tls_verify_client_certificate = 0;
 
   excontext->eXtltls_reserved = reserved;
   return OSIP_SUCCESS;
@@ -256,7 +253,6 @@ tls_tl_free (struct eXosip_t *excontext)
   memset (&reserved->tls_local_cn_name, 0, sizeof (reserved->tls_local_cn_name));
   memset (&reserved->tls_client_local_cn_name, 0, sizeof (reserved->tls_client_local_cn_name));
 
-  tls_verify_client_certificate = 0;
   osip_free (reserved);
   excontext->eXtltls_reserved = NULL;
   return OSIP_SUCCESS;
@@ -819,9 +815,9 @@ verify_cb (int preverify_ok, X509_STORE_CTX * store)
     OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "issuer= %s\n", buf));
   }
 
-  if (tls_verify_client_certificate > 0)
-    return preverify_ok;
+  return preverify_ok;
 
+#if 0
   if (!preverify_ok && (err == X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN)) {
     X509_NAME_oneline (X509_get_issuer_name (store->current_cert), buf, 256);
     OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "issuer= %s\n", buf));
@@ -866,6 +862,7 @@ verify_cb (int preverify_ok, X509_STORE_CTX * store)
 
   preverify_ok = 1;             /* configured to accept anyway! */
   return preverify_ok;
+#endif
 }
 
 static int
@@ -1073,12 +1070,12 @@ eXosip_tls_use_client_certificate (struct eXosip_t * excontext, const char *loca
 eXosip_tls_ctx_error
 eXosip_tls_verify_certificate (struct eXosip_t * excontext, int _tls_verify_client_certificate)
 {
-  tls_verify_client_certificate = _tls_verify_client_certificate;
+  excontext->tls_verify_client_certificate = _tls_verify_client_certificate;
   return TLS_OK;
 }
 
 SSL_CTX *
-initialize_client_ctx (const char *certif_client_local_cn_name, eXosip_tls_ctx_t * client_ctx, int transport)
+initialize_client_ctx (struct eXosip_t *excontext, const char *certif_client_local_cn_name, eXosip_tls_ctx_t * client_ctx, int transport)
 {
   SSL_METHOD *meth = NULL;
   X509 *cert = NULL;
@@ -1200,7 +1197,8 @@ initialize_client_ctx (const char *certif_client_local_cn_name, eXosip_tls_ctx_t
     {
       int verify_mode = SSL_VERIFY_NONE;
 
-      verify_mode = SSL_VERIFY_PEER;
+      if (excontext->tls_verify_client_certificate > 0)
+	verify_mode = SSL_VERIFY_PEER;
 
       SSL_CTX_set_verify (ctx, verify_mode, &verify_cb);
       SSL_CTX_set_verify_depth (ctx, ex_verify_depth + 1);
@@ -1216,14 +1214,14 @@ initialize_client_ctx (const char *certif_client_local_cn_name, eXosip_tls_ctx_t
   }
 
   if (_tls_add_certificates (ctx) <= 0) {
-    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "Cannot load certificates from Microsoft Certificate Store"));
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "no system certificate loaded\n"));
   }
 
   return ctx;
 }
 
 SSL_CTX *
-initialize_server_ctx (const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_ctx, int transport)
+initialize_server_ctx (struct eXosip_t *excontext, const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_ctx, int transport)
 {
   SSL_METHOD *meth = NULL;
   SSL_CTX *ctx;
@@ -1273,7 +1271,7 @@ initialize_server_ctx (const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_
   }
 
   if (_tls_add_certificates (ctx) <= 0) {
-    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "Cannot load certificates from Microsoft Certificate Store"));
+    OSIP_TRACE (osip_trace (__FILE__, __LINE__, OSIP_ERROR, NULL, "no system certificate loaded\n"));
   }
 
   generate_eph_rsa_key (ctx);
@@ -1281,7 +1279,7 @@ initialize_server_ctx (const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_
   SSL_CTX_set_session_id_context (ctx, (void *) &s_server_session_id_context, sizeof s_server_session_id_context);
 
   if (srv_ctx->server.priv_key_pw[0] != '\0') {
-    SSL_CTX_set_default_passwd_cb_userdata (ctx, (void *) srv_ctx->server.priv_key_pw[0]);
+    SSL_CTX_set_default_passwd_cb_userdata (ctx, (void *) srv_ctx->server.priv_key_pw);
     SSL_CTX_set_default_passwd_cb (ctx, password_cb);
   }
 
@@ -1374,10 +1372,10 @@ tls_tl_open (struct eXosip_t *excontext)
   SSL_library_init ();
   SSL_load_error_strings ();
 
-  reserved->server_ctx = initialize_server_ctx (reserved->tls_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
+  reserved->server_ctx = initialize_server_ctx (excontext, reserved->tls_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
 
   /* always initialize the client */
-  reserved->client_ctx = initialize_client_ctx (reserved->tls_client_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
+  reserved->client_ctx = initialize_client_ctx (excontext, reserved->tls_client_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
 
 /*only necessary under Windows-based OS, unix-like systems use /dev/random or /dev/urandom */
 #if defined(WIN32) || defined(_WINDOWS)
@@ -1792,7 +1790,7 @@ _tls_tl_ssl_connect_socket (struct eXosip_t *excontext, struct _tls_stream *sock
   int tries_left=100;
 
   if (sockinfo->ssl_ctx == NULL) {
-    sockinfo->ssl_ctx = initialize_client_ctx (reserved->tls_client_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
+    sockinfo->ssl_ctx = initialize_client_ctx (excontext, reserved->tls_client_local_cn_name, &reserved->eXosip_tls_ctx_params, IPPROTO_TCP);
 
     /* FIXME: changed parameter from ctx to client_ctx -> works now */
     sockinfo->ssl_conn = SSL_new (sockinfo->ssl_ctx);

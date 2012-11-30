@@ -59,8 +59,8 @@
 #define RANDOM  "random.pem"
 #define DHFILE "dh1024.pem"
 
-SSL_CTX *initialize_client_ctx (const char *certif_client_local_cn_name, eXosip_tls_ctx_t * client_ctx, int transport);
-SSL_CTX *initialize_server_ctx (const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_ctx, int transport);
+SSL_CTX *initialize_client_ctx (struct eXosip_t *excontext, const char *certif_client_local_cn_name, eXosip_tls_ctx_t * client_ctx, int transport);
+SSL_CTX *initialize_server_ctx (struct eXosip_t *excontext, const char *certif_local_cn_name, eXosip_tls_ctx_t * srv_ctx, int transport);
 
 /* persistent connection */
 struct _dtls_stream {
@@ -310,8 +310,8 @@ dtls_tl_open (struct eXosip_t *excontext)
     eXtl_dtls.proto_port = 5061;
 
   /* TODO: allow parameters for DTLS */
-  reserved->server_ctx = initialize_server_ctx (reserved->dtls_local_cn_name, &reserved->eXosip_dtls_ctx_params, IPPROTO_UDP);
-  reserved->client_ctx = initialize_client_ctx (reserved->dtls_client_local_cn_name, &reserved->eXosip_dtls_ctx_params, IPPROTO_UDP);
+  reserved->server_ctx = initialize_server_ctx (excontext, reserved->dtls_local_cn_name, &reserved->eXosip_dtls_ctx_params, IPPROTO_UDP);
+  reserved->client_ctx = initialize_client_ctx (excontext, reserved->dtls_client_local_cn_name, &reserved->eXosip_dtls_ctx_params, IPPROTO_UDP);
 
   res = _eXosip_get_addrinfo (excontext, &addrinfo, eXtl_dtls.proto_ifs, eXtl_dtls.proto_port, eXtl_dtls.proto_num);
   if (res)

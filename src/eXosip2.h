@@ -425,6 +425,7 @@ extern "C" {
     struct eXosip_account_info account_entries[MAX_EXOSIP_ACCOUNT_INFO];
     struct eXosip_http_auth http_auths[MAX_EXOSIP_HTTP_AUTH];
 
+    int tls_verify_client_certificate;
     CbSipCallback cbsipCallback;
   };
 
