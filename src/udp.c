@@ -1324,7 +1324,7 @@ _eXosip_process_response_out_of_transaction (struct eXosip_t *excontext, osip_ev
   /* ...code not reachable... */
 }
 
-int
+static int
 _eXosip_handle_received_rport (osip_message_t * response, char *host, int port, char *received_host, int *rport_port)
 {
   osip_generic_param_t *rport;
