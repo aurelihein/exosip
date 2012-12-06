@@ -1,0 +1,8 @@
+NAME_BUILD_DIR='libexosip2GIP'
+APPLI='libexosip2GIP'
+AUTOCONF='autogen'
+
+set -x
+. `pwd`/../common_GIP/common.sh
+exit
+ 
